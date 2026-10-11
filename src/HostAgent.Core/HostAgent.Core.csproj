@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>HostAgent.Core</AssemblyName>
+    <RootNamespace>HostAgent.Core</RootNamespace>
+  </PropertyGroup>
+</Project>
