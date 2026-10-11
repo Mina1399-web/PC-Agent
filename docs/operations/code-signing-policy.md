@@ -51,9 +51,11 @@ must be agreed with SignPath before implementation.
 
 The existing builder reads a CurrentUser/My certificate and is VM-bound;
 it is not a SignPath integration. A DEV package remains VM-only, unsigned
-and unsuitable for production. A cloud build path and its tests must be
-implemented separately without weakening either release validation or
-the DEV MSI machine restriction.
+and unsuitable for production. A separately guarded GitHub-hosted unsigned
+review build path is now prepared; its positive hosted execution is still
+unverified. It does not sign, create an MSI, install or replace the production
+release path, and does not weaken the DEV MSI machine restriction. See
+[current verification](../verification/signpath-publication.md).
 
 See [privacy](privacy.md), [dependency inventory](../legal/dependencies.md),
 [preparation and remaining gates](signpath-preparation.md),
