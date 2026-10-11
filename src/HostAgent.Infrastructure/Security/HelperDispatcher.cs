@@ -49,6 +49,12 @@ public sealed class HelperDispatcher
             await _journal.AppendAsync(Record(AuditEvent.Proposal, PolicyDecision.CONFIRM_REQUIRED, "proposed"), cancellationToken);
             approval = request.ApprovalId is { } id ? await _journal.ReadApprovalAsync(id, cancellationToken) : null;
             var binding = _allowlist.Resolve(request);
+            if (approval is not null && (approval.Target is null || binding is null ||
+                approval.Target != new ApprovedTarget(binding.ServiceName, binding.ExecutablePath, binding.Sha256)))
+            {
+                await _journal.AppendAsync(Record(AuditEvent.Decision, PolicyDecision.DENIED, "approval_target_mismatch"), cancellationToken);
+                return Response(HelperResult.Denied, "approval_target_mismatch");
+            }
             HelperSettings settings;
             PolicyDecision decision;
             try

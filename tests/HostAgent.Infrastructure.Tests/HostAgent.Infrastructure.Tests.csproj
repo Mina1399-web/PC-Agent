@@ -15,5 +15,6 @@
     <ProjectReference Include="..\..\src\HostAgent.Infrastructure\HostAgent.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\HostAgent.Service\HostAgent.Service.csproj" />
     <ProjectReference Include="..\..\src\HostAgent.Helper\HostAgent.Helper.csproj" />
+    <ProjectReference Include="..\..\src\HostAgent.Cli\HostAgent.Cli.csproj" />
   </ItemGroup>
 </Project>

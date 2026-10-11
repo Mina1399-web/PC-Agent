@@ -13,4 +13,8 @@ public sealed record HelperOperationResponse(int Version, Guid RequestId, Helper
 
 public sealed record OperationApproval(Guid ApprovalId, Guid RequestId, string IncidentId,
     string DiagnosisId, HelperOperation Operation, string RequestDigest, string ApproverSid,
-    DateTimeOffset ApprovedAtUtc, DateTimeOffset ExpiresAtUtc);
+    DateTimeOffset ApprovedAtUtc, DateTimeOffset ExpiresAtUtc)
+{
+    public ApprovedTarget? Target { get; init; }
+}
+public sealed record ApprovedTarget(string? ServiceName,string? ExecutablePath,string? Sha256);

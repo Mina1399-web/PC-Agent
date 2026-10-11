@@ -24,8 +24,9 @@ var dataDirectory = HostAgentDataDirectory.EnsureSecure(Path.Combine(
     "HostAgent"), serviceSid);
 var databasePath = Path.Combine(dataDirectory, "host-agent.db");
 var configuration=ServiceConfiguration.LoadSafe(Path.Combine(dataDirectory,"service.json"),serviceSid);
-builder.Services.AddSingleton<ISecretStore>(_=>new ProtectedSecretStore(
+builder.Services.AddSingleton<ProtectedSecretStore>(_=>new ProtectedSecretStore(
     Path.Combine(dataDirectory,builder.Environment.IsDevelopment()?"secrets-development":"secrets-production"),serviceSid));
+builder.Services.AddSingleton<ISecretStore>(services=>services.GetRequiredService<ProtectedSecretStore>());
 builder.Services.AddSingleton<INotificationStore>(_=>new SqliteNotificationStore(Path.Combine(dataDirectory,"notifications.db")));
 builder.Services.AddSingleton(_=>OutboundHttp.CreateClient());
 builder.Services.AddSingleton<INotificationSender>(services=>configuration.EnablePushover?
@@ -81,5 +82,6 @@ builder.Services.AddSingleton<ITelemetryCollectionJob>(services => new Telemetry
     services.GetRequiredService<IHostAgentStore>(),
     services.GetRequiredService<ITelemetryMetricProjector<EventLogTelemetry>>()));
 ServiceRuntime.AddWorkers(builder.Services,configuration);
+ServiceAdministration.Add(builder.Services,serviceSid);
 
 await builder.Build().RunAsync();

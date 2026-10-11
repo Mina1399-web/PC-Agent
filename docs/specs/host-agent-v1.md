@@ -105,4 +105,6 @@ See [Windows Development and Testing Environment](../development-and-testing.md)
 
 ## Documentation deliverables
 
+Subsequent authorization on 2026-10-11 permits completing the V1 product with safe local administration, MSI packaging and signing support for an existing owner-provided certificate. This supersedes the earlier Task-4-only signing implementation limit above; it does not authorize purchases, new certificate trust or weakening production policies. Current completion follows [the product plan](../plans/2026-10-11-v1-product-completion.md).
+
 Document architecture and data flow, privilege boundaries, protocol and helper whitelist, setup/configuration, protected secrets, Windows Service installation and recovery, SQLite path/migrations/retention, operating modes, testing commands, security assumptions, and known limitations. Documentation must match implemented behavior.

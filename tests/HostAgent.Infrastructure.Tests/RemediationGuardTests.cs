@@ -209,7 +209,7 @@ internal sealed class Task3Fixture : IAsyncDisposable
     public async Task<HelperOperationRequest> Approve(HelperOperationRequest request)
     {
         var approval = new OperationApproval(Guid.NewGuid(), request.RequestId, request.IncidentId, request.DiagnosisId,
-            request.Operation, HelperProtocol.Digest(request), ApproverSid, Clock.Now, Clock.Now.AddMinutes(5));
+            request.Operation, HelperProtocol.Digest(request), ApproverSid, Clock.Now, Clock.Now.AddMinutes(5)){Target=new("FixtureService",null,null)};
         await Journal.RecordApprovalAsync(approval, default);
         return request with { ApprovalId = approval.ApprovalId };
     }

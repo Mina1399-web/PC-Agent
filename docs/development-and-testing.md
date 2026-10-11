@@ -1,6 +1,10 @@
 # Windows Development and Testing Environment
 
+Current V1 completion uses account-local SDK **10.0.401** and runtime **10.0.12**, pinned in global.json/Directory.Build.props. Earlier SDK 10.0.100 results below are historical. The SDK archive was downloaded from Microsoft's official release metadata and its SHA-512 was verified before extraction. Build/release tooling additionally requires PowerShell 7 and account-local WiX **5.0.2** with WixToolset.Util.wixext/5.0.2. Windows PowerShell 5.1 script execution is Restricted in the VM; no execution policy was changed or bypassed. See [operator/release instructions](operations/quickstart.md) and [current verification](verification/v1-release.md).
+
 ## Development host
+
+The embedded MSI preflight uses WiX DTF 5.0.2 packages, verified using dotnet nuget verify --all and extracted outside the repository beside the wix tool directory. See the release guide for the required layout. Infrastructure integration tests run serially to avoid parallel PowerShell/MSI compiler resource contention in the DEV VM; each child process has a bounded 90-second deadline and is terminated on timeout. This changes the test harness, not product security timeouts.
 
 Builds and automated unit/integration tests for Host Agent must run on a Windows development or test environment whose approved execution policy permits locally built development assemblies to load. The protected production mini PC is not a development test host and must retain its existing Smart App Control and Code Integrity posture.
 

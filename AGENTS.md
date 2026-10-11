@@ -2,6 +2,8 @@
 
 This repository contains Host Agent V1, a Windows-first C#/.NET 10 project.
 
+On 2026-10-11 the user explicitly authorized completing the V1 product, including installation, safe local administration and release packaging. This supersedes historical Task-4-only restrictions below. Follow docs/plans/2026-10-11-v1-product-completion.md; all existing VM/host/security boundaries remain in force. No dashboard/public API/new helper mutation capability or unattended approval.
+
 ## Source of truth
 
 Before changing code, inspect the current working tree and read:
@@ -11,7 +13,7 @@ Before changing code, inspect the current working tree and read:
 - `docs/plans/2026-10-06-host-agent-v1.md`
 - `docs/verification/task-2.md`
 
-Treat current code and fresh evidence as authoritative over historical notes. Tasks 2–4 implementation/verification passed in the approved DEV VM; host synchronization remains blocked. Read [Task 4 evidence](docs/verification/task-4.md) and [security review](docs/security/task-4-review.md), with the historical Task 2/3 records. The Task 2 VM continuation prompt is historical. Task 4 was explicitly authorized on 2026-10-11; no additional feature/stage is authorized.
+Treat current code and fresh evidence as authoritative over historical notes. Tasks 2–4 implementation/verification passed in the approved DEV VM; host synchronization remains blocked. Read [Task 4 evidence](docs/verification/task-4.md) and [security review](docs/security/task-4-review.md), with the historical Task 2/3 records. The Task 2 VM continuation prompt and Task-4-only authorization limit are historical. Current V1 product completion is explicitly authorized as stated above.
 
 ## Required boundaries
 

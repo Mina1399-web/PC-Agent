@@ -1,5 +1,7 @@
 # Installation readiness
 
+This file records the historical Task 4 installation procedure. The later V1 completion provides an MSI and local CLI; follow the current [operator guide](quickstart.md) and [verification record](../verification/v1-release.md) instead of manually registering services.
+
 No service installation, account creation, deployment or production host modification was performed during Task 4. The examples below are a future administrator-controlled deployment procedure, not an executed verification record.
 
 Build and test only in the approved Windows DEV VM. Before any production deployment, provide a trusted signing/release strategy accepted by the production host's active security policies; never disable protections to run unsigned builds. Install released binaries under an administrator/SYSTEM-writable directory, with service accounts granted read/execute only. Do not run from the source checkout or a user-writable directory.
