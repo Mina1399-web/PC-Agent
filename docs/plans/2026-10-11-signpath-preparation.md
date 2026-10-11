@@ -17,7 +17,7 @@ Starting commit: 3024c16dfdcadb5f35405aa6d9ebf9640b3090eb.
   disclosure, proposed signing policy, integration design and application draft.
 - [x] Run fresh relevant focused checks, Release build/suite and NuGet audit;
   review all changed documents, links, scan/diff and historical-evidence separation.
-- [ ] Commit only reviewed source/docs and publish this preparation branch with
+- [x] Commit only reviewed source/docs and publish this preparation branch with
   ordinary push; verify remote identity and preserve main and release branches.
 
 ## Later gates (not implemented or claimed by this preparation)

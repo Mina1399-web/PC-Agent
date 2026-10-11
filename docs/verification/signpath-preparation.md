@@ -41,6 +41,8 @@ Only controlled summaries and hashes are in this record.
 | 06 | NuGet vulnerability check including transitive references: all eight projects reported no known vulnerable package from the configured NuGet source; exit 0. Not a guarantee against unknown vulnerabilities or native/system issues. |
 | 07 | Pre-stage preparation review inspected all 16 changed/new files, including 11 Markdown files: no missing relative links, six secret-pattern groups found no matches, no forbidden artifact paths, no implementation/build/test changes. Tracked CRLF-aware git diff --check passed; this did not check untracked-file whitespace. |
 | Initial staged check | Failed before commit on four Markdown hard-break trailing spaces and the upstream runtime notice's blank EOF line. Own formatting was corrected. The vendor notice remains byte-identical; its EOF is explicitly excluded only from the vendor whitespace check. No commit/push occurred on failure. |
+| Final staged check | Passed CRLF-aware cached diff check for own files, plus a separate vendor check with only blank-at-eof disabled. Runtime notice SHA-256 still matched the upstream bytes. Exactly 16 files; no src/tests/tools/build configuration changes. Source checkpoint 663aaab930ed402902cbcaf6260c03c4efdd960b committed with clean tree. |
+| 08 | Ordinary new-branch push of 663aaab930ed402902cbcaf6260c03c4efdd960b to origin/codex/signpath-preparation passed and ls-remote matched exactly. main remained 188e3e259519e8713cee7aed84fcec7e40aa408c, release branch remained 3024c16dfdcadb5f35405aa6d9ebf9640b3090eb, Task 4 branch remained 2932cb44749283af54cc2f2f52472405eec29c6d. No force/merge/public-visibility change. |
 | GitHub metadata | Read-only connector confirmed owner Mina1399-web, repository PC-Agent, private visibility, default main, owner permission admin. Account MFA, branch protections and SignPath roles are not verified. |
 | Initial document-link check | Failed on three links to this not-yet-created record. This was documentation setup, not a behavioral red or product failure; a final recheck is required. |
 
@@ -69,8 +71,13 @@ aa65968c419420d32e3e1b647aea0082f5ca5b78. The web browser fetch of its tree
 failed; tag verification does not complete the pending DTF source mapping.
 
 This is the primary agent's source/document review, not an independent
-third-party security audit or provider decision. Publication is pending at
-this checkpoint and will be recorded only after actual execution.
+third-party security audit or provider decision. Source checkpoint 663aaab
+was pushed and verified as recorded above; this final record/plan update
+changes documents only. The exact final documentation commit, hashes and
+remote verification are recorded in the source-external delivery receipt.
+Push to a private origin is not public open-source publication or SignPath
+enrollment. Repository visibility and main were deliberately unchanged by
+this preparation request.
 
 ## Scope and review findings
 
