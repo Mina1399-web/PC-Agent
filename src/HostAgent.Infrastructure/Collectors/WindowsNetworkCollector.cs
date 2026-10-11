@@ -7,7 +7,7 @@ using HostAgent.Core.Models.Telemetry;
 
 namespace HostAgent.Infrastructure.Collectors;
 
-public sealed class WindowsNetworkCollector : ITelemetryCollector<NetworkTelemetry>
+public sealed class WindowsNetworkCollector(bool enableProbes=false) : ITelemetryCollector<NetworkTelemetry>
 {
     private const string InternetProbeAddress = "1.1.1.1";
     private const string DnsProbeHost = "example.com";
@@ -33,6 +33,15 @@ public sealed class WindowsNetworkCollector : ITelemetryCollector<NetworkTelemet
         }
 
         var probes = new List<NetworkProbeResult>();
+        if(!enableProbes)
+        {
+            foreach(var kind in new[]{NetworkProbeKind.Gateway,NetworkProbeKind.InternetIp,NetworkProbeKind.DnsResolution})
+                probes.Add(new(kind,string.Empty,NetworkProbeStatus.Unavailable,TimeSpan.Zero,null,null,"network_probes_disabled"));
+            var local=new NetworkTelemetry(adapters,probes.AsReadOnly());
+            return warnings.Count==0
+                ? CollectorResult<NetworkTelemetry>.Success(CollectorId,now,local)
+                : CollectorResult<NetworkTelemetry>.Partial(CollectorId,now,local,warnings);
+        }
         var gateway = adapters.FirstOrDefault(static adapter =>
                 string.Equals(adapter.Status, OperationalStatus.Up.ToString(), StringComparison.Ordinal)
                 && adapter.Gateways.Count > 0)

@@ -2,7 +2,12 @@
 
 Runtime configuration is a protected startup snapshot at %ProgramData%/HostAgent/service.json. Command-line arguments, environment configuration providers and appsettings do not bind remediation options or credentials. Missing, unreadable, oversized, duplicate/unknown-field or invalid configuration falls back to Shadow, read-only, outbound adapters disabled, configuration unavailable for remediation. Changes require restart.
 
-The exact JSON shape is:
+The JSON shape is below. enableNetworkProbes is optional for backward
+compatibility; its absence defaults to false. Duplicate/unknown fields and
+non-boolean values are still rejected. The local administrator can use
+`network-probes on` or `network-probes off`; the CLI announces the gateway,
+1.1.1.1 and example.com targets before asking for APPLY. This does not enable
+notifications or remediation. See [privacy](privacy.md).
 
 ```json
 {
@@ -13,7 +18,8 @@ The exact JSON shape is:
   "heartbeatIntervalSeconds": 60,
   "requestTimeoutSeconds": 10,
   "enablePushover": false,
-  "enableHeartbeat": false
+  "enableHeartbeat": false,
+  "enableNetworkProbes": false
 }
 ```
 

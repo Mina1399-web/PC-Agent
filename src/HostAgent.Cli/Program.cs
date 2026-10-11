@@ -28,12 +28,14 @@ try
     var client=new AdminPipeClient("HostAgent.Admin.v1",sid,TimeSpan.FromSeconds(30));
     using var cancellation=new CancellationTokenSource();
     Console.CancelKeyPress+=(_,e)=>{e.Cancel=true;cancellation.Cancel();};
-    if(args[0] is "configure" or "allow-service" or "allow-process" or "remove-service" or "remove-process")
+    if(args[0] is "configure" or "network-probes" or "allow-service" or "allow-process" or "remove-service" or "remove-process")
     {
         var workflow=new ConfigurationWorkflow(values=>
         {
             if(Console.IsInputRedirected)throw new InvalidOperationException("interactive_confirmation_required");
             Console.WriteLine("Configuration: "+System.Text.Json.JsonSerializer.Serialize(values));
+            if(values is ["network-probes","on"])
+                Console.WriteLine("Network probes send ICMP to the gateway and 1.1.1.1, and resolve example.com via your DNS resolver. Receivers observe your IP/timing. Read docs/operations/privacy.md; network-probes off disables these requests.");
             Console.Write("This restarts only HostAgent services. Type APPLY to continue: ");return Console.ReadLine()=="APPLY";
         },token=>ProductServices(false,token),values=>OperatorConfiguration.Apply(programData,sid,system,identity.User!.Value,values),token=>ProductServices(true,token));
         var changed=await workflow.RunAsync(args,cancellation.Token);

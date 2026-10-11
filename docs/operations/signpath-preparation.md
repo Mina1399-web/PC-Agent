@@ -1,5 +1,10 @@
 # SignPath Foundation preparation
 
+This is the historical 2026-10-11 preparation checkpoint. Subsequent work and
+the current publication/application status are in the
+[continuation record](../verification/signpath-publication.md) and
+[publication plan](../plans/2026-10-12-signpath-publication.md).
+
 Date: 2026-10-11. Starting source: 3024c16dfdcadb5f35405aa6d9ebf9640b3090eb.
 This is an eligibility review and application package, not an implemented
 cloud signer or a claim that SignPath approved Host Agent.

@@ -1,0 +1,57 @@
+name: Public review build
+on:
+  push:
+    branches: ['codex/signpath-preparation']
+    paths-ignore: ['docs/**', '**.md', 'LICENSE']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: review-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  windows-review:
+    runs-on: windows-2025
+    timeout-minutes: 25
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          dotnet-version: '10.0.401'
+      - name: Release build
+        shell: pwsh
+        run: |
+          dotnet build HostAgent.sln --configuration Release -m:1 -p:UseSharedCompilation=false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Core and portable Windows integration tests
+        shell: pwsh
+        run: |
+          dotnet test tests/HostAgent.Core.Tests/HostAgent.Core.Tests.csproj --configuration Release --no-build --logger trx --results-directory "$env:RUNNER_TEMP/test-results"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          # The ReleaseToolingTests class executes exact-identity DEV MSI checks;
+          # these remain in the complete VM suite, with no forged runner identity.
+          dotnet test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj --configuration Release --no-build --filter 'FullyQualifiedName!~ReleaseToolingTests' --logger trx --results-directory "$env:RUNNER_TEMP/test-results"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Unsigned source-review payload
+        shell: pwsh
+        run: ./tools/Build-Review.ps1 -PackagePath "$env:RUNNER_TEMP/HostAgent-1.0.3-review" -Version 1.0.3
+      - name: Publish review payload
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: HostAgent-1.0.3-review-${{ github.sha }}
+          path: ${{ runner.temp }}/HostAgent-1.0.3-review.zip
+          if-no-files-found: error
+          retention-days: 14
+      - name: Preserve test results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-results-${{ github.sha }}
+          path: ${{ runner.temp }}/test-results/*.trx
+          if-no-files-found: warn
+          retention-days: 14

@@ -8,5 +8,7 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <RuntimeFrameworkVersion>10.0.12</RuntimeFrameworkVersion>
+    <Product>Host Agent V1</Product>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 </Project>

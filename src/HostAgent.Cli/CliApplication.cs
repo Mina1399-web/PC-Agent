@@ -18,6 +18,7 @@ public sealed class CliApplication(Func<byte[],CancellationToken,ValueTask<byte[
           status | incidents
           secret-set <PushoverToken|PushoverUser|HeartbeatUrl>  (masked prompt)
           configure <Shadow|Confirmation> <pushover:on|off> <heartbeat:on|off>
+          network-probes <on|off>  (default off; gateway/1.1.1.1 ICMP and example.com DNS)
           allow-service <alias> <service-name> <comma-separated StartService,StopService,RestartService>
           allow-process <alias> <absolute-executable>
           remove-service <alias> | remove-process <alias>

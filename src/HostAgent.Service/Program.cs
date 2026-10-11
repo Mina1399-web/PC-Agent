@@ -46,7 +46,7 @@ builder.Services.AddSingleton<ITelemetryCollector<CpuMemoryTelemetry>, WindowsCp
 builder.Services.AddSingleton<IDiskIoCounterReader, WindowsDiskIoCounterReader>();
 builder.Services.AddSingleton<ITelemetryCollector<DiskTelemetry>, WindowsDiskCollector>();
 builder.Services.AddSingleton<ITelemetryCollector<ProcessServiceTelemetry>, WindowsProcessServicesCollector>();
-builder.Services.AddSingleton<ITelemetryCollector<NetworkTelemetry>, WindowsNetworkCollector>();
+builder.Services.AddSingleton<ITelemetryCollector<NetworkTelemetry>>(_=>new WindowsNetworkCollector(configuration.EnableNetworkProbes));
 builder.Services.AddSingleton<ITelemetryCollector<EventLogTelemetry>>(services =>
     new WindowsEventLogCollector(services.GetRequiredService<ICollectorCheckpointStore>()));
 

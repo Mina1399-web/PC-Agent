@@ -7,6 +7,51 @@ namespace HostAgent.Infrastructure.Tests;
 [Collection("ReleaseTooling")]
 public sealed class ReleaseToolingTests
 {
+    // Defect: a hosted review builder must not allow the DEV/production machine to masquerade as its build host.
+    [Fact]
+    public async Task Hosted_review_builder_refuses_an_unapproved_environment_without_writing_output()
+    {
+        using var fixture=new PackageFixture();
+        var root=System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory,"../../../../../"));
+        var script=System.IO.Path.Combine(root,"tools","Build-Review.ps1");
+        Assert.True(File.Exists(script),"The separately guarded hosted review builder is missing.");
+        var output=System.IO.Path.Combine(fixture.Path,"review-output");
+        var info=new ProcessStartInfo("pwsh.exe"){UseShellExecute=false,RedirectStandardOutput=true,RedirectStandardError=true};
+        foreach(var arg in new[]{"-NoProfile","-NonInteractive","-File",script,"-PackagePath",output})info.ArgumentList.Add(arg);
+        info.Environment["GITHUB_ACTIONS"]="false";
+        using var process=Process.Start(info)!;
+        var stdout=process.StandardOutput.ReadToEndAsync();var stderr=process.StandardError.ReadToEndAsync();
+        await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(30));
+        Assert.NotEqual(0,process.ExitCode);
+        Assert.Contains("review_hosted_runner_required",await stderr);
+        Assert.Empty(await stdout);
+        Assert.False(Directory.Exists(output));
+    }
+    // Defect: first-party binaries identify different products, preventing a single enforced signing policy.
+    [Fact]
+    public void First_party_binaries_share_the_product_name_and_version()
+    {
+        var core = FileVersionInfo.GetVersionInfo(typeof(HostAgent.Core.Contracts.ITelemetryCollector<>).Assembly.Location);
+        var infrastructure = FileVersionInfo.GetVersionInfo(typeof(HostAgent.Infrastructure.Collectors.WindowsNetworkCollector).Assembly.Location);
+        Assert.Equal("Host Agent V1", core.ProductName);
+        Assert.Equal("Host Agent V1", infrastructure.ProductName);
+        Assert.Equal(core.ProductVersion, infrastructure.ProductVersion);
+        Assert.Equal("1.0.0",core.ProductVersion);
+    }
+    // Defect: the owned managed MSI action has no enforced product/version metadata.
+    [Fact]
+    public async Task Managed_installer_action_identifies_this_product_and_exact_release_version()
+    {
+        using var fixture=new PackageFixture();
+        var root=System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory,"../../../../../../"));
+        var build=await Run("Build-Installer.ps1",fixture.Path,"-WixPath",System.IO.Path.Combine(root,"HostAgent-DEV-tools","wix","wix.exe"),"-DevVm","-Version","1.0.3");
+        Assert.True(build.Exit==0,build.Error+build.Out);
+        using var json=JsonDocument.Parse(build.Out);
+        var version=FileVersionInfo.GetVersionInfo(System.IO.Path.Combine(json.RootElement.GetProperty("intermediate").GetString()!,"Preflight.dll"));
+        Assert.Equal("Host Agent V1",version.ProductName);
+        Assert.Equal("1.0.3",version.ProductVersion);
+        Assert.Equal("1.0.3.0",version.FileVersion);
+    }
     [Fact]
     public async Task Release_builder_refuses_unsigned_production_and_overwriting_existing_output()
     {
@@ -34,7 +79,12 @@ public sealed class ReleaseToolingTests
         Assert.True(json.RootElement.GetProperty("precopyValidationIsSystemDeferred").GetBoolean());
         Assert.True(json.RootElement.GetProperty("uninstallPreservesData").GetBoolean());
         Assert.Equal(2,json.RootElement.GetProperty("recoveryServiceCount").GetInt32());
-        Assert.Equal(4,json.RootElement.GetProperty("fileCount").GetInt32());
+        Assert.Equal(8,json.RootElement.GetProperty("fileCount").GetInt32());
+        var installedPaths=json.RootElement.GetProperty("installedPaths").EnumerateArray().Select(x=>x.GetString()).ToArray();
+        Assert.Contains("LICENSE",installedPaths);
+        Assert.Contains("docs/operations/privacy.md",installedPaths);
+        Assert.Contains("docs/legal/dotnet-runtime-10.0.12-LICENSE.txt",installedPaths);
+        Assert.Contains("docs/legal/dotnet-runtime-10.0.12-THIRD-PARTY-NOTICES.txt",installedPaths);
         Assert.True(json.RootElement.GetProperty("existingServicesGuarded").GetBoolean());
         Assert.True(json.RootElement.GetProperty("devVmGuard").GetBoolean());
         Assert.True(json.RootElement.GetProperty("devVmIdentityMatches").GetBoolean(),
@@ -106,6 +156,13 @@ public sealed class ReleaseToolingTests
             Directory.CreateDirectory(System.IO.Path.Combine(Path,"Cli","cs"));
             var satellite=Encoding.UTF8.GetBytes("synthetic satellite");File.WriteAllBytes(System.IO.Path.Combine(Path,"Cli","cs","Synthetic.resources.dll"),satellite);
             entries.Add("@{Path='Cli/cs/Synthetic.resources.dll';Sha256='"+Convert.ToHexString(SHA256.HashData(satellite))+"';Length="+satellite.Length+"}");
+            var source=System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory,"../../../../../"));
+            foreach(var relative in new[]{"LICENSE","docs/operations/privacy.md","docs/legal/dotnet-runtime-10.0.12-LICENSE.txt","docs/legal/dotnet-runtime-10.0.12-THIRD-PARTY-NOTICES.txt"})
+            {
+                var bytes=File.ReadAllBytes(System.IO.Path.Combine(source,relative));
+                var path=System.IO.Path.Combine(Path,relative);Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path)!);File.WriteAllBytes(path,bytes);
+                entries.Add("@{Path='"+relative+"';Sha256='"+Convert.ToHexString(SHA256.HashData(bytes))+"';Length="+bytes.Length+"}");
+            }
             File.WriteAllText(System.IO.Path.Combine(Path,"manifest.psd1"),"@{Format=1;Version='1.0.0';SourceCommit='2932cb44749283af54cc2f2f52472405eec29c6d';Files=@("+
                 string.Join(",",entries)+")}",new UTF8Encoding(false));
         }

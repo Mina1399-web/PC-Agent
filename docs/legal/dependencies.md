@@ -66,6 +66,17 @@ composite action remain release gates, not a completed compliance claim.
 
 ## Distribution gaps to close before production signing
 
+2026-10-12 continuation: new MSI packaging now requires and includes the root
+MIT license, privacy disclosure and runtime notices. The actual candidate
+ZIP/MSI verification is recorded separately in
+[publication evidence](../verification/signpath-publication.md); the historical
+1.0.2 artifact below was not changed. Additional byte-exact upstream texts:
+[EF Core 10.0.12](efcore-10.0.12-LICENSE.txt),
+[SQLitePCLRaw 2.1.12 Apache license](sqlitepclraw-2.1.12-LICENSE.txt), and
+[WiX 5.0.2 MS-RL license](wix-5.0.2-LICENSE.txt). The new hosted review payload
+does not include the DTF/MSI action; its source/license treatment remains an
+explicit production signing gate.
+
 The existing unsigned 1.0.2 ZIP had no LICENSE/NOTICE files in its enumerated
 payload. Its builder copies docs but not the root LICENSE, and its MSI
 packages only Service/Helper/Cli files, not the docs tree. This preparation

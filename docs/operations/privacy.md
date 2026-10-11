@@ -17,17 +17,27 @@ aggregation. Action audits are not automatically removed. Uninstallation
 preserves protected configuration, data and secrets; it does not erase them.
 See [storage](storage.md) and [operator instructions](quickstart.md).
 
-## Default connectivity diagnostics
+## Connectivity diagnostics: explicit opt-in
 
-Pushover and heartbeat are off by default, but V1 is not an offline monitor.
-The network collector performs bounded ICMP probes to the selected local
+New builds prepared on 2026-10-12 disable active network probes by default,
+independently of Pushover and heartbeat. The monitor still reads local adapter
+configuration. Disabled probes report Unavailable/network_probes_disabled,
+with no target, request, latency or packet-loss measurement. They do not
+pretend that connectivity succeeded or failed. Legacy service configuration
+without enableNetworkProbes also defaults to off after upgrading to this build.
+
+The elevated local `network-probes on` command displays the targets and asks
+the operator to type APPLY before enabling bounded ICMP probes to the selected
 gateway and **1.1.1.1**, plus DNS resolution of **example.com** using the
-machine's configured resolver. These requests are normally made during
-collection, including Shadow mode, and do not upload the telemetry database
-or incident evidence. Network operators and receiving services can observe
-the source address, DNS query, timing and ordinary protocol metadata.
-Disabling Pushover/heartbeat does not disable these connectivity probes.
-V1 currently has no operator switch for the network collector's fixed targets.
+machine's configured resolver. Once enabled, these run during collection,
+including Shadow mode. Network operators and receiving services can observe
+the source address, DNS query, timing and ordinary protocol metadata. The
+probes do not upload telemetry databases or incident evidence. Use
+`network-probes off` to disable them; the command restarts only product services.
+Pushover/heartbeat settings do not change this independent choice.
+
+Historical unsigned 1.0.2 builds performed these probes automatically and had
+no operator switch. Those artifacts were not retroactively changed.
 
 ## Optional outbound services
 
@@ -60,7 +70,9 @@ artifacts only; it must not upload ProgramData, VM configuration or runtime
 credentials. The signing service may receive unsigned distributable files
 and build-origin metadata, not live host telemetry.
 
-The future production distribution must make this disclosure available
-before installation. The current native MSI has no privacy-consent UI;
-publishing this document alone does not establish that SignPath accepts
-the existing installation/network behavior.
+The disclosure and applicable license notices are included in the new MSI
+payload and source-review archive; read this document before installation or
+enabling a network function. The native MSI has no privacy-consent UI. The
+new default does not contact the fixed probe targets; optional network
+features require operator action. Provider acceptance of these arrangements
+remains unverified; no SignPath approval or production signature is claimed.

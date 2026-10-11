@@ -16,7 +16,9 @@ $dtfAssembly=Join-Path $dtfRoot 'wixtoolset.dtf.windowsinstaller/lib/net20/WixTo
 $dtfTools=Join-Path $dtfRoot 'wixtoolset.dtf.customaction/tools'
 $managed=Join-Path $work 'Preflight.dll'
 $embedded=Join-Path $work 'Preflight.CA.dll'
-& "$env:SystemRoot\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo /optimize+ /target:library ("/out:"+$managed) ("/reference:"+$dtfAssembly) (Join-Path $PSScriptRoot 'installer/Preflight.cs') (Join-Path $PSScriptRoot '../src/HostAgent.Infrastructure/Security/InstallationTreeSecurity.cs') | Out-Null
+$metadata=Join-Path $work 'AssemblyInfo.cs'
+[IO.File]::WriteAllText($metadata,'using System.Reflection; [assembly: AssemblyProduct("Host Agent V1")] [assembly: AssemblyInformationalVersion("'+$Version+'")] [assembly: AssemblyFileVersion("'+$Version+'.0")]',[Text.UTF8Encoding]::new($false))
+& "$env:SystemRoot\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo /optimize+ /target:library ("/out:"+$managed) ("/reference:"+$dtfAssembly) $metadata (Join-Path $PSScriptRoot 'installer/Preflight.cs') (Join-Path $PSScriptRoot '../src/HostAgent.Infrastructure/Security/InstallationTreeSecurity.cs') | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'release_preflight_compile_failed' }
 if (-not $DevVm) {
     if ((Set-AuthenticodeSignature -LiteralPath $managed -Certificate $SigningCertificate -HashAlgorithm SHA256).Status -ne 'Valid') { throw 'publisher_signature_required' }
@@ -31,7 +33,13 @@ $components=[Text.StringBuilder]::new()
 $refs=[Text.StringBuilder]::new()
 $directories=[Text.StringBuilder]::new()
 $counter=0
-foreach ($project in @('Service','Helper','Cli')) {
+foreach ($required in @('LICENSE','docs/operations/privacy.md','docs/legal/dotnet-runtime-10.0.12-LICENSE.txt','docs/legal/dotnet-runtime-10.0.12-THIRD-PARTY-NOTICES.txt')) {
+    if (-not (Test-Path -LiteralPath (Join-Path $root $required) -PathType Leaf)) { throw 'release_missing_notices' }
+}
+$counter++
+$null=$components.Append('<DirectoryRef Id="ProductDirectory"><Component Id="Component'+$counter+'" Guid="*"><File Id="File'+$counter+'" Source="'+(Escape (Join-Path $root 'LICENSE'))+'" KeyPath="yes" /></Component></DirectoryRef>')
+$null=$refs.Append('<ComponentRef Id="Component'+$counter+'" />')
+foreach ($project in @('Service','Helper','Cli','docs')) {
     $null=$directories.Append('<Directory Id="Dir'+$project+'" Name="'+$project+'" />')
     $projectRoot=[IO.Path]::GetFullPath((Join-Path $root $project))
     $directoryIds=@{};$directoryIds[$projectRoot]='Dir'+$project

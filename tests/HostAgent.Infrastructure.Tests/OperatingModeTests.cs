@@ -14,6 +14,20 @@ using Xunit;
 namespace HostAgent.Infrastructure.Tests;
 public sealed class OperatingModeTests
 {
+    // Defect: opting into connectivity probes is rejected or silently ignored, or old settings enable them implicitly.
+    [Fact]
+    public void Probe_setting_is_strict_optional_and_legacy_configuration_defaults_to_off()
+    {
+        const string legacy="""{"mode":"Shadow","readOnly":true,"killSwitch":false,"collectionIntervalSeconds":60,"heartbeatIntervalSeconds":60,"requestTimeoutSeconds":10,"enablePushover":false,"enableHeartbeat":false}""";
+        var enabled=legacy[..^1]+",\"enableNetworkProbes\":true}";
+        var config=ServiceConfiguration.Parse(Encoding.UTF8.GetBytes(enabled));
+        using(var json=System.Text.Json.JsonDocument.Parse(System.Text.Json.JsonSerializer.Serialize(config)))Assert.True(json.RootElement.GetProperty("EnableNetworkProbes").GetBoolean());
+        config=ServiceConfiguration.Parse(Encoding.UTF8.GetBytes(legacy));
+        using(var json=System.Text.Json.JsonDocument.Parse(System.Text.Json.JsonSerializer.Serialize(config)))Assert.False(json.RootElement.GetProperty("EnableNetworkProbes").GetBoolean());
+        Assert.ThrowsAny<Exception>(()=>ServiceConfiguration.Parse(Encoding.UTF8.GetBytes(enabled[..^1]+",\"enableNetworkProbes\":false}")));
+        Assert.ThrowsAny<Exception>(()=>ServiceConfiguration.Parse(Encoding.UTF8.GetBytes(enabled.Replace(":true}",":\"true\"}"))));
+        Assert.ThrowsAny<Exception>(()=>ServiceConfiguration.Parse(Encoding.UTF8.GetBytes(enabled[..^1]+",\"extra\":true}")));
+    }
     [Theory]
     [InlineData("LimitedAutonomous")]
     [InlineData("0")]

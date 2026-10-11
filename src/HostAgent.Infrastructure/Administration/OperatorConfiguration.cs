@@ -17,6 +17,8 @@ public static class OperatorConfiguration
         if(!service.ConfigurationAvailable||!helper.ConfigurationAvailable)throw new InvalidDataException("configuration_unavailable");
         switch(args)
         {
+            case ["network-probes",var enabledProbes] when enabledProbes is "on" or "off":
+                service=service with{EnableNetworkProbes=enabledProbes=="on"};break;
             case ["configure",var mode,var pushover,var heartbeat] when mode is "Shadow" or "Confirmation" && pushover is "on" or "off" && heartbeat is "on" or "off":
                 var shadow=mode=="Shadow";
                 service=service with{Mode=shadow?OperatingMode.Shadow:OperatingMode.Confirmation,ReadOnly=shadow,EnablePushover=pushover=="on",EnableHeartbeat=heartbeat=="on"};
@@ -43,7 +45,7 @@ public static class OperatorConfiguration
         var options=new JsonSerializerOptions{PropertyNamingPolicy=JsonNamingPolicy.CamelCase,WriteIndented=true};
         options.Converters.Add(new JsonStringEnumConverter<HelperOperation>(allowIntegerValues:false));
         var helperBytes=JsonSerializer.SerializeToUtf8Bytes(new{helper.ReadOnly,helper.Shadow,helper.KillSwitch,helper.ExecutionTimeoutSeconds,helper.Services,helper.Processes,helper.ApproverSids},options);
-        var serviceBytes=JsonSerializer.SerializeToUtf8Bytes(new{mode=service.Mode.ToString(),service.ReadOnly,service.KillSwitch,service.CollectionIntervalSeconds,service.HeartbeatIntervalSeconds,service.RequestTimeoutSeconds,service.EnablePushover,service.EnableHeartbeat},options);
+        var serviceBytes=JsonSerializer.SerializeToUtf8Bytes(new{mode=service.Mode.ToString(),service.ReadOnly,service.KillSwitch,service.CollectionIntervalSeconds,service.HeartbeatIntervalSeconds,service.RequestTimeoutSeconds,service.EnablePushover,service.EnableHeartbeat,service.EnableNetworkProbes},options);
         _=HelperConfiguration.Parse(helperBytes);_=ServiceConfiguration.Parse(serviceBytes);
         // Enabling the helper first cannot authorize a mutation: the monitor remains Shadow until its own atomic replacement.
         // Disabling the helper first blocks mutation before the monitor is changed. Approvals remain mandatory in both cases.

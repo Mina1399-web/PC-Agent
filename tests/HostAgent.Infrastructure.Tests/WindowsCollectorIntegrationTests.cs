@@ -119,11 +119,28 @@ public sealed class WindowsCollectorIntegrationTests
         Assert.All(result.Value.ServiceChanges, change => Assert.Equal(TimeSpan.Zero, change.ObservedAtUtc.Offset));
     }
 
+    // Defect: a fresh installation contacts fixed Internet/DNS targets before the operator opts in.
+    [Fact]
+    public async Task Default_network_collection_reports_disabled_probes_without_target_or_latency()
+    {
+        var result=await new WindowsNetworkCollector().CollectAsync(default);
+        Assert.NotNull(result.Value);
+        Assert.Equal(3,result.Value.Probes.Count);
+        Assert.All(result.Value.Probes,probe=>
+        {
+            Assert.Equal(NetworkProbeStatus.Unavailable,probe.Status);
+            Assert.Equal("network_probes_disabled",probe.FailureCode);
+            Assert.Empty(probe.Target);
+            Assert.Equal(TimeSpan.Zero,probe.Duration);
+            Assert.Null(probe.LatencyMilliseconds);
+            Assert.Null(probe.PacketLossPercent);
+        });
+    }
     [Fact]
     public async Task Network_collector_returns_adapter_and_bounded_probe_records()
     {
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-        var result = await new WindowsNetworkCollector().CollectAsync(timeout.Token);
+        var result = await new WindowsNetworkCollector(enableProbes:true).CollectAsync(timeout.Token);
 
         Assert.Equal("network", result.CollectorId);
         Assert.NotEqual(CollectorStatus.Failed, result.Status);

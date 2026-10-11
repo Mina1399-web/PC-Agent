@@ -6,6 +6,25 @@ using Xunit;
 namespace HostAgent.Infrastructure.Tests;
 public sealed class OperatorConfigurationTests
 {
+    // Defect: the operator cannot explicitly enable/revoke probes independently of privileged operations or notifications.
+    [Fact]
+    public void Network_probes_require_explicit_opt_in_and_can_be_disabled_without_enabling_remediation()
+    {
+        WithRoot((root,sid)=>
+        {
+            var path=Path.Combine(root,"HostAgent","service.json");
+            OperatorConfiguration.Apply(root,sid,sid,sid.Value,["network-probes","on"]);
+            using(var json=System.Text.Json.JsonDocument.Parse(File.ReadAllBytes(path)))Assert.True(json.RootElement.GetProperty("enableNetworkProbes").GetBoolean());
+            var config=ServiceConfiguration.LoadSafe(path,sid);
+            Assert.True(config.ConfigurationAvailable);Assert.True(config.ReadOnly);Assert.Equal(OperatingMode.Shadow,config.Mode);
+            Assert.False(config.EnablePushover);Assert.False(config.EnableHeartbeat);
+            OperatorConfiguration.Apply(root,sid,sid,sid.Value,["network-probes","off"]);
+            using(var json=System.Text.Json.JsonDocument.Parse(File.ReadAllBytes(path)))Assert.False(json.RootElement.GetProperty("enableNetworkProbes").GetBoolean());
+            var before=File.ReadAllBytes(path);
+            Assert.Throws<InvalidDataException>(()=>OperatorConfiguration.Apply(root,sid,sid,sid.Value,["network-probes","maybe"]));
+            Assert.Equal(before,File.ReadAllBytes(path));
+        });
+    }
     [Fact]
     public void Process_registration_pins_file_hash_and_explicit_removal_revokes_only_selected_alias()
     {

@@ -5,8 +5,8 @@ Host Agent has two Windows services and an elevated local CLI. No dashboard, pub
 ## Install
 
 Before installation, read the [data and network disclosure](privacy.md).
-Default connectivity diagnostics use ICMP/DNS even while optional Pushover
-and heartbeat are disabled. First-party [MIT source licensing](../../LICENSE)
+Connectivity probes, Pushover and heartbeat are disabled by default in the
+new signing-preparation build. First-party [MIT source licensing](../../LICENSE)
 and [SignPath preparation](signpath-preparation.md) do not establish a signed
 production release.
 
@@ -30,6 +30,14 @@ $agent = "$env:ProgramFiles\HostAgent\Cli\HostAgent.Cli.exe"
 Exit codes: 0 success, 1 rejected/unavailable/cancelled, 2 invalid command usage. Status reports configuration/mode and worker degradation. Each CLI transport has a deadline, pins the server service SID, and sends once.
 
 ## Notifications and heartbeat
+
+Local adapter information is collected without active connectivity requests.
+To opt into bounded gateway/1.1.1.1 ICMP and example.com DNS diagnostics, run
+`& $agent network-probes on`, read the displayed privacy disclosure and type
+APPLY. `& $agent network-probes off` disables them again. This choice is
+independent of Shadow/Confirmation and Pushover/heartbeat. Existing config
+without enableNetworkProbes defaults to off on upgrade. When off, connectivity
+measurements are unavailable; DNS/gateway failure diagnosis needs opted-in probes.
 
 Acquire your own Pushover application token/user key and Healthchecks-compatible HTTPS ping URL. Enter them only at the masked interactive prompts; never place values in command arguments, JSON configuration, transcripts or support records.
 
@@ -74,7 +82,7 @@ Use Windows Settings > Apps > Host Agent V1 to uninstall. Windows Installer stop
 
 Build/test only in the approved VM using SDK 10.0.401, PowerShell 7 and account-local WiX 5.0.2 plus WixToolset.Util.wixext/5.0.2. Install build tools outside the source tree. The release builder requires a clean source commit and a new output directory outside the repository:
 
-MSI preflight additionally uses WixToolset.Dtf.CustomAction and WixToolset.Dtf.WindowsInstaller **5.0.2**, verified with dotnet nuget verify --all before extraction. Beside the wix tool directory, create dtf-5.0.2/wixtoolset.dtf.customaction and dtf-5.0.2/wixtoolset.dtf.windowsinstaller from the corresponding official NuGet packages. Build-Installer uses the existing Windows .NET Framework compiler and x64 DTF shim; the target Windows installation requires .NET Framework 4.8 or later. No framework/security-policy installation or modification is performed by the MSI. Production signing also signs the embedded managed preflight and its native container.
+MSI preflight additionally uses WixToolset.Dtf.CustomAction and WixToolset.Dtf.WindowsInstaller **5.0.2**, verified with dotnet nuget verify --all before extraction. Beside the wix tool directory, create dtf-5.0.2/wixtoolset.dtf.customaction and dtf-5.0.2/wixtoolset.dtf.windowsinstaller from the corresponding official NuGet packages. Build-Installer uses the existing Windows .NET Framework compiler and x64 DTF shim; the target Windows installation requires .NET Framework 4.8 or later. No framework/security-policy installation or modification is performed by the MSI. The existing owner-certificate path signs the managed preflight and its native container. Foundation treatment of the composite upstream DTF container requires provider agreement; do not indiscriminately re-sign upstream code as owned code.
 
 ```powershell
 pwsh -NoProfile -File tools/Build-Release.ps1 -PackagePath C:\DEV-Releases\HostAgent-1.0.0 -WixPath C:\DEV-Tools\wix\wix.exe -SigningCertificateThumbprint <trusted-signing-certificate-thumbprint>

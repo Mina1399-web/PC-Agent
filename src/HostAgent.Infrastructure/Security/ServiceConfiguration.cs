@@ -14,13 +14,16 @@ public sealed record ServiceConfiguration
     public int RequestTimeoutSeconds { get; init; } = 10;
     public bool EnablePushover { get; init; }
     public bool EnableHeartbeat { get; init; }
+    public bool EnableNetworkProbes { get; init; }
     public static ServiceConfiguration Parse(byte[] bytes)
     {
         if (bytes.Length is < 1 or > 16_384) throw new InvalidDataException("configuration_invalid");
         using var document = JsonDocument.Parse(bytes, new JsonDocumentOptions { MaxDepth = 4 });
         var root = document.RootElement;
-        HelperProtocol.Exact(root,"mode","readOnly","killSwitch","collectionIntervalSeconds","heartbeatIntervalSeconds",
-            "requestTimeoutSeconds","enablePushover","enableHeartbeat");
+        string[] fields=["mode","readOnly","killSwitch","collectionIntervalSeconds","heartbeatIntervalSeconds",
+            "requestTimeoutSeconds","enablePushover","enableHeartbeat"];
+        var hasProbes=root.ValueKind==JsonValueKind.Object&&root.TryGetProperty("enableNetworkProbes",out _);
+        HelperProtocol.Exact(root,hasProbes?[..fields,"enableNetworkProbes"]:fields);
         var mode = root.GetProperty("mode").GetString() switch
         {
             "Shadow" => OperatingMode.Shadow,
@@ -34,6 +37,7 @@ public sealed record ServiceConfiguration
             HeartbeatIntervalSeconds=root.GetProperty("heartbeatIntervalSeconds").GetInt32(),
             RequestTimeoutSeconds=root.GetProperty("requestTimeoutSeconds").GetInt32(),
             EnablePushover=root.GetProperty("enablePushover").GetBoolean(),EnableHeartbeat=root.GetProperty("enableHeartbeat").GetBoolean(),
+            EnableNetworkProbes=hasProbes&&root.GetProperty("enableNetworkProbes").GetBoolean(),
             ConfigurationAvailable=true
         };
         if (config.CollectionIntervalSeconds is < 5 or > 3600 || config.HeartbeatIntervalSeconds is < 30 or > 3600 ||
