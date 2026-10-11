@@ -30,6 +30,33 @@ public sealed partial class SqliteHostAgentStore
         return samples;
     }
 
+    public async ValueTask<IReadOnlyList<MetricSample>> ReadMetricSeriesAsync(string metricName, string scope,
+        DateTimeOffset fromUtc, DateTimeOffset throughUtc, int limit, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(metricName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(scope);
+        if (fromUtc > throughUtc || limit < 1 || limit > 50_000) throw new ArgumentOutOfRangeException(nameof(limit));
+        await EnsureInitializedAsync(cancellationToken);
+        await using var connection = await OpenConnectionAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT sample_id, metric_name, scope, sampled_at_utc, value FROM baseline_samples
+            WHERE metric_name=$metric AND scope=$scope AND sampled_at_utc >= $from AND sampled_at_utc <= $through
+            ORDER BY sampled_at_utc DESC, sample_id DESC LIMIT $limit;
+            """;
+        command.Parameters.AddWithValue("$metric", metricName);
+        command.Parameters.AddWithValue("$scope", scope);
+        command.Parameters.AddWithValue("$from", FormatTimestamp(fromUtc));
+        command.Parameters.AddWithValue("$through", FormatTimestamp(throughUtc));
+        command.Parameters.AddWithValue("$limit", limit);
+        var samples = new List<MetricSample>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+            samples.Add(new(Guid.Parse(reader.GetString(0)), reader.GetString(1), reader.GetString(2), ParseTimestamp(reader.GetString(3)), reader.GetDouble(4)));
+        samples.Reverse();
+        return samples;
+    }
+
     public async ValueTask<IReadOnlyList<BaselineOrigin>> ReadBaselineOriginsAsync(CancellationToken cancellationToken)
     {
         await EnsureInitializedAsync(cancellationToken);
@@ -81,7 +108,13 @@ public sealed partial class SqliteHostAgentStore
         await transaction.CommitAsync(cancellationToken);
     }
 
-    public async ValueTask<IReadOnlyList<Incident>> ReadIncidentsAsync(CancellationToken cancellationToken)
+    public ValueTask<IReadOnlyList<Incident>> ReadIncidentsAsync(CancellationToken cancellationToken) =>
+        ReadIncidentsCoreAsync(false, cancellationToken);
+
+    public ValueTask<IReadOnlyList<Incident>> ReadIncidentHeadsAsync(CancellationToken cancellationToken) =>
+        ReadIncidentsCoreAsync(true, cancellationToken);
+
+    private async ValueTask<IReadOnlyList<Incident>> ReadIncidentsCoreAsync(bool operational, CancellationToken cancellationToken)
     {
         await EnsureInitializedAsync(cancellationToken);
         await using var connection = await OpenConnectionAsync(cancellationToken);
@@ -99,12 +132,15 @@ public sealed partial class SqliteHostAgentStore
         {
             await using var command = connection.CreateCommand();
             command.Transaction = transaction;
-            command.CommandText = "SELECT payload_json FROM incident_snapshots WHERE incident_id=$id ORDER BY captured_at_utc, snapshot_id;";
+            command.CommandText = operational
+                ? "SELECT payload_json FROM incident_snapshots WHERE incident_id=$id ORDER BY captured_at_utc DESC, snapshot_id DESC LIMIT 64;"
+                : "SELECT payload_json FROM incident_snapshots WHERE incident_id=$id ORDER BY captured_at_utc, snapshot_id;";
             command.Parameters.AddWithValue("$id", incidents[index].IncidentId);
             var snapshots = new List<IncidentSnapshot>();
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
                 snapshots.Add(JsonSerializer.Deserialize<IncidentSnapshot>(reader.GetString(0)) ?? throw new JsonException("Missing snapshot."));
+            if (operational) snapshots.Reverse();
             incidents[index] = incidents[index] with { Snapshots = snapshots };
         }
         await transaction.CommitAsync(cancellationToken);

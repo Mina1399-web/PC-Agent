@@ -10,8 +10,10 @@ public interface IHostAgentStore : ICollectorCheckpointStore, IAsyncDisposable
 {
     ValueTask<IReadOnlyList<MetricSample>> ReadMetricSamplesAsync(DateTimeOffset fromUtc, DateTimeOffset throughUtc, int limit, CancellationToken cancellationToken);
     ValueTask<IReadOnlyList<BaselineOrigin>> ReadBaselineOriginsAsync(CancellationToken cancellationToken);
+    ValueTask<IReadOnlyList<MetricSample>> ReadMetricSeriesAsync(string metricName, string scope, DateTimeOffset fromUtc, DateTimeOffset throughUtc, int limit, CancellationToken cancellationToken);
     ValueTask SaveIncidentBundleAsync(Incident incident, CancellationToken cancellationToken);
     ValueTask<IReadOnlyList<Incident>> ReadIncidentsAsync(CancellationToken cancellationToken);
+    ValueTask<IReadOnlyList<Incident>> ReadIncidentHeadsAsync(CancellationToken cancellationToken);
 
     ValueTask InitializeAsync(CancellationToken cancellationToken);
 

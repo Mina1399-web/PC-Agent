@@ -15,6 +15,25 @@ public sealed class BaselineEngine : IBaselineEngine
     private readonly Dictionary<SeriesKey, List<BaselinePoint>> _series = [];
     private readonly Dictionary<SeriesKey, DateTimeOffset> _origins = [];
 
+    public ValueTask RestoreSeriesAsync(IReadOnlyList<MetricSample> samples, BaselineOrigin origin,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var key = new SeriesKey(origin.MetricName, origin.Scope);
+        if (samples.Any(sample => sample.MetricName != origin.MetricName || sample.Scope != origin.Scope || !double.IsFinite(sample.Value)))
+            throw new ArgumentException("Invalid sample in baseline series restore.");
+        lock (_gate)
+        {
+            if (!_series.ContainsKey(key) && _series.Count >= MaximumSeries)
+                throw new InvalidOperationException("Too many baseline series.");
+            _origins[key] = origin.StartedAtUtc.ToUniversalTime();
+            _series[key] = samples.OrderBy(sample => sample.SampledAtUtc)
+                .GroupBy(sample => sample.SampledAtUtc).Select(group => group.Last())
+                .TakeLast(MaximumSamplesPerSeries).Select(sample => new BaselinePoint(sample.SampledAtUtc, sample.Value)).ToList();
+        }
+        return ValueTask.CompletedTask;
+    }
+
     public ValueTask RestoreAsync(IReadOnlyList<MetricSample> samples, IReadOnlyList<BaselineOrigin> origins,
         CancellationToken cancellationToken = default)
     {

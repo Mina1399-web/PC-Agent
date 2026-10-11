@@ -67,6 +67,37 @@ public sealed class DiagnosticCycleTests
     private static async Task<IReadOnlyList<Incident>> Process(object processor, DateTimeOffset at) =>
         await (ValueTask<IReadOnlyList<Incident>>)processor.GetType().GetMethod("ProcessAsync")!.Invoke(processor, [at, CancellationToken.None])!;
 
+    [Fact]
+    public async Task Fixed_critical_rules_survive_global_restore_capacity_and_adaptive_failure()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "HostAgentTests", Guid.NewGuid().ToString("N"), "capacity.db");
+        await using var store = new SqliteHostAgentStore(path);
+        await new TelemetryCollectionJob<CpuMemoryTelemetry>(new CpuCollector(Now, 10), store, new CpuMemoryMetricProjector()).CollectAndPersistAsync(CancellationToken.None);
+        var proxy = DispatchProxy.Create<IHostAgentStore, CapacityStoreProxy>();
+        ((CapacityStoreProxy)(object)proxy).Inner = store;
+        using var processor = new DiagnosticCycleProcessor(proxy);
+        var incident = Assert.Single(await processor.ProcessAsync(Now, CancellationToken.None));
+        Assert.Equal("memory_pressure", incident.LatestDiagnosis.ProbableRootCause.Code);
+        Assert.Equal(96, incident.LatestDiagnosis.Confidence);
+        ((CapacityStoreProxy)(object)proxy).FailAdaptive = true;
+        using var degraded = new DiagnosticCycleProcessor(proxy);
+        Assert.Equal(96, Assert.Single(await degraded.ProcessAsync(Now, CancellationToken.None)).LatestDiagnosis.Confidence);
+    }
+
+    public class CapacityStoreProxy : DispatchProxy
+    {
+        public IHostAgentStore Inner { get; set; } = null!;
+        public bool FailAdaptive { get; set; }
+        protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
+        {
+            if (targetMethod!.Name == "ReadMetricSamplesAsync" && (DateTimeOffset)args![1]! - (DateTimeOffset)args[0]! > TimeSpan.FromMinutes(5))
+                throw new InvalidOperationException("Metric restore exceeded its bounded read capacity.");
+            if (FailAdaptive && targetMethod.Name == "ReadMetricSeriesAsync" && (string)args![0]! != "cpu.usage.percent")
+                throw new InvalidOperationException("Adaptive restore capacity fixture.");
+            return targetMethod.Invoke(Inner, args);
+        }
+    }
+
     private sealed class CpuCollector(DateTimeOffset at, long available = 500) : ITelemetryCollector<CpuMemoryTelemetry>
     {
         public string CollectorId => "cpu-memory";

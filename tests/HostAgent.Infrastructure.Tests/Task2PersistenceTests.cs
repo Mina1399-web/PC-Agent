@@ -74,6 +74,15 @@ public sealed class Task2PersistenceTests
         for (var day = -40; day <= 0; day++)
             await store.SaveMetricSampleAsync(new(Guid.NewGuid(), "test", "host", Now.AddDays(day), 10), CancellationToken.None);
         await store.ApplyRetentionAsync(Now, TimeSpan.FromDays(30), CancellationToken.None);
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => store.ApplyRetentionAsync(Now, TimeSpan.FromDays(29), CancellationToken.None).AsTask());
+        Assert.Equal(0, await store.ApplyRetentionAsync(Now, TimeSpan.FromDays(30), CancellationToken.None));
+        foreach (var granularity in new[] { AggregateGranularity.Hourly, AggregateGranularity.Daily })
+        {
+            var aggregates = await store.ReadMetricAggregatesAsync(granularity, "test", "host", Now.AddDays(-41), Now, CancellationToken.None);
+            Assert.Equal(10, aggregates.Sum(aggregate => aggregate.SampleCount));
+            Assert.Equal(100, aggregates.Sum(aggregate => aggregate.Sum));
+            Assert.All(aggregates, aggregate => { Assert.Equal(10, aggregate.Minimum); Assert.Equal(10, aggregate.Maximum); });
+        }
         var samples = await (ValueTask<IReadOnlyList<MetricSample>>)readSamples.Invoke(store, [Now.AddDays(-30), Now, 1000, CancellationToken.None])!;
         Assert.Equal(31, samples.Count);
         var originsTask = readOrigins.Invoke(store, [CancellationToken.None])!;
@@ -92,6 +101,22 @@ public sealed class Task2PersistenceTests
         var method = typeof(SqliteHostAgentStore).GetMethod(name);
         Assert.NotNull(method);
         return method!;
+    }
+
+    [Fact]
+    public async Task Operational_restore_is_bounded_while_full_snapshot_archive_remains_durable()
+    {
+        var readHeads = Method("ReadIncidentHeadsAsync");
+        var path = Path.Combine(Path.GetTempPath(), "HostAgentTests", Guid.NewGuid().ToString("N"), "archive.db");
+        await using var store = new SqliteHostAgentStore(path);
+        var diagnosis = new Diagnosis("diag", "disk:C", Now, DiagnosisSeverity.Critical, 82, [], new("disk_capacity", "full", "C"), [], new("inspect", "inspect"), IncidentLifecycleState.Active);
+        var snapshots = Enumerable.Range(0, 70).Select(index => Snapshot() with { SnapshotId = "archive-" + index, IncidentId = "archive", CapturedAtUtc = Now.AddMinutes(index) }).ToArray();
+        await store.SaveIncidentBundleAsync(new("archive", "disk:C", IncidentLifecycleState.Active, Now, Now.AddMinutes(69), 70, diagnosis, snapshots), CancellationToken.None);
+        var head = Assert.Single(await Read(readHeads, store));
+        Assert.Equal(64, head.Snapshots.Count);
+        Assert.Equal(Now.AddMinutes(6), head.Snapshots[0].CapturedAtUtc);
+        Assert.Equal(Now.AddMinutes(69), head.Snapshots[^1].CapturedAtUtc);
+        Assert.Equal(70, Assert.Single(await store.ReadIncidentsAsync(CancellationToken.None)).Snapshots.Count);
     }
     private static async Task Save(MethodInfo method, SqliteHostAgentStore store, Incident incident)
     {

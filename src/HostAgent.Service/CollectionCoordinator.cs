@@ -88,6 +88,8 @@ internal sealed class CollectionCoordinator : BackgroundService
         try
         {
             await _diagnostics.ProcessAsync(nowUtc ?? DateTimeOffset.UtcNow, cancellationToken);
+            if (_diagnostics.BaselineFailureCode is { } failureCode)
+                _logger.LogWarning("Adaptive baseline is degraded with {FailureCode}; fixed diagnosis remains active.", failureCode);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
         catch (Exception exception)

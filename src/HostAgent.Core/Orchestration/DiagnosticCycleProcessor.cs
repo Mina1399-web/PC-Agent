@@ -11,23 +11,50 @@ namespace HostAgent.Core.Orchestration;
 public sealed class DiagnosticCycleProcessor(IHostAgentStore store) : IDisposable
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
+    private readonly BaselineEngine _baseline = new();
+    private readonly Dictionary<(string Metric, string Scope), (DateTimeOffset At, Guid Id)> _lastSamples = [];
+    private readonly Dictionary<(string Metric, string Scope), BaselineAssessment> _assessments = [];
+    public string? BaselineFailureCode { get; private set; }
 
     public async ValueTask<IReadOnlyList<Incident>> ProcessAsync(DateTimeOffset nowUtc, CancellationToken cancellationToken)
     {
         await _gate.WaitAsync(cancellationToken);
         try
         {
-            var samples = await store.ReadMetricSamplesAsync(nowUtc.AddDays(-30), nowUtc, 1_000_000, cancellationToken);
-            var currentSamples = samples.GroupBy(sample => (sample.MetricName, sample.Scope))
-                .Select(group => group.MaxBy(sample => sample.SampledAtUtc)!)
-                .Where(sample => sample.SampledAtUtc >= nowUtc.AddMinutes(-2)).ToArray();
-            var ids = currentSamples.Select(sample => sample.SampleId).ToHashSet();
-            var baseline = new BaselineEngine();
-            await baseline.RestoreAsync(samples.Where(sample => !ids.Contains(sample.SampleId)).ToArray(),
-                await store.ReadBaselineOriginsAsync(cancellationToken), cancellationToken);
-            var assessments = new List<BaselineAssessment>();
-            foreach (var sample in currentSamples)
-                assessments.Add(await baseline.ObserveAsync(sample.MetricName, sample.Scope, sample.SampledAtUtc, sample.Value, cancellationToken));
+            BaselineFailureCode = null;
+            try
+            {
+                var origins = await store.ReadBaselineOriginsAsync(cancellationToken);
+                if (origins.Count > 4096) BaselineFailureCode = "baseline_series_capacity";
+                foreach (var origin in origins.Take(4096))
+                {
+                    var key = (origin.MetricName, origin.Scope);
+                    var initialized = _lastSamples.TryGetValue(key, out var last);
+                    var series = await store.ReadMetricSeriesAsync(origin.MetricName, origin.Scope,
+                        initialized ? last.At : nowUtc.AddDays(-30), nowUtc, 50_000, cancellationToken);
+                    if (series.Count == 0) continue;
+                    if (!initialized)
+                    {
+                        await _baseline.RestoreSeriesAsync(series.Take(series.Count - 1).ToArray(), origin, cancellationToken);
+                        series = [series[^1]];
+                    }
+                    foreach (var sample in series.Where(sample => !initialized || sample.SampledAtUtc > last.At
+                        || (sample.SampledAtUtc == last.At && sample.SampleId != last.Id)))
+                    {
+                        _assessments[key] = await _baseline.ObserveAsync(sample.MetricName, sample.Scope, sample.SampledAtUtc, sample.Value, cancellationToken);
+                        _lastSamples[key] = (sample.SampledAtUtc, sample.SampleId);
+                    }
+                }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+            catch (Exception)
+            {
+                // Adaptive availability never gates fixed critical rules. Expose a bounded health code to the coordinator.
+                BaselineFailureCode = "baseline_restore_failed";
+            }
+            var assessments = _assessments.Values.Where(value => value.SampledAtUtc >= nowUtc.AddMinutes(-2)
+                && value.SampledAtUtc <= nowUtc).ToArray();
+            var samples = await store.ReadMetricSeriesAsync("cpu.usage.percent", "host", nowUtc.AddMinutes(-5), nowUtc, 500, cancellationToken);
 
             var timestamps = new List<DateTimeOffset>();
             async ValueTask<T?> Latest<T>(string collectorId) where T : class
@@ -54,7 +81,7 @@ public sealed class DiagnosticCycleProcessor(IHostAgentStore store) : IDisposabl
                 samples.Where(sample => sample.SampledAtUtc >= observedAt.AddMinutes(-5)).ToArray());
             var diagnoses = await new DiagnosticEngine().EvaluateAsync(evidence, cancellationToken);
             var incidents = new IncidentEngine();
-            incidents.Restore(await store.ReadIncidentsAsync(cancellationToken));
+            incidents.Restore(await store.ReadIncidentHeadsAsync(cancellationToken));
             var updated = new List<Incident>();
             foreach (var diagnosis in diagnoses)
             {
@@ -76,7 +103,7 @@ public sealed class DiagnosticCycleProcessor(IHostAgentStore store) : IDisposabl
         try
         {
             var engine = new IncidentEngine();
-            engine.Restore(await store.ReadIncidentsAsync(cancellationToken));
+            engine.Restore(await store.ReadIncidentHeadsAsync(cancellationToken));
             var updated = await engine.TransitionAsync(incidentId, state, snapshot, cancellationToken);
             await store.SaveIncidentBundleAsync(updated, cancellationToken);
             return updated;
