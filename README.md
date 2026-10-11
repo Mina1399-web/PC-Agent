@@ -4,7 +4,7 @@ Windows-first local host monitoring and incident-assistance service built with C
 
 ## Project status
 
-Task 2 is **incomplete**. Its current verification record documents the last completed checks and the outstanding work. This repository snapshot does not claim fresh build or test results from the publication date.
+Task 2 is **incomplete**. Its current verification record documents the last completed checks and outstanding work. This repository does not claim fresh build or test results from the publication date.
 
 - [Specification](docs/specs/host-agent-v1.md)
 - [Development and testing](docs/development-and-testing.md)
@@ -13,6 +13,10 @@ Task 2 is **incomplete**. Its current verification record documents the last com
 - [Task 2 verification](docs/verification/task-2.md)
 
 Builds and tests must run in the approved Windows DEV/test environment described in the development guide. Keep production Code Integrity, VBS, Memory Integrity, and other security policies unchanged. Do not start Task 3 until every Task 2 verification gate passes.
+
+## Continue in Codex on the DEV VM
+
+When opening this repository in Codex inside the approved VM, read [AGENTS.md](AGENTS.md). The detailed, ready-to-use continuation prompt is [docs/prompts/agentpc-task-2.md](docs/prompts/agentpc-task-2.md).
 
 ## Solution
 
