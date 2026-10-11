@@ -520,3 +520,120 @@ ExitCode: 0
 ```
 
 Run59: standard UAC Start-Process pwsh.exe -Verb RunAs launched external Invoke-HostAgentInstalledAcceptance.ps1 -PackagePath ../HostAgent-DEV-releases/HostAgent-1.0.0-dev1. Worker verified VM/elevation; installation failed at DEV launch condition (MsiInstaller10005/11708); no installed service accepted. Read-only OpenPackage evaluation: ComputerName AGENTPC; equality AgentPC=0, case-insensitive equality=1. See verification record for limits. Run57 stopped on a harness null-LASTEXITCODE check; its missing final exit is not a pass.
+
+### v1-64-corrected-package
+
+```text
+UTC: 2026-10-11T19:59:03.1486985+00:00
+Command: & ./tools/Build-Release.ps1 -PackagePath ../HostAgent-DEV-releases/HostAgent-1.0.0-dev2 -WixPath ../HostAgent-DEV-tools/wix/wix.exe -DevVm
+{"package":"C:\\Users\\AgentPCdevtest\\Documents\\ChatGPT\\DevTest VM PC\\HostAgent-DEV-releases\\HostAgent-1.0.0-dev2","devOnly":true,"zip":"C:\\Users\\AgentPCdevtest\\Documents\\ChatGPT\\DevTest VM PC\\HostAgent-DEV-releases\\HostAgent-1.0.0-dev2.zip","zipSha256":"4D204E67F55ABF2BA355ED5BB1E0B5B901880C3106DD987B0D0D5EE71C3698A3","sourceCommit":"5448a09cfbc5166b9c1ef83d7632ee3ea0e038e7"}
+ExitCode: 0
+```
+
+
+### v1-65-corrected-package-acceptance
+
+```text
+UTC: 2026-10-11T20:00:17.5478262+00:00
+Command: Test-HostAgentDevPackage.ps1 -PackagePath C:\Users\AgentPCdevtest\Documents\ChatGPT\DevTest VM PC\HostAgent-DEV-releases\HostAgent-1.0.0-dev2 -SourceCommit 5448a09cfbc5166b9c1ef83d7632ee3ea0e038e7 -Label v1-65-corrected-package-acceptance
+{"sourceCommit":"5448a09cfbc5166b9c1ef83d7632ee3ea0e038e7","valid":true,"devOnly":true,"files":688}
+{"serviceCount":2,"devVmGuard":true,"valid":true,"precopyValidationIsSystemDeferred":true,"devVmIdentityMatches":true,"uninstallPreservesData":true,"existingServicesGuarded":true,"monitorAccount":"NT SERVICE\\HostAgent","bootstrapIsSystemDeferred":true,"recoveryServiceCount":2,"fileCount":659,"helperAccount":"LocalSystem"}
+Actual non-administrator installer refusal: administrator_required
+{"sourceCommit":"5448a09cfbc5166b9c1ef83d7632ee3ea0e038e7","valid":true,"devOnly":true,"files":688}
+ZIP entries: 689; extracted integrity valid before tamper; unsigned production and tampered copy refused.
+ExitCode: 0
+```
+
+
+### v1-67-admin-first-message-red
+
+```text
+UTC: 2026-10-11T20:03:39.4827274+00:00
+Command: dotnet test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj --configuration Release --filter FullyQualifiedName~Authentication_waits_for_first_bounded_message --logger console;verbosity=normal
+Celkový počet testů: 2
+     Úspěšné: 2
+ExitCode: 0
+```
+
+
+### v1-68-admin-message-order-focused
+
+```text
+UTC: 2026-10-11T20:06:24.5672305+00:00
+Command: dotnet test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj --configuration Release --filter FullyQualifiedName~AdministrationTests|FullyQualifiedName~OperatorHostingTests|FullyQualifiedName~AdminDispatcherTests --logger console;verbosity=normal
+Celkový počet testů: 19
+     Úspěšné: 19
+ExitCode: 0
+```
+
+
+### v1-69-admin-order-release-build
+
+```text
+UTC: 2026-10-11T20:07:23.9938629+00:00
+Command: dotnet build HostAgent.sln --configuration Release -m:1 -p:UseSharedCompilation=false
+    0 upozornění
+    Počet chyb: 0
+ExitCode: 0
+```
+
+
+### v1-70-admin-order-release-suite
+
+```text
+UTC: 2026-10-11T20:07:33.0774015+00:00
+Command: dotnet test HostAgent.sln --configuration Release --no-build -m:1 --logger console;verbosity=normal
+Celkový počet testů: 42
+     Úspěšné: 42
+Celkový počet testů: 162
+     Úspěšné: 162
+ExitCode: 0
+```
+
+
+### v1-71-admin-rejection-diagnostic-red
+
+```text
+UTC: 2026-10-11T20:09:23.5399336+00:00
+Command: dotnet test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj --configuration Release --filter FullyQualifiedName~Unprivileged_authenticated_owner_cannot_dispatch_administrator_command --logger console;verbosity=normal
+Celkový počet testů: 1
+     Neúspěšné: 1
+ExitCode: 1
+```
+
+
+### v1-72-admin-rejection-diagnostic-green
+
+```text
+UTC: 2026-10-11T20:10:04.8776400+00:00
+Command: dotnet test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj --configuration Release --filter FullyQualifiedName~AdministrationTests|FullyQualifiedName~OperatorHostingTests|FullyQualifiedName~AdminDispatcherTests --logger console;verbosity=normal
+Celkový počet testů: 19
+     Úspěšné: 19
+ExitCode: 0
+```
+
+
+### v1-73-admin-diagnostics-release-build
+
+```text
+UTC: 2026-10-11T20:10:44.6777595+00:00
+Command: dotnet build HostAgent.sln --configuration Release -m:1 -p:UseSharedCompilation=false
+    0 upozornění
+    Počet chyb: 0
+ExitCode: 0
+```
+
+
+### v1-74-admin-diagnostics-release-suite
+
+```text
+UTC: 2026-10-11T20:10:52.8955661+00:00
+Command: dotnet test HostAgent.sln --configuration Release --no-build -m:1 --logger console;verbosity=normal
+Celkový počet testů: 42
+     Úspěšné: 42
+Celkový počet testů: 162
+     Úspěšné: 162
+ExitCode: 0
+```
+
+Run66: elevated external installed harness -PackagePath ../HostAgent-DEV-releases/HostAgent-1.0.0-dev2. Actual MSI install passed; exact service identities Running/Auto passed; CLI status failed control_outcome_uncertain, overall FAILED. JSON archived as v1-66-installed-acceptance/maintenance. Run67's historical label ends red, but both tests actually passed before implementation; it is NOT red evidence. Run71 is an actual expected denial-diagnostic assertion failure.

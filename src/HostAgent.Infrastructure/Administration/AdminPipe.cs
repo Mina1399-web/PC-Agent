@@ -6,7 +6,7 @@ using HostAgent.Infrastructure.Pipes;
 namespace HostAgent.Infrastructure.Administration;
 // Production supplies BuiltinAdministratorsSid; explicit principals also support isolated deployments.
 public sealed class AdminPipeServer(string name,SecurityIdentifier owner,SecurityIdentifier allowedRole,
-    Func<byte[],CancellationToken,ValueTask<byte[]>> dispatch,TimeSpan timeout)
+    Func<byte[],CancellationToken,ValueTask<byte[]>> dispatch,TimeSpan timeout,Action<string>? reportRejection=null)
 {
     public async Task ServeOnceAsync(CancellationToken token)
     {
@@ -18,23 +18,31 @@ public sealed class AdminPipeServer(string name,SecurityIdentifier owner,Securit
         using var deadline=CancellationTokenSource.CreateLinkedTokenSource(token);deadline.CancelAfter(timeout);
         await using var pipe=NamedPipeServerStreamAcl.Create(name,PipeDirection.InOut,1,PipeTransmissionMode.Byte,
             PipeOptions.Asynchronous|PipeOptions.FirstPipeInstance,16384,16384,acl);
-        byte[]? payload=null;
+        byte[]? payload=null;var phase="connection";
         try
         {
             await pipe.WaitForConnectionAsync(deadline.Token);
+            // Windows authenticates the security context of the last message
+            // read. Consume only a bounded frame before checking the token;
+            // parsing and dispatch remain strictly after authorization.
+            phase="frame";payload=await HelperProtocol.ReadFrameAsync(pipe,deadline.Token);
             var authorized=false;
+            phase="impersonation";
             pipe.RunAsClient(()=>
             {
+                phase="token_query";
                 using var identity=WindowsIdentity.GetCurrent(true);
+                phase="membership";
                 authorized=identity?.User is{} sid && (sid.Equals(allowedRole)||new WindowsPrincipal(identity).IsInRole(allowedRole));
             });
-            if(!authorized)return;
-            payload=await HelperProtocol.ReadFrameAsync(pipe,deadline.Token);
+            if(!authorized){reportRejection?.Invoke("control_unauthorized");return;}
+            phase="dispatch";
             var response=await dispatch(payload,deadline.Token);
+            phase="reply";
             await HelperProtocol.WriteFrameAsync(pipe,response,deadline.Token);
         }
-        catch(Exception error) when(error is IOException or UnauthorizedAccessException or OperationCanceledException or InvalidDataException)
-        { /* Close without raw payload/exception logging. No automatic replay. */ }
+        catch(Exception)
+        { reportRejection?.Invoke("control_"+phase+"_failed"); /* Fixed code only; no payload/exception text or replay. */ }
         finally{if(payload is not null)CryptographicOperations.ZeroMemory(payload);}
     }
 }

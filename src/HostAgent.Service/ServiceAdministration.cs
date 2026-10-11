@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HostAgent.Core.Contracts;
 using HostAgent.Infrastructure.Administration;
 using HostAgent.Infrastructure.Security;
+using Microsoft.Extensions.Logging;
 namespace HostAgent.Service;
 public static class ServiceAdministration
 {
@@ -12,6 +13,6 @@ public static class ServiceAdministration
             sp.GetRequiredService<ServiceConfiguration>(),sp.GetRequiredService<AgentRuntimeHealth>(),sp.GetRequiredService<ProtectedSecretStore>().WriteAsync));
         services.AddHostedService(sp=>new AdminWorker(new AdminPipeServer(pipeName,serviceSid,
             operatorRole??new(WellKnownSidType.BuiltinAdministratorsSid,null),sp.GetRequiredService<AdminDispatcher>().DispatchAsync,
-            TimeSpan.FromSeconds(30)).ServeOnceAsync,sp.GetRequiredService<AgentRuntimeHealth>()));
+            TimeSpan.FromSeconds(30),code=>sp.GetRequiredService<ILogger<AdminWorker>>().LogWarning("Administrative connection rejected: {Code}.",code)).ServeOnceAsync,sp.GetRequiredService<AgentRuntimeHealth>()));
     }
 }

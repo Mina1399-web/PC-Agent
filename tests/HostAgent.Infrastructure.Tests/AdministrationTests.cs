@@ -8,6 +8,32 @@ using Xunit;
 namespace HostAgent.Infrastructure.Tests;
 public sealed class AdministrationTests
 {
+    // Impersonation identifies the client of the last pipe message read. A
+    // connected client can still be checking the server before sending it.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Authentication_waits_for_first_bounded_message_before_impersonating(bool group)
+    {
+        using var identity=WindowsIdentity.GetCurrent();var sid=identity.User!;
+        var role=group?new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid,null):sid;
+        Assert.True(new WindowsPrincipal(identity).IsInRole(role));
+        var name="HostAgent-admin-delayed-"+Guid.NewGuid().ToString("N");var calls=0;
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var serving=new AdminPipeServer(name,sid,role,(bytes,token)=>
+        {calls++;return ValueTask.FromResult(AdminProtocol.Reply(true,"ready"));},TimeSpan.FromSeconds(3)).ServeOnceAsync(deadline.Token);
+        await using var client=new System.IO.Pipes.NamedPipeClientStream(".",name,
+            System.IO.Pipes.PipeAccessRights.ReadWrite|System.IO.Pipes.PipeAccessRights.Synchronize,
+            System.IO.Pipes.PipeOptions.Asynchronous,TokenImpersonationLevel.Identification,System.IO.HandleInheritability.None);
+        await client.ConnectAsync(deadline.Token);
+        await Task.Delay(200,deadline.Token);
+        Assert.False(serving.IsCompleted,"The server must wait for a message before authenticating, rather than close an unread connection.");
+        await HelperProtocol.WriteFrameAsync(client,AdminProtocol.Request("status",new{}),deadline.Token);
+        var reply=await HelperProtocol.ReadFrameAsync(client,deadline.Token);
+        await serving;
+        using var json=JsonDocument.Parse(reply);
+        Assert.True(json.RootElement.GetProperty("ok").GetBoolean());Assert.Equal(1,calls);
+    }
     [Fact]
     public void Frame_size_and_nesting_are_bounded()
     {
@@ -22,12 +48,13 @@ public sealed class AdministrationTests
         var admin=new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid,null);
         // In the approved non-elevated DEV account this exercises the actual production administrator role.
         var role=new WindowsPrincipal(identity).IsInRole(admin)?new SecurityIdentifier("S-1-5-21-1-2-3-9999"):admin;
-        var name="HostAgent-admin-denied-"+Guid.NewGuid().ToString("N");var calls=0;
+        var name="HostAgent-admin-denied-"+Guid.NewGuid().ToString("N");var calls=0;string? rejection=null;
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(4));
-        var serving=new AdminPipeServer(name,sid,role,(bytes,token)=>{calls++;return ValueTask.FromResult(AdminProtocol.Reply(true,"unexpected"));},TimeSpan.FromSeconds(1)).ServeOnceAsync(deadline.Token);
+        var serving=new AdminPipeServer(name,sid,role,(bytes,token)=>{calls++;return ValueTask.FromResult(AdminProtocol.Reply(true,"unexpected"));},TimeSpan.FromSeconds(1),code=>rejection=code).ServeOnceAsync(deadline.Token);
         var result=await new AdminPipeClient(name,sid,TimeSpan.FromSeconds(1)).SendAsync(AdminProtocol.Request("status",new{}),deadline.Token);
         await serving;using var json=JsonDocument.Parse(result);
         Assert.False(json.RootElement.GetProperty("ok").GetBoolean());Assert.Equal(0,calls);
+        Assert.Equal("control_unauthorized",rejection);
     }
     // Defect: administrative envelope accepts unknown commands/fields or duplicate keys.
     [Theory]
