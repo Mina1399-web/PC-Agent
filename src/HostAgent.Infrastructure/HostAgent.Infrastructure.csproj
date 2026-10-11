@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>HostAgent.Infrastructure</AssemblyName>
+    <RootNamespace>HostAgent.Infrastructure</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HostAgent.Core\HostAgent.Core.csproj" />
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+    <PackageReference Include="System.Diagnostics.EventLog" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" />
+  </ItemGroup>
+</Project>
