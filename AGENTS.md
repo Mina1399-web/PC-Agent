@@ -19,6 +19,6 @@ Treat current code and fresh evidence as authoritative over historical notes. Ta
 - Run all builds and tests in the VM working copy. Never use the production host as a substitute.
 - Do not disable, bypass, weaken, replace, or change production Code Integrity, Smart App Control, VBS, Memory Integrity, Hyper-V, or other security policies.
 - Preserve the `clean-win-base` snapshot. Never overwrite or alter it.
-- Do not begin Task 3. Do not transfer Task 2 changes to the host until all required VM verification passes.
+- Task 3 is explicitly authorized by the user on 2026-10-11; keep its implementation and verification in the approved VM. Do not begin Task 4. Do not transfer changes to the host without a safe available path and preservation of its current work.
 - Update verification records only with test runs actually performed in the current environment. Keep historical results clearly identified as historical.
 - Do not commit credentials, chat attachments, VM configuration, SDK caches, or build outputs.
