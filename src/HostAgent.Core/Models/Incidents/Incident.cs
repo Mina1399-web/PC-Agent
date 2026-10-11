@@ -26,7 +26,11 @@ public sealed record Incident(
     DateTimeOffset UpdatedAtUtc,
     int RecurrenceCount,
     DiagnosisModel LatestDiagnosis,
-    IReadOnlyList<IncidentSnapshot> Snapshots);
+    IReadOnlyList<IncidentSnapshot> Snapshots)
+{
+    // Optional for existing schema-3 JSON; old incidents fall back to CreatedAtUtc until reopening.
+    public DateTimeOffset? OccurrenceStartedAtUtc { get; init; }
+}
 
 public sealed record IncidentSnapshot(
     string SnapshotId,

@@ -212,6 +212,8 @@ Run git add src tests docs/security/task-3-review.md and git commit -m "feat: ad
 
 ### Task 4: Notifications, outbound heartbeat, service readiness and operating modes
 
+**Status:** Explicitly authorized and implemented in the approved DEV VM on 2026-10-11. Fresh Release build passed with 0 warnings/errors; complete suite 150/150 and focused Task 4 suite 43/43 passed. Independent source/security review resolved all three P2 findings and approved the implementation. The Task 4 commit is the commit containing this update. See [verification and actual run ledger](../verification/task-4.md) and [security review](../security/task-4-review.md). Installed services, live delivery, production identity provisioning and SCM recovery remain unverified; source handoff is prepared separately and host transfer is blocked. No later stage is authorized.
+
 **Files:**
 
 - Create: src/HostAgent.Infrastructure/Notifications/PushoverNotifier.cs
@@ -228,31 +230,31 @@ Run git add src tests docs/security/task-3-review.md and git commit -m "feat: ad
 - IHeartbeatSender.SendAsync(AgentHealth, CancellationToken) makes only outbound HTTPS requests with bounded timeout.
 - Operating mode config is explicit: Shadow by default; Confirmation requires a fresh approval; LimitedAutonomous remains disabled.
 
-- [ ] **Step 1: Add failing adapter/host tests**
+- [x] **Step 1: Add failing adapter/host tests**
 
 Assert INFO is local-only; WARNING/HIGH map to Pushover priorities; CRITICAL stores acknowledgement/retry state; failed HTTP delivery degrades adapter health without stopping collection; heartbeat uses injected outbound transport with timeout/cancellation; secrets are absent from logs/config samples; service worker schedules bounded cycles and shuts down on cancellation; Shadow mode records a proposal without calling Helper; Confirmation requires matching approval.
 
-- [ ] **Step 2: Verify expected red**
+- [x] **Step 2: Verify expected red**
 
 Run focused Notification, Heartbeat and OperatingMode test filters. Expected: missing adapter/host behavior, not external network or credential setup.
 
-- [ ] **Step 3: Implement notification, secret and heartbeat adapters**
+- [x] **Step 3: Implement notification, secret and heartbeat adapters**
 
 Use typed options, OS-protected secrets under the service identity, TLS validation, bounded request timeouts and redacted structured logs. Provide offline tests through injected HTTP transport. Live API credentials are not required for tests.
 
-- [ ] **Step 4: Implement service startup and recovery configuration**
+- [x] **Step 4: Implement service startup and recovery configuration**
 
 Configure automatic Windows Service hosting without interactive login, graceful cancellation, structured logging, restart/backoff and documented SCM recovery. Keep the service unprivileged. Tests never install or restart a service.
 
-- [ ] **Step 5: Complete operations and security docs**
+- [x] **Step 5: Complete operations and security docs**
 
 Document actual service identities, helper protocol/allowlist, SQLite path/schema/retention, protected credential provisioning/recovery, configuration precedence, Shadow and Confirmation behavior, Windows service recovery, testing and known unverified surfaces.
 
-- [ ] **Step 6: Run full Task 4 verification**
+- [x] **Step 6: Run full Task 4 verification**
 
 Run dotnet build HostAgent.sln --configuration Release, dotnet test HostAgent.sln --configuration Release, warning review, secret scan and changed-file review. Clearly distinguish fake transport tests from live delivery and simulated pipe tests from installed services.
 
-- [ ] **Step 7: Commit the independently passing stage**
+- [x] **Step 7: Commit the independently passing stage**
 
 Run git add src tests docs and git commit -m "feat: add host agent notifications and service readiness". Expected: Task 4 is committed only after full verification.
 

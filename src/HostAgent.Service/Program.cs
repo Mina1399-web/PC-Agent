@@ -9,8 +9,12 @@ using HostAgent.Infrastructure.Security;
 using HostAgent.Infrastructure.Storage;
 using HostAgent.Service;
 using System.Security.Principal;
+using HostAgent.Infrastructure.Notifications;
+using HostAgent.Infrastructure.Heartbeat;
+using HostAgent.Infrastructure.Pipes;
 
-var builder = Host.CreateApplicationBuilder(args);
+var builder = Host.CreateApplicationBuilder();
+// Runtime/policy/secrets use only protected local files, never command-line/environment binding.
 const string serviceName = "HostAgent";
 builder.Services.AddWindowsService(options => options.ServiceName = serviceName);
 var serviceSid = (SecurityIdentifier)new NTAccount("NT SERVICE", serviceName)
@@ -19,6 +23,19 @@ var dataDirectory = HostAgentDataDirectory.EnsureSecure(Path.Combine(
     Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
     "HostAgent"), serviceSid);
 var databasePath = Path.Combine(dataDirectory, "host-agent.db");
+var configuration=ServiceConfiguration.LoadSafe(Path.Combine(dataDirectory,"service.json"),serviceSid);
+builder.Services.AddSingleton<ISecretStore>(_=>new ProtectedSecretStore(
+    Path.Combine(dataDirectory,builder.Environment.IsDevelopment()?"secrets-development":"secrets-production"),serviceSid));
+builder.Services.AddSingleton<INotificationStore>(_=>new SqliteNotificationStore(Path.Combine(dataDirectory,"notifications.db")));
+builder.Services.AddSingleton(_=>OutboundHttp.CreateClient());
+builder.Services.AddSingleton<INotificationSender>(services=>configuration.EnablePushover?
+    new PushoverNotifier(services.GetRequiredService<HttpClient>(),services.GetRequiredService<ISecretStore>(),TimeSpan.FromSeconds(configuration.RequestTimeoutSeconds)):
+    new LocalNotificationSender());
+builder.Services.AddSingleton<IHeartbeatSender>(services=>configuration.EnableHeartbeat?
+    new HealthchecksHeartbeat(services.GetRequiredService<HttpClient>(),services.GetRequiredService<ISecretStore>(),TimeSpan.FromSeconds(configuration.RequestTimeoutSeconds)):
+    new DisabledHeartbeat());
+builder.Services.AddSingleton<IHelperClient>(_=>new NamedPipeHelperClient("HostAgent.Helper.v1",
+    new SecurityIdentifier(WellKnownSidType.LocalSystemSid,null),TimeSpan.FromSeconds(configuration.RequestTimeoutSeconds)));
 
 builder.Services.AddSingleton<IHostAgentStore>(_ => new SqliteHostAgentStore(databasePath));
 builder.Services.AddSingleton<ICollectorCheckpointStore>(services => services.GetRequiredService<IHostAgentStore>());
@@ -63,6 +80,6 @@ builder.Services.AddSingleton<ITelemetryCollectionJob>(services => new Telemetry
     services.GetRequiredService<ITelemetryCollector<EventLogTelemetry>>(),
     services.GetRequiredService<IHostAgentStore>(),
     services.GetRequiredService<ITelemetryMetricProjector<EventLogTelemetry>>()));
-builder.Services.AddHostedService<CollectionCoordinator>();
+ServiceRuntime.AddWorkers(builder.Services,configuration);
 
 await builder.Build().RunAsync();

@@ -29,7 +29,11 @@ public sealed class IncidentEngine : IIncidentEngine
             var updated = new Incident(id, diagnosis.CorrelationKey, state,
                 prior?.CreatedAtUtc ?? diagnosis.ObservedAtUtc, diagnosis.ObservedAtUtc,
                 (prior?.RecurrenceCount ?? 0) + 1, diagnosis with { IncidentState = state },
-                AddSnapshot(prior, snapshot with { IncidentId = id, DiagnosticEvidence = diagnosis.Evidence }));
+                AddSnapshot(prior, snapshot with { IncidentId = id, DiagnosticEvidence = diagnosis.Evidence }))
+            {
+                OccurrenceStartedAtUtc=prior is null || prior.State==IncidentLifecycleState.Resolved?
+                    diagnosis.ObservedAtUtc:prior.OccurrenceStartedAtUtc??prior.CreatedAtUtc
+            };
             _incidents[diagnosis.CorrelationKey] = Clone(updated);
             return ValueTask.FromResult(Clone(updated));
         }

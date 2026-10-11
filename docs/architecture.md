@@ -1,0 +1,13 @@
+# Host Agent V1 architecture
+
+The non-privileged HostAgent Windows Service owns collection, baseline/diagnosis/incident processing, monitoring SQLite, local notification history, and outbound delivery. HostAgent.Core remains free of Windows Service hosting dependencies. HostAgent.Infrastructure owns Windows/SQLite/DPAPI/HTTP/pipe adapters.
+
+CollectionCoordinator runs isolated collectors, retention and DiagnosticCycleProcessor. IncidentPublisher writes Shadow recommendations to append-oriented audit and enqueues a fixed incident summary. No raw event payload, process path or credential enters a push message. Notifications deduplicate by incident, state, severity and occurrence epoch. The separate outbound worker also reads durable incident heads so helper guard failures/escalations reach notification history. A failure during publication retries later; the two databases are not an atomic transaction, so a crash between audit and enqueue can append another harmless recommendation audit.
+
+Collection, notification delivery and heartbeat have independent loops. ResilientWorker bounds waits, observes late faults, backs off after errors and never overlaps its own timed-out cycle. Cooperative shutdown drains for up to 500 ms; an uncooperative dependency cannot hold the worker indefinitely. Host shutdown has a 15-second budget. A best-effort shutdown heartbeat has a five-second sub-budget.
+
+RemediationCoordinator accepts only a typed proposal associated with a durable, actionable incident and its exact diagnosis/confidence/evidence. Shadow records without contacting Helper. Confirmation validates a fresh operation digest/approval, audits typed parameters, approver/time and timeout, and calls the fixed local pipe once. It captures lifecycle snapshots; failure/uncertainty escalates for human review. A trusted local API is the integration seam: no interactive approval UI, remote control endpoint or automatic operation selector exists.
+
+HostAgent.Helper remains SYSTEM-only with the Task 3 closed protocol, independent allowlist/policy/approval journal, ACL/token checks, rate/cooldown/restart limits and uncertainty blocking. Task 4 changes its hosting, not its operations or authorization. The helper listener backs off; five consecutive listener failures request nonzero process termination for SCM recovery. Normal cancellation does not request failure recovery.
+
+See [configuration](operations/configuration.md), [storage](operations/storage.md), [recovery](operations/recovery.md), [security assumptions](security/assumptions.md) and [executed Task 4 evidence](verification/task-4.md).

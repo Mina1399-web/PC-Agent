@@ -4,6 +4,7 @@ using HostAgent.Core.Orchestration;
 using HostAgent.Core.Models.Storage;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using HostAgent.Infrastructure.Security;
 
 namespace HostAgent.Service;
 
@@ -19,13 +20,20 @@ internal sealed class CollectionCoordinator : BackgroundService
     private readonly CollectorCycleRunner _runner;
     private readonly DiagnosticCycleProcessor _diagnostics;
     private readonly ILogger<CollectionCoordinator> _logger;
+    private readonly IncidentPublisher? _publisher;
+    private readonly AgentRuntimeHealth _health;
+    private readonly ServiceConfiguration _configuration;
     private DateTimeOffset _nextRetentionAtUtc = DateTimeOffset.MinValue;
 
     public CollectionCoordinator(
         IHostAgentStore store,
         IEnumerable<ITelemetryCollectionJob> jobs,
         DiagnosticCycleProcessor diagnostics,
-        ILogger<CollectionCoordinator> logger)
+        ILogger<CollectionCoordinator> logger) : this(store,jobs,diagnostics,logger,null,new(),new()) { }
+
+    public CollectionCoordinator(IHostAgentStore store,IEnumerable<ITelemetryCollectionJob> jobs,
+        DiagnosticCycleProcessor diagnostics,ILogger<CollectionCoordinator> logger,IncidentPublisher? publisher,
+        AgentRuntimeHealth health,ServiceConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(store);
         ArgumentNullException.ThrowIfNull(jobs);
@@ -35,6 +43,9 @@ internal sealed class CollectionCoordinator : BackgroundService
         _store = store;
         _logger = logger;
         _diagnostics = diagnostics;
+        _publisher=publisher;
+        _health=health;
+        _configuration=configuration;
         _runner = new CollectorCycleRunner(
             jobs.ToArray(),
             CollectionTimeout,
@@ -57,29 +68,19 @@ internal sealed class CollectionCoordinator : BackgroundService
             _logger.LogCritical(exception, "Host Agent storage initialization failed; collection will continue with degraded persistence.");
         }
 
-        using var timer = new PeriodicTimer(CollectionInterval);
-        do
-        {
-            try
-            {
-                await RunCycleAsync(null, stoppingToken);
-            }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                break;
-            }
-            catch (Exception exception)
-            {
-                _logger.LogError(exception, "A collection cycle failed unexpectedly; the worker remains active.");
-            }
-        }
-        while (await timer.WaitForNextTickAsync(stoppingToken));
+        using var worker=new ResilientWorker(token=>RunCycleAsync(null,token).AsTask(),
+            TimeSpan.FromSeconds(_configuration.CollectionIntervalSeconds),TimeSpan.FromMinutes(2),TimeProvider.System,
+            code=>{_health.Set("collection_worker",code is "cycle_failed" or "cycle_timeout");
+                _logger.LogWarning("Collection worker {Code}.",code);});
+        await worker.StartAsync(stoppingToken);
+        await worker.ExecuteTask!;
     }
 
     public async ValueTask RunCycleAsync(DateTimeOffset? nowUtc, CancellationToken cancellationToken)
     {
         await ApplyRetentionIfDueAsync(nowUtc ?? DateTimeOffset.UtcNow, cancellationToken);
         var results = await _runner.RunOnceAsync(cancellationToken);
+        _health.Set("collectors",results.Any(result=>result.Status!=CollectorCycleStatus.Succeeded));
         foreach (var result in results)
         {
             LogResult(result);
@@ -87,13 +88,16 @@ internal sealed class CollectionCoordinator : BackgroundService
         }
         try
         {
-            await _diagnostics.ProcessAsync(nowUtc ?? DateTimeOffset.UtcNow, cancellationToken);
+            var incidents=await _diagnostics.ProcessAsync(nowUtc ?? DateTimeOffset.UtcNow, cancellationToken);
+            _health.Set("diagnostics",_diagnostics.BaselineFailureCode is not null);
+            if(_publisher is not null) await _publisher.PublishAsync(incidents,nowUtc??DateTimeOffset.UtcNow,cancellationToken);
             if (_diagnostics.BaselineFailureCode is { } failureCode)
                 _logger.LogWarning("Adaptive baseline is degraded with {FailureCode}; fixed diagnosis remains active.", failureCode);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
         catch (Exception exception)
         {
+            _health.Set("diagnostics",true);
             _logger.LogError(exception, "Diagnosis persistence failed; read-only collection continues and diagnosis will retry next cycle.");
         }
     }

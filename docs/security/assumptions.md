@@ -1,0 +1,15 @@
+# Security assumptions and Task 4 limits
+
+Administrators/SYSTEM, released binaries and protected local configuration are trusted. Production signing remains a deployment prerequisite, not an implemented Task 4 feature. No production Code Integrity, VBS/Hyper-V, Memory Integrity, security policy or clean-win-base snapshot was changed.
+
+HostAgent runs without administrator/SYSTEM privileges. Helper alone retains the Task 3 SYSTEM boundary: closed 16-KiB protocol, local pipe ACL/token/owner checks, independent operation allowlist, helper-owned exact fresh approvals, durable one-time claims/limits, and no generic shell, process launcher, registry or file handler. Task 4 introduces no new helper operation or remotely editable policy.
+
+Shadow/read-only is the safe default. Exact Confirmation digest binds request, incident, diagnosis, confidence/evidence, operation and typed parameters. Service proposals must correspond to durable current incident evidence, and Helper independently rechecks authority. Approval metadata in a service proposal is not authority to create a helper-side approval. The trusted local approval API remains the integration seam; no live UI/CLI/control endpoint was added.
+
+Secrets use CurrentUser DPAPI under the actual service identity/profile, protected per-environment directories and bounded fixed-name files. Invalid ciphertext, identity mismatch and foreign ACLs fail closed. The synthetic VM account round-trip does not prove production virtual-account provisioning or recovery. Plaintext strings necessarily exist transiently in memory while constructing HTTPS requests; managed strings cannot be reliably zeroed. Byte buffers holding DPAPI plaintext are cleared.
+
+Only outbound verified HTTPS is used. Production HTTP clients disable redirects/cookies and install no certificate-validation bypass. No request URI/body, secret, raw response or exception is logged by adapters. Pushover receipt requests necessarily contain an application token in the HTTPS query; Healthchecks paths are credentials. Do not enable framework HTTP diagnostic listeners, proxy URL logging or request tracing on these clients. Operator-controlled self-hosted heartbeat destinations are trusted configuration, never input from incidents or IPC.
+
+Notifications contain fixed summaries only. Durable local claims prevent duplicate sends after uncertainty. Pushover starts emergency server retries on acceptance, even if the client crashes before persisting the receipt; a persisted receipt enables client polling. Retries stop on acknowledgement/server expiry. HTTP failures do not stop read-only collection. A heartbeat's absence cannot establish a unique host/network/agent failure cause without independent observations.
+
+Live delivery/acknowledgement, actual virtual-account DPAPI provisioning, installed service/SYSTEM bootstrap, cross-account deployment, SCM recovery, real privileged actions, code signing and long-running soak are unverified. The Task 4 verification record distinguishes fake transports/in-process hosts from these deployment checks.

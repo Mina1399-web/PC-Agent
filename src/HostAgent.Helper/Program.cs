@@ -3,8 +3,12 @@ using HostAgent.Core.Policy;
 using HostAgent.Infrastructure.Pipes;
 using HostAgent.Infrastructure.Security;
 using HostAgent.Infrastructure.Storage;
+using HostAgent.Helper;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
-// No command-line operations, paths or policy overrides. Service hosting/installation is Task 4.
+// No command-line operations, paths or policy overrides.
 using var identity = WindowsIdentity.GetCurrent();
 if (!identity.IsSystem) { Console.Error.WriteLine("helper_requires_system_identity"); return 1; }
 var helperSid = identity.User!;
@@ -25,16 +29,16 @@ try
             configuration.KillSwitch || File.Exists(Path.Combine(directory, "disable-remediation")),
             configuration.ConfigurationAvailable, configuration.ExecutionTimeoutSeconds));
     var server = new NamedPipeHelperServer("HostAgent.Helper.v1", new(serviceSid, helperSid), dispatcher, TimeSpan.FromSeconds(30));
-    using var shutdown = new CancellationTokenSource();
-    Console.CancelKeyPress += (_, eventArgs) => { eventArgs.Cancel = true; shutdown.Cancel(); };
-    while (!shutdown.IsCancellationRequested)
-    {
-        try { await server.ServeOnceAsync(shutdown.Token); }
-        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
-        { Console.Error.WriteLine("helper_listener_unavailable"); }
-        if (!shutdown.IsCancellationRequested) await Task.Delay(TimeSpan.FromMilliseconds(250), shutdown.Token);
-    }
-    return 0;
+    var builder=Host.CreateApplicationBuilder();
+    builder.Services.AddWindowsService(options=>options.ServiceName="HostAgent.Helper");
+    builder.Services.Configure<HostOptions>(options=>options.ShutdownTimeout=TimeSpan.FromSeconds(15));
+    builder.Services.AddHostedService(services=>new HelperListenerWorker(
+        token=>server.ServeOnceAsync(token),
+        code=>services.GetRequiredService<ILogger<HelperListenerWorker>>().LogWarning("Helper worker {Code}.",code),
+        ()=>Environment.Exit(1),
+        TimeSpan.FromMilliseconds(250)));
+    await builder.Build().RunAsync();
+    return Environment.ExitCode;
 }
 catch (OperationCanceledException) { return 0; }
 catch { Console.Error.WriteLine("helper_startup_failed"); return 1; }

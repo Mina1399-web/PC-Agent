@@ -11,7 +11,7 @@ Before changing code, inspect the current working tree and read:
 - `docs/plans/2026-10-06-host-agent-v1.md`
 - `docs/verification/task-2.md`
 
-Treat current code and fresh evidence as authoritative over historical notes. Task 2 and separately authorized Task 3 implementation/verification passed in the approved DEV VM; host synchronization remains blocked. Read [fresh Task 3 evidence](docs/verification/task-3.md) and [security review](docs/security/task-3-review.md). The [Task 2 VM continuation prompt](docs/prompts/agentpc-task-2.md) is historical. Task 4 requires a separate explicit user instruction.
+Treat current code and fresh evidence as authoritative over historical notes. Tasks 2–4 implementation/verification passed in the approved DEV VM; host synchronization remains blocked. Read [Task 4 evidence](docs/verification/task-4.md) and [security review](docs/security/task-4-review.md), with the historical Task 2/3 records. The Task 2 VM continuation prompt is historical. Task 4 was explicitly authorized on 2026-10-11; no additional feature/stage is authorized.
 
 ## Required boundaries
 
@@ -19,6 +19,6 @@ Treat current code and fresh evidence as authoritative over historical notes. Ta
 - Run all builds and tests in the VM working copy. Never use the production host as a substitute.
 - Do not disable, bypass, weaken, replace, or change production Code Integrity, Smart App Control, VBS, Memory Integrity, Hyper-V, or other security policies.
 - Preserve the `clean-win-base` snapshot. Never overwrite or alter it.
-- Task 3 is explicitly authorized by the user on 2026-10-11; keep its implementation and verification in the approved VM. Do not begin Task 4. Do not transfer changes to the host without a safe available path and preservation of its current work.
+- Task 4 is explicitly authorized by the user on 2026-10-11; keep implementation/verification in the approved VM. No dashboard or other out-of-scope feature. Do not transfer unless an existing verified safe path is available and the host is clean at the exact declared source base.
 - Update verification records only with test runs actually performed in the current environment. Keep historical results clearly identified as historical.
 - Do not commit credentials, chat attachments, VM configuration, SDK caches, or build outputs.

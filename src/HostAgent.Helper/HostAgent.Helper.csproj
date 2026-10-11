@@ -7,5 +7,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\HostAgent.Infrastructure\HostAgent.Infrastructure.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
   </ItemGroup>
 </Project>

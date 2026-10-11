@@ -4,7 +4,7 @@ Windows-first local host monitoring and incident-assistance service built with C
 
 ## Project status
 
-Task 3 implementation and source security review pass in the approved DEV VM on 2026-10-11: Release build has 0 warnings/errors, full suite 108/108, final focused security tests 35/35. The typed helper supports independently allowlisted service start/stop/restart and process termination; defaults remain read-only/shadow with no enabled registrations. See [Task 3 verification](docs/verification/task-3.md), [command ledger](docs/verification/task-3-runs.md), and [security review/limits](docs/security/task-3-review.md). Host synchronization remains blocked; no deployment or installed-service verification is claimed. Task 4 has not started.
+Task 4 implementation and source review pass in the approved DEV VM on 2026-10-11: Release build 0 warnings/errors, complete suite 150/150, focused Task 4 tests 43/43. Pushover/Healthchecks use fake transports in verification; DPAPI uses synthetic DEV-account values. Shadow/read-only remains the default. See [Task 4 verification](docs/verification/task-4.md), [command ledger](docs/verification/task-4-runs.md), [security review](docs/security/task-4-review.md) and [operations](docs/operations/install.md). Tasks 2/3 records remain historical evidence. Host handoff is prepared, but transfer/deployment is blocked; installed services, production identity/secrets, live delivery and SCM recovery are unverified.
 
 - [Specification](docs/specs/host-agent-v1.md)
 - [Development and testing](docs/development-and-testing.md)
@@ -12,8 +12,10 @@ Task 3 implementation and source security review pass in the approved DEV VM on 
 - [Task 1 verification](docs/verification/task-1.md)
 - [Task 2 verification](docs/verification/task-2.md)
 - [Task 3 verification](docs/verification/task-3.md)
+- [Task 4 verification](docs/verification/task-4.md)
+- [Architecture](docs/architecture.md)
 
-Builds and tests must run in the approved Windows DEV/test environment described in the development guide. Keep production Code Integrity, VBS, Memory Integrity, and other security policies unchanged. Task 3 was separately authorized after Task 2 gates passed. Do not start Task 4 without a new instruction.
+Builds and tests must run in the approved Windows DEV/test environment described in the development guide. Keep production Code Integrity, VBS, Memory Integrity, and other security policies unchanged. Task 4 was separately authorized after Task 2/3 gates passed. No later feature/stage is authorized.
 
 ## Continue in Codex on the DEV VM
 
