@@ -121,6 +121,11 @@ public sealed class NetworkTelemetryMetricProjector : ITelemetryMetricProjector<
         var samples = new List<MetricSample>();
         foreach (var probe in payload.Probes)
         {
+            if (probe.Status == NetworkProbeStatus.Unavailable)
+            {
+                continue;
+            }
+
             var scope = probe.Kind.ToString();
             samples.Add(SystemTelemetryMetricProjector.Metric(
                 "network.probe.success",

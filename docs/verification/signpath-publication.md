@@ -41,6 +41,16 @@ signpath-public-. They contain UTC, exact command, all output and exit code.
 | 16 complete Release build | 0 warnings/errors, exit 0 |
 | 17 complete Release suite | 42 Core + 170 Infrastructure = 212 passed; 0 failed/skipped, exit 0 |
 | 18 actual clean-source 1.0.3 release packaging red | exit 1, release_missing_notices: root LICENSE absent from Build-Release output, caught by the new MSI requirement |
+| 19 same packaging after root LICENSE copy | exit 0, source b39be933f2a79cefc3996800db86cb6207dff228; intermediate DEV ZIP SHA-256 708B6A28E78068E1BF2E2B7E2DE3C26D201D950DE692E53A5CD29C0C09A59A60 |
+| 20 unavailable-probe metric test | xUnit2031 analyzer error in the new test; fixture correction only, not behavioral red |
+| 21 corrected metric red | 1 failed: Unavailable emitted a fabricated network.probe.success=0 sample |
+| 22 same metric test after projector fix | 1 passed, exit 0; unavailable probes emit no metrics, genuine failure/success remain 0/1 |
+
+Independent review of 5aca8f6..b39be933 identified one P2: unavailable
+probes were recorded as observed failures by the metric projector. The
+test-first fix skips unavailable results without changing measured failures
+or successful results. Packaging run 19 predates this fix and is therefore
+an intermediate artifact, not the final candidate.
 
 The hosted positive publish path is not established by the VM refusal test.
 Its GitHub run will be recorded only after execution.
