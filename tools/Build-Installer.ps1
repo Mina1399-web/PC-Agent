@@ -61,7 +61,7 @@ $devCondition=''
 if ($DevVm) {
     $machineGuid=(Get-ItemProperty -LiteralPath 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography' -Name MachineGuid).MachineGuid
     if ($machineGuid -notmatch '^[A-Fa-f0-9-]{36}$') { throw 'release_dev_vm_required' }
-    $devCondition='<Property Id="DEV_MACHINE_GUID"><RegistrySearch Id="FindDevMachine" Root="HKLM" Key="SOFTWARE\Microsoft\Cryptography" Name="MachineGuid" Type="raw" /></Property><Launch Condition="ComputerName=&quot;AgentPC&quot; AND DEV_MACHINE_GUID=&quot;'+$machineGuid+'&quot;" Message="This unsigned DEV build is restricted to the approved development VM." />'
+    $devCondition='<Property Id="DEV_MACHINE_GUID"><RegistrySearch Id="FindDevMachine" Root="HKLM" Key="SOFTWARE\Microsoft\Cryptography" Name="MachineGuid" Type="raw" /></Property><Launch Condition="ComputerName~=&quot;AgentPC&quot; AND DEV_MACHINE_GUID=&quot;'+$machineGuid+'&quot;" Message="This unsigned DEV build is restricted to the approved development VM." />'
 }
 $xml=@"
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">

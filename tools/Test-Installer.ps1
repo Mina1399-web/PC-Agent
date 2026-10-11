@@ -35,4 +35,13 @@ $files=@(Rows 'SELECT `File` FROM `File`' 1)
 $conditions=@(Rows 'SELECT `Condition` FROM `LaunchCondition`' 1)
 $guarded=@($conditions | Where-Object { $_[0] -eq 'Installed OR WIX_UPGRADE_DETECTED OR (NOT EXISTING_MONITOR AND NOT EXISTING_HELPER)' }).Count -eq 1
 $devGuard=@($conditions | Where-Object { $_[0] -like '*DEV_MACHINE_GUID*' }).Count -eq 1
-@{valid=$true;monitorAccount=$monitor[0][1];helperAccount=$helper[0][1];serviceCount=2;bootstrapIsSystemDeferred=$true;precopyValidationIsSystemDeferred=$true;uninstallPreservesData=$true;recoveryServiceCount=$recovery.Count;fileCount=$files.Count;existingServicesGuarded=$guarded;devVmGuard=$devGuard} | ConvertTo-Json -Compress
+$devMatches=$false
+if($devGuard){
+    # Read-only MSI session: evaluate the actual condition with Windows' own
+    # ComputerName property and the local identity value; no install actions.
+    $session=$installer.OpenPackage((Join-Path ([IO.Path]::GetFullPath($PackagePath)) 'HostAgent.msi'),1)
+    $session.Property('DEV_MACHINE_GUID')=(Get-ItemProperty -LiteralPath 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography' -Name MachineGuid).MachineGuid
+    $condition=@($conditions | Where-Object { $_[0] -like '*DEV_MACHINE_GUID*' })[0][0]
+    $devMatches=$session.EvaluateCondition($condition) -eq 1
+}
+@{valid=$true;monitorAccount=$monitor[0][1];helperAccount=$helper[0][1];serviceCount=2;bootstrapIsSystemDeferred=$true;precopyValidationIsSystemDeferred=$true;uninstallPreservesData=$true;recoveryServiceCount=$recovery.Count;fileCount=$files.Count;existingServicesGuarded=$guarded;devVmGuard=$devGuard;devVmIdentityMatches=$devMatches} | ConvertTo-Json -Compress

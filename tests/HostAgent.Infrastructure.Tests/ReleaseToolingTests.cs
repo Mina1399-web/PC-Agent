@@ -37,6 +37,8 @@ public sealed class ReleaseToolingTests
         Assert.Equal(4,json.RootElement.GetProperty("fileCount").GetInt32());
         Assert.True(json.RootElement.GetProperty("existingServicesGuarded").GetBoolean());
         Assert.True(json.RootElement.GetProperty("devVmGuard").GetBoolean());
+        Assert.True(json.RootElement.GetProperty("devVmIdentityMatches").GetBoolean(),
+            "The actual MSI condition engine must accept the verified VM's Windows ComputerName casing.");
     }
     // Defect: verified release package cannot be validated without silently disabling the production signature gate.
     [Fact]

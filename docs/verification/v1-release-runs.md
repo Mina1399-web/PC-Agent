@@ -441,3 +441,82 @@ Daný projekt HostAgent.Infrastructure.Tests nemá při aktuálních zdrojích �
 Daný projekt HostAgent.Cli nemá při aktuálních zdrojích žádné zranitelné balíčky.
 ExitCode: 0
 ```
+
+### v1-56-self-contained-package
+
+```text
+UTC: 2026-10-11T19:44:40.8631939+00:00
+Command: pwsh -NoProfile -File tools/Build-Release.ps1 -PackagePath ../HostAgent-DEV-releases/HostAgent-1.0.0-dev1 -WixPath ../HostAgent-DEV-tools/wix/wix.exe -DevVm
+{"devOnly":true,"sourceCommit":"b8472927d98e72a0d7c7bf1b4456a536b6f0818b","package":"C:\\Users\\AgentPCdevtest\\Documents\\ChatGPT\\DevTest VM PC\\HostAgent-DEV-releases\\HostAgent-1.0.0-dev1","zipSha256":"1204C4FAB650DEB55F498475F9312D37A5711D5A4BA6B7FDB15482FC01BE972A","zip":"C:\\Users\\AgentPCdevtest\\Documents\\ChatGPT\\DevTest VM PC\\HostAgent-DEV-releases\\HostAgent-1.0.0-dev1.zip"}
+ExitCode: 0
+```
+
+
+### v1-57-package-acceptance
+
+```text
+UTC: 2026-10-11T19:48:55.4668653+00:00
+Checks: actual package manifest/MSI tables/self-contained CLI apphost/help/ZIP membership
+{"files":688,"devOnly":true,"valid":true,"sourceCommit":"b8472927d98e72a0d7c7bf1b4456a536b6f0818b"}
+```
+
+
+### v1-58-package-acceptance
+
+```text
+UTC: 2026-10-11T19:50:18.9512146+00:00
+Checks: manifest/MSI/apphost/ZIP extraction/tamper and production refusal
+{"files":688,"sourceCommit":"b8472927d98e72a0d7c7bf1b4456a536b6f0818b","devOnly":true,"valid":true}
+{"bootstrapIsSystemDeferred":true,"recoveryServiceCount":2,"precopyValidationIsSystemDeferred":true,"monitorAccount":"NT SERVICE\\HostAgent","valid":true,"devVmGuard":true,"fileCount":659,"helperAccount":"LocalSystem","uninstallPreservesData":true,"existingServicesGuarded":true,"serviceCount":2}
+{"files":688,"sourceCommit":"b8472927d98e72a0d7c7bf1b4456a536b6f0818b","devOnly":true,"valid":true}
+Production refusal: publisher_signature_required; actual extracted artifact tamper refusal: release_integrity_failed
+ExitCode: 0
+```
+
+
+### v1-60-msi-identity-red
+
+```text
+UTC: 2026-10-11T19:56:04.7337900+00:00
+Command: dotnet test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj --configuration Release --filter FullyQualifiedName~Built_msi_has_only_product_services_and_transactional_installation_actions --logger console;verbosity=normal
+Celkový počet testů: 1
+     Neúspěšné: 1
+ExitCode: 1
+```
+
+
+### v1-61-msi-identity-green
+
+```text
+UTC: 2026-10-11T19:56:56.8431998+00:00
+Command: dotnet test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj --configuration Release --no-build --filter FullyQualifiedName~ReleaseToolingTests --logger console;verbosity=normal
+Celkový počet testů: 7
+     Úspěšné: 7
+ExitCode: 0
+```
+
+
+### v1-62-post-msi-fix-build
+
+```text
+UTC: 2026-10-11T19:57:33.7279344+00:00
+Command: dotnet build HostAgent.sln --configuration Release -m:1 -p:UseSharedCompilation=false
+    0 upozornění
+    Počet chyb: 0
+ExitCode: 0
+```
+
+
+### v1-63-post-msi-fix-suite
+
+```text
+UTC: 2026-10-11T19:57:44.2303711+00:00
+Command: dotnet test HostAgent.sln --configuration Release --no-build -m:1 --logger console;verbosity=normal
+Celkový počet testů: 42
+     Úspěšné: 42
+Celkový počet testů: 160
+     Úspěšné: 160
+ExitCode: 0
+```
+
+Run59: standard UAC Start-Process pwsh.exe -Verb RunAs launched external Invoke-HostAgentInstalledAcceptance.ps1 -PackagePath ../HostAgent-DEV-releases/HostAgent-1.0.0-dev1. Worker verified VM/elevation; installation failed at DEV launch condition (MsiInstaller10005/11708); no installed service accepted. Read-only OpenPackage evaluation: ComputerName AGENTPC; equality AgentPC=0, case-insensitive equality=1. See verification record for limits. Run57 stopped on a harness null-LASTEXITCODE check; its missing final exit is not a pass.
