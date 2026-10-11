@@ -1,5 +1,7 @@
 # Security assumptions and Task 4 limits
 
+The paragraphs below preserve the historical Task4 boundary. Subsequent authorized V1 completion adds an elevated local CLI and administrator-only Named Pipe, existing-certificate release signing support and MSI packaging. Current evidence is in [V1 verification](../verification/v1-release.md) and [release review](v1-release-review.md). DEV installed acceptance passed for source0a13ea1: actual virtual monitor/SYSTEM helper, cold-process administrator authentication, synthetic service-identity DPAPI write, safe defaults and install/maintenance. Full service-profile decrypt/recovery, live HTTP, production signing/target deployment, forced SCM crash recovery and cold boot were not verified. Source and installed DEV checks do not replace those deployment checks.
+
 Administrators/SYSTEM, released binaries and protected local configuration are trusted. Production signing remains a deployment prerequisite, not an implemented Task 4 feature. No production Code Integrity, VBS/Hyper-V, Memory Integrity, security policy or clean-win-base snapshot was changed.
 
 HostAgent runs without administrator/SYSTEM privileges. Helper alone retains the Task 3 SYSTEM boundary: closed 16-KiB protocol, local pipe ACL/token/owner checks, independent operation allowlist, helper-owned exact fresh approvals, durable one-time claims/limits, and no generic shell, process launcher, registry or file handler. Task 4 introduces no new helper operation or remotely editable policy.

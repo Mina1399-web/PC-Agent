@@ -693,3 +693,71 @@ Celkový počet testů: 164
      Úspěšné: 164
 ExitCode: 0
 ```
+
+### v1-75-admin-order-package
+
+```text
+UTC: 2026-10-11T20:12:13.4117008+00:00
+Command: & ./tools/Build-Release.ps1 -PackagePath ../HostAgent-DEV-releases/HostAgent-1.0.1-dev1 -WixPath ../HostAgent-DEV-tools/wix/wix.exe -Version 1.0.1 -DevVm
+ExitCode: 0
+```
+
+
+### v1-76-admin-order-package-acceptance
+
+```text
+UTC: 2026-10-11T20:13:48.3488705+00:00
+Command: Test-HostAgentDevPackage.ps1 -PackagePath C:\Users\AgentPCdevtest\Documents\ChatGPT\DevTest VM PC\HostAgent-DEV-releases\HostAgent-1.0.1-dev1 -SourceCommit 67720e3eb5cf4b58965e06eb99d6283414e1150f -Label v1-76-admin-order-package-acceptance
+ZIP entries: 689; extracted integrity valid before tamper; unsigned production and tampered copy refused.
+ExitCode: 0
+```
+
+
+### v1-84-cold-admin-package
+
+```text
+UTC: 2026-10-11T20:34:42.7352464+00:00
+Command: & ./tools/Build-Release.ps1 -PackagePath ../HostAgent-DEV-releases/HostAgent-1.0.2-dev1 -WixPath ../HostAgent-DEV-tools/wix/wix.exe -Version 1.0.2 -DevVm
+ExitCode: 0
+```
+
+
+### v1-85-cold-admin-package-acceptance
+
+```text
+UTC: 2026-10-11T20:36:17.8849689+00:00
+Command: Test-HostAgentDevPackage.ps1 -PackagePath C:\Users\AgentPCdevtest\Documents\ChatGPT\DevTest VM PC\HostAgent-DEV-releases\HostAgent-1.0.2-dev1 -SourceCommit 0a13ea1dd92a2b8cc7eaa7df3d045b85cd1f2b5a -Label v1-85-cold-admin-package-acceptance
+ZIP entries: 689; extracted integrity valid before tamper; unsigned production and tampered copy refused.
+ExitCode: 0
+```
+
+
+### v1-87-final-nuget-audit
+
+```text
+UTC: 2026-10-11T20:37:47.0268327+00:00
+Command: dotnet list HostAgent.sln package --vulnerable --include-transitive --no-restore
+Daný projekt HostAgent.Core nemá při aktuálních zdrojích žádné zranitelné balíčky.
+Daný projekt HostAgent.Infrastructure nemá při aktuálních zdrojích žádné zranitelné balíčky.
+Daný projekt HostAgent.Service nemá při aktuálních zdrojích žádné zranitelné balíčky.
+Daný projekt HostAgent.Helper nemá při aktuálních zdrojích žádné zranitelné balíčky.
+Daný projekt HostAgent.Core.Tests nemá při aktuálních zdrojích žádné zranitelné balíčky.
+Daný projekt HostAgent.Infrastructure.Tests nemá při aktuálních zdrojích žádné zranitelné balíčky.
+Daný projekt HostAgent.Cli nemá při aktuálních zdrojích žádné zranitelné balíčky.
+Daný projekt HostAgent.PipeProbe nemá při aktuálních zdrojích žádné zranitelné balíčky.
+ExitCode: 0
+```
+
+
+### Actual installed/delivery commands86,88–90
+
+```powershell
+# Standard UAC; no execution-policy switch. Source-external VM harnesses.
+pwsh -NoProfile -File ../Invoke-HostAgentInstalledAcceptance.ps1 -PackagePath ../HostAgent-DEV-releases/HostAgent-1.0.2-dev1
+pwsh -NoProfile -File ../Verify-HostAgentInstalledFinal.ps1
+pwsh -NoProfile -File ../Prepare-HostAgentV1Handoff.ps1 -ExpectedHead 0a13ea1dd92a2b8cc7eaa7df3d045b85cd1f2b5a -PackagePath ../HostAgent-DEV-releases/HostAgent-1.0.2-dev1
+git push --porcelain origin refs/heads/codex/v1-release-readiness:refs/heads/codex/v1-release-readiness
+git ls-remote --heads origin refs/heads/codex/v1-release-readiness refs/heads/main refs/heads/codex/task-4-dev
+```
+
+86: acceptance/maintenance completed=true; telemetry222→234/130s; source record details measured gates and exit-code limitation.88:659 installed hashes match,CLI exit0,completed=true.89:137 source files,exact resulting tree/all checksums/real tree clean.90:ordinary new-branch push exit0,remote0a13ea1 verified,main188e3e2/task4branch2932cb4 unchanged. Final source-external delivery manifests record the refreshed evidence-only HEAD; no host transfer occurred.

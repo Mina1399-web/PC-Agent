@@ -6,6 +6,8 @@ Windows-first local host monitoring and incident-assistance service built with C
 
 V1 product completion adds an elevated local CLI, authenticated administrator IPC, service-identity secret provisioning, safe configuration commands, and a self-contained Windows x64 MSI/release pipeline. Shadow/read-only remains the default. Start with the [operator guide](docs/operations/quickstart.md); the [current verification record](docs/verification/v1-release.md) distinguishes executed checks from live deployment prerequisites.
 
+DEV acceptance is complete for executable source commit0a13ea1dd92a2b8cc7eaa7df3d045b85cd1f2b5a: Release build0 warnings/errors,206/206 tests, reviewed privilege boundaries, verified self-contained1.0.2 package and installed service/CLI, synthetic secret provisioning, telemetry progress, graceful restart, upgrade/repair/uninstall/reinstall with retained configuration/data. The unsigned candidate is restricted to the approved VM. Production deployment still requires the owner's trusted signing material, target-policy acceptance and optional outbound credentials; these were not fabricated or bypassed.
+
 Historical Task 4 gates passed in the approved VM (Release build 0 warnings/errors, suite 150/150, focused tests 43/43). [Task 4 verification](docs/verification/task-4.md), [ledger](docs/verification/task-4-runs.md) and [review](docs/security/task-4-review.md) remain unchanged historical evidence. Pushover/Healthchecks verification uses fake transports and synthetic secrets. Trusted production signing and actual endpoint credentials must come from the owner.
 
 - [Specification](docs/specs/host-agent-v1.md)
@@ -34,5 +36,6 @@ The solution separates core behavior, Windows infrastructure, a non-privileged s
 - `src/HostAgent.Cli`
 - `tests/HostAgent.Core.Tests`
 - `tests/HostAgent.Infrastructure.Tests`
+- `tests/HostAgent.PipeProbe` (test-only cold-process regression runner; never included in the product)
 
 See [development-and-testing.md](docs/development-and-testing.md) for the pinned SDK and verification commands.

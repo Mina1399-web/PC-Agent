@@ -36,7 +36,9 @@ Before deploying Host Agent binaries to a protected production host, select and 
 
 This is a future deployment requirement. No signing certificate, service, purchase, policy exception, or signing implementation is part of the current task.
 
-## Current limitation
+## Historical Task 2–4 checkpoints
+
+The following records describe earlier stages, including SDK10.0.100 and tests before installed V1 acceptance. Current SDK401/runtime12,206-test gates and actual installation results are in [V1 verification](verification/v1-release.md).
 
 The protected production host's policy historically blocked the rebuilt unsigned `HostAgent.Core.Tests.dll`. Its original event evidence is preserved in [Task 2 verification](verification/task-2.md). The approved DEV VM now loads locally built assemblies: [fresh results](verification/task-2-dev-vm.md) record a passing Release build and 73/73 tests on 2026-10-11. Do not use the production mini PC as a substitute test machine or change its security posture.
 
