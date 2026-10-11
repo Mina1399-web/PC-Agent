@@ -27,14 +27,19 @@ public sealed class AdminPipeServer(string name,SecurityIdentifier owner,Securit
             // parsing and dispatch remain strictly after authorization.
             phase="frame";payload=await HelperProtocol.ReadFrameAsync(pipe,deadline.Token);
             var authorized=false;
-            phase="impersonation";
-            pipe.RunAsClient(()=>
+            PipeStreamImpersonationWorker authorize=()=>
             {
                 phase="token_query";
                 using var identity=WindowsIdentity.GetCurrent(true);
                 phase="membership";
                 authorized=identity?.User is{} sid && (sid.Equals(allowedRole)||new WindowsPrincipal(identity).IsInRole(allowedRole));
-            });
+            };
+            // A cold callback must resolve/JIT its identity types under the
+            // service token. Identification cannot load assemblies from disk.
+            phase="authentication_prepare";
+            System.Runtime.CompilerServices.RuntimeHelpers.PrepareDelegate(authorize);
+            phase="impersonation";
+            pipe.RunAsClient(authorize);
             if(!authorized){reportRejection?.Invoke("control_unauthorized");return;}
             phase="dispatch";
             var response=await dispatch(payload,deadline.Token);

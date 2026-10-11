@@ -11,6 +11,7 @@
     <PackageReference Include="xunit.runner.visualstudio" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\HostAgent.PipeProbe\HostAgent.PipeProbe.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\src\HostAgent.Core\HostAgent.Core.csproj" />
     <ProjectReference Include="..\..\src\HostAgent.Infrastructure\HostAgent.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\HostAgent.Service\HostAgent.Service.csproj" />

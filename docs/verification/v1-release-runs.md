@@ -637,3 +637,59 @@ ExitCode: 0
 ```
 
 Run66: elevated external installed harness -PackagePath ../HostAgent-DEV-releases/HostAgent-1.0.0-dev2. Actual MSI install passed; exact service identities Running/Auto passed; CLI status failed control_outcome_uncertain, overall FAILED. JSON archived as v1-66-installed-acceptance/maintenance. Run67's historical label ends red, but both tests actually passed before implementation; it is NOT red evidence. Run71 is an actual expected denial-diagnostic assertion failure.
+
+### v1-79-cold-admin-process-red
+
+```text
+UTC: 2026-10-11T20:28:54.1242496+00:00
+Command: dotnet test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj --configuration Release --filter FullyQualifiedName~ColdAdminPipeTests --logger console;verbosity=normal -p:UseSharedCompilation=false
+Celkový počet testů: 1
+     Neúspěšné: 1
+ExitCode: 1
+```
+
+
+### v1-80-cold-admin-process-green-attempt
+
+```text
+UTC: 2026-10-11T20:30:31.9507575+00:00
+Command: dotnet test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj --configuration Release --filter FullyQualifiedName~ColdAdminPipeTests --logger console;verbosity=normal -p:UseSharedCompilation=false
+Celkový počet testů: 1
+     Úspěšné: 1
+ExitCode: 0
+```
+
+
+### v1-81-cold-admin-authorization-focused
+
+```text
+UTC: 2026-10-11T20:31:26.2221744+00:00
+Command: dotnet test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj --configuration Release --filter FullyQualifiedName~ColdAdminPipeTests|FullyQualifiedName~AdministrationTests|FullyQualifiedName~OperatorHostingTests|FullyQualifiedName~AdminDispatcherTests --logger console;verbosity=normal -p:UseSharedCompilation=false
+Celkový počet testů: 21
+     Úspěšné: 21
+ExitCode: 0
+```
+
+
+### v1-82-cold-admin-release-build
+
+```text
+UTC: 2026-10-11T20:32:06.5563111+00:00
+Command: dotnet build HostAgent.sln --configuration Release -m:1 -p:UseSharedCompilation=false
+    0 upozornění
+    Počet chyb: 0
+ExitCode: 0
+```
+
+
+### v1-83-cold-admin-release-suite
+
+```text
+UTC: 2026-10-11T20:32:18.9556541+00:00
+Command: dotnet test HostAgent.sln --configuration Release --no-build -m:1 --logger console;verbosity=normal
+Celkový počet testů: 42
+     Úspěšné: 42
+Celkový počet testů: 164
+     Úspěšné: 164
+ExitCode: 0
+```
