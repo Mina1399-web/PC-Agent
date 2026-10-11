@@ -17,20 +17,24 @@ internal sealed class CollectionCoordinator : BackgroundService
 
     private readonly IHostAgentStore _store;
     private readonly CollectorCycleRunner _runner;
+    private readonly DiagnosticCycleProcessor _diagnostics;
     private readonly ILogger<CollectionCoordinator> _logger;
     private DateTimeOffset _nextRetentionAtUtc = DateTimeOffset.MinValue;
 
     public CollectionCoordinator(
         IHostAgentStore store,
         IEnumerable<ITelemetryCollectionJob> jobs,
+        DiagnosticCycleProcessor diagnostics,
         ILogger<CollectionCoordinator> logger)
     {
         ArgumentNullException.ThrowIfNull(store);
         ArgumentNullException.ThrowIfNull(jobs);
         ArgumentNullException.ThrowIfNull(logger);
+        ArgumentNullException.ThrowIfNull(diagnostics);
 
         _store = store;
         _logger = logger;
+        _diagnostics = diagnostics;
         _runner = new CollectorCycleRunner(
             jobs.ToArray(),
             CollectionTimeout,
@@ -58,13 +62,7 @@ internal sealed class CollectionCoordinator : BackgroundService
         {
             try
             {
-                await ApplyRetentionIfDueAsync(stoppingToken);
-                var results = await _runner.RunOnceAsync(stoppingToken);
-                foreach (var result in results)
-                {
-                    LogResult(result);
-                    await RecordFailureHealthAsync(result, stoppingToken);
-                }
+                await RunCycleAsync(null, stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -78,9 +76,28 @@ internal sealed class CollectionCoordinator : BackgroundService
         while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 
-    private async ValueTask ApplyRetentionIfDueAsync(CancellationToken cancellationToken)
+    public async ValueTask RunCycleAsync(DateTimeOffset? nowUtc, CancellationToken cancellationToken)
     {
-        var now = DateTimeOffset.UtcNow;
+        await ApplyRetentionIfDueAsync(nowUtc ?? DateTimeOffset.UtcNow, cancellationToken);
+        var results = await _runner.RunOnceAsync(cancellationToken);
+        foreach (var result in results)
+        {
+            LogResult(result);
+            await RecordFailureHealthAsync(result, cancellationToken);
+        }
+        try
+        {
+            await _diagnostics.ProcessAsync(nowUtc ?? DateTimeOffset.UtcNow, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "Diagnosis persistence failed; read-only collection continues and diagnosis will retry next cycle.");
+        }
+    }
+
+    private async ValueTask ApplyRetentionIfDueAsync(DateTimeOffset now, CancellationToken cancellationToken)
+    {
         if (now < _nextRetentionAtUtc)
         {
             return;

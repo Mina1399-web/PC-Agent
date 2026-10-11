@@ -1,11 +1,18 @@
 using HostAgent.Core.Models.Audit;
 using HostAgent.Core.Models.Storage;
 using HostAgent.Core.Models.Telemetry;
+using HostAgent.Core.Models.Baseline;
+using HostAgent.Core.Models.Incidents;
 
 namespace HostAgent.Core.Contracts;
 
 public interface IHostAgentStore : ICollectorCheckpointStore, IAsyncDisposable
 {
+    ValueTask<IReadOnlyList<MetricSample>> ReadMetricSamplesAsync(DateTimeOffset fromUtc, DateTimeOffset throughUtc, int limit, CancellationToken cancellationToken);
+    ValueTask<IReadOnlyList<BaselineOrigin>> ReadBaselineOriginsAsync(CancellationToken cancellationToken);
+    ValueTask SaveIncidentBundleAsync(Incident incident, CancellationToken cancellationToken);
+    ValueTask<IReadOnlyList<Incident>> ReadIncidentsAsync(CancellationToken cancellationToken);
+
     ValueTask InitializeAsync(CancellationToken cancellationToken);
 
     ValueTask<int> GetSchemaVersionAsync(CancellationToken cancellationToken);

@@ -22,6 +22,7 @@ var databasePath = Path.Combine(dataDirectory, "host-agent.db");
 
 builder.Services.AddSingleton<IHostAgentStore>(_ => new SqliteHostAgentStore(databasePath));
 builder.Services.AddSingleton<ICollectorCheckpointStore>(services => services.GetRequiredService<IHostAgentStore>());
+builder.Services.AddSingleton<DiagnosticCycleProcessor>();
 builder.Services.AddSingleton<ITelemetryCollector<SystemTelemetry>, WindowsSystemCollector>();
 builder.Services.AddSingleton<ITelemetryCollector<CpuMemoryTelemetry>, WindowsCpuMemoryCollector>();
 builder.Services.AddSingleton<IDiskIoCounterReader, WindowsDiskIoCounterReader>();

@@ -8,9 +8,9 @@ using Microsoft.Data.Sqlite;
 
 namespace HostAgent.Infrastructure.Storage;
 
-public sealed class SqliteHostAgentStore : IHostAgentStore
+public sealed partial class SqliteHostAgentStore : IHostAgentStore
 {
-    public const int LatestSchemaVersion = 2;
+    public const int LatestSchemaVersion = 3;
     private static readonly TimeSpan MinimumDetailedRetention = TimeSpan.FromDays(30);
     private const int MaximumCheckpointLength = 16_384;
     private readonly string _databasePath;
@@ -102,6 +102,14 @@ public sealed class SqliteHostAgentStore : IHostAgentStore
                 migration.Parameters.AddWithValue("$version", 2);
                 migration.Parameters.AddWithValue("$appliedAt", FormatTimestamp(DateTimeOffset.UtcNow));
                 await migration.ExecuteNonQueryAsync(cancellationToken);
+            }
+
+            if (version < 3)
+            {
+                await ExecuteNonQueryAsync(connection, transaction, BaselineOriginSchema, cancellationToken);
+                await ExecuteNonQueryAsync(connection, transaction,
+                    "INSERT INTO schema_migrations (version, applied_at_utc) VALUES (3, $time);",
+                    cancellationToken, ("$time", FormatTimestamp(DateTimeOffset.UtcNow)));
             }
 
             await transaction.CommitAsync(cancellationToken);

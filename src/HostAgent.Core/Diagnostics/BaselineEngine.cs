@@ -1,5 +1,6 @@
 using HostAgent.Core.Contracts;
 using HostAgent.Core.Models.Baseline;
+using HostAgent.Core.Models.Telemetry;
 
 namespace HostAgent.Core.Diagnostics;
 
@@ -12,6 +13,30 @@ public sealed class BaselineEngine : IBaselineEngine
     private static readonly TimeSpan FullWindow = TimeSpan.FromDays(30);
     private readonly object _gate = new();
     private readonly Dictionary<SeriesKey, List<BaselinePoint>> _series = [];
+    private readonly Dictionary<SeriesKey, DateTimeOffset> _origins = [];
+
+    public ValueTask RestoreAsync(IReadOnlyList<MetricSample> samples, IReadOnlyList<BaselineOrigin> origins,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var groups = samples.GroupBy(sample => new SeriesKey(sample.MetricName, sample.Scope)).ToArray();
+        if (groups.Length > MaximumSeries) throw new InvalidOperationException("Too many baseline series.");
+        lock (_gate)
+        {
+            _series.Clear();
+            _origins.Clear();
+            foreach (var origin in origins)
+                _origins[new(origin.MetricName, origin.Scope)] = origin.StartedAtUtc.ToUniversalTime();
+            foreach (var group in groups)
+            {
+                if (group.Any(sample => !double.IsFinite(sample.Value))) throw new ArgumentException("Non-finite baseline sample.");
+                _series[group.Key] = group.OrderBy(sample => sample.SampledAtUtc)
+                    .GroupBy(sample => sample.SampledAtUtc).Select(items => items.Last())
+                    .TakeLast(MaximumSamplesPerSeries).Select(sample => new BaselinePoint(sample.SampledAtUtc, sample.Value)).ToList();
+            }
+        }
+        return ValueTask.CompletedTask;
+    }
 
     public ValueTask<BaselineAssessment> ObserveAsync(
         string metricName,
@@ -53,9 +78,8 @@ public sealed class BaselineEngine : IBaselineEngine
                 .Where(point => point.SampledAtUtc < sampledAt)
                 .OrderBy(static point => point.SampledAtUtc)
                 .ToArray();
-            var startedAt = points.Count == 0
-                ? sampledAt
-                : points.Min(static point => point.SampledAtUtc);
+            var startedAt = _origins.TryGetValue(key, out var origin) && origin < sampledAt ? origin : sampledAt;
+            _origins[key] = startedAt;
             var learningMode = GetLearningMode(sampledAt - startedAt);
             var windowStart = learningMode == BaselineLearningMode.Full
                 ? sampledAt - FullWindow
@@ -141,6 +165,9 @@ public sealed class BaselineEngine : IBaselineEngine
             {
                 points.RemoveRange(0, points.Count - MaximumSamplesPerSeries);
             }
+
+            if (learningMode == BaselineLearningMode.Full)
+                points.RemoveAll(point => point.SampledAtUtc < sampledAt - FullWindow);
 
             return ValueTask.FromResult(assessment);
         }

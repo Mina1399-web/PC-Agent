@@ -12,4 +12,8 @@ public sealed record EventLogEntryMetadata(
     int EventId,
     string Level,
     DateTimeOffset? OccurredAtUtc,
-    string MachineName);
+    string MachineName)
+{
+    public string? AffectedServiceName { get; init; }
+    public string? EventFingerprint { get; init; }
+}

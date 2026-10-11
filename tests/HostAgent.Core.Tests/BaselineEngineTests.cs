@@ -44,6 +44,7 @@ public sealed class BaselineEngineTests
         Assert.Equal("Full", ReadProperty(assessment!, "LearningMode")?.ToString());
         Assert.Equal("Anomaly", ReadProperty(assessment!, "AdaptiveSignal")?.ToString());
         Assert.Equal(5, ReadInt32(assessment!, "SampleCount"));
+        Assert.Equal(80, ReadInt32(assessment!, "Confidence"));
     }
 
     [Fact]
@@ -71,6 +72,8 @@ public sealed class BaselineEngineTests
         Assert.Equal("Informational", ReadProperty(daySeven!, "AdaptiveSignal")?.ToString());
         Assert.Equal("ReducedConfidence", ReadProperty(dayEight!, "LearningMode")?.ToString());
         Assert.Equal("ReducedConfidence", ReadProperty(dayThirty!, "LearningMode")?.ToString());
+        Assert.Equal(25, ReadInt32(daySeven!, "Confidence"));
+        Assert.Equal(57, ReadInt32(dayEight!, "Confidence"));
 
         var fullEngine = Activator.CreateInstance(engineType!);
         Assert.NotNull(fullEngine);
@@ -84,6 +87,7 @@ public sealed class BaselineEngineTests
         Assert.Equal("Full", ReadProperty(dayThirtyOne!, "LearningMode")?.ToString());
         Assert.True(ReadInt32(dayEight!, "Confidence") < ReadInt32(dayThirtyOne!, "Confidence"));
         Assert.Equal(30, ReadInt32(dayThirtyOne!, "SampleCount"));
+        Assert.Equal(100, ReadInt32(dayThirtyOne!, "Confidence"));
     }
 
     private static async Task<object?> ObserveAsync(

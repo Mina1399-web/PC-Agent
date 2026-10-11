@@ -9,6 +9,40 @@ namespace HostAgent.Infrastructure.Tests;
 public sealed class WindowsEventLogCollectorTests
 {
     [Fact]
+    public void Scm_metadata_extracts_only_bounded_affected_service_from_structured_xml()
+    {
+        var parser = typeof(WindowsEventLogCollector).Assembly
+            .GetType("HostAgent.Infrastructure.Collectors.WindowsEventLogReaderFactory")!
+            .GetMethod("ReadAffectedServiceName", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
+        Assert.NotNull(parser);
+        string? Parse(string xml) => (string?)parser!.Invoke(null, [xml]);
+        Assert.Equal("Print Spooler", Parse("<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Service Control Manager'/><EventID>7031</EventID></System><EventData><Data Name='param1'>Print Spooler</Data><Data Name='param2'>1</Data></EventData></Event>"));
+        Assert.Null(Parse("<Event><System><Provider Name='Other'/><EventID>7031</EventID></System><EventData><Data Name='param1'>secret</Data></EventData></Event>"));
+        Assert.Null(Parse("malformed"));
+        Assert.Null(Parse("<!DOCTYPE Event [<!ENTITY x SYSTEM 'file:///not-read'>]><Event>&x;</Event>"));
+        Assert.Null(Parse("<Event><System><Provider Name='Service Control Manager'/><EventID>7034</EventID></System><EventData><Data Name='param1'>" + new string('a', 257) + "</Data></EventData></Event>"));
+    }
+
+    [Fact]
+    public async Task Scm_subject_and_event_digest_survive_collection()
+    {
+        var record = new EventLogRecordData(42, 2, 7031, "Service Control Manager", DateTime.UtcNow, "host", "bookmark", EventFingerprint: "digest");
+        var name = typeof(EventLogRecordData).GetProperty("AffectedServiceName");
+        Assert.NotNull(name);
+        name!.SetValue(record, "Spooler");
+        var result = await new WindowsEventLogCollector(new MemoryCheckpointStore(), new SubjectReaderFactory(record)).CollectAsync(CancellationToken.None);
+        var metadata = Assert.Single(result.Value!.Events);
+        Assert.Equal("Spooler", metadata.AffectedServiceName);
+        Assert.Equal("digest", metadata.EventFingerprint);
+    }
+
+    private sealed class SubjectReaderFactory(EventLogRecordData record) : IEventLogReaderFactory
+    {
+        public IEventLogReader Create(string logName, string? bookmarkXml, string queryText, bool reverseDirection = false) =>
+            new FakeReader(logName == "System" ? [record] : []);
+    }
+
+    [Fact]
     public async Task Legacy_raw_bookmark_xml_is_used_to_resume_the_event_log_query()
     {
         const string legacyBookmark = "<BookmarkList><Bookmark Channel=\"System\" RecordId=\"40\" /></BookmarkList>";

@@ -443,7 +443,11 @@ public sealed class WindowsEventLogCollector : ITelemetryCollector<EventLogTelem
                     record.TimeCreated is { } created
                         ? new DateTimeOffset(created.ToUniversalTime(), TimeSpan.Zero)
                         : null,
-                    record.MachineName ?? Environment.MachineName));
+                    record.MachineName ?? Environment.MachineName)
+                {
+                    AffectedServiceName = record.AffectedServiceName,
+                    EventFingerprint = record.EventFingerprint
+                });
             }
             catch (InvalidOperationException)
             {

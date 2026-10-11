@@ -1,4 +1,7 @@
 using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using HostAgent.Core.Contracts;
 using HostAgent.Core.Models.Baseline;
 using HostAgent.Core.Models.Diagnosis;
@@ -210,9 +213,9 @@ public sealed class DiagnosticEngine : IDiagnosticEngine
     {
         var isError = entry.Level.Equals("Error", StringComparison.OrdinalIgnoreCase)
             || entry.Level.Equals("Critical", StringComparison.OrdinalIgnoreCase);
-        var recent = entry.OccurredAtUtc is null
-            || (entry.OccurredAtUtc <= sampledAtUtc
-                && sampledAtUtc - entry.OccurredAtUtc <= EventCorrelationWindow);
+        var recent = entry.OccurredAtUtc is { } occurredAt
+            && occurredAt <= sampledAtUtc
+            && sampledAtUtc - occurredAt <= EventCorrelationWindow;
         return isError && recent && (IsWindowsUpdateProvider(entry.Provider) || IsPagefileProvider(entry.Provider));
     }
 
@@ -310,9 +313,25 @@ public sealed class DiagnosticEngine : IDiagnosticEngine
 
     private static void AddServiceDiagnoses(HostEvidence evidence, ICollection<Diagnosis> diagnoses)
     {
-        if (evidence.ProcessServices is not { } services)
+        var services = evidence.ProcessServices ?? new ProcessServiceTelemetry([], [], []);
+
+        var crashedEvents = evidence.EventLog?.Events
+            .Where(entry => entry.Provider.Contains("Service Control Manager", StringComparison.OrdinalIgnoreCase)
+                && entry.EventId is 7031 or 7034
+                && entry.OccurredAtUtc is { } occurredAt
+                && occurredAt <= evidence.SampledAtUtc
+                && evidence.SampledAtUtc - occurredAt <= EventCorrelationWindow
+                && (entry.Level.Equals("Error", StringComparison.OrdinalIgnoreCase)
+                    || entry.Level.Equals("Critical", StringComparison.OrdinalIgnoreCase)))
+            .ToArray() ?? [];
+
+        string? ServiceName(EventLogEntryMetadata entry)
         {
-            return;
+            var name = entry.AffectedServiceName?.Trim();
+            if (string.IsNullOrWhiteSpace(name)) return null;
+            return services.Services.FirstOrDefault(service =>
+                service.ServiceName.Equals(name, StringComparison.OrdinalIgnoreCase)
+                || service.DisplayName.Equals(name, StringComparison.OrdinalIgnoreCase))?.ServiceName ?? name;
         }
 
         var failedChanges = services.ServiceChanges
@@ -325,6 +344,10 @@ public sealed class DiagnosticEngine : IDiagnosticEngine
 
         foreach (var change in failedChanges)
         {
+            if (crashedEvents.Any(crash => string.Equals(ServiceName(crash), change.ServiceName, StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
             var service = services.Services.FirstOrDefault(item =>
                 item.ServiceName.Equals(change.ServiceName, StringComparison.OrdinalIgnoreCase));
             if (service is not null && service.Status != HostServiceStatus.Stopped)
@@ -347,26 +370,35 @@ public sealed class DiagnosticEngine : IDiagnosticEngine
                 new RemediationRecommendation("inspect_service_failure", "Review the service failure and its recent Event Log metadata.")));
         }
 
-        var crashedEvents = evidence.EventLog?.Events
-            .Where(entry => entry.Provider.Contains("Service Control Manager", StringComparison.OrdinalIgnoreCase)
-                && entry.EventId is 7031 or 7034
-                && (entry.Level.Equals("Error", StringComparison.OrdinalIgnoreCase)
-                    || entry.Level.Equals("Critical", StringComparison.OrdinalIgnoreCase)))
-            .ToArray() ?? [];
-        foreach (var crash in crashedEvents)
+        var crashKeys = new HashSet<string>(StringComparer.Ordinal);
+        var unidentifiedOccurrences = new Dictionary<string, int>(StringComparer.Ordinal);
+        for (var index = 0; index < crashedEvents.Length; index++)
         {
-            if (failedChanges.Any(change => change.ObservedAtUtc == crash.OccurredAtUtc))
+            var crash = crashedEvents[index];
+            var name = ServiceName(crash);
+            var eventIdentity = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
             {
-                continue;
+                crash.MachineName, crash.LogName, crash.Provider, crash.EventId, crash.RecordId,
+                OccurredAtUtc = crash.OccurredAtUtc!.Value.ToUniversalTime(), crash.EventFingerprint
+            }))));
+            if (name is null && crash.RecordId is null && crash.EventFingerprint is null)
+            {
+                var ordinal = unidentifiedOccurrences.GetValueOrDefault(eventIdentity);
+                unidentifiedOccurrences[eventIdentity] = ordinal + 1;
+                eventIdentity += ":" + ordinal.ToString(CultureInfo.InvariantCulture);
             }
+            var key = name is null ? "service_crash:event:" + eventIdentity
+                : "service_failure:" + name.ToUpperInvariant();
+            if (!crashKeys.Add(key)) continue;
 
             diagnoses.Add(CreateDiagnosis(
-                "service_crash:event:" + crash.RecordId?.ToString(CultureInfo.InvariantCulture),
+                key,
                 evidence.SampledAtUtc,
                 DiagnosisSeverity.High,
                 78,
                 [Evidence("eventlog.service-crash", $"Service Control Manager event {crash.EventId} was recorded.", null, crash.OccurredAtUtc ?? evidence.SampledAtUtc)],
-                new ProbableRootCause("service_crash", "Windows recorded an unexpected service termination", null),
+                new ProbableRootCause("service_crash", "Windows recorded an unexpected service termination",
+                    name ?? "Unidentified service; event " + eventIdentity),
                 [],
                 new RemediationRecommendation("inspect_service_failure", "Review the affected service and its recovery settings.")));
         }

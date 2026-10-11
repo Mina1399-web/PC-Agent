@@ -53,6 +53,7 @@ public sealed class DiagnosticEngineTests
         Assert.Equal("disk_capacity", ReadProperty(root, "Code"));
         Assert.Equal("Critical", ReadProperty(diagnosis, "Severity")?.ToString());
         Assert.Contains("windows_update_errors", ReadStrings(diagnosis, "SecondarySymptoms"));
+        Assert.Equal(94, ReadInt32(diagnosis, "Confidence"));
     }
 
     [Fact]
@@ -64,6 +65,7 @@ public sealed class DiagnosticEngineTests
              Probe(NetworkProbeKind.InternetIp, "203.0.113.1", NetworkProbeStatus.Succeeded),
              Probe(NetworkProbeKind.DnsResolution, "example.test", NetworkProbeStatus.Failed)]))));
         Assert.Equal("dns_failure", ReadProperty(ReadProperty(dnsDiagnosis, "ProbableRootCause")!, "Code"));
+        Assert.Equal(90, ReadInt32(dnsDiagnosis, "Confidence"));
 
         var gatewayDiagnosis = Assert.Single(await EvaluateAsync(CreateEvidence(network: new NetworkTelemetry(
             [],
@@ -71,6 +73,7 @@ public sealed class DiagnosticEngineTests
              Probe(NetworkProbeKind.InternetIp, "203.0.113.1", NetworkProbeStatus.Failed),
              Probe(NetworkProbeKind.DnsResolution, "example.test", NetworkProbeStatus.Failed)]))));
         Assert.Equal("gateway_failure", ReadProperty(ReadProperty(gatewayDiagnosis, "ProbableRootCause")!, "Code"));
+        Assert.Equal(90, ReadInt32(gatewayDiagnosis, "Confidence"));
     }
 
     [Fact]
@@ -91,6 +94,104 @@ public sealed class DiagnosticEngineTests
         Assert.Contains(diagnoses, diagnosis =>
             Equals(ReadProperty(ReadProperty(diagnosis, "ProbableRootCause")!, "Code"), "service_stopped")
             && Equals(ReadProperty(ReadProperty(diagnosis, "ProbableRootCause")!, "Subject"), "Spooler"));
+        Assert.Equal(90, ReadInt32(diagnoses.Single(item => Equals(ReadProperty(ReadProperty(item, "ProbableRootCause")!, "Code"), "memory_pressure")), "Confidence"));
+        Assert.Equal(88, ReadInt32(diagnoses.Single(item => Equals(ReadProperty(ReadProperty(item, "ProbableRootCause")!, "Code"), "service_stopped")), "Confidence"));
+    }
+
+    [Theory]
+    [InlineData(-1441, 0)]
+    [InlineData(-1440, 1)]
+    [InlineData(0, 1)]
+    [InlineData(1, 0)]
+    public async Task Scm_crash_respects_exact_24_hour_window(int minutes, int expectedCount)
+    {
+        var diagnoses = await EvaluateAsync(CreateEvidence(
+            processServices: new ProcessServiceTelemetry([], [], []),
+            eventLog: new EventLogTelemetry(Now,
+                [new EventLogEntryMetadata("System", "Service Control Manager", 42, 7031, "Error", Now.AddMinutes(minutes), "host")], [])));
+        Assert.Equal(expectedCount, diagnoses.Count);
+        if (expectedCount == 1) Assert.Equal(78, ReadInt32(Assert.Single(diagnoses), "Confidence"));
+    }
+
+    [Fact]
+    public async Task Scm_crash_without_timestamp_is_not_current_evidence()
+    {
+        Assert.Empty(await EvaluateAsync(CreateEvidence(
+            processServices: new ProcessServiceTelemetry([], [], []),
+            eventLog: new EventLogTelemetry(Now,
+                [new EventLogEntryMetadata("System", "Service Control Manager", 42, 7034, "Error", null, "host")], []))));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(42L)]
+    public async Task Crash_subjects_and_keys_separate_services_even_with_missing_or_equal_record_ids(long? recordId)
+    {
+        var first = Crash(recordId, "Spooler");
+        var second = Crash(recordId, "OtherService");
+        var diagnoses = await EvaluateAsync(CreateEvidence(
+            processServices: new ProcessServiceTelemetry([], [], []),
+            eventLog: new EventLogTelemetry(Now, [first, second], [])));
+        Assert.Equal(2, diagnoses.Count);
+        Assert.Equal(2, diagnoses.Select(item => ReadProperty(item, "CorrelationKey")).Distinct().Count());
+        Assert.Contains(diagnoses, item => Equals(ReadProperty(ReadProperty(item, "ProbableRootCause")!, "Subject"), "Spooler"));
+        Assert.All(diagnoses, item => Assert.Equal(78, ReadInt32(item, "Confidence")));
+    }
+
+    [Fact]
+    public async Task Crash_for_same_service_has_stable_key_without_process_collector_and_does_not_hide_other_stop()
+    {
+        var events = new EventLogTelemetry(Now, [Crash(null, "Spooler")], []);
+        var first = Assert.Single(await EvaluateAsync(CreateEvidence(eventLog: events)));
+        var second = Assert.Single(await EvaluateAsync(CreateEvidence(eventLog: events with { Events = [Crash(99, "spooler")] })));
+        Assert.Equal(ReadProperty(first, "CorrelationKey"), ReadProperty(second, "CorrelationKey"));
+        var mixed = await EvaluateAsync(CreateEvidence(eventLog: events,
+            processServices: new ProcessServiceTelemetry([], [],
+                [new ServiceStateChange("OtherService", HostServiceStatus.Running, HostServiceStatus.Stopped, Now)])));
+        Assert.Equal(2, mixed.Count);
+    }
+
+    [Fact]
+    public async Task Unidentified_crashes_without_ids_get_stable_distinct_event_keys()
+    {
+        var one = new EventLogEntryMetadata("System", "Service Control Manager", null, 7031, "Error", Now, "host");
+        var two = one with { OccurredAtUtc = Now.AddMinutes(-1) };
+        var host = CreateEvidence(processServices: new ProcessServiceTelemetry([], [], []),
+            eventLog: new EventLogTelemetry(Now, [one, two], []));
+        var first = await EvaluateAsync(host);
+        var second = await EvaluateAsync(host);
+        Assert.Equal(2, first.Select(item => ReadProperty(item, "CorrelationKey")).Distinct().Count());
+        Assert.Equal(first.Select(item => ReadProperty(item, "CorrelationKey")), second.Select(item => ReadProperty(item, "CorrelationKey")));
+        Assert.All(first, item => Assert.NotNull(ReadProperty(ReadProperty(item, "ProbableRootCause")!, "Subject")));
+        var reversed = await EvaluateAsync(CreateEvidence(processServices: new ProcessServiceTelemetry([], [], []),
+            eventLog: new EventLogTelemetry(Now, [two, one], [])));
+        Assert.Equal(first.Select(item => ReadProperty(item, "CorrelationKey")).OrderBy(item => item),
+            reversed.Select(item => ReadProperty(item, "CorrelationKey")).OrderBy(item => item));
+    }
+
+    private static EventLogEntryMetadata Crash(long? id, string service)
+    {
+        var metadata = new EventLogEntryMetadata("System", "Service Control Manager", id, 7031, "Error", Now, "host");
+        var property = typeof(EventLogEntryMetadata).GetProperty("AffectedServiceName");
+        Assert.NotNull(property);
+        property!.SetValue(metadata, service);
+        return metadata;
+    }
+
+    [Theory]
+    [InlineData(null, 82)]
+    [InlineData(-1441, 82)]
+    [InlineData(1, 82)]
+    [InlineData(-1440, 94)]
+    [InlineData(0, 94)]
+    public async Task Disk_corroboration_requires_known_contemporaneous_timestamp(int? minutes, int confidence)
+    {
+        var diagnosis = Assert.Single(await EvaluateAsync(CreateEvidence(
+            disk: new DiskTelemetry([new DiskVolumeTelemetry("C:\\", "System", "NTFS", 100_000, 98_000, 2_000, 98)], null, []),
+            eventLog: new EventLogTelemetry(Now,
+                [new EventLogEntryMetadata("System", "WindowsUpdateClient", 42, 20, "Error", minutes is { } value ? Now.AddMinutes(value) : null, "host")], []))));
+        Assert.Equal(confidence, ReadInt32(diagnosis, "Confidence"));
+        Assert.Equal(confidence == 94, ReadStrings(diagnosis, "SecondarySymptoms").Contains("windows_update_errors"));
     }
 
     private static MetricSample CpuSample(DateTimeOffset sampledAtUtc, double value) =>
