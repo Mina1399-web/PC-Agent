@@ -13,8 +13,10 @@ security-policy change, secrets publication or purchase.
 - [x] Prepare a separately guarded hosted review build with pinned official
       actions, read-only token, no persisted checkout credentials, no secrets
       or install operation. Keep exact-VM MSI tests in the VM.
-- [ ] Complete Release suite and actual newly built ZIP/MSI verification.
-- [ ] Review the immutable diff and close actionable findings.
+- [x] Complete Release suite and actual newly built ZIP/MSI verification
+      (213 tests; read-only package checks, not a new MSI installation).
+- [x] Review the immutable diff and close actionable findings (one P2,
+      test-first fix and independent rereview).
 - [ ] Verify public visibility after the owner's GitHub reauthentication;
       expose current licensed source as default without changing main commits.
 - [ ] Execute and inspect the hosted build/tests/review artifact.

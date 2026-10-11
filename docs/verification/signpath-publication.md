@@ -45,12 +45,36 @@ signpath-public-. They contain UTC, exact command, all output and exit code.
 | 20 unavailable-probe metric test | xUnit2031 analyzer error in the new test; fixture correction only, not behavioral red |
 | 21 corrected metric red | 1 failed: Unavailable emitted a fabricated network.probe.success=0 sample |
 | 22 same metric test after projector fix | 1 passed, exit 0; unavailable probes emit no metrics, genuine failure/success remain 0/1 |
+| 23 final complete Release build | source 6b326058; 0 warnings/errors, exit 0 |
+| 24 final complete Release suite | 43 Core + 170 Infrastructure = 213 passed; 0 failed/skipped, exit 0 |
+| 25 clean-source final 1.0.3 release packaging | source 6b326058ab294b3e1cdc442c32f280c89a027918; exit 0 |
+| 26 final executable-source history scan | 18 reachable commits, 201 tracked files; zero six-format secret matches/forbidden artifacts; whitespace and four PowerShell script parses passed |
+| 27 final read-only package verification | 703 manifest files; all 704 ZIP file hashes/lengths match; 699 MSI file entries, required license/privacy notices present, 12 first-party binary metadata checks passed; exact VM guard matches; production gate refused unsigned package with exit 1/publisher_signature_required |
 
 Independent review of 5aca8f6..b39be933 identified one P2: unavailable
 probes were recorded as observed failures by the metric projector. The
 test-first fix skips unavailable results without changing measured failures
 or successful results. Packaging run 19 predates this fix and is therefore
 an intermediate artifact, not the final candidate.
+Read-only independent rereview of b39be933..6b326058 confirmed the P2 resolved,
+with no new actionable findings. The reviewer did not execute builds/tests.
+
+Exact final VM commands (account-local SDK 10.0.401 on PATH):
+
+```powershell
+dotnet build HostAgent.sln --configuration Release -m:1 -p:UseSharedCompilation=false
+dotnet test HostAgent.sln --configuration Release --no-build -m:1
+pwsh -NoProfile -NonInteractive -File tools/Build-Release.ps1 -PackagePath '..\HostAgent-DEV-releases\HostAgent-1.0.3-signpath-final' -WixPath '..\HostAgent-DEV-tools\wix\wix.exe' -Version 1.0.3 -DevVm
+pwsh -NoProfile -NonInteractive -File tools/Test-Release.ps1 -PackagePath '..\HostAgent-DEV-releases\HostAgent-1.0.3-signpath-final' -DevVm
+pwsh -NoProfile -NonInteractive -File tools/Test-Installer.ps1 -PackagePath '..\HostAgent-DEV-releases\HostAgent-1.0.3-signpath-final'
+pwsh -NoProfile -NonInteractive -File tools/Test-Release.ps1 -PackagePath '..\HostAgent-DEV-releases\HostAgent-1.0.3-signpath-final'
+```
+
+The last command intentionally omits DevVm and was verified to refuse the
+unsigned candidate. No installation or protection bypass was performed.
+ZIP SHA-256: 17C7224D36FD5AE9B14080AD9C26D5DE7649E630E303392B08AF37B3B3B2DC1B.
+MSI SHA-256: 6787FAE8C50BF97273419921FC084581F2DBAB49BB21502AC9FA5247035D205D.
+The final candidate predates subsequent evidence-only documentation commits.
 
 The hosted positive publish path is not established by the VM refusal test.
 Its GitHub run will be recorded only after execution.
@@ -66,6 +90,9 @@ visibility action but GitHub redirected to Confirm access/Verify via email.
 Visibility change has not been confirmed; no public state is claimed.
 The owner must complete GitHub's own reauthentication in the open browser;
 no code/password/token is requested in chat and none was extracted.
+Fresh connector metadata after the final code review still reports private,
+default main. No new workflow push, cloud run or public release is claimed;
+private CI was not triggered and billing was not enabled.
 The authenticated ruleset read returned 403 because private/free repositories
 do not support that feature; no rules were disabled by us.
 
@@ -76,6 +103,10 @@ Code of Conduct and personal-data consent checkboxes and reCAPTCHA. Neither
 legal consent, CAPTCHA nor Submit was operated. Personal owner details are
 missing and must remain outside this public repository. Reputation is not
 invented; this is a new project without established usage evidence.
+A private application working draft is preserved outside the checkout under
+HostAgent-DEV-delivery/SignPath-application-private-draft.md. It marks missing
+owner identity, public download and hosted execution explicitly; it is not
+ready to send. No personal contact data was guessed or published.
 
 Still open: confirmed public source/default branch/download page, successful
 hosted execution, provider eligibility/reputation decision, account MFA,
