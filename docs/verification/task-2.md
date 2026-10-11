@@ -1,5 +1,7 @@
 # Task 2 Verification Record
 
+Continuation note: Task 3 was separately authorized later on 2026-10-11 and is recorded in [Task 3 verification](task-3.md). Statements below that Task 3 had not started describe the Task 2 completion/historical state; Task 2 evidence is preserved unchanged.
+
 ## Current result — 2026-10-11, approved DEV VM
 
 Task 2 implementation and VM verification gates pass. Final Release build: 0 warnings, 0 errors, exit 0. Final full suite: 73 passed (38 Core, 35 Infrastructure), 0 failed, 0 skipped, exit 0. Focused baseline/diagnostic/incident tests: 30 passed. The original three review findings and two new long-run restoration findings were fixed test-first; focused independent re-review found no remaining actionable defect in the fix range.

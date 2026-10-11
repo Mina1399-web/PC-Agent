@@ -22,7 +22,7 @@
 - Incident lifecycle includes Detected, Active, Acknowledged, RemediationProposed, RemediationPendingApproval, Remediating, Resolved, Failed and Escalated. Snapshots include system, CPU/RAM, disk, top processes, affected services, network, relevant event metadata, baseline comparisons and diagnostic evidence.
 - Policy decisions are READ_ONLY, AUTO_ALLOWED, CONFIRM_REQUIRED, or DENIED; errors fail closed. Shadow mode is the default.
 - Named Pipe requests are versioned, typed, size/time/parameter bounded, authenticated, ACL restricted, and reject unknown types. The helper independently validates its whitelist; client-supplied process names are not identity.
-- Typed helper capabilities are individually allowlisted: start/stop/restart a service, terminate an approved process, flush DNS, renew DHCP on an approved adapter, and restart Windows only after confirmation. No generic executor exists.
+- Typed helper capabilities are individually allowlisted. Task 3 protocol v1 implements start/stop/restart a service and terminate an approved process; DNS flush, DHCP renewal and Windows restart remain potential capabilities from the specification and are unsupported/disabled. No generic executor exists.
 - All proposed/privileged actions are audited append-only. Kill switch, global read-only, rate/cooldown/attempt and restart-loop protections fail safe.
 - Secrets are not stored in source or repository. Production secrets use Windows-protected storage scoped to the service identity.
 - Notifications and heartbeat failures cannot stop monitoring. Only outbound HTTPS heartbeat; no inbound port.
@@ -34,7 +34,7 @@
 
 ### Task 1: Foundation, six read-only collectors, and SQLite
 
-**Status:** Task 1 historical build/test/source-review gates passed. The original protected-host Git limitation is preserved below as historical evidence. Task 2 implementation and VM verification now pass; host synchronization is blocked. Task 3 has not started.
+**Status:** Task 1 historical build/test/source-review gates passed. The original protected-host Git limitation is preserved below as historical evidence. Tasks 2 and separately authorized Task 3 implementation/VM verification pass; host synchronization is blocked. Task 4 has not started.
 
 **Files:**
 
@@ -110,7 +110,7 @@ Current result: blocked; Git cannot load its libpcre2-8-0.dll under the active C
 
 ### Task 2: Robust baseline, correlated diagnosis, incident lifecycle and snapshots
 
-**Status:** Implementation, focused tests, Release build, full suite and source-review gates pass in the approved DEV VM on 2026-10-11. Final result: 73 passed tests, 0 skipped, build 0 warnings/errors. Original three P2 findings and two newly reviewed restoration defects were fixed test-first. Host synchronization is blocked; the verified source-only patch remains in the VM. See [Task 2 verification](../verification/task-2.md). Task 3 has not started and requires a separate explicit user instruction.
+**Status:** Implementation, focused tests, Release build, full suite and source-review gates passed in the approved DEV VM on 2026-10-11. Task 2 final result: 73 passed tests, 0 skipped, build 0 warnings/errors. Original three P2 findings and two newly reviewed restoration defects were fixed test-first. Host synchronization is blocked; the verified source-only patch remains in the VM. See [Task 2 verification](../verification/task-2.md). Task 3 subsequently received separate user authorization; its fresh evidence is below.
 
 **Environment requirement:** Resume behavioral verification in an approved Windows development/test environment that permits local development assemblies to execute. Do not change the production mini PC's Smart App Control/Code Integrity policy. WSL does not satisfy Windows-specific integration verification. Production deployment will require a trusted Windows signing strategy accepted by the protected host; signing infrastructure is future work and is not being purchased or implemented now. See [Windows Development and Testing Environment](../development-and-testing.md).
 
@@ -159,9 +159,11 @@ Run dotnet build HostAgent.sln --configuration Release and dotnet test HostAgent
 
 Run git add src tests docs and git commit -m "feat: add baseline diagnostics and incidents". Expected: commit contains Task 2 changes only.
 
-Fresh result: Task 2 changes are committed locally on `codex/task-2-dev`, preserving imported return point `ab0bc9b3352a68b206b92b64e53e267b38d7691b`. [Fresh verification](../verification/task-2-dev-vm.md) and the [34-run ledger](../verification/task-2-dev-vm-runs.md) document executed gates. No host transfer, deployment or Task 3 implementation occurred.
+Fresh Task 2 result: changes were committed locally on `codex/task-2-dev`, preserving imported return point `ab0bc9b3352a68b206b92b64e53e267b38d7691b`. [Fresh verification](../verification/task-2-dev-vm.md) and the [34-run ledger](../verification/task-2-dev-vm-runs.md) document executed gates. At Task 2 completion no host transfer, deployment or Task 3 implementation had occurred.
 
 ### Task 3: Fail-closed policy, authenticated typed Named Pipes, helper, audit, and guardrails
+
+**Status:** Separately authorized on 2026-10-11; implementation, focused tests, Release build/full suite and independent read-only security review pass in the DEV VM. Full suite 108/108; focused security tests 35/35; build 0 warnings/errors. Source commit `17bd236a9b75c1937d206b7f4986350fda20211d`, Task 2 rollback tag `task-2-verified-vm`, branch `codex/task-3-dev`. See [verification/commands](../verification/task-3.md) and [security review](../security/task-3-review.md). Default read-only/shadow, four closed capabilities, trusted-local approval API; live approval UI, installed service readiness, incident escalation/notifications are not claimed. Host transfer remains blocked; Task 4 has not started.
 
 **Files:**
 
@@ -180,31 +182,31 @@ Fresh result: Task 2 changes are committed locally on `codex/task-2-dev`, preser
 - Versioned protocol defines a closed discriminator set and typed parameter records for each independently enabled operation; no type-name handling or arbitrary JSON object activation.
 - IAuditStore.AppendAsync(AuditRecord, CancellationToken) never exposes update/delete methods.
 
-- [ ] **Step 1: Add failing policy and protocol tests**
+- [x] **Step 1: Add failing policy and protocol tests**
 
 Assert READ_ONLY denies every mutating operation; explicit approval permits only the matching operation/incident; unknown operation/version, extra/invalid parameters, malformed and oversized frames are rejected; unauthorized SID is rejected; caller-supplied process name cannot bypass helper allowlist; timeout and helper-unavailable map to no execution; policy exception means DENIED; repeated failures trip cooldown/attempt/restart-loop limits; audit records append for proposal and execution outcome.
 
-- [ ] **Step 2: Verify expected red**
+- [x] **Step 2: Verify expected red**
 
 Run focused Core PolicyEngine and Infrastructure HelperProtocol tests. Expected: missing or incorrect public behavior is the failure reason.
 
-- [ ] **Step 3: Implement fail-closed policy and typed protocol**
+- [x] **Step 3: Implement fail-closed policy and typed protocol**
 
 Define fixed protocol v1 request/response records, maximum frame size, explicit serializer options, exact validation, timeouts and cancellation. Reject unknown versions and operations. Pipe ACL admits only the configured Host Agent service identity; server also checks the authenticated Windows client token and local allowlist.
 
-- [ ] **Step 4: Implement helper-local allowlist and guardrails**
+- [x] **Step 4: Implement helper-local allowlist and guardrails**
 
 Add individually registered service/process/adapter identifiers and typed handlers for only explicitly enabled operations. Revalidate all parameters inside Helper. No generic process launch, command parser, arbitrary path or registry handler. Apply global kill switch/read-only, per-operation rate/cooldown/attempt, and restart-loop protections before invoking a fakeable executor.
 
-- [ ] **Step 5: Add append-only audit and approval binding**
+- [x] **Step 5: Add append-only audit and approval binding**
 
 Persist proposal, decision, approval identity/time, execution start/end, result and error as distinct append-only events linked to incident/diagnosis/evidence and operation request. A stale or mismatched approval is denied.
 
-- [ ] **Step 6: Run Task 3 tests and explicit security review**
+- [x] **Step 6: Run Task 3 tests and explicit security review**
 
 Run dotnet build HostAgent.sln --configuration Release and dotnet test HostAgent.sln --configuration Release. Review privilege boundary, ACL, framing, serializer, whitelist, path handling, process identity, service identity, secret handling, sensitive log fields, injection surfaces and absence of arbitrary execution. Record each finding and evidence in docs/security/task-3-review.md.
 
-- [ ] **Step 7: Commit the independently passing stage**
+- [x] **Step 7: Commit the independently passing stage**
 
 Run git add src tests docs/security/task-3-review.md and git commit -m "feat: add approved helper operations". Expected: Task 3 code and explicit security review are verified.
 
