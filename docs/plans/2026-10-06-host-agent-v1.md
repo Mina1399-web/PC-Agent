@@ -34,7 +34,7 @@
 
 ### Task 1: Foundation, six read-only collectors, and SQLite
 
-**Status:** Task 1 build, test, and independent source-review gates pass. Git status/diff/commit commands remain unavailable because Code Integrity blocks the Git executable. Task 2 was started but remains incomplete; Task 3 has not started. Task 2 does not depend on a Task 1 Git commit.
+**Status:** Task 1 historical build/test/source-review gates passed. The original protected-host Git limitation is preserved below as historical evidence. Task 2 implementation and VM verification now pass; host synchronization is blocked. Task 3 has not started.
 
 **Files:**
 
@@ -110,7 +110,7 @@ Current result: blocked; Git cannot load its libpcre2-8-0.dll under the active C
 
 ### Task 2: Robust baseline, correlated diagnosis, incident lifecycle and snapshots
 
-**Status:** In progress; focused test execution is blocked by Windows Code Integrity after the diagnostic test assembly was rebuilt. The baseline engine and its focused tests are implemented; diagnostic rules are present but currently unverified. Independent review found three unresolved P2 issues in event correlation/attribution. Incident lifecycle/deduplication and durable snapshot/coordinator integration remain incomplete. See [Task 2 verification](../verification/task-2.md). Do not advance to Task 3 until Task 2 passes its test and review gates.
+**Status:** Implementation, focused tests, Release build, full suite and source-review gates pass in the approved DEV VM on 2026-10-11. Final result: 73 passed tests, 0 skipped, build 0 warnings/errors. Original three P2 findings and two newly reviewed restoration defects were fixed test-first. Host synchronization is blocked; the verified source-only patch remains in the VM. See [Task 2 verification](../verification/task-2.md). Task 3 has not started and requires a separate explicit user instruction.
 
 **Environment requirement:** Resume behavioral verification in an approved Windows development/test environment that permits local development assemblies to execute. Do not change the production mini PC's Smart App Control/Code Integrity policy. WSL does not satisfy Windows-specific integration verification. Production deployment will require a trusted Windows signing strategy accepted by the protected host; signing infrastructure is future work and is not being purchased or implemented now. See [Windows Development and Testing Environment](../development-and-testing.md).
 
@@ -129,11 +129,11 @@ Current result: blocked; Git cannot load its libpcre2-8-0.dll under the active C
 - IIncidentEngine.ApplyAsync(Diagnosis, IncidentSnapshot, CancellationToken) -> Incident.
 - Diagnosis contains severity, confidence 0–100, evidence, primary cause, secondary symptoms, recommended typed remediation description, timestamp and incident state.
 
-- [ ] **Step 1: Add failing deterministic tests**
+- [x] **Step 1: Add failing deterministic tests**
 
 Use literal time-series fixtures: one isolated high CPU minute creates no sustained-CPU diagnosis; sustained high CPU with one dominating process points to that process; high memory pressure yields the asserted diagnosis; critically full disk plus update/pagefile event selects disk capacity as primary cause; gateway/IP success plus DNS failure selects DNS; gateway failure is distinguished from DNS; service failure/restart events point to the affected service; multiple symptoms with one shared cause produce one primary cause and secondary symptoms; repeated same diagnosis updates one incident. Exercise every legal incident transition through Acknowledged, RemediationProposed, RemediationPendingApproval, Remediating, Resolved, Failed and Escalated, rejecting invalid transitions. Days 0–7 adaptive signal is informational, days 8–30 confidence is reduced, day 31 uses a 30-day robust window. Assert hand-calculated median/MAD and deterministic confidence.
 
-- [ ] **Step 2: Verify focused expected red**
+- [x] **Step 2: Verify focused expected red**
 
 Run dotnet test for each Core test project filter FullyQualifiedName~BaselineEngine, then DiagnosticEngine and IncidentEngine. Expected: missing engine/types or missing asserted behavior; no setup or compilation-only false red.
 
@@ -141,23 +141,25 @@ Run dotnet test for each Core test project filter FullyQualifiedName~BaselineEng
 
 Maintain bounded per-metric/scope samples, median, MAD/robust deviation, percentiles, trend, duration, recurrence and count. Implement exact learning periods and confidence reduction. Keep critical fixed rules active independently of adaptive readiness.
 
-Current result: baseline implementation compiles and its two focused tests passed before the test DLL was rebuilt for diagnostic fixtures. The baseline filter was not rerun after that rebuild; the rebuilt assembly was subsequently blocked during focused DiagnosticEngine runs. Treat the earlier 2/2 result as historical, not as the final Task 2 gate.
+Historical result: the protected host passed 2/2 baseline tests before rebuilt diagnostic fixtures were blocked by Code Integrity. Fresh VM result: initial baseline 2/2 and diagnostic 4/4 passed before edits; final baseline/diagnostic/incident focused tests pass 30/30. Exact runs are in the fresh command ledger.
 
-- [ ] **Step 4: Implement root-cause correlation and incident state transitions**
+- [x] **Step 4: Implement root-cause correlation and incident state transitions**
 
 Implement deterministic rules for CPU/process, memory pressure, disk plus related errors, DNS vs gateway vs internet, and service crash. Correlate by normalized issue key and update existing incidents. Uncertain or brief evidence cannot request autonomous action.
 
-- [ ] **Step 5: Add durable snapshot and aggregation integration**
+- [x] **Step 5: Add durable snapshot and aggregation integration**
 
 Assert that an incident snapshot preserves Windows/boot facts, CPU/RAM, disk, top processes, affected services, network interfaces/reachability, relevant event metadata, baseline comparison and evidence after later telemetry changes. Assert hourly/daily aggregates preserve metrics when detailed telemetry ages beyond 30 days, raw retention remains at least 30 days, and audit records are not removed by retention.
 
-- [ ] **Step 6: Run Task 2 full verification**
+- [x] **Step 6: Run Task 2 full verification**
 
 Run dotnet build HostAgent.sln --configuration Release and dotnet test HostAgent.sln --configuration Release. Expected: full unit/integration suite passes, warning review is clean, and no host remediation was run.
 
-- [ ] **Step 7: Commit the independently passing stage**
+- [x] **Step 7: Commit the independently passing stage**
 
 Run git add src tests docs and git commit -m "feat: add baseline diagnostics and incidents". Expected: commit contains Task 2 changes only.
+
+Fresh result: Task 2 changes are committed locally on `codex/task-2-dev`, preserving imported return point `ab0bc9b3352a68b206b92b64e53e267b38d7691b`. [Fresh verification](../verification/task-2-dev-vm.md) and the [34-run ledger](../verification/task-2-dev-vm-runs.md) document executed gates. No host transfer, deployment or Task 3 implementation occurred.
 
 ### Task 3: Fail-closed policy, authenticated typed Named Pipes, helper, audit, and guardrails
 

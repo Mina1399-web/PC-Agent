@@ -4,7 +4,7 @@ Windows-first local host monitoring and incident-assistance service built with C
 
 ## Project status
 
-Task 2 is **incomplete**. Its current verification record documents the last completed checks and outstanding work. This repository does not claim fresh build or test results from the publication date.
+Task 2 implementation and verification passed in the approved DEV VM on 2026-10-11: Release build has 0 warnings/errors and the full suite passes 73/73 tests. Host synchronization is blocked because no safe host project path is available from the VM. No deployment is claimed; Task 3 has not started. See the [fresh VM verification record](docs/verification/task-2-dev-vm.md) and [command ledger](docs/verification/task-2-dev-vm-runs.md).
 
 - [Specification](docs/specs/host-agent-v1.md)
 - [Development and testing](docs/development-and-testing.md)

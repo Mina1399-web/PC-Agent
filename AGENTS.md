@@ -11,7 +11,7 @@ Before changing code, inspect the current working tree and read:
 - `docs/plans/2026-10-06-host-agent-v1.md`
 - `docs/verification/task-2.md`
 
-Treat current code and fresh evidence as authoritative over historical notes. Task 2 is incomplete. The ready-to-use VM continuation prompt is [docs/prompts/agentpc-task-2.md](docs/prompts/agentpc-task-2.md).
+Treat current code and fresh evidence as authoritative over historical notes. Task 2 implementation and verification passed in the approved DEV VM; host synchronization remains blocked. Read [fresh Task 2 evidence](docs/verification/task-2-dev-vm.md) before using the historical [VM continuation prompt](docs/prompts/agentpc-task-2.md). Task 3 requires a separate explicit user instruction and must not start as part of Task 2 completion or transfer.
 
 ## Required boundaries
 

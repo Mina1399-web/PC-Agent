@@ -1,5 +1,15 @@
 # Task 2 Verification Record
 
+## Current result — 2026-10-11, approved DEV VM
+
+Task 2 implementation and VM verification gates pass. Final Release build: 0 warnings, 0 errors, exit 0. Final full suite: 73 passed (38 Core, 35 Infrastructure), 0 failed, 0 skipped, exit 0. Focused baseline/diagnostic/incident tests: 30 passed. The original three review findings and two new long-run restoration findings were fixed test-first; focused independent re-review found no remaining actionable defect in the fix range.
+
+Host transfer is blocked: no VirtualBox shared-folder mappings and no accessible host checkout from this VM. Changes remain in the VM; no host synchronization or deployment is claimed. Task 3 has not started and remains explicitly outside this request.
+
+See [fresh environment, implementation and review evidence](task-2-dev-vm.md) and the [exact command/result ledger](task-2-dev-vm-runs.md). The following 2026-10-06 record is historical; its Code Integrity failures describe the protected production host, not the fresh VM runs.
+
+## Historical record — 2026-10-06
+
 **Date:** 2026-10-06
 **Status:** Incomplete; focused test execution is blocked by Windows Code Integrity.
 

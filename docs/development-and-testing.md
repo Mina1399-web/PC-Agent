@@ -34,4 +34,6 @@ This is a future deployment requirement. No signing certificate, service, purcha
 
 ## Current limitation
 
-The current host's policy blocks the rebuilt unsigned `HostAgent.Core.Tests.dll`. See [Task 2 verification](verification/task-2.md) for the original event evidence, failed test command, and exact policy identifier. Do not use the production mini PC as a substitute test machine or change its security posture.
+The protected production host's policy historically blocked the rebuilt unsigned `HostAgent.Core.Tests.dll`. Its original event evidence is preserved in [Task 2 verification](verification/task-2.md). The approved DEV VM now loads locally built assemblies: [fresh results](verification/task-2-dev-vm.md) record a passing Release build and 73/73 tests on 2026-10-11. Do not use the production mini PC as a substitute test machine or change its security posture.
+
+The VM uses SDK 10.0.100 installed under the DEV account's LocalAppData directory. This runtime, NuGet/build caches and generated outputs are environment artifacts; exclude them from source transfer. No host transfer path is currently available. Before importing the prepared source patch on host, preserve its current Git state and review the patch against any newer uncommitted work.

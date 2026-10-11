@@ -194,6 +194,36 @@ public sealed class DiagnosticEngineTests
         Assert.Equal(confidence == 94, ReadStrings(diagnosis, "SecondarySymptoms").Contains("windows_update_errors"));
     }
 
+    [Fact]
+    public async Task Internet_failure_is_distinct_from_dns_and_gateway_failure_with_exact_confidence()
+    {
+        var diagnosis = Assert.Single(await EvaluateAsync(CreateEvidence(network: new NetworkTelemetry([],
+            [Probe(NetworkProbeKind.Gateway, "192.0.2.1", NetworkProbeStatus.Succeeded),
+             Probe(NetworkProbeKind.InternetIp, "203.0.113.1", NetworkProbeStatus.Failed),
+             Probe(NetworkProbeKind.DnsResolution, "example.test", NetworkProbeStatus.Failed)]))));
+        Assert.Equal("internet_connectivity_failure", ReadProperty(ReadProperty(diagnosis, "ProbableRootCause")!, "Code"));
+        Assert.Equal(80, ReadInt32(diagnosis, "Confidence"));
+        Assert.Contains("dns_resolution_failed", ReadStrings(diagnosis, "SecondarySymptoms"));
+    }
+
+    [Theory]
+    [InlineData(7, 25, "Information")]
+    [InlineData(8, 56, "Warning")]
+    [InlineData(31, 80, "Warning")]
+    public async Task Adaptive_diagnosis_preserves_learning_mode_confidence(int day, int confidence, string severity)
+    {
+        var engine = new HostAgent.Core.Diagnostics.BaselineEngine();
+        var start = Now.AddDays(-day);
+        for (var index = 0; index <= 5; index++)
+            await engine.ObserveAsync("disk.latency.ms", "C:\\", start.AddDays(index), 10);
+        var assessment = await engine.ObserveAsync("disk.latency.ms", "C:\\", Now, 80);
+        var evidence = new HostAgent.Core.Models.Diagnosis.HostEvidence(Now, null, null, null, null, null, null, [assessment], []);
+        var diagnosis = Assert.Single(await EvaluateAsync(evidence));
+        Assert.Equal("adaptive_metric_deviation", ReadProperty(ReadProperty(diagnosis, "ProbableRootCause")!, "Code"));
+        Assert.Equal(confidence, ReadInt32(diagnosis, "Confidence"));
+        Assert.Equal(severity, ReadProperty(diagnosis, "Severity")!.ToString());
+    }
+
     private static MetricSample CpuSample(DateTimeOffset sampledAtUtc, double value) =>
         new(Guid.NewGuid(), "cpu.usage.percent", "host", sampledAtUtc, value);
 
