@@ -1,5 +1,12 @@
 # Windows Development and Testing Environment
 
+SignPath preparation update, 2026-10-11: the owner explicitly authorized
+GitHub-hosted builds/tests for this signing path. Ordinary development stays
+in the approved DEV VM; production-host builds/tests and security-policy
+changes remain prohibited. No cloud workflow is active or verified yet.
+See [signing preparation](operations/signpath-preparation.md); historical
+VM-only statements below remain historical stage evidence.
+
 Current V1 completion uses account-local SDK **10.0.401** and runtime **10.0.12**, pinned in global.json/Directory.Build.props. Earlier SDK 10.0.100 results below are historical. The SDK archive was downloaded from Microsoft's official release metadata and its SHA-512 was verified before extraction. Build/release tooling additionally requires PowerShell 7 and account-local WiX **5.0.2** with WixToolset.Util.wixext/5.0.2. Windows PowerShell 5.1 script execution is Restricted in the VM; no execution policy was changed or bypassed. See [operator/release instructions](operations/quickstart.md) and [current verification](verification/v1-release.md).
 
 ## Development host

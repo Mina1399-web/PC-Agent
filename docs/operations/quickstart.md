@@ -4,6 +4,12 @@ Host Agent has two Windows services and an elevated local CLI. No dashboard, pub
 
 ## Install
 
+Before installation, read the [data and network disclosure](privacy.md).
+Default connectivity diagnostics use ICMP/DNS even while optional Pushover
+and heartbeat are disabled. First-party [MIT source licensing](../../LICENSE)
+and [SignPath preparation](signpath-preparation.md) do not establish a signed
+production release.
+
 Use a production release whose HostAgent.msi signature is valid, whose publisher thumbprint matches the independently trusted publisher, and whose binaries are accepted by the target's existing Code Integrity policy. A DEV package is unsigned and its MSI is restricted to the approved VM; it is not a production release. Never weaken a policy or import an untrusted certificate to make installation work.
 
 Open HostAgent.msi and approve the normal Windows administrator prompt. The MSI registers HostAgent as NT SERVICE/HostAgent and HostAgent.Helper as LocalSystem, creates Event Log sources, configures bounded crash recovery and starts both services. The SYSTEM bootstrap creates protected ProgramData/HostAgent, HostAgent.Helper and HostAgent.Operator directories and safe configuration only when missing. An unsafe existing data ACL causes installation to fail; it is never silently repaired. Unmanaged existing services with either product name block a new installation.

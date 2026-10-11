@@ -2,6 +2,20 @@
 
 Windows-first local host monitoring and incident-assistance service built with C# and .NET 10.
 
+First-party source is [MIT licensed](LICENSE); third-party components retain
+their own [licenses and notices](docs/legal/dependencies.md).
+Read the [privacy and network disclosure](docs/operations/privacy.md) before
+installation, including default ICMP/DNS connectivity probes.
+
+## Code signing policy
+
+The owner approved preparing a free SignPath Foundation application and
+GitHub-hosted builds/tests for that path. The project is **not yet enrolled
+or signed by SignPath**. See the [proposed Code signing policy](docs/operations/code-signing-policy.md),
+[eligibility review and application draft](docs/operations/signpath-preparation.md),
+and [fresh preparation evidence](docs/verification/signpath-preparation.md).
+The existing VM-only unsigned candidate remains unsuitable for production.
+
 ## Project status
 
 V1 product completion adds an elevated local CLI, authenticated administrator IPC, service-identity secret provisioning, safe configuration commands, and a self-contained Windows x64 MSI/release pipeline. Shadow/read-only remains the default. Start with the [operator guide](docs/operations/quickstart.md); the [current verification record](docs/verification/v1-release.md) distinguishes executed checks from live deployment prerequisites.
@@ -19,7 +33,7 @@ Historical Task 4 gates passed in the approved VM (Release build 0 warnings/erro
 - [Task 4 verification](docs/verification/task-4.md)
 - [Architecture](docs/architecture.md)
 
-Builds and tests must run in the approved Windows DEV/test environment described in the development guide. Keep production Code Integrity, VBS, Memory Integrity, and other security policies unchanged. The user subsequently authorized completing the V1 product; no dashboard, public API, general executor or unattended approval is included.
+Ordinary builds and tests run in the approved Windows DEV VM described in the development guide. The owner separately authorized GitHub-hosted builds/tests for the SignPath path; no hosted workflow is active in this preparation. Keep production Code Integrity, VBS, Memory Integrity, and other security policies unchanged. The user subsequently authorized completing the V1 product; no dashboard, public API, general executor or unattended approval is included.
 
 ## Continue in Codex on the DEV VM
 

@@ -2,6 +2,17 @@
 
 This repository contains Host Agent V1, a Windows-first C#/.NET 10 project.
 
+Subsequent user authorization on 2026-10-11 permits public open-source
+publication and preparation for SignPath Foundation. The user explicitly
+allows GitHub-hosted builds/tests for this signing path as an exception to
+the ordinary DEV-VM-only rule below. This does not permit production-host
+builds/tests, policy changes, trust exceptions, signing approval bypass,
+purchases, or publishing secrets/environment artifacts. See
+docs/plans/2026-10-11-signpath-preparation.md and
+docs/operations/signpath-preparation.md. SignPath enrollment/signing and
+cloud integration are not yet complete. Preserve existing VM build guards
+until a separately tested hosted path is implemented.
+
 On 2026-10-11 the user explicitly authorized completing the V1 product, including installation, safe local administration and release packaging. This supersedes historical Task-4-only restrictions below. Follow docs/plans/2026-10-11-v1-product-completion.md; all existing VM/host/security boundaries remain in force. No dashboard/public API/new helper mutation capability or unattended approval.
 
 ## Source of truth

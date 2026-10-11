@@ -1,0 +1,807 @@
+{
+  "format": 1,
+  "reviewDate": "2026-10-11",
+  "sourceBase": "3024c16dfdcadb5f35405aa6d9ebf9640b3090eb",
+  "sdk": "10.0.401",
+  "runtime": "10.0.12",
+  "assetFiles": 8,
+  "uniquePackages": 49,
+  "scope": "Restored eight solution project.assets.json graphs at the source base. Self-contained runtime and MSI WiX DTF redistributables require the supplemental review in dependencies.md.",
+  "packages": [
+    {
+      "id": "Microsoft.CodeCoverage",
+      "version": "17.14.1",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://github.com/microsoft/vstest",
+      "projects": [
+        "tests/HostAgent.Core.Tests",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "E8A419E9A7D1045DB037AFAEA25CEE698E035ACF29E21805EF501BEF317D5B5B",
+      "scope": "test/tooling only",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Data.Sqlite",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://docs.microsoft.com/dotnet/standard/data/sqlite/",
+      "projects": [
+        "src/HostAgent.Cli",
+        "src/HostAgent.Helper",
+        "src/HostAgent.Infrastructure",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests",
+        "tests/HostAgent.PipeProbe"
+      ],
+      "nuspecSha256": "8E1C47C77197DAAAC1584979B7BB42A9A8F6DEAFF9F6D18029B3A689A2107C6C",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Data.Sqlite.Core",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://docs.microsoft.com/dotnet/standard/data/sqlite/",
+      "projects": [
+        "src/HostAgent.Cli",
+        "src/HostAgent.Helper",
+        "src/HostAgent.Infrastructure",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests",
+        "tests/HostAgent.PipeProbe"
+      ],
+      "nuspecSha256": "56030907327BA858664E4C2CBC6547AD56D766D900BC323C14408FCD42FC46A0",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Configuration",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "F9146575D56AC5698ED2FB7CC41D469DAA95C582ECD93B4AEF3109227529B95F",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Configuration.Abstractions",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "A515475AA7839E7DB035BA6032E61317DE14DB8A9273FFC2622B5223835307EC",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Configuration.Binder",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "466CEA7BAA185EF3B636FECD108495E0188E6E7B48434A554C7924C29A8E1846",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Configuration.CommandLine",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "92156B002DD9F31E48EB6A07B0EE3B0F6EEEA72B04A77C56FDE6AA8DCBCDDDCE",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Configuration.EnvironmentVariables",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "34D420BC8CAD0E36187EC36F8520896FE4077FE907ABB177A97253312F83A191",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Configuration.FileExtensions",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "2EC902723D802291C12CF4748A048ACDB41323CF10923F66517DCFB13EDEEAC7",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Configuration.Json",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "3A337038C9B0BF11052D8518D3CE81D5E7D0E3F9137AD1FB97E6D305512CEC40",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Configuration.UserSecrets",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "DF05DFC8F5D5C9C2DE5CCBF72C42C178FFC79CC7BE40EF8A8ECEF830DEA10184",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.DependencyInjection",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "672BBDE8D6A1D90B3D603F49D80F18FD56C8BE929B74D049457B87266E2869B1",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.DependencyInjection.Abstractions",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "8766714F4945465F519BA4C6EBCDEA8E6E3234871178F009779D7B1B5A54C59C",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Diagnostics",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "E8DB86ADFD9D5B22A610BC8A4C31F88C8EE8F5C281D48B776F53A378260B3741",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Diagnostics.Abstractions",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "BDF3460C4E6E03AE7D5FB9B9F14E9BCD4488976D90CEE08F38463AFD9DAFECAE",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.FileProviders.Abstractions",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "9C8964EBC38BCCE07C4F0A867F117F8BA25CCAA3C44229AB54D2AB2EF3A35ED8",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.FileProviders.Physical",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "35FA54259267AB58DB6154112253E14FC43157C7B2FBEEB0D7C92E3B5924C911",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.FileSystemGlobbing",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "2D6D9A922DB605154CB501A958FA286C950331D9F740BFE1C9618A352773ECE1",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Hosting",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "E224419A1CD6579A8088C3F44C88C7FCA02F49E170C36595A67D91195C3EB304",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Hosting.Abstractions",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "1162269059B15874A8C88BEE745AE68E5232FA0ED87FFE9A68B9FD4FBCA93846",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Hosting.WindowsServices",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "AD307E793A02EC293016B61806EDD45EA288DA7F80FFF362D33DB6E0B5E58E84",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Logging",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "04E581792606A6CAD28ACE707A13FAF7C7F9A6A88773534257BD4FB510EFE31F",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Logging.Abstractions",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "7F698A1B620CFA4B035EFF9C2F863E3C304E9D0F879C676AB949282617AF840A",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Logging.Configuration",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "055CCEC2EDCF66F9E5A7FD9CFE80388B0CEE6658DDA75BCB4EACBF568D2A8B6D",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Logging.Console",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "14E1663033EC07278DE52AEA1EEE89168902FF8FDDC848F702533C4FD5D87D9E",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Logging.Debug",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "433E2A88D9E5252A0B181FD3BC90379FAC33E665B8D731227DA93E640D396C75",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Logging.EventLog",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "08BBFB22C257D9CF826CED329D55E9D81165708314DA581F388C6FE418B52205",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Logging.EventSource",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "2E48A72B9E373E8679241079D24B37EFDCF67A5DCE239355ECC041D77F94F27F",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Options",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "F0577CBEECFE4F5D45DF9313727E94370257B72B9B6477492FEB0F2A02B70A39",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Options.ConfigurationExtensions",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "4FB2DCA6C9777C1BFE07590A11EBD7A0F4362001FF0648BC711FBE59BC16A5F6",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.Extensions.Primitives",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Helper",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "154B9A2C247FD24C663B15A305428E0BDEC23DE00B36A4066DAA12E052B9BCFD",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.NET.Test.Sdk",
+      "version": "17.14.1",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://github.com/microsoft/vstest",
+      "projects": [
+        "tests/HostAgent.Core.Tests",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "4BE5FE2A9A8685231D30A32509FC10C97057D377B9EA22C33A7A3AC017CFCE69",
+      "scope": "test/tooling only",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.TestPlatform.ObjectModel",
+      "version": "17.14.1",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://github.com/microsoft/vstest",
+      "projects": [
+        "tests/HostAgent.Core.Tests",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "46D770701D691E3617A59D7A0FFBD7B07BFE727A945648DB3A629401D6A07EA1",
+      "scope": "test/tooling only",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Microsoft.TestPlatform.TestHost",
+      "version": "17.14.1",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://github.com/microsoft/vstest",
+      "projects": [
+        "tests/HostAgent.Core.Tests",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "2988EA729E27C2DDBE49E8F1BE039124580CC18BE40C2BE4CB120D4078068BB3",
+      "scope": "test/tooling only",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "Newtonsoft.Json",
+      "version": "13.0.3",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://www.newtonsoft.com/json",
+      "projects": [
+        "tests/HostAgent.Core.Tests",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "64AEFFCA22289EEB3BD32CBE72722AC878D2EADCEE9F8885F17DAA2E8357C518",
+      "scope": "test/tooling only",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "SQLitePCLRaw.bundle_e_sqlite3",
+      "version": "2.1.12",
+      "declaredLicense": "Apache-2.0",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/Apache-2.0",
+      "projectUrl": "",
+      "projects": [
+        "src/HostAgent.Cli",
+        "src/HostAgent.Helper",
+        "src/HostAgent.Infrastructure",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests",
+        "tests/HostAgent.PipeProbe"
+      ],
+      "nuspecSha256": "2FAA9F418C3B8831EFDF92DF6ACA8322FFA9F7A556E915B46E5DAA8E1F8E3233",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "SQLitePCLRaw.core",
+      "version": "2.1.12",
+      "declaredLicense": "Apache-2.0",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/Apache-2.0",
+      "projectUrl": "",
+      "projects": [
+        "src/HostAgent.Cli",
+        "src/HostAgent.Helper",
+        "src/HostAgent.Infrastructure",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests",
+        "tests/HostAgent.PipeProbe"
+      ],
+      "nuspecSha256": "8AB9189071AEF856B12A9A3D68AC055A01EC6F8FC51B85AC1029E7C5BA12EECC",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "SQLitePCLRaw.lib.e_sqlite3",
+      "version": "2.1.12",
+      "declaredLicense": "Apache-2.0",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/Apache-2.0",
+      "projectUrl": "",
+      "projects": [
+        "src/HostAgent.Cli",
+        "src/HostAgent.Helper",
+        "src/HostAgent.Infrastructure",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests",
+        "tests/HostAgent.PipeProbe"
+      ],
+      "nuspecSha256": "0E82E5CDA14CCB8C546596D39393A6A9BA94146FFEEAC86069DF29CE9D57A731",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "SQLitePCLRaw.provider.e_sqlite3",
+      "version": "2.1.12",
+      "declaredLicense": "Apache-2.0",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/Apache-2.0",
+      "projectUrl": "",
+      "projects": [
+        "src/HostAgent.Cli",
+        "src/HostAgent.Helper",
+        "src/HostAgent.Infrastructure",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests",
+        "tests/HostAgent.PipeProbe"
+      ],
+      "nuspecSha256": "7E5B604B8AD8121FA75F01EEC61F56989B717FADFD530188A57D35759D93F573",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "System.Diagnostics.EventLog",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Cli",
+        "src/HostAgent.Helper",
+        "src/HostAgent.Infrastructure",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests",
+        "tests/HostAgent.PipeProbe"
+      ],
+      "nuspecSha256": "B420E959398CD759ED7D74FE4656B4E8F842A2B78D86782F7884418A5E4C2791",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "System.ServiceProcess.ServiceController",
+      "version": "10.0.12",
+      "declaredLicense": "MIT",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "projects": [
+        "src/HostAgent.Cli",
+        "src/HostAgent.Helper",
+        "src/HostAgent.Infrastructure",
+        "src/HostAgent.Service",
+        "tests/HostAgent.Infrastructure.Tests",
+        "tests/HostAgent.PipeProbe"
+      ],
+      "nuspecSha256": "B70265C4E95CC825C66B9661AD825C955B8017F67D76A8A74FDC0AADD759C48C",
+      "scope": "production-project dependency",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "xunit",
+      "version": "2.9.3",
+      "declaredLicense": "Apache-2.0",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/Apache-2.0",
+      "projectUrl": "",
+      "projects": [
+        "tests/HostAgent.Core.Tests",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "8F3373C5260B2ACEC2874A280640E0FBB9AC538D754880D7ABAA4473C3497D25",
+      "scope": "test/tooling only",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "xunit.abstractions",
+      "version": "2.0.3",
+      "declaredLicense": "",
+      "licenseType": "",
+      "licenseUrl": "https://raw.githubusercontent.com/xunit/xunit/master/license.txt",
+      "projectUrl": "https://github.com/xunit/xunit",
+      "projects": [
+        "tests/HostAgent.Core.Tests",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "E59191DF9E3047DD953B695C886597786AC2771F66897BAA40877F643DA9F7B1",
+      "scope": "test/tooling only",
+      "reviewNote": "2.0.3 nuspec has only a historical upstream license URL; upstream abstractions.xunit declares Apache-2.0. Not a version-specific license-expression attestation."
+    },
+    {
+      "id": "xunit.analyzers",
+      "version": "1.18.0",
+      "declaredLicense": "Apache-2.0",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/Apache-2.0",
+      "projectUrl": "",
+      "projects": [
+        "tests/HostAgent.Core.Tests",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "270FFB0DCE41126154F16BAD2EE025DA605185FB5308247877745E5EEF97689E",
+      "scope": "test/tooling only",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "xunit.assert",
+      "version": "2.9.3",
+      "declaredLicense": "Apache-2.0",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/Apache-2.0",
+      "projectUrl": "",
+      "projects": [
+        "tests/HostAgent.Core.Tests",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "E3F99045088C262B14A62DD93CF025912E9E653F5CE1D77E7F858238E0BCB508",
+      "scope": "test/tooling only",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "xunit.core",
+      "version": "2.9.3",
+      "declaredLicense": "Apache-2.0",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/Apache-2.0",
+      "projectUrl": "",
+      "projects": [
+        "tests/HostAgent.Core.Tests",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "08C844D40924A386D7600E2523C57F1A2A1D6A77C03B8C0001501831944A0691",
+      "scope": "test/tooling only",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "xunit.extensibility.core",
+      "version": "2.9.3",
+      "declaredLicense": "Apache-2.0",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/Apache-2.0",
+      "projectUrl": "",
+      "projects": [
+        "tests/HostAgent.Core.Tests",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "0C5886E9320C6DD828E50048C27CF355314FE20E2D8D4026B4A3A9FE42D4A359",
+      "scope": "test/tooling only",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "xunit.extensibility.execution",
+      "version": "2.9.3",
+      "declaredLicense": "Apache-2.0",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/Apache-2.0",
+      "projectUrl": "",
+      "projects": [
+        "tests/HostAgent.Core.Tests",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "9C5498549B5200B65BA0C7E0D4597C269C6BBB2E374EA8F1C28D76DC3F3A0BDD",
+      "scope": "test/tooling only",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    },
+    {
+      "id": "xunit.runner.visualstudio",
+      "version": "3.1.5",
+      "declaredLicense": "Apache-2.0",
+      "licenseType": "expression",
+      "licenseUrl": "https://licenses.nuget.org/Apache-2.0",
+      "projectUrl": "",
+      "projects": [
+        "tests/HostAgent.Core.Tests",
+        "tests/HostAgent.Infrastructure.Tests"
+      ],
+      "nuspecSha256": "0E34C46E1420CEA8E5260772FF19BCB3D3FAA7709136D2D3BA157F48A97362BA",
+      "scope": "test/tooling only",
+      "reviewNote": "Declared NuGet metadata, not a full source/license audit."
+    }
+  ]
+}
