@@ -32,6 +32,7 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'release_publish_failed' }
     }
     Copy-Item -LiteralPath (Join-Path $source 'docs') -Destination (Join-Path $output 'docs') -Recurse
+    Copy-Item -LiteralPath (Join-Path $source 'LICENSE') -Destination (Join-Path $output 'LICENSE')
     $null=New-Item -ItemType Directory -Path (Join-Path $output 'tools')
     foreach ($script in @('Test-Release.ps1','Install-HostAgent.ps1','Test-Installer.ps1')) {
         Copy-Item -LiteralPath (Join-Path $PSScriptRoot $script) -Destination (Join-Path $output 'tools')

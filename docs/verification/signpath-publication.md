@@ -40,6 +40,7 @@ signpath-public-. They contain UTC, exact command, all output and exit code.
 | 15 focused regression | 32 passed, exit 0 |
 | 16 complete Release build | 0 warnings/errors, exit 0 |
 | 17 complete Release suite | 42 Core + 170 Infrastructure = 212 passed; 0 failed/skipped, exit 0 |
+| 18 actual clean-source 1.0.3 release packaging red | exit 1, release_missing_notices: root LICENSE absent from Build-Release output, caught by the new MSI requirement |
 
 The hosted positive publish path is not established by the VM refusal test.
 Its GitHub run will be recorded only after execution.
