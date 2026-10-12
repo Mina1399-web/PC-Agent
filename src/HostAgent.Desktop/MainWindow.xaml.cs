@@ -223,13 +223,14 @@ public partial class MainWindow:Window
         foreach(var fraction in new[]{0d,0.5,1})
             Chart.Children.Add(new Line{X1=0,X2=width,Y1=1+height*fraction,Y2=1+height*fraction,Stroke=(Brush)FindResource("LineBrush"),StrokeThickness=1,StrokeDashArray=new DoubleCollection{4,4}});
         var count=0;
+        var bucketTicks=TimeSpan.FromMinutes(15).Ticks;
         foreach(var (points,color) in new[]{(_cpuHistory,(Brush)FindResource("AccentBrush")),(_memoryHistory,(Brush)FindResource("RamBrush"))})
         {
             Polyline? line=null;DateTimeOffset? previous=null;
             foreach(var point in points.OrderBy(x=>x.AtUtc))
             {
                 if(!double.IsFinite(point.Value)||point.AtUtc>now||now-point.AtUtc>TimeSpan.FromHours(24))continue;
-                if(line is null || previous is {} before && point.AtUtc-before>TimeSpan.FromMinutes(30))
+                if(line is null || previous is {} before && point.AtUtc.UtcTicks/bucketTicks-before.UtcTicks/bucketTicks>1)
                 {line=new Polyline{Stroke=color,StrokeThickness=2};Chart.Children.Add(line);}
                 var pointPosition=new Point(width*(1-(now-point.AtUtc).TotalHours/24),1+height*(1-Math.Clamp(point.Value,0,100)/100));
                 line.Points.Add(pointPosition);previous=point.AtUtc;count++;

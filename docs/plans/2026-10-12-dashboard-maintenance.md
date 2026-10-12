@@ -102,3 +102,12 @@ independent parser review approves ce2c5414f955c3479acb02c3501edcb0b06040db.
 A subsequent authorized UI-interaction check is in progress in the design
 thread; wait for its stable handoff before the next integrated suite/package.
 Task 5 remains a subsequent disabled increment. Installed acceptance is pending.
+
+Final UI follow-up checkpoint: process/incident selection and asynchronous
+reply fixes committed in 7574517bf8513de0713285d7a6929f0eba90fa1a. A subsequent
+quarter-hour chart gap defect was reproduced and fixed, with 2 focused and
+12 Desktop passes. Latest exclusive Release build has zero warnings/errors;
+complete suite **296/296 passes** (58/226/12). Independent immutable review
+approved 2cdc54b4d2755084d0762a87e7f7c54574a7297a. Candidate2 from 7574517 passed
+packaging but is preserved uninstalled/superseded. Build candidate3 from the
+new source checkpoint, then perform protected VM installed acceptance.

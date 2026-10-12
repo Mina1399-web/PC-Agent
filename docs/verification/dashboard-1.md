@@ -240,3 +240,47 @@ dotnet test HostAgent.sln -c Release --no-build -m:1 --logger trx --results-dire
 Diff whitespace check passed. This supersedes earlier source-gate counts only
 for the current interaction handoff; historical/intermediate failures remain
 above. Package and live installed acceptance still require their own results.
+
+## Quarter-hour history gap correction (fresh continuation)
+
+The final UI sweep confirmed a separate P2 graph defect: comparing timestamps
+against 30 minutes could bridge one missing 15-minute UTC aggregate bucket.
+The symptom fixture uses a 17-minute point gap across an absent bucket;
+chart-gap-red.trx had one failed assertion (expected four series segments,
+actual two) and one passing adjacent-bucket case with a 28-minute point gap.
+The same two cases passed in chart-gap-green.trx after changing only segment
+selection to UTC bucket-index difference greater than one. Final isolated
+Desktop regression: desktop-final-regression.trx **12/12 passed**.
+
+```powershell
+dotnet test tests/HostAgent.Desktop.Tests/HostAgent.Desktop.Tests.csproj -c Release --filter Chart_gaps --artifacts-path "$checkEvidence\artifacts" --logger 'trx;LogFileName=chart-gap-green.trx' --results-directory $checkEvidence
+dotnet test tests/HostAgent.Desktop.Tests/HostAgent.Desktop.Tests.csproj -c Release --artifacts-path "$checkEvidence\artifacts" --logger 'trx;LogFileName=desktop-final-regression.trx' --results-directory $checkEvidence
+```
+
+The stable handoff SHA-256 values were independently checked:
+MainWindow.xaml.cs 74895A68D698E293615ABD204D2442C40B35458F7FAD26CB8FCABDEC9A25123A;
+DashboardInteractionTests.cs 6D4C4B3573B7FEBD0C52C024FC73872E2CCD2BD24687FC92FD0979BBCE92180E.
+The design task completed its bounded read-only sweep and stopped editing.
+Independent read-only review approved tree
+2cdc54b4d2755084d0762a87e7f7c54574a7297a against commit 7574517.
+
+The separately clean candidate2 built from 7574517 succeeded (Build-Release
+exit 0), including final validation and ZIP creation. ZIP SHA-256:
+DEB8DFFD15FDAA4EFD24498FE9F846ABE45327B45B39C715CEF620E08832C471.
+It is preserved but superseded by the chart fix and was not installed.
+
+Exclusive final source gate after this handoff:
+
+```powershell
+dotnet build HostAgent.sln -c Release -m:1
+dotnet test HostAgent.sln -c Release --no-build -m:1 --logger trx --results-directory "$evidence\chart-integrated-suite"
+git -c core.whitespace=cr-at-eol diff --cached --check
+```
+
+chart-integrated-build.log: exit 0, zero warnings/errors.
+chart-integrated-suite.log plus unique TRX: exit 0, **296/296 passed**
+(58 Core, 226 Infrastructure, 12 Desktop), zero failed/skipped.
+Whitespace inspection accepts CRLF explicitly, including the unchanged
+byte-exact upstream license; a plain check reports CRLF at appended Markdown
+boundaries. Source gates above cover the chart correction; new candidate3
+and actual installation still require separate acceptance.

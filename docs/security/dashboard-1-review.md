@@ -91,3 +91,13 @@ with no confirmed blocker. Four real WPF regression tests cover these symptoms;
 explicit delayed-reply-after-close and missing-start-ticks cases were not added
 in this handoff. Source guards were inspected; this is not claimed runtime
 coverage for those two additional cases. All preceding findings remain recorded.
+
+## Quarter-hour chart gap review
+
+Confirmed P2 display defect: raw >30-minute separation could connect data
+across a missing 15-minute aggregate bucket. UTC bucket-index segmentation
+now matches the dispatcher grouping. Independent read-only review approved
+2cdc54b4d2755084d0762a87e7f7c54574a7297a against 7574517, citing
+MainWindow.xaml.cs:233 and DashboardDispatcher.cs:39-40. Two regression cases
+cover missing and adjacent buckets; prior findings remain accumulated.
+No operation, authorization, transport or stored telemetry behavior changed.

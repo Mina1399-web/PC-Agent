@@ -11,6 +11,18 @@ namespace HostAgent.Desktop.Tests;
 
 public sealed class DashboardInteractionTests
 {
+    [Theory]
+    [InlineData(-31, -14, 4)]
+    [InlineData(-29, -1, 2)]
+    public Task Chart_gaps_follow_missing_quarter_hour_buckets(int firstOffset, int secondOffset, int expectedSegments) => WithWindow((window, view) =>
+    {
+        var interval = TimeSpan.FromMinutes(15).Ticks;
+        var bucket = new DateTimeOffset(DateTimeOffset.UtcNow.UtcTicks / interval * interval, TimeSpan.Zero);
+        view.History = [new(bucket.AddMinutes(firstOffset), 40), new(bucket.AddMinutes(secondOffset), 50)];
+        Refresh(window);
+        Assert.Equal(expectedSegments, ((Canvas)window.FindName("Chart")).Children.OfType<System.Windows.Shapes.Polyline>().Count());
+    });
+
     [Fact]
     public Task Refresh_preserves_only_the_exact_selected_process_instance() => WithWindow((window, view) =>
     {
@@ -113,6 +125,7 @@ public sealed class DashboardInteractionTests
         public ViewIncident Incident { get; } = new(Guid.NewGuid().ToString("N"), "Active", "memory_pressure", 80, "High", DateTimeOffset.UtcNow, 1);
         public DashboardSnapshot Snapshot { get; set; }
         public bool DelayDetails { get; set; }
+        public ViewMetric[] History { get; set; } = [];
         public List<TaskCompletionSource<byte[]>> Details { get; } = [];
 
         public FakeView()
@@ -135,7 +148,7 @@ public sealed class DashboardInteractionTests
             return ValueTask.FromResult(request.Command switch
             {
                 "overview" => AdminProtocol.Reply(true, "overview", Snapshot),
-                "history" => AdminProtocol.Reply(true, "history", Array.Empty<ViewMetric>()),
+                "history" => AdminProtocol.Reply(true, "history", History),
                 "incident" => Detail("current_evidence"),
                 _ => AdminProtocol.Reply(false, "view_unavailable")
             });
