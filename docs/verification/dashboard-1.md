@@ -204,3 +204,39 @@ The outside-source upgrade harness was updated only with this same reader and
 its import replacement. Exact reviewed SHA-256:
 B5F3C617D2F47EA2B96E53EA514B568A200E0EBCEE4EAB86C3580297D4765FFD.
 It has not yet executed. The prior reviewed harness is retained separately.
+
+## Interaction handoff (fresh continuation)
+
+The design task handed off exactly MainWindow.xaml.cs and new
+DashboardInteractionTests.cs after stopping edits/builds. SHA-256 values were
+independently rechecked: 02EF46EF1F78907F5CC529106343F3B46038C2682E8C91BD3A3B5271512D5084
+and E5A3D5A047BCC5F4797C0DE58C1381AE3610185AE58CBC2FDBFE9F041F973E8F.
+Raw evidence was inspected under `HostAgent-DEV-evidence\dashboard-check`.
+Initial interaction-red.trx: 3 failed / 1 passed; identical process records
+were retained by DataGrid equality. The fixture was refined to change actual
+metrics while preserving process identity. interaction-red-final.trx then
+failed all four symptom assertions. Identical focused run after implementation:
+interaction-green.trx 4/4 passed; desktop-regression.trx 10/10 passed.
+
+```powershell
+dotnet test tests/HostAgent.Desktop.Tests/HostAgent.Desktop.Tests.csproj -c Release --filter DashboardInteraction --artifacts-path "$checkEvidence\artifacts" --logger 'trx;LogFileName=interaction-green.trx' --results-directory $checkEvidence
+dotnet test tests/HostAgent.Desktop.Tests/HostAgent.Desktop.Tests.csproj -c Release --artifacts-path "$checkEvidence\artifacts" --logger 'trx;LogFileName=desktop-regression.trx' --results-directory $checkEvidence
+```
+
+The independent reviewer approved tree
+5d621d3c12e174229de747f10799b813317c7d51 against the parser commit ad473d4.
+The review and prior findings are retained in the security record.
+
+After the handoff stopped, this task performed exclusive integrated verification:
+
+```powershell
+dotnet build HostAgent.sln -c Release -m:1
+dotnet test HostAgent.sln -c Release --no-build -m:1 --logger trx --results-directory "$evidence\interaction-integrated-suite"
+```
+
+`dashboard-install\interaction-integrated-build.log`: exit 0, zero warnings/errors.
+`interaction-integrated-suite.log` and three unique TRX: exit 0,
+**294/294 passed** (58 Core, 226 Infrastructure, 10 Desktop), zero failed/skipped.
+Diff whitespace check passed. This supersedes earlier source-gate counts only
+for the current interaction handoff; historical/intermediate failures remain
+above. Package and live installed acceptance still require their own results.

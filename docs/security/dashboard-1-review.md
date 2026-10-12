@@ -74,3 +74,20 @@ B5F3C617D2F47EA2B96E53EA514B568A200E0EBCEE4EAB86C3580297D4765FFD.
 Review did not execute tests or installation. Fresh 22 focused / 290 total
 passes are separately recorded; actual repaired package, installed acceptance
 and signed production variant are not inferred from this review.
+
+## Interaction handoff review
+
+The separately authorized design task confirmed three interaction defects
+with four behavioral assertions: refresh discarded a selected process when
+its metrics changed, a reused/lost process left derived target fields, incident
+deselection retained visible detail, and an older same-ID request could replace
+newer detail. The fixes preserve exact PID/positive start ticks, clear derived
+selection fields/detail, and bind rendering to request version/current ID/
+window lifetime. Existing CLI authorization gates are unchanged.
+
+Independent read-only review approved tree
+5d621d3c12e174229de747f10799b813317c7d51 against ad473d4d9db931c516ed535715d5fabdf445d8bf,
+with no confirmed blocker. Four real WPF regression tests cover these symptoms;
+explicit delayed-reply-after-close and missing-start-ticks cases were not added
+in this handoff. Source guards were inspected; this is not claimed runtime
+coverage for those two additional cases. All preceding findings remain recorded.

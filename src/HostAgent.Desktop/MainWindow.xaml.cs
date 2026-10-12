@@ -24,6 +24,7 @@ public partial class MainWindow:Window
     private readonly System.Windows.Forms.NotifyIcon _tray=new(){Text="Host Agent",Icon=System.Drawing.SystemIcons.Information};
     private ViewMetric[] _cpuHistory=[],_memoryHistory=[];
     private ViewIncidentDetail? _selectedDetail;
+    private int _detailRequestVersion;
     private readonly OperationObservation _observation=new();
 
     public MainWindow(DashboardController controller)
@@ -40,11 +41,9 @@ public partial class MainWindow:Window
         Closed+=(_,_)=>{_timer.Stop();_closing.Cancel();_tray.Dispose();};
         ProcessGrid.SelectionChanged+=(_,_)=>
         {
-            if(ProcessGrid.SelectedItem is ViewProcess p)
-            {
-                PidInput.Text=p.Pid.ToString(CultureInfo.InvariantCulture);
-                TicksInput.Text=p.StartTimeUtcTicks?.ToString(CultureInfo.InvariantCulture)??"";
-            }
+            var process=ProcessGrid.SelectedItem as ViewProcess;
+            PidInput.Text=process?.Pid.ToString(CultureInfo.InvariantCulture)??"";
+            TicksInput.Text=process?.StartTimeUtcTicks?.ToString(CultureInfo.InvariantCulture)??"";
         };
     }
     private async Task Refresh()
@@ -74,7 +73,11 @@ public partial class MainWindow:Window
             UptimeText.Text=view.Uptime is {} up?TimeSpan.FromSeconds(Math.Max(0,up.Value)).ToString(up.Value>=86400?"d' d 'hh' h'":"h' h 'mm' m'",CultureInfo.InvariantCulture):"—";
             IncidentCountText.Text=view.Incidents.Count(x=>x.State!="Resolved").ToString(CultureInfo.CurrentCulture);
             NetworkText.Text=view.ConnectedAdapters is {} count?$"Síť: {count} aktivních adaptérů. Dostupnost internetu tím není ověřena.":"Síť: nedostupná data";
+            var selectedProcess=ProcessGrid.SelectedItem as ViewProcess;
             DisksGrid.ItemsSource=view.Disks;ProcessGrid.ItemsSource=view.Processes;HealthGrid.ItemsSource=view.Health;ServicesGrid.ItemsSource=view.Services;
+            ProcessGrid.SelectedItem=selectedProcess?.StartTimeUtcTicks is >0
+                ?view.Processes.FirstOrDefault(x=>x.Pid==selectedProcess.Pid&&x.StartTimeUtcTicks==selectedProcess.StartTimeUtcTicks)
+                :null;
             SetEmptyStates(view);
             var selected=(IncidentsGrid.SelectedItem as ViewIncident)?.Id;
             IncidentsGrid.ItemsSource=view.Incidents;
@@ -122,13 +125,20 @@ public partial class MainWindow:Window
     }
     private async void IncidentSelected(object sender,SelectionChangedEventArgs e)
     {
+        var requestVersion=++_detailRequestVersion;
         _selectedDetail=null;
-        if(IncidentsGrid.SelectedItem is not ViewIncident incident){OperationIncident.Text="";return;}
+        if(IncidentsGrid.SelectedItem is not ViewIncident incident)
+        {
+            OperationIncident.Text="";
+            DetailText.Text="Vyberte incident. Zobrazí se dostupné kódy, časy a číselné důkazy.";
+            return;
+        }
         OperationIncident.Text=incident.Id;DetailText.Text="Načítám omezené důkazy…";
         try
         {
             var detail=await _controller.ReadAsync<ViewIncidentDetail>("incident",new{incidentId=incident.Id},_closing.Token);
-            if((IncidentsGrid.SelectedItem as ViewIncident)?.Id!=incident.Id)return;
+            if(_closing.IsCancellationRequested||requestVersion!=_detailRequestVersion
+                ||(IncidentsGrid.SelectedItem as ViewIncident)?.Id!=incident.Id)return;
             _selectedDetail=detail;
             if(detail is null){DetailText.Text="Detail není dostupný.";return;}
             var scope=detail.ConfidenceScope=="stop_code_classification_only"?"Confidence určuje klasifikaci stop kódu. Neurčuje vadný ovladač.":"Confidence je odhad pravděpodobné příčiny, nikoli záruka správné opravy.";
