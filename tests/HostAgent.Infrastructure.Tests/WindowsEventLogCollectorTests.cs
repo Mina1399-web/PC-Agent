@@ -9,6 +9,32 @@ namespace HostAgent.Infrastructure.Tests;
 public sealed class WindowsEventLogCollectorTests
 {
     [Fact]
+    public void Wer_parser_extracts_only_structured_bugcheck_code_parameters_and_safe_dump_filename()
+    {
+        var parser = typeof(WindowsEventLogCollector).Assembly
+            .GetType("HostAgent.Infrastructure.Collectors.WindowsEventLogReaderFactory")!
+            .GetMethod("ReadBugCheckData", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
+        Assert.NotNull(parser);
+        object? Parse(string xml) => parser!.Invoke(null, [xml]);
+        const string xml = "<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-WER-SystemErrorReporting'/><EventID>1001</EventID></System><EventData><Data Name='param1'>0x0000000a (0xffff9280d9724024, 0xff, 0x26, 0xfffff802bd4b77e0)</Data><Data Name='param2'>C:\\WINDOWS\\Minidump\\101226-15000-01.dmp</Data><Data Name='param3'>not-retained</Data></EventData></Event>";
+
+        var parsed = Parse(xml);
+        Assert.NotNull(parsed);
+        Assert.Equal((uint)10, parsed.GetType().GetProperty("Code")!.GetValue(parsed));
+        Assert.Equal(new ulong[] { 0xffff9280d9724024, 0xff, 0x26, 0xfffff802bd4b77e0 },
+            Assert.IsAssignableFrom<IEnumerable<ulong>>(parsed.GetType().GetProperty("Parameters")!.GetValue(parsed)).ToArray());
+        Assert.Equal("101226-15000-01.dmp", parsed.GetType().GetProperty("DumpFileName")!.GetValue(parsed));
+        Assert.Null(Parse(xml.Replace("Microsoft-Windows-WER-SystemErrorReporting", "OtherProvider", StringComparison.Ordinal)));
+        Assert.Null(Parse(xml.Replace("0x0000000a (0xffff9280d9724024, 0xff, 0x26, 0xfffff802bd4b77e0)", "not-a-bugcheck", StringComparison.Ordinal)));
+        var unsafePath = Parse(xml.Replace("C:\\WINDOWS\\Minidump\\101226-15000-01.dmp", "C:\\Secrets\\token.dmp", StringComparison.Ordinal));
+        Assert.NotNull(unsafePath);
+        Assert.Null(unsafePath!.GetType().GetProperty("DumpFileName")!.GetValue(unsafePath));
+        var nestedPath = Parse(xml.Replace("C:\\WINDOWS\\Minidump\\101226-15000-01.dmp", "C:\\Untrusted\\Windows\\Minidump\\101226-15000-01.dmp", StringComparison.Ordinal));
+        Assert.NotNull(nestedPath);
+        Assert.Null(nestedPath!.GetType().GetProperty("DumpFileName")!.GetValue(nestedPath));
+    }
+
+    [Fact]
     public void Scm_metadata_extracts_only_bounded_affected_service_from_structured_xml()
     {
         var parser = typeof(WindowsEventLogCollector).Assembly
@@ -21,6 +47,24 @@ public sealed class WindowsEventLogCollectorTests
         Assert.Null(Parse("malformed"));
         Assert.Null(Parse("<!DOCTYPE Event [<!ENTITY x SYSTEM 'file:///not-read'>]><Event>&x;</Event>"));
         Assert.Null(Parse("<Event><System><Provider Name='Service Control Manager'/><EventID>7034</EventID></System><EventData><Data Name='param1'>" + new string('a', 257) + "</Data></EventData></Event>"));
+    }
+
+    [Fact]
+    public async Task Collected_bugcheck_metadata_preserves_only_parsed_parameters_and_dump_leaf()
+    {
+        var record = new EventLogRecordData(42, 2, 1001, "Microsoft-Windows-WER-SystemErrorReporting",
+            DateTime.UtcNow, "host", "bookmark")
+        {
+            BugCheck = new ParsedBugCheckData(10, [0xffff9280d9724024, 0xff, 0x26, 0xfffff802bd4b77e0], "101226-15000-01.dmp")
+        };
+
+        var result = await new WindowsEventLogCollector(new MemoryCheckpointStore(), new SubjectReaderFactory(record))
+            .CollectAsync(CancellationToken.None);
+
+        var metadata = Assert.Single(result.Value!.Events);
+        Assert.Equal((uint)10, metadata.BugCheckCode);
+        Assert.Equal(new ulong[] { 0xffff9280d9724024, 0xff, 0x26, 0xfffff802bd4b77e0 }, metadata.BugCheckParameters);
+        Assert.Equal("101226-15000-01.dmp", metadata.CrashDumpFileName);
     }
 
     [Fact]

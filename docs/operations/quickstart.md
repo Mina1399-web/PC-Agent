@@ -25,7 +25,10 @@ $agent = "$env:ProgramFiles\HostAgent\Cli\HostAgent.Cli.exe"
 & $agent --help
 & $agent status
 & $agent incidents
+& $agent incident <incident-id>
 ```
+
+Use `incidents` to get an ID, then `incident <incident-id>` to inspect its durable diagnosis, confidence scope, evidence and recommended next step before proposing an operation. Bugcheck details can identify the stop code and dump, but will explicitly leave the driver unattributed until dump analysis confirms it; driver changes are never automatic. The detail command is read-only and does not return complete telemetry snapshots.
 
 Exit codes: 0 success, 1 rejected/unavailable/cancelled, 2 invalid command usage. Status reports configuration/mode and worker degradation. Each CLI transport has a deadline, pins the server service SID, and sends once.
 

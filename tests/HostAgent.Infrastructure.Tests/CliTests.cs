@@ -12,6 +12,36 @@ namespace HostAgent.Infrastructure.Tests;
 public sealed class CliTests
 {
     [Fact]
+    public async Task Incident_command_requests_one_detail_record_and_prints_explanation_and_safe_recommendation()
+    {
+        const string incidentId = "b8720be8f5b741939291e97ad4198143";
+        var output = new StringWriter();
+        var calls = 0;
+        var app = new CliApplication((bytes, _) =>
+        {
+            calls++;
+            var request = AdminProtocol.Parse(bytes);
+            Assert.Equal("incident", request.Command);
+            Assert.Equal(incidentId, request.Body.GetProperty("incidentId").GetString());
+            return ValueTask.FromResult(AdminProtocol.Reply(true, "incident", new
+            {
+                rootCause = new { code = "windows_bugcheck", summary = "Windows recorded a kernel bugcheck; the responsible driver is not identified." },
+                confidence = 78,
+                evidence = new[] { new { source = "eventlog.bugcheck", observation = "Bug check 0xA (IRQL_NOT_LESS_OR_EQUAL)." } },
+                recommendation = new { code = "analyze_crash_dump", summary = "Analyze the crash dump before changing drivers." },
+                automaticRepair = new { available = false, reason = "The faulty driver has not been identified." }
+            }));
+        }, _ => ValueTask.FromResult<string?>(null), (_, _) => ValueTask.FromResult<string?>(null),
+            (_, _) => throw new InvalidOperationException(), output, Path.GetTempPath());
+
+        Assert.Equal(0, await app.RunAsync(["incident", incidentId.ToUpperInvariant()], default));
+        Assert.Equal(1, calls);
+        Assert.Contains("responsible driver is not identified", output.ToString());
+        Assert.Contains("Analyze the crash dump before changing drivers", output.ToString());
+        Assert.Contains("\"available\":false", output.ToString());
+    }
+
+    [Fact]
     public async Task Resolved_local_target_is_displayed_before_confirmation_and_never_executes_after_refusal()
     {
         await using var fixture=new OperatorFixture();var request=Task3Fixture.Request();var calls=0;
@@ -33,6 +63,7 @@ public sealed class CliTests
             (_,_)=>throw new InvalidOperationException(),output,Path.GetTempPath());
         Assert.Equal(0,await app.RunAsync(["--help"],default));Assert.Contains("approve-execute",output.ToString());
         Assert.Equal(2,await app.RunAsync(["shell"],default));
+        Assert.Equal(2,await app.RunAsync(["incident","not-an-incident-id"],default));
         Assert.Equal(2,await app.RunAsync(["secret-set","PushoverToken","do-not-accept-secret-argument"],default));
         Assert.Equal(0,calls);Assert.Equal(0,secrets);Assert.DoesNotContain("do-not-accept-secret-argument",output.ToString());
     }

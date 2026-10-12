@@ -446,7 +446,10 @@ public sealed class WindowsEventLogCollector : ITelemetryCollector<EventLogTelem
                     record.MachineName ?? Environment.MachineName)
                 {
                     AffectedServiceName = record.AffectedServiceName,
-                    EventFingerprint = record.EventFingerprint
+                    EventFingerprint = record.EventFingerprint,
+                    BugCheckCode = record.BugCheck?.Code,
+                    BugCheckParameters = record.BugCheck?.Parameters ?? [],
+                    CrashDumpFileName = record.BugCheck?.DumpFileName
                 });
             }
             catch (InvalidOperationException)

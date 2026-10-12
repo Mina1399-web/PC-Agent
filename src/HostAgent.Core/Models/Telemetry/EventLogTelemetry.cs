@@ -16,4 +16,7 @@ public sealed record EventLogEntryMetadata(
 {
     public string? AffectedServiceName { get; init; }
     public string? EventFingerprint { get; init; }
+    public uint? BugCheckCode { get; init; }
+    public IReadOnlyList<ulong> BugCheckParameters { get; init; } = [];
+    public string? CrashDumpFileName { get; init; }
 }

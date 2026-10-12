@@ -206,6 +206,86 @@ public sealed class DiagnosticEngineTests
         Assert.Contains("dns_resolution_failed", ReadStrings(diagnosis, "SecondarySymptoms"));
     }
 
+    [Fact]
+    public async Task Wer_bugcheck_is_classified_without_claiming_a_faulty_driver_and_recommends_dump_analysis()
+    {
+        var eventLog = new EventLogTelemetry(Now,
+            [new EventLogEntryMetadata("System", "Microsoft-Windows-WER-SystemErrorReporting", 15000, 1001,
+                "Error", Now, "host")], []);
+
+        var diagnosis = Assert.Single(await EvaluateAsync(CreateEvidence(eventLog: eventLog)));
+
+        var root = ReadProperty(diagnosis, "ProbableRootCause")!;
+        Assert.Equal("windows_bugcheck", ReadProperty(root, "Code"));
+        Assert.Null(ReadProperty(root, "Subject"));
+        Assert.Contains("faulty driver is not identified", (string)ReadProperty(root, "Summary")!);
+        Assert.Equal(70, ReadInt32(diagnosis, "Confidence"));
+        var recommendation = ReadProperty(diagnosis, "RecommendedRemediation")!;
+        Assert.Equal("analyze_crash_dump", ReadProperty(recommendation, "RecommendationCode"));
+        Assert.Contains("Open the corresponding crash dump in WinDbg", (string)ReadProperty(recommendation, "Summary")!);
+        Assert.Contains("driver_attribution_pending_dump_analysis", ReadStrings(diagnosis, "SecondarySymptoms"));
+    }
+
+    [Fact]
+    public async Task Irql_not_less_or_equal_explains_stop_code_parameters_and_dump_without_identifying_a_driver()
+    {
+        var crash = new EventLogEntryMetadata("System", "Microsoft-Windows-WER-SystemErrorReporting", 15000, 1001,
+            "Error", Now, "host")
+        {
+            BugCheckCode = 0xA,
+            BugCheckParameters = [0xffff9280d9724024, 0xff, 0x26, 0xfffff802bd4b77e0],
+            CrashDumpFileName = "101226-15000-01.dmp"
+        };
+
+        var diagnosis = Assert.Single(await EvaluateAsync(CreateEvidence(eventLog: new EventLogTelemetry(Now, [crash], []))));
+
+        var root = ReadProperty(diagnosis, "ProbableRootCause")!;
+        Assert.Equal("bugcheck_irql_not_less_or_equal", ReadProperty(root, "Code"));
+        Assert.Null(ReadProperty(root, "Subject"));
+        Assert.Contains("faulty driver is not identified", (string)ReadProperty(root, "Summary")!);
+        Assert.Equal(88, ReadInt32(diagnosis, "Confidence"));
+        var evidence = Assert.IsAssignableFrom<IEnumerable>(ReadProperty(diagnosis, "Evidence"))!.Cast<object>().ToArray();
+        Assert.Contains(evidence, item => ((string)ReadProperty(item, "Observation")!).Contains("0xA", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(evidence, item => ((string)ReadProperty(item, "Observation")!).Contains("0xffff9280d9724024", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(evidence, item => ((string)ReadProperty(item, "Observation")!).Contains("101226-15000-01.dmp", StringComparison.Ordinal));
+        var recommendation = ReadProperty(diagnosis, "RecommendedRemediation")!;
+        Assert.Equal("analyze_crash_dump", ReadProperty(recommendation, "RecommendationCode"));
+        Assert.Contains("!analyze -v", (string)ReadProperty(recommendation, "Summary")!);
+        Assert.Contains("driver_attribution_pending_dump_analysis", ReadStrings(diagnosis, "SecondarySymptoms"));
+    }
+
+    [Theory]
+    [InlineData(-1441, 0)]
+    [InlineData(-1440, 1)]
+    [InlineData(0, 1)]
+    [InlineData(1, 0)]
+    public async Task Bugcheck_correlation_uses_only_timestamped_events_inside_the_24_hour_window(int minutes, int expectedCount)
+    {
+        var crash = new EventLogEntryMetadata("System", "Microsoft-Windows-WER-SystemErrorReporting", 42, 1001,
+            "Error", Now.AddMinutes(minutes), "host") { BugCheckCode = 0xA };
+
+        var diagnoses = await EvaluateAsync(CreateEvidence(eventLog: new EventLogTelemetry(Now, [crash], [])));
+
+        Assert.Equal(expectedCount, diagnoses.Count);
+        if (expectedCount == 1) Assert.Equal(88, ReadInt32(Assert.Single(diagnoses), "Confidence"));
+    }
+
+    [Fact]
+    public async Task Repeated_same_stop_code_is_one_diagnosis_with_stable_correlation_and_recurrence_evidence()
+    {
+        var first = new EventLogEntryMetadata("System", "Microsoft-Windows-WER-SystemErrorReporting", 42, 1001,
+            "Error", Now.AddHours(-4), "host") { BugCheckCode = 0xA };
+        var second = first with { RecordId = 43, OccurredAtUtc = Now };
+
+        var diagnosis = Assert.Single(await EvaluateAsync(CreateEvidence(eventLog: new EventLogTelemetry(Now, [first, second], []))));
+
+        Assert.Equal("bugcheck:0xA", ReadProperty(diagnosis, "CorrelationKey"));
+        Assert.Equal("bugcheck:0xA", ReadProperty(Assert.Single(await EvaluateAsync(CreateEvidence(
+            eventLog: new EventLogTelemetry(Now, [second], [])))), "CorrelationKey"));
+        Assert.Contains("repeated_bugcheck_events", ReadStrings(diagnosis, "SecondarySymptoms"));
+        Assert.Equal(2, Assert.IsAssignableFrom<IEnumerable>(ReadProperty(diagnosis, "Evidence"))!.Cast<object>().Count());
+    }
+
     [Theory]
     [InlineData(7, 25, "Information")]
     [InlineData(8, 56, "Warning")]

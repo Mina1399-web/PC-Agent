@@ -19,6 +19,12 @@ public static class AdminProtocol
             switch(command)
             {
                 case "status":case "incidents":HelperProtocol.Exact(body);break;
+                case "incident":
+                    HelperProtocol.Exact(body,"incidentId");
+                    var incidentId=body.GetProperty("incidentId").GetString();
+                    if(!Guid.TryParseExact(incidentId,"N",out var parsedIncident)||parsedIncident==Guid.Empty)
+                        throw new InvalidDataException();
+                    break;
                 case "propose":
                     HelperProtocol.Exact(body,"incidentId","operation","parameters");
                     _=Proposal(body,"validation",80,["validation"]);break;

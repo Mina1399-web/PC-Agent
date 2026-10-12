@@ -15,7 +15,7 @@ public sealed class CliApplication(Func<byte[],CancellationToken,ValueTask<byte[
     public const string Usage="""
         Host Agent V1 local operator CLI (run as administrator except --help)
           --help
-          status | incidents
+          status | incidents | incident <incident-id>
           secret-set <PushoverToken|PushoverUser|HeartbeatUrl>  (masked prompt)
           configure <Shadow|Confirmation> <pushover:on|off> <heartbeat:on|off>
           network-probes <on|off>  (default off; gateway/1.1.1.1 ICMP and example.com DNS)
@@ -36,6 +36,9 @@ public sealed class CliApplication(Func<byte[],CancellationToken,ValueTask<byte[
             {
                 case "status" or "incidents" when args.Length==1:
                     payload=AdminProtocol.Request(args[0],new{});break;
+                case "incident" when args.Length==2:
+                    if(!Guid.TryParseExact(args[1],"N",out var incidentId)||incidentId==Guid.Empty)return Invalid();
+                    payload=AdminProtocol.Request("incident",new{incidentId=incidentId.ToString("N")});break;
                 case "secret-set" when args.Length==2:
                     if(!Enum.TryParse<SecretName>(args[1],false,out var name)||!Enum.IsDefined(name)||name.ToString()!=args[1])return Invalid();
                     var value=await readSecret(token);

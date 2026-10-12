@@ -34,6 +34,7 @@ public sealed class DiagnosticEngine : IDiagnosticEngine
         AddMemoryDiagnosis(evidence, diagnoses);
         AddDiskDiagnoses(evidence, diagnoses);
         AddNetworkDiagnoses(evidence, diagnoses);
+        AddBugCheckDiagnoses(evidence, diagnoses);
         AddServiceDiagnoses(evidence, diagnoses);
         AddAdaptiveDiagnoses(evidence, diagnoses);
         return ValueTask.FromResult<IReadOnlyList<Diagnosis>>(diagnoses.AsReadOnly());
@@ -401,6 +402,79 @@ public sealed class DiagnosticEngine : IDiagnosticEngine
                     name ?? "Unidentified service; event " + eventIdentity),
                 [],
                 new RemediationRecommendation("inspect_service_failure", "Review the affected service and its recovery settings.")));
+        }
+    }
+
+    private static void AddBugCheckDiagnoses(HostEvidence evidence, ICollection<Diagnosis> diagnoses)
+    {
+        var bugchecks = evidence.EventLog?.Events
+            .Where(entry => entry.LogName.Equals("System", StringComparison.OrdinalIgnoreCase)
+                && entry.Provider.Equals("Microsoft-Windows-WER-SystemErrorReporting", StringComparison.OrdinalIgnoreCase)
+                && entry.EventId == 1001
+                && entry.OccurredAtUtc is { } occurredAt
+                && occurredAt <= evidence.SampledAtUtc
+                && evidence.SampledAtUtc - occurredAt <= EventCorrelationWindow
+                && (entry.Level.Equals("Error", StringComparison.OrdinalIgnoreCase)
+                    || entry.Level.Equals("Critical", StringComparison.OrdinalIgnoreCase)))
+            .OrderBy(entry => entry.OccurredAtUtc)
+            .ToArray() ?? [];
+        if (bugchecks.Length == 0) return;
+
+        foreach (var group in bugchecks.GroupBy(entry => entry.BugCheckCode))
+        {
+            var occurrences = group.TakeLast(16).ToArray();
+            var code = group.Key;
+            var knownIrqlFailure = code == 0xA;
+            var codeText = code is { } value ? $"0x{value:X}" : "unknown stop code";
+            var evidenceItems = new List<DiagnosticEvidence>();
+            foreach (var entry in occurrences)
+            {
+                var occurredAt = entry.OccurredAtUtc!.Value;
+                evidenceItems.Add(Evidence(
+                    "eventlog.bugcheck",
+                    $"Windows recorded bugcheck {codeText} (Event 1001, record {entry.RecordId?.ToString(CultureInfo.InvariantCulture) ?? "unknown"}).",
+                    code,
+                    occurredAt));
+                for (var index = 0; index < entry.BugCheckParameters.Count; index++)
+                {
+                    evidenceItems.Add(Evidence(
+                        $"bugcheck.parameter.{index + 1}",
+                        $"Bugcheck parameter {index + 1} was 0x{entry.BugCheckParameters[index]:X}.",
+                        null,
+                        occurredAt));
+                }
+                if (entry.CrashDumpFileName is { Length: > 0 } dumpName)
+                {
+                    evidenceItems.Add(Evidence(
+                        "bugcheck.dump",
+                        $"Windows referenced %SystemRoot%\\Minidump\\{dumpName}.",
+                        null,
+                        occurredAt));
+                }
+            }
+
+            var secondary = occurrences.Length > 1
+                ? new[] { "repeated_bugcheck_events", "driver_attribution_pending_dump_analysis" }
+                : new[] { "driver_attribution_pending_dump_analysis" };
+            var summary = knownIrqlFailure
+                ? "The kernel hit IRQL_NOT_LESS_OR_EQUAL (0xA), an invalid memory access at elevated IRQL; the faulty driver is not identified by this event."
+                : $"Windows recorded bugcheck {codeText}; the faulty driver is not identified by this Event Log record.";
+            var correlationKey = code is { } knownCode ? $"bugcheck:0x{knownCode:X}" : "windows_bugcheck";
+            var dump = occurrences.LastOrDefault(entry => entry.CrashDumpFileName is { Length: > 0 })?.CrashDumpFileName;
+            var dumpInstruction = dump is null
+                ? "Open the corresponding crash dump in WinDbg"
+                : $"Open %SystemRoot%\\Minidump\\{dump} in WinDbg";
+            diagnoses.Add(CreateDiagnosis(
+                correlationKey,
+                evidence.SampledAtUtc,
+                DiagnosisSeverity.High,
+                knownIrqlFailure ? 88 : 70,
+                evidenceItems.AsReadOnly(),
+                new ProbableRootCause(knownIrqlFailure ? "bugcheck_irql_not_less_or_equal" : "windows_bugcheck", summary, null),
+                secondary,
+                new RemediationRecommendation(
+                    "analyze_crash_dump",
+                    $"{dumpInstruction} with !analyze -v to identify the faulting driver before changing or disabling drivers.")));
         }
     }
 
