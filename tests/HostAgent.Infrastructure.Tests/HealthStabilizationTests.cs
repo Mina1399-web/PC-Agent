@@ -14,6 +14,46 @@ namespace HostAgent.Infrastructure.Tests;
 
 public sealed class HealthStabilizationTests
 {
+    // A latched component failure would keep a recovered agent degraded indefinitely.
+    [Fact]
+    public async Task Mandatory_collector_health_recovers_after_failure_and_backoff_without_hiding_other_workers()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "health-recovery-" + Guid.NewGuid() + ".db");
+        try
+        {
+            await using var store = new SqliteHostAgentStore(path);
+            var system = new SystemCollector(CollectorStatus.Success);
+            var now = DateTimeOffset.UtcNow;
+            var runner = new CollectorCycleRunner(
+                [new TelemetryCollectionJob<DiskTelemetry>(new DiskCollector("smart_health_unavailable"), store),
+                 new TelemetryCollectionJob<SystemTelemetry>(system, store)],
+                TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(1), TimeSpan.FromHours(1), () => now);
+            var health = new AgentRuntimeHealth();
+            health.SetCollectors(await runner.RunOnceAsync(default));
+            Assert.False(health.Degraded);
+
+            system.Status = CollectorStatus.Unavailable;
+            health.SetCollectors(await runner.RunOnceAsync(default));
+            Assert.True(health.Degraded);
+            Assert.Equal("collector_unavailable", Assert.Single(health.Snapshot(), c => c.Component == "system").Code);
+            system.Status = CollectorStatus.Success;
+            health.SetCollectors(await runner.RunOnceAsync(default));
+            Assert.True(health.Degraded);
+            Assert.Equal("backoff_active", Assert.Single(health.Snapshot(), c => c.Component == "system").Code);
+
+            health.Set("diagnostics", true);
+            now = now.AddMinutes(1);
+            health.SetCollectors(await runner.RunOnceAsync(default));
+            Assert.Equal("collector_healthy", Assert.Single(health.Snapshot(), c => c.Component == "system").Code);
+            Assert.False(Assert.Single(health.Snapshot(), c => c.Component == "collectors").Degraded);
+            Assert.Equal("optional_smart_unavailable", Assert.Single(health.Snapshot(), c => c.Component == "disk").Code);
+            Assert.True(health.Degraded);
+            health.Set("diagnostics", false);
+            Assert.False(health.Degraded);
+        }
+        finally { File.Delete(path); }
+    }
+
     // Optional SMART alone must not hide real missing disk/system telemetry.
     [Theory]
     [InlineData("smart_health_unavailable", CollectorStatus.Success, false, "optional_smart_unavailable")]
@@ -111,10 +151,11 @@ public sealed class HealthStabilizationTests
     private sealed class SystemCollector(CollectorStatus status) : ITelemetryCollector<SystemTelemetry>
     {
         public string CollectorId => "system";
+        public CollectorStatus Status { get; set; } = status;
         public ValueTask<CollectorResult<SystemTelemetry>> CollectAsync(CancellationToken token)
         {
             var value = new SystemTelemetry("Windows", "10", "test", DateTimeOffset.UtcNow.AddHours(-1), TimeSpan.FromHours(1), null);
-            return ValueTask.FromResult(status switch
+            return ValueTask.FromResult(Status switch
             {
                 CollectorStatus.Unavailable => CollectorResult<SystemTelemetry>.Unavailable(CollectorId, DateTimeOffset.UtcNow, "synthetic-sensitive-error"),
                 CollectorStatus.Partial => CollectorResult<SystemTelemetry>.Partial(CollectorId, DateTimeOffset.UtcNow, value, ["synthetic-sensitive-error"]),

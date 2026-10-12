@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using System.Xml.XPath;
@@ -103,6 +104,36 @@ public sealed class EventLogBootstrapTests
         Assert.All(first.Value.Events.Concat(second.Value.Events), item => Assert.Equal(1001, item.EventId));
         checkpoints.Save(second.Value);
         Assert.Empty((await new WindowsEventLogCollector(checkpoints, factory).CollectAsync(default)).Value!.Events);
+    }
+
+    // A stale bootstrap RecordID must not discard the new log's lower IDs after a reset.
+    [Fact]
+    public async Task Reset_during_truncated_bootstrap_reanchors_and_reads_new_lower_record_ids()
+    {
+        var checkpoints = new Checkpoints();
+        var factory = new QueryReaderFactory(now => Enumerable.Range(1, 101)
+            .Select(id => Wer(id, now.AddHours(-1))).ToArray());
+        var first = await new WindowsEventLogCollector(checkpoints, factory).CollectAsync(default);
+        Assert.Equal(100, first.Value!.Events.Count);
+        Assert.Contains("event_log_system_truncated", first.Warnings);
+        // Model a 30-hour pause with a durable unfinished bootstrap. Retaining its
+        // old anchor after reset would wrongly include the unrelated hour-old record.
+        var pending = JsonNode.Parse(Assert.Single(first.Value.Checkpoints, c => c.Key == "System").Value)!;
+        var oldAnchor = DateTimeOffset.UtcNow.AddHours(-30);
+        pending["InitialScanAtUtc"] = JsonValue.Create(oldAnchor);
+        pending["LastScannedAtUtc"] = JsonValue.Create(oldAnchor.AddHours(-24));
+        await checkpoints.SaveCollectorCheckpointAsync("event-log", "System", pending.ToJsonString(), oldAnchor, default);
+
+        factory.Records.Clear();
+        factory.Records.Add(Wer(1, DateTimeOffset.UtcNow.AddMinutes(-11)));
+        factory.Records.Add(new(2, 2, 999, "OtherProvider", DateTime.UtcNow.AddHours(-1), "host", "bm-2"));
+        factory.Records.Add(Wer(3, DateTimeOffset.UtcNow.AddHours(-25)));
+        var reset = await new WindowsEventLogCollector(checkpoints, factory).CollectAsync(default);
+        Assert.Equal(1, Assert.Single(reset.Value!.Events).RecordId);
+        checkpoints.Save(reset.Value);
+        Assert.Empty((await new WindowsEventLogCollector(checkpoints, factory).CollectAsync(default)).Value!.Events);
+        factory.Records.Add(Wer(4, DateTimeOffset.UtcNow));
+        Assert.Equal(4, Assert.Single((await new WindowsEventLogCollector(checkpoints, factory).CollectAsync(default)).Value!.Events).RecordId);
     }
 
     private static EventLogRecordData Wer(long id, DateTimeOffset? time) =>
