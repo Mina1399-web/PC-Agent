@@ -284,3 +284,101 @@ Whitespace inspection accepts CRLF explicitly, including the unchanged
 byte-exact upstream license; a plain check reports CRLF at appended Markdown
 boundaries. Source gates above cover the chart correction; new candidate3
 and actual installation still require separate acceptance.
+
+## Installed DEV acceptance (fresh results after source gates)
+
+Candidate3 was built from a clean detached worktree at
+**2eecaf0ad0ed54d9d1043be7993987a1ea6b2267**, with SDK 10.0.401, entirely in
+the approved DEV VM. Original working copy retained its untracked audit;
+previous commits/candidates were preserved.
+
+```powershell
+.\tools\Build-Release.ps1 -PackagePath 'C:\Users\AgentPCdevtest\Documents\ChatGPT\DevTest VM PC\HostAgent-DEV-releases\HostAgent-1.1.0-dashboard-dev-candidate3' -WixPath 'C:\Users\AgentPCdevtest\Documents\ChatGPT\DevTest VM PC\HostAgent-DEV-tools\wix\wix.exe' -DevVm -Version 1.1.0
+& "$package\tools\Test-Release.ps1" -PackagePath $package -DevVm
+& "$package\tools\Test-Installer.ps1" -PackagePath $package
+```
+
+Build-Release exited 0, all four applications published, MSI and ZIP created.
+Fresh explicit validation exited 0: **1,192 manifest files**. MSI inspection
+exited 0: **1,188 installed files**, exactly two Auto services under
+`NT SERVICE\HostAgent` and LocalSystem, one advertised desktop shortcut,
+precopy/bootstrap/recovery/data-preservation gates and DEV identity match.
+ZIP SHA-256: EC7136502D4CC24FEE1D1859BE4D329090D6D97AC1635A569DF769170DBA4058.
+MSI SHA-256: B8591D0B4A00E01210D637646C532DFDE9C20C82B75842893A0237B4141C6DDD.
+Manifest SHA-256: B4F71F57B1F7F35287397ECDC7FB263C1ED30FA95E9BA8E256D134B6A1EA5C91.
+The unsigned DEV-only guard is retained; this is not a production signed release.
+
+After rechecking VM UUID, unchanged reviewed harness hash and installed prior
+version 1.0.5.0, the outside-source Upgrade-And-Smoke.ps1 ran via normal UAC
+(`Start-Process` PowerShell 7, `-Verb RunAs -WindowStyle Hidden -Wait -PassThru`,
+`-NoProfile -File <reviewed harness> -PackagePath <candidate3>`). No execution
+policy was changed or bypassed. `upgrade-launch-result.json`: harness exit 0.
+`installed-result.json`: backup/upgraded/stopStart/completed all true,
+installed version **1.1.0.0**, all 1,188 installed hashes matched and exact
+configuration SHA-256 remained unchanged. Product-only stops took 1,074 ms
+before upgrade and 536 ms during explicit lifecycle acceptance. Final CIM
+check has both services Running/Auto under their original accounts.
+
+Protected backup:
+`C:\ProgramData\HostAgent.StabilizationBackups\2026-10-12-dashboard-1.0.5`.
+Its consistent SQLite backup passed integrity checking. Comparison found:
+
+| Durable data | Before | After | Missing / changed immutable |
+| --- | ---: | ---: | ---: |
+| Incidents | 39 | 39 | 0 / 0 |
+| Incident snapshots | 706 | 708 | 0 / 0 |
+| Diagnostic evidence | 711 | 713 | 0 / 0 |
+| Audit entries | 70 | 70 | 0 / 0 |
+
+Both System/Application event-log checkpoints were preserved or advanced.
+The backup contains installed files/rollback MSI and consistent DB, no secret
+store. Actual rollback/DB restore was not performed or claimed verified.
+
+Normal-user checks used the fixed outside-source probes:
+
+```powershell
+dotnet "$evidence\view-probe\bin\Release\net10.0-windows\ViewProbe.dll"
+& "$evidence\Desktop-Smoke.ps1"
+```
+
+Live pinned local view pipe probe exited 0, reading overview, CPU/RAM history,
+stored investigation and first incident detail under the unelevated user
+against the real virtual-account service. First sample lacked CPU during
+startup; a follow-up exit-0 read at 18:19:09 UTC returned CPU and RAM available,
+one disk, three readable processes, 30 bounded services, 10 health components,
+20 incident heads, 90 CPU and 90 RAM history points. StoredEvents=0 applies
+only to the bounded latest 256 stored samples; it does not establish absence
+of WER events in Windows or loss of prior evidence. No checkpoint or Event
+Log was manually changed.
+
+The actual installed Desktop executable opened its expected window under the
+normal user, accepted CloseMainWindow and exited 0. This process smoke does
+not assert live metric rendering or tray behavior. The installed advertised
+Start-menu shortcut was separately resolved through Windows Installer to the
+expected Desktop executable/version. An initial WScript TargetPath probe was
+unsuitable for an advertised shortcut and returned an empty target; the MSI
+ShortcutTarget/ComponentPath check above succeeded. The initial probe is not
+counted as a product failure or successful target verification.
+
+Overall health remains **degraded**: fresh elevated verbose status reports
+cpu-memory, disk and process-services partial, while system, network and
+Event Log are healthy. Do not infer SMART-only degradation or full telemetry
+from these codes. Permissions/security policies were not enlarged to hide
+missing data. Mode remains Shadow, ReadOnly=true; Pushover/heartbeat/network
+probes remain disabled with unchanged configuration.
+
+Evidence remains outside Git. installed-evidence-sha256.csv covers 57 evidence
+files; SHA-256 C93D3E6681C79408E8F8AC53D6622DDD2AA03BD6254AFE1A4F6D519D4B23B719.
+The source-only checkpoint against d2168957753c3d7ad313b6f18c1aa4400831d546
+has 48 files, patch SHA-256 B7495C4BA3C991916A410DFC4EB474E685A33189E201A54E4ED2B978FA82453A
+and manifest SHA-256 EEE5EFA23B37C84454AF820F108A93402AAFC4785F0D83FC60B6677E4C272B64.
+This is a VM recovery handoff; no host transfer or GitHub publication occurred.
+
+Remaining live limits: actual operator UAC approval/mutation, kill-switch
+configuration, tray interaction, export dialog/native Settings, additional
+interactive users, cold boot without login, forced-crash SCM recovery,
+multi-hour soak, rollback/restore and production signing. Repeated kernel
+crashes are not claimed repaired. File preview/quarantine and package
+installation automation remain the separate disabled Task 5; current guided
+Settings actions do not implement them. Real secrets and external delivery
+were not used. The original untracked audit SHA-256 remains unchanged.

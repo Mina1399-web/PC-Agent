@@ -101,3 +101,11 @@ now matches the dispatcher grouping. Independent read-only review approved
 MainWindow.xaml.cs:233 and DashboardDispatcher.cs:39-40. Two regression cases
 cover missing and adjacent buckets; prior findings remain accumulated.
 No operation, authorization, transport or stored telemetry behavior changed.
+
+Installed continuation evidence now demonstrates the normal-user view client
+against the real service SID, protected upgrade backup, unchanged configuration,
+installed file hashes, exact original service accounts and graceful stop/start.
+This narrows prior live limits; it does not establish multi-user acceptance,
+actual mutation/approval, tray, forced-crash recovery or signing. Shadow and
+read-only remain active, outbound transports/probes disabled. Overall degraded
+is still reported for partial telemetry; no privilege/policy change was used.

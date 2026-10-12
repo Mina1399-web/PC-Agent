@@ -111,3 +111,14 @@ complete suite **296/296 passes** (58/226/12). Independent immutable review
 approved 2cdc54b4d2755084d0762a87e7f7c54574a7297a. Candidate2 from 7574517 passed
 packaging but is preserved uninstalled/superseded. Build candidate3 from the
 new source checkpoint, then perform protected VM installed acceptance.
+
+Installed milestone completed in DEV only: candidate3 from source2eecaf0,
+version1.1.0.0. Package1192files/MSI1188files/2services/1shortcut gates passed;
+protected upgrade+configuration/DB preservation+graceful stop/start passed.
+Real normal-user view pipe and installed Desktop open/close passed. Current
+source gate296tests,0buildwarnings/errors. See fresh verification ledger for
+all commands/hashes, earlier failures and live limits. Runtime still reports
+partial collector telemetry; this is not a fully healthy/production signed
+acceptance. Task5 remains disabled next scope, actual mutations/tray/soak and
+production transfer remain unverified. Historical source-only checkpoints
+above are retained as prior stages, not the current installed status.
