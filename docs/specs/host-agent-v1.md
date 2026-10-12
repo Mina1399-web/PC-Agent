@@ -1,5 +1,29 @@
 # Host Agent V1 Specification
 
+## Authorized local desktop extension — 2026-10-12
+
+The owner authorized the local Czech desktop dashboard, evidence-based
+recommendations and manual operator workflows. This supersedes the original
+dashboard exclusion below, which describes the original V1 scope. See
+[implementation plan](../plans/2026-10-12-dashboard-maintenance.md).
+
+The desktop runs without elevation, using a separate authenticated local
+read-only pipe. It shows fresh bounded CPU/RAM/disk/process/health data,
+24-hour charts, incident confidence and redacted evidence. Missing or stale
+telemetry remains unavailable. WER metadata investigation is read-only and
+does not attribute a driver without dump analysis. No inbound HTTP service.
+
+Recommendations include evidence, expected qualitative benefit, impact and
+rollback limits. Maintenance opens fixed Windows settings for operator
+review. Direct file cleanup/package installation is a separately bounded
+subsequent capability and is not silently enabled by this UI. Manual
+allowlisted service/process operations use the existing elevated CLI, exact
+request approval and independent helper checks. Shadow remains default.
+
+The kill switch can be explicitly set in both configurations while
+preserving outbound choices. A post-action observation requires successful
+CLI completion and a later telemetry timestamp; it does not prove causality.
+
 ## Purpose
 
 Host Agent is a long-running local Windows mini-PC monitor and incident assistant. Version 1 collects host telemetry, stores local history, learns robust adaptive baselines, correlates evidence into likely root causes, creates deduplicated incidents, recommends remediation, records decisions, and sends outbound notifications and watchdog heartbeats. All privileged changes require explicit policy authorization and approval. Shadow mode is the default.

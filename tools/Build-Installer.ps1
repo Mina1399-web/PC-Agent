@@ -39,7 +39,7 @@ foreach ($required in @('LICENSE','docs/operations/privacy.md','docs/legal/dotne
 $counter++
 $null=$components.Append('<DirectoryRef Id="ProductDirectory"><Component Id="Component'+$counter+'" Guid="*"><File Id="File'+$counter+'" Source="'+(Escape (Join-Path $root 'LICENSE'))+'" KeyPath="yes" /></Component></DirectoryRef>')
 $null=$refs.Append('<ComponentRef Id="Component'+$counter+'" />')
-foreach ($project in @('Service','Helper','Cli','docs')) {
+foreach ($project in @('Service','Helper','Cli','Desktop','docs')) {
     $null=$directories.Append('<Directory Id="Dir'+$project+'" Name="'+$project+'" />')
     $projectRoot=[IO.Path]::GetFullPath((Join-Path $root $project))
     $directoryIds=@{};$directoryIds[$projectRoot]='Dir'+$project
@@ -52,8 +52,9 @@ foreach ($project in @('Service','Helper','Cli','docs')) {
     foreach ($file in Get-ChildItem -LiteralPath $projectRoot -File -Recurse | Sort-Object FullName) {
         if ($file.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'release_reparse_point' }
         $counter++;$id='File'+$counter
-        $null=$components.Append('<DirectoryRef Id="'+$directoryIds[$file.DirectoryName]+'"><Component Id="Component'+$counter+'" Guid="*"><File Id="'+$id+'" Source="'+(Escape $file.FullName)+'" KeyPath="yes" />')
-        if ($file.DirectoryName -eq $projectRoot -and $file.Name -eq ('HostAgent.'+$project+'.exe') -and $project -ne 'Cli') {
+        $shortcut=if($project -eq 'Desktop' -and $file.Name -eq 'HostAgent.Desktop.exe'){'<Shortcut Id="DesktopShortcut" Directory="ProgramMenuFolder" Name="Host Agent" WorkingDirectory="DirDesktop" Advertise="yes" />'}else{''}
+        $null=$components.Append('<DirectoryRef Id="'+$directoryIds[$file.DirectoryName]+'"><Component Id="Component'+$counter+'" Guid="*"><File Id="'+$id+'" Source="'+(Escape $file.FullName)+'" KeyPath="yes">'+$shortcut+'</File>')
+        if ($file.DirectoryName -eq $projectRoot -and $file.Name -eq ('HostAgent.'+$project+'.exe') -and $project -in @('Service','Helper')) {
             $name=if ($project -eq 'Service') {'HostAgent'} else {'HostAgent.Helper'}
             $account=if ($project -eq 'Service') {'NT SERVICE\HostAgent'} else {'LocalSystem'}
             $null=$components.Append('<ServiceInstall Id="Install'+$project+'" Name="'+$name+'" DisplayName="'+$name+'" Type="ownProcess" Start="auto" ErrorControl="normal" Account="'+$account+'" Vital="yes"><util:ServiceConfig FirstFailureActionType="restart" SecondFailureActionType="restart" ThirdFailureActionType="none" ResetPeriodInDays="1" RestartServiceDelayInSeconds="10" /></ServiceInstall><ServiceControl Id="Control'+$project+'" Name="'+$name+'" Start="install" Stop="both" Remove="uninstall" Wait="yes" />')
@@ -81,6 +82,7 @@ $devCondition
 <Property Id="EXISTING_HELPER"><RegistrySearch Id="FindHelper" Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\HostAgent.Helper" Name="ImagePath" Type="raw" /></Property>
 <Launch Condition="Installed OR WIX_UPGRADE_DETECTED OR (NOT EXISTING_MONITOR AND NOT EXISTING_HELPER)" Message="Existing HostAgent services were found. Repair the registered product or preserve and remove the old installation first." />
 <StandardDirectory Id="ProgramFiles64Folder"><Directory Id="ProductDirectory" Name="HostAgent">$directories</Directory></StandardDirectory>
+<StandardDirectory Id="ProgramMenuFolder" />
 $components
 <Feature Id="MainFeature" Title="Host Agent" Level="1">$refs</Feature>
 <Binary Id="PreflightBinary" SourceFile="$(Escape $embedded)" />

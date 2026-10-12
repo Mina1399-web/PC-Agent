@@ -1,0 +1,150 @@
+<Window x:Class="HostAgent.Desktop.MainWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:local="clr-namespace:HostAgent.Desktop"
+ Title="Host Agent • Stav počítače" Width="1280" Height="880" MinWidth="850" MinHeight="620"
+ Background="{DynamicResource CanvasBrush}" Foreground="{DynamicResource InkBrush}" FontFamily="Segoe UI" FontSize="14" Language="cs-CZ">
+ <Window.Resources>
+  <SolidColorBrush x:Key="CanvasBrush" Color="#F4F7FB"/>
+  <SolidColorBrush x:Key="CardBrush" Color="#FFFFFF"/>
+  <SolidColorBrush x:Key="InkBrush" Color="#14243B"/>
+  <SolidColorBrush x:Key="MutedBrush" Color="#52627A"/>
+  <SolidColorBrush x:Key="AccentBrush" Color="#2259C5"/>
+  <SolidColorBrush x:Key="LineBrush" Color="#DDE4EE"/>
+  <SolidColorBrush x:Key="RailBrush" Color="#12243C"/>
+  <SolidColorBrush x:Key="RailTextBrush" Color="#D5DFEF"/>
+  <SolidColorBrush x:Key="GreenBrush" Color="#176B50"/>
+  <SolidColorBrush x:Key="GreenSurfaceBrush" Color="#E8F5EF"/>
+  <SolidColorBrush x:Key="WarningBrush" Color="#895514"/>
+  <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#FFF4DE"/>
+  <SolidColorBrush x:Key="ErrorBrush" Color="#A03232"/>
+  <SolidColorBrush x:Key="ErrorSurfaceBrush" Color="#FDECEC"/>
+  <SolidColorBrush x:Key="RamBrush" Color="#7854BA"/>
+  <local:ByteSizeConverter x:Key="Bytes"/>
+  <local:IncidentStateConverter x:Key="IncidentState"/>
+  <Style x:Key="Caption" TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource MutedBrush}"/><Setter Property="FontSize" Value="13"/><Setter Property="TextWrapping" Value="Wrap"/></Style>
+  <Style x:Key="SectionTitle" TargetType="TextBlock"><Setter Property="FontSize" Value="20"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Margin" Value="0,0,0,8"/></Style>
+  <Style x:Key="Card" TargetType="Border"><Setter Property="Background" Value="{StaticResource CardBrush}"/><Setter Property="BorderBrush" Value="{StaticResource LineBrush}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="12"/><Setter Property="Padding" Value="20"/></Style>
+  <Style x:Key="FocusRing" TargetType="Control"><Setter Property="Template"><Setter.Value><ControlTemplate><Rectangle Margin="-3" Stroke="{StaticResource AccentBrush}" StrokeThickness="2" StrokeDashArray="2 1" RadiusX="6" RadiusY="6"/></ControlTemplate></Setter.Value></Setter></Style>
+  <Style TargetType="Button">
+   <Setter Property="Padding" Value="16,10"/><Setter Property="Margin" Value="0,0,8,8"/><Setter Property="Background" Value="{StaticResource CardBrush}"/>
+   <Setter Property="Foreground" Value="{StaticResource InkBrush}"/><Setter Property="BorderBrush" Value="#718198"/><Setter Property="BorderThickness" Value="1"/>
+   <Setter Property="Cursor" Value="Hand"/><Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+    <Border x:Name="Surface" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True"/>
+    </Border><ControlTemplate.Triggers>
+     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Surface" Property="Opacity" Value="0.8"/></Trigger>
+     <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Surface" Property="BorderBrush" Value="{StaticResource AccentBrush}"/><Setter TargetName="Surface" Property="BorderThickness" Value="2"/></Trigger>
+     <Trigger Property="IsEnabled" Value="False"><Setter Property="Foreground" Value="{StaticResource MutedBrush}"/><Setter Property="Background" Value="#E9EEF5"/><Setter Property="Cursor" Value="Arrow"/></Trigger>
+    </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+  </Style>
+  <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}"><Setter Property="Background" Value="{StaticResource AccentBrush}"/><Setter Property="Foreground" Value="White"/><Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/></Style>
+  <Style TargetType="TextBox"><Setter Property="Padding" Value="10,8"/><Setter Property="BorderBrush" Value="#718198"/><Setter Property="Foreground" Value="{StaticResource InkBrush}"/><Setter Property="Background" Value="White"/><Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/></Style>
+  <Style TargetType="ComboBox"><Setter Property="Padding" Value="10,8"/><Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/></Style>
+  <Style TargetType="DataGrid">
+   <Setter Property="IsReadOnly" Value="True"/><Setter Property="AutoGenerateColumns" Value="False"/><Setter Property="CanUserAddRows" Value="False"/>
+   <Setter Property="CanUserReorderColumns" Value="False"/><Setter Property="HeadersVisibility" Value="Column"/><Setter Property="GridLinesVisibility" Value="Horizontal"/>
+   <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource LineBrush}"/><Setter Property="RowHeight" Value="40"/><Setter Property="Background" Value="White"/>
+   <Setter Property="BorderThickness" Value="0"/><Setter Property="AlternatingRowBackground" Value="#F8FAFD"/><Setter Property="RowHeaderWidth" Value="0"/>
+   <Setter Property="SelectionMode" Value="Single"/><Setter Property="SelectionUnit" Value="FullRow"/>
+  </Style>
+  <Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="#F4F7FB"/><Setter Property="Foreground" Value="{StaticResource MutedBrush}"/><Setter Property="Padding" Value="12,10"/><Setter Property="FontSize" Value="12"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="BorderThickness" Value="0"/></Style>
+  <Style TargetType="DataGridCell"><Setter Property="Padding" Value="12,0"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="DataGridCell"><Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}"><ContentPresenter VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter Property="Background" Value="#E8F0FF"/><Setter Property="Foreground" Value="{StaticResource InkBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
+  <Style TargetType="TabItem">
+   <Setter Property="Foreground" Value="{StaticResource InkBrush}"/><Setter Property="FontSize" Value="14"/><Setter Property="Margin" Value="12,3"/><Setter Property="Padding" Value="16,14"/>
+   <Setter Property="HorizontalContentAlignment" Value="Left"/>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TabItem"><Border x:Name="Nav" CornerRadius="6" Background="Transparent" Padding="{TemplateBinding Padding}"><ContentPresenter ContentSource="Header"/></Border><ControlTemplate.Triggers>
+    <Trigger Property="IsSelected" Value="True"><Setter TargetName="Nav" Property="Background" Value="#263E60"/></Trigger>
+    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Nav" Property="Background" Value="#263E60"/></Trigger>
+    <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Nav" Property="BorderBrush" Value="#8EB7FF"/><Setter TargetName="Nav" Property="BorderThickness" Value="2"/></Trigger>
+   </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+  </Style>
+ </Window.Resources>
+ <Grid Background="{StaticResource CanvasBrush}">
+  <Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+  <Border Grid.RowSpan="2" Background="{StaticResource RailBrush}"/>
+  <StackPanel Margin="28,28,20,28">
+   <StackPanel Orientation="Horizontal"><Border Background="#263E60" CornerRadius="8" Width="32" Height="32" Margin="0,0,10,0"><TextBlock Text="H" Foreground="White" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="Host Agent" FontSize="20" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/></StackPanel>
+   <TextBlock Text="MÍSTNÍ MONITOR" FontSize="11" Foreground="{StaticResource RailTextBrush}" Margin="0,12,0,0"/>
+  </StackPanel>
+  <StackPanel Grid.Column="1" Margin="28,24,28,12">
+   <DockPanel LastChildFill="True">
+    <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right"><Button x:Name="RefreshButton" Content="Obnovit" Click="RefreshClick"/><Button Content="Prověřit problém" Click="InvestigateClick"/><Button Content="Skrýt" ToolTip="Skrýt do systémové lišty" AutomationProperties.Name="Skrýt do systémové lišty" Click="TrayClick" Margin="0,0,0,8"/></WrapPanel>
+    <StackPanel MinWidth="90"><TextBlock Text="Pracovní prostor" FontWeight="SemiBold" FontSize="14"/><TextBlock Text="Tento počítač" Style="{StaticResource Caption}" Margin="0,4,0,0"/></StackPanel>
+   </DockPanel>
+   <Border x:Name="StatusBanner" Background="#E8F0FF" CornerRadius="6" Padding="12,10" Margin="0,8,0,0"><TextBlock x:Name="StatusText" Text="Připojuji se k místní službě…" TextWrapping="Wrap" FontSize="12" AutomationProperties.LiveSetting="Polite"/></Border>
+  </StackPanel>
+  <TabControl x:Name="DashboardTabs" Grid.Row="1" Grid.ColumnSpan="2" Background="Transparent" BorderThickness="0" TabStripPlacement="Left">
+   <TabControl.Template><ControlTemplate TargetType="TabControl"><Grid>
+    <Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+    <DockPanel><Border DockPanel.Dock="Bottom" Margin="20,20,20,24" BorderBrush="#3E536F" BorderThickness="0,1,0,0" Padding="8,20,8,0"><StackPanel><TextBlock Text="Pod vaší kontrolou" Foreground="White" FontWeight="SemiBold" FontSize="13"/><TextBlock Text="Zásahy vyžadují schválení.&#x0a;Přehled služby nezastavuje." Foreground="{StaticResource RailTextBrush}" TextWrapping="Wrap" FontSize="12" LineHeight="19" Margin="0,8,0,0"/></StackPanel></Border><StackPanel IsItemsHost="True" KeyboardNavigation.TabIndex="1" VerticalAlignment="Top"/></DockPanel>
+    <ContentPresenter Grid.Column="1" x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" Margin="28,12,28,0"/>
+   </Grid></ControlTemplate></TabControl.Template>
+   <TabItem AutomationProperties.Name="Přehled">
+    <TabItem.Header><TextBlock Text="▦   Přehled" Foreground="{StaticResource RailTextBrush}"/></TabItem.Header>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="0,0,12,28">
+     <TextBlock Text="Stav počítače" FontSize="28" FontWeight="SemiBold"/>
+     <TextBlock Text="Aktuální měření a souvislosti, které pomáhají rozhodnout." Style="{StaticResource Caption}" Margin="0,6,0,20"/>
+     <UniformGrid x:Name="MetricsGrid" Columns="4" Margin="0,0,-12,8">
+      <Border Style="{StaticResource Card}" Margin="0,0,12,12"><StackPanel><TextBlock Text="Procesor" Style="{StaticResource Caption}"/><TextBlock x:Name="CpuText" Text="—" FontSize="32" FontWeight="SemiBold" Margin="0,10,0,8"/><TextBlock Text="Celkové vytížení CPU" Style="{StaticResource Caption}" FontSize="12"/></StackPanel></Border>
+      <Border Style="{StaticResource Card}" Margin="0,0,12,12"><StackPanel><TextBlock Text="Paměť RAM" Style="{StaticResource Caption}"/><TextBlock x:Name="MemoryText" Text="—" FontSize="32" FontWeight="SemiBold" Margin="0,10,0,8"/><TextBlock Text="Využití fyzické paměti" Style="{StaticResource Caption}" FontSize="12"/></StackPanel></Border>
+      <Border Style="{StaticResource Card}" Margin="0,0,12,12"><StackPanel><TextBlock Text="Doba běhu" Style="{StaticResource Caption}"/><TextBlock x:Name="UptimeText" Text="—" FontSize="23" FontWeight="SemiBold" Margin="0,16,0,12" TextWrapping="Wrap"/><TextBlock Text="Od spuštění Windows" Style="{StaticResource Caption}" FontSize="12"/></StackPanel></Border>
+      <Border Style="{StaticResource Card}" Margin="0,0,12,12"><StackPanel><TextBlock Text="Otevřené incidenty" Style="{StaticResource Caption}"/><TextBlock x:Name="IncidentCountText" Text="—" FontSize="32" FontWeight="SemiBold" Margin="0,10,0,8"/><TextBlock Text="V posledních 20 záznamech" Style="{StaticResource Caption}" FontSize="12"/></StackPanel></Border>
+     </UniformGrid>
+     <Border Style="{StaticResource Card}" Margin="0,0,0,16"><StackPanel>
+      <DockPanel><TextBlock Text="Historie výkonu" Style="{StaticResource SectionTitle}"/><TextBlock Text="24 hodin" Style="{StaticResource Caption}" HorizontalAlignment="Right"/></DockPanel>
+      <DockPanel Margin="0,0,0,20"><StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBlock Text="● CPU" Foreground="{StaticResource AccentBrush}" Margin="12,0,16,0"/><TextBlock Text="● RAM" Foreground="{StaticResource RamBrush}"/></StackPanel><TextBlock Text="Průměry po 15 minutách • mezery v měření zůstávají viditelné" Style="{StaticResource Caption}"/></DockPanel>
+      <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="38"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+       <Grid Height="180"><TextBlock Text="100 %" Style="{StaticResource Caption}" FontSize="11"/><TextBlock Text="50 %" Style="{StaticResource Caption}" FontSize="11" VerticalAlignment="Center"/><TextBlock Text="0 %" Style="{StaticResource Caption}" FontSize="11" VerticalAlignment="Bottom"/></Grid>
+       <Canvas Grid.Column="1" x:Name="Chart" Height="180" Background="White" ClipToBounds="True" SizeChanged="ChartSizeChanged" AutomationProperties.Name="Historie CPU a RAM za 24 hodin"/>
+       <TextBlock Grid.Column="1" x:Name="ChartEmptyText" Text="Historie zatím není dostupná.&#x0a;Graf se zobrazí po získání uložených měření." Style="{StaticResource Caption}" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+      </Grid>
+      <Grid Margin="38,10,0,0"><TextBlock Text="Před 24 h" Style="{StaticResource Caption}" FontSize="11"/><TextBlock Text="Před 12 h" Style="{StaticResource Caption}" FontSize="11" HorizontalAlignment="Center"/><TextBlock Text="Nyní" Style="{StaticResource Caption}" FontSize="11" HorizontalAlignment="Right"/></Grid>
+     </StackPanel></Border>
+     <Border Background="#E8F0FF" CornerRadius="6" Padding="14,12" Margin="0,0,0,16"><TextBlock x:Name="NetworkText" Text="Síť: čekám na měření." TextWrapping="Wrap" FontSize="13"/></Border>
+     <Border Style="{StaticResource Card}" Margin="0,0,0,16"><StackPanel><TextBlock Text="Úložiště" Style="{StaticResource SectionTitle}"/><TextBlock x:Name="DisksEmptyText" Text="Kapacity disků zatím nejsou dostupné." Style="{StaticResource Caption}" Margin="0,0,0,12"/>
+      <DataGrid x:Name="DisksGrid" MaxHeight="210" AutomationProperties.Name="Kapacita a volné místo disků"><DataGrid.Columns><DataGridTextColumn Header="Disk" Binding="{Binding Drive}" Width="*"/><DataGridTextColumn Header="Volné místo" Binding="{Binding FreeBytes, Converter={StaticResource Bytes}}" Width="*"/><DataGridTextColumn Header="Celková kapacita" Binding="{Binding CapacityBytes, Converter={StaticResource Bytes}}" Width="*"/></DataGrid.Columns></DataGrid>
+     </StackPanel></Border>
+     <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="Procesy s největší spotřebou RAM" Style="{StaticResource SectionTitle}"/><TextBlock Text="Výběr procesu doplní jeho přesnou identitu do ručního zásahu." Style="{StaticResource Caption}" Margin="0,0,0,12"/>
+      <TextBlock x:Name="ProcessesEmptyText" Text="Data procesů zatím nejsou dostupná." Style="{StaticResource Caption}"/>
+      <DataGrid x:Name="ProcessGrid" Height="250" AutomationProperties.Name="Procesy podle spotřeby paměti"><DataGrid.Columns><DataGridTextColumn Header="Proces" Binding="{Binding Name}" Width="*"/><DataGridTextColumn Header="PID" Binding="{Binding Pid}" Width="80"/><DataGridTextColumn Header="CPU %" Binding="{Binding CpuPercent, StringFormat=F1, TargetNullValue=—}" Width="85"/><DataGridTextColumn Header="Paměť" Binding="{Binding MemoryBytes, Converter={StaticResource Bytes}}" Width="120"/></DataGrid.Columns></DataGrid>
+     </StackPanel></Border>
+    </StackPanel></ScrollViewer>
+   </TabItem>
+   <TabItem AutomationProperties.Name="Incidenty"><TabItem.Header><TextBlock Text="⚑   Incidenty" Foreground="{StaticResource RailTextBrush}"/></TabItem.Header>
+    <Grid Margin="0,0,12,24"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="240"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+     <StackPanel Margin="0,0,0,20"><TextBlock Text="Incidenty a důkazy" FontSize="28" FontWeight="SemiBold"/><TextBlock Text="Posledních 20 záznamů. Vyberte incident a prohlédněte jeho podklady." Style="{StaticResource Caption}" Margin="0,6,0,12"/><TextBlock x:Name="IncidentsEmptyText" Text="Čekám na uložené incidenty." Style="{StaticResource Caption}"/></StackPanel>
+     <Border Grid.Row="1" Style="{StaticResource Card}" Padding="8"><DataGrid x:Name="IncidentsGrid" SelectionChanged="IncidentSelected" AutomationProperties.Name="Poslední incidenty"><DataGrid.Columns><DataGridTextColumn Header="Čas UTC" Binding="{Binding AtUtc, StringFormat=dd.MM. HH:mm}" Width="110"/><DataGridTextColumn Header="Příčina / kód" Binding="{Binding Code}" Width="*"/><DataGridTextColumn Header="Stav" Binding="{Binding State, Converter={StaticResource IncidentState}}" Width="140"/><DataGridTextColumn Header="Jistota %" Binding="{Binding Confidence}" Width="85"/><DataGridTextColumn Header="Výskyty" Binding="{Binding Recurrences}" Width="75"/></DataGrid.Columns></DataGrid></Border>
+     <Button Grid.Row="2" Content="Exportovat incident…" ToolTip="Uložit lokální JSON s omezenými důkazy" Click="ExportClick" HorizontalAlignment="Left" Margin="0,16,0,16"/>
+     <TextBox Grid.Row="3" x:Name="DetailText" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" BorderThickness="0" Padding="20" AutomationProperties.Name="Detail a omezené důkazy incidentu" Text="Vyberte incident. Zobrazí se dostupné kódy, časy a číselné důkazy."/>
+    </Grid>
+   </TabItem>
+   <TabItem AutomationProperties.Name="Doporučení"><TabItem.Header><TextBlock Text="◇   Doporučení" Foreground="{StaticResource RailTextBrush}"/></TabItem.Header>
+    <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="0,0,12,24"><TextBlock Text="Doporučené kroky" FontSize="28" FontWeight="SemiBold"/><TextBlock Text="Návrhy vycházejí z měření. U každého uvidíte důvod, přínos i dopad." Style="{StaticResource Caption}" Margin="0,6,0,20"/><StackPanel x:Name="RecommendationsPanel"/></StackPanel></ScrollViewer>
+   </TabItem>
+   <TabItem AutomationProperties.Name="Komponenty"><TabItem.Header><TextBlock Text="⊞   Komponenty" Foreground="{StaticResource RailTextBrush}"/></TabItem.Header>
+    <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="0,0,12,24"><TextBlock Text="Stav monitorování" FontSize="28" FontWeight="SemiBold"/><TextBlock Text="Dostupnost jednotlivých komponent a poslední uložené stavy služeb." Style="{StaticResource Caption}" Margin="0,6,0,20"/>
+     <Border Style="{StaticResource Card}" Margin="0,0,0,16"><StackPanel><TextBlock Text="Komponenty agenta" Style="{StaticResource SectionTitle}"/><TextBlock x:Name="HealthEmptyText" Text="Stav komponent zatím není dostupný." Style="{StaticResource Caption}" Margin="0,0,0,12"/><DataGrid x:Name="HealthGrid" Height="270" AutomationProperties.Name="Stav komponent agenta"><DataGrid.Columns><DataGridTextColumn Header="Komponenta" Binding="{Binding Component}" Width="*"/><DataGridTextColumn Header="Health kód" Binding="{Binding Code}" Width="2*"/><DataGridCheckBoxColumn Header="Omezení" Binding="{Binding Degraded}" Width="90"/></DataGrid.Columns></DataGrid></StackPanel></Border>
+     <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="Sledované služby" Style="{StaticResource SectionTitle}"/><TextBlock x:Name="ServicesEmptyText" Text="Stavy služeb zatím nejsou dostupné." Style="{StaticResource Caption}" Margin="0,0,0,12"/><DataGrid x:Name="ServicesGrid" Height="230" AutomationProperties.Name="Uložené stavy služeb"><DataGrid.Columns><DataGridTextColumn Header="Služba" Binding="{Binding Name}" Width="2*"/><DataGridTextColumn Header="Stav" Binding="{Binding State}" Width="*"/></DataGrid.Columns></DataGrid></StackPanel></Border>
+    </StackPanel></ScrollViewer>
+   </TabItem>
+   <TabItem AutomationProperties.Name="Údržba"><TabItem.Header><TextBlock Text="⚙   Údržba" Foreground="{StaticResource RailTextBrush}"/></TabItem.Header>
+    <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="0,0,12,24">
+     <TextBlock Text="Údržba pod kontrolou" FontSize="28" FontWeight="SemiBold"/><TextBlock Text="Konkrétní cíl, dohledatelné důkazy a vaše schválení před každým zásahem." Style="{StaticResource Caption}" Margin="0,6,0,20"/>
+     <Border Style="{StaticResource Card}" Margin="0,0,0,16"><StackPanel><TextBlock Text="Ruční zásah" Style="{StaticResource SectionTitle}"/>
+      <Border Background="{StaticResource WarningSurfaceBrush}" CornerRadius="6" Padding="12" Margin="0,0,0,16"><TextBlock x:Name="OperationHintText" Text="Zásahy zatím nejsou dostupné. Čekám na aktuální režim služby." Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap"/></Border>
+      <TextBlock Text="Otevře se schvalovací okno správce. Zkontrolujete přesný cíl a opíšete potvrzovací GUID. Zastavení služby nebo ukončení procesu může přerušit práci; nejdříve ji uložte." Style="{StaticResource Caption}" Margin="0,0,0,16"/>
+      <Label Content="Incident (vyberte v sekci Incidenty)" Target="{Binding ElementName=OperationIncident}" Padding="0,0,0,4"/><TextBox x:Name="OperationIncident" IsReadOnly="True" Margin="0,0,0,12" AutomationProperties.Name="Vybraný incident"/>
+      <Label Content="Registrovaný alias cíle" Target="{Binding ElementName=AliasInput}" Padding="0,0,0,4"/><TextBox x:Name="AliasInput" MaxLength="64" Margin="0,0,0,12" AutomationProperties.Name="Registrovaný alias cíle"/>
+      <Label Content="Požadovaný zásah" Target="{Binding ElementName=OperationChoice}" Padding="0,0,0,4"/><ComboBox x:Name="OperationChoice" SelectedIndex="0" Margin="0,0,0,12" AutomationProperties.Name="Požadovaný zásah"><ComboBoxItem Content="Restart služby" Tag="RestartService"/><ComboBoxItem Content="Spustit službu" Tag="StartService"/><ComboBoxItem Content="Zastavit službu" Tag="StopService"/><ComboBoxItem Content="Ukončit proces" Tag="TerminateProcess"/></ComboBox>
+      <TextBlock Text="Pro proces: PID a čas spuštění UTC v ticks. Výběr v přehledu je doplní." Style="{StaticResource Caption}"/><Grid Margin="0,8,0,16"><Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBox x:Name="PidInput" AutomationProperties.Name="PID procesu"/><TextBox x:Name="TicksInput" Grid.Column="2" AutomationProperties.Name="Čas spuštění procesu v UTC ticks"/></Grid>
+      <WrapPanel><Button x:Name="OperationButton" Style="{StaticResource PrimaryButton}" Content="Zkontrolovat zásah…" Click="OperationClick" IsEnabled="False"/><Button Content="Zablokovat všechny opravy…" Click="KillSwitchClick"/></WrapPanel>
+      <Button Content="Porovnat stav po zásahu" Click="CompareClick" HorizontalAlignment="Left" Margin="0,8,0,8"/><TextBlock x:Name="ComparisonText" Style="{StaticResource Caption}" AutomationProperties.LiveSetting="Polite"/>
+     </StackPanel></Border>
+     <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="Nastavení Windows" Style="{StaticResource SectionTitle}"/><TextBlock Text="Vyberte, co chcete spravovat. Výběr souborů a aplikací potvrzujete přímo ve Windows." Style="{StaticResource Caption}" Margin="0,0,0,16"/><WrapPanel><Button Content="Úložiště a vyčištění…" Click="StorageClick"/><Button Content="Aplikace a odinstalace…" Click="AppsClick"/><Button Content="Programy po spuštění…" Click="StartupClick"/></WrapPanel></StackPanel></Border>
+    </StackPanel></ScrollViewer>
+   </TabItem>
+  </TabControl>
+ </Grid>
+</Window>

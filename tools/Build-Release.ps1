@@ -27,7 +27,7 @@ try {
     $commit=(& git -C $source rev-parse HEAD).Trim()
     if ($LASTEXITCODE -ne 0 -or (& git -C $source status --porcelain)) { throw 'release_clean_source_required' }
     $null=New-Item -ItemType Directory -Path $output
-    foreach ($project in @('Service','Helper','Cli')) {
+    foreach ($project in @('Service','Helper','Cli','Desktop')) {
         & dotnet publish (Join-Path $source "src/HostAgent.$project/HostAgent.$project.csproj") --configuration Release --runtime win-x64 --self-contained true -p:DebugType=None -p:DebugSymbols=false -p:Version=$Version --output (Join-Path $output $project)
         if ($LASTEXITCODE -ne 0) { throw 'release_publish_failed' }
     }

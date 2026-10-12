@@ -2,6 +2,14 @@
 
 This repository contains Host Agent V1, a Windows-first C#/.NET 10 project.
 
+On 2026-10-12 the owner explicitly authorized a local desktop dashboard,
+evidence-based maintenance recommendations and manual administration from
+the application. This supersedes historical dashboard exclusions below.
+Follow docs/plans/2026-10-12-dashboard-maintenance.md. Preserve DEV-only
+execution, Shadow defaults, authenticated local IPC and exact approvals.
+No public listener, generic executor, arbitrary deletion, unattended
+installation or security-policy changes are authorized by this extension.
+
 Subsequent user authorization on 2026-10-11 permits public open-source
 publication and preparation for SignPath Foundation. The user explicitly
 allows GitHub-hosted builds/tests for this signing path as an exception to

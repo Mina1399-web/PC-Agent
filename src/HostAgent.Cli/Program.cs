@@ -28,7 +28,7 @@ try
     var client=new AdminPipeClient("HostAgent.Admin.v1",sid,TimeSpan.FromSeconds(30));
     using var cancellation=new CancellationTokenSource();
     Console.CancelKeyPress+=(_,e)=>{e.Cancel=true;cancellation.Cancel();};
-    if(args[0] is "configure" or "network-probes" or "allow-service" or "allow-process" or "remove-service" or "remove-process")
+    if(args[0] is "configure" or "network-probes" or "kill-switch" or "allow-service" or "allow-process" or "remove-service" or "remove-process")
     {
         var workflow=new ConfigurationWorkflow(values=>
         {
@@ -80,18 +80,7 @@ try
 }
 catch{Console.Error.WriteLine("operator_startup_failed");return 1;}
 
-static async Task ProductServices(bool start,CancellationToken token)
-{
-    // Fixed product names only; no command line or configuration can select a service here.
-    foreach(var name in start?new[]{"HostAgent.Helper","HostAgent"}:new[]{"HostAgent","HostAgent.Helper"})
-    {
-        token.ThrowIfCancellationRequested();using var service=new ServiceController(name);
-        var desired=start?ServiceControllerStatus.Running:ServiceControllerStatus.Stopped;
-        service.Refresh();if(service.Status==desired)continue;
-        if(start)service.Start();else service.Stop();
-        await Task.Run(()=>service.WaitForStatus(desired,TimeSpan.FromSeconds(30)),token);
-    }
-}
+static Task ProductServices(bool start,CancellationToken token)=>ProductServiceLifecycle.Native().RunAsync(start,token);
 
 static async ValueTask<string?> ReadSecret(CancellationToken token)
 {

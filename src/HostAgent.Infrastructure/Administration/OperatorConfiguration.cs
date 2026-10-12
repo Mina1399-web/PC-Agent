@@ -17,6 +17,8 @@ public static class OperatorConfiguration
         if(!service.ConfigurationAvailable||!helper.ConfigurationAvailable)throw new InvalidDataException("configuration_unavailable");
         switch(args)
         {
+            case ["kill-switch",var killEnabled] when killEnabled is "on" or "off":
+                service=service with{KillSwitch=killEnabled=="on"};helper=helper with{KillSwitch=killEnabled=="on"};break;
             case ["network-probes",var enabledProbes] when enabledProbes is "on" or "off":
                 service=service with{EnableNetworkProbes=enabledProbes=="on"};break;
             case ["configure",var mode,var pushover,var heartbeat] when mode is "Shadow" or "Confirmation" && pushover is "on" or "off" && heartbeat is "on" or "off":

@@ -19,7 +19,7 @@ try {
     $commit=(& git -C $source rev-parse HEAD).Trim()
     if ($LASTEXITCODE -ne 0 -or $commit -cne $env:GITHUB_SHA -or (& git -C $source status --porcelain)) { throw 'review_clean_source_required' }
     $null=New-Item -ItemType Directory -Path $output
-    foreach($project in @('Service','Helper','Cli')) {
+    foreach($project in @('Service','Helper','Cli','Desktop')) {
         & dotnet publish (Join-Path $source "src/HostAgent.$project/HostAgent.$project.csproj") --configuration Release --runtime win-x64 --self-contained true -p:DebugType=None -p:DebugSymbols=false -p:Version=$Version -p:IncludeSourceRevisionInInformationalVersion=false --output (Join-Path $output $project)
         if ($LASTEXITCODE -ne 0) { throw 'review_publish_failed' }
     }

@@ -19,6 +19,18 @@ See [storage](storage.md) and [operator instructions](quickstart.md).
 
 ## Connectivity diagnostics: explicit opt-in
 
+### Local desktop extension
+
+The optional desktop reads a redacted view through a local Named Pipe limited
+to authenticated interactive Windows users. Such users can see machine-wide
+resource metrics, bounded process/service names and limited incident codes,
+times and numeric evidence. This is not an anonymous public endpoint. Raw
+XML, full incident observations, executable paths, adapter addresses and
+secrets are not included. Redacted exports remain potentially identifying
+through their timestamps and incident identifiers; review before sharing.
+No desktop telemetry leaves the PC automatically. Opening a Windows Settings
+page is operator initiated and does not approve changes in that page.
+
 New builds prepared on 2026-10-12 disable active network probes by default,
 independently of Pushover and heartbeat. The monitor still reads local adapter
 configuration. Disabled probes report Unavailable/network_probes_disabled,

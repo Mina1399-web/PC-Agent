@@ -57,6 +57,7 @@ try {
     foreach ($required in @('Service/HostAgent.Service.exe','Helper/HostAgent.Helper.exe','Cli/HostAgent.Cli.exe')) {
         if (-not $seen.Contains($required)) { throw 'release_missing_component' }
     }
+    if ([version]$data.Version -ge [version]'1.1.0' -and -not $seen.Contains('Desktop/HostAgent.Desktop.exe')) { throw 'release_missing_component' }
     @{valid=$true;devOnly=[bool]$DevVm;sourceCommit=$data.SourceCommit;files=$seen.Count} | ConvertTo-Json -Compress
 } catch {
     $code=[string]$_.Exception.Message

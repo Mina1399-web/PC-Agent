@@ -6,6 +6,18 @@ using Xunit;
 namespace HostAgent.Infrastructure.Tests;
 public sealed class OperatorConfigurationTests
 {
+    [Fact]
+    public void Kill_switch_blocks_both_components_without_changing_mode_or_outbound_preferences()
+    {
+        WithRoot((root,sid)=>
+        {
+            OperatorConfiguration.Apply(root,sid,sid,sid.Value,["configure","Confirmation","on","off"]);
+            OperatorConfiguration.Apply(root,sid,sid,sid.Value,["kill-switch","on"]);
+            var service=ServiceConfiguration.LoadSafe(Path.Combine(root,"HostAgent","service.json"),sid);
+            Assert.True(service.KillSwitch);Assert.True(HelperConfiguration.LoadSafe(Path.Combine(root,"HostAgent.Helper","helper.json")).KillSwitch);
+            Assert.Equal(OperatingMode.Confirmation,service.Mode);Assert.True(service.EnablePushover);Assert.False(service.EnableHeartbeat);
+        });
+    }
     // Defect: the operator cannot explicitly enable/revoke probes independently of privileged operations or notifications.
     [Fact]
     public void Network_probes_require_explicit_opt_in_and_can_be_disabled_without_enabling_remediation()

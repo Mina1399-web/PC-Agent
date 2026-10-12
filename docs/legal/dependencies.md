@@ -1,5 +1,15 @@
 # Dependency and license review for SignPath
 
+Dashboard increment, 2026-10-12: the new self-contained WPF/Windows Forms
+desktop also redistributes Microsoft.WindowsDesktop.App.Runtime.win-x64
+10.0.12. Its cached official NuGet package LICENSE was copied byte-for-byte
+to [WindowsDesktop LICENSE](windowsdesktop-runtime-10.0.12-LICENSE.txt),
+SHA-256 A89886665765362EB77E0F8E26602C924520041D1711B2EEDC136434FE4D01AB.
+This supplements the historical graph inventory below; it does not relabel
+that eight-project inventory as current. The Desktop uses the existing
+Infrastructure package graph plus SDK desktop framework references. Final
+production licensing/signing gates remain as documented below.
+
 Reviewed 2026-10-11 against source base
 3024c16dfdcadb5f35405aa6d9ebf9640b3090eb, SDK 10.0.401 and runtime 10.0.12.
 This is a metadata/provenance inventory, not an exhaustive legal or source audit.

@@ -63,4 +63,7 @@ if($devGuard){
     $condition=@($conditions | Where-Object { $_[0] -like '*DEV_MACHINE_GUID*' })[0][0]
     $devMatches=$session.EvaluateCondition($condition) -eq 1
 }
-@{valid=$true;monitorAccount=$monitor[0][1];helperAccount=$helper[0][1];serviceCount=2;bootstrapIsSystemDeferred=$true;precopyValidationIsSystemDeferred=$true;uninstallPreservesData=$true;recoveryServiceCount=$recovery.Count;fileCount=$files.Count;installedPaths=$installedPaths;existingServicesGuarded=$guarded;devVmGuard=$devGuard;devVmIdentityMatches=$devMatches} | ConvertTo-Json -Compress
+$shortcuts=@(Rows 'SELECT `Name`,`Directory_` FROM `Shortcut`' 2)
+$desktopShortcuts=@($shortcuts | Where-Object { $_[0].Split('|')[-1] -eq 'Host Agent' -and $_[1] -eq 'ProgramMenuFolder' })
+if($installedPaths -contains 'Desktop/HostAgent.Desktop.exe' -and $desktopShortcuts.Count -ne 1){throw 'release_installer_desktop_shortcut'}
+@{valid=$true;monitorAccount=$monitor[0][1];helperAccount=$helper[0][1];serviceCount=2;bootstrapIsSystemDeferred=$true;precopyValidationIsSystemDeferred=$true;uninstallPreservesData=$true;recoveryServiceCount=$recovery.Count;fileCount=$files.Count;installedPaths=$installedPaths;existingServicesGuarded=$guarded;devVmGuard=$devGuard;devVmIdentityMatches=$devMatches;desktopShortcutCount=$desktopShortcuts.Count} | ConvertTo-Json -Compress

@@ -12,6 +12,7 @@ public sealed class CliApplication(Func<byte[],CancellationToken,ValueTask<byte[
     Func<HelperOperationRequest,CancellationToken,ValueTask<OperationApproval>> approve,TextWriter output,string proposalDirectory,
     SecurityIdentifier? directoryIdentity=null,Func<HelperOperationRequest,CancellationToken,ValueTask<string>>? describe=null)
 {
+    private Guid? _savedProposal;
     public const string Usage="""
         Host Agent V1 local operator CLI (run as administrator except --help)
           --help
@@ -25,6 +26,8 @@ public sealed class CliApplication(Func<byte[],CancellationToken,ValueTask<byte[
           propose <incident-id> <StartService|StopService|RestartService> <alias>
           propose <incident-id> TerminateProcess <alias> <pid> <start-utc-ticks>
           approve-execute <request-guid>  (review and type exact GUID)
+          propose-and-review <incident-id> <operation> <alias> [pid start-utc-ticks]
+          kill-switch <on|off>  (interactive configuration, preserves outbound settings)
         """;
     public async ValueTask<int> RunAsync(string[] args,CancellationToken token)
     {
@@ -32,6 +35,13 @@ public sealed class CliApplication(Func<byte[],CancellationToken,ValueTask<byte[
         try
         {
             if(args.Length==0||args is ["--help"]){await output.WriteLineAsync(Usage);return 0;}
+            if(args[0]=="propose-and-review" && args.Length is 4 or 6)
+            {
+                _savedProposal=null;
+                var proposed=await RunAsync(["propose",..args.Skip(1)],token);
+                if(proposed!=0||_savedProposal is not {} saved)return proposed==0?1:proposed;
+                return await RunAsync(["approve-execute",saved.ToString("D")],token);
+            }
             switch(args[0])
             {
                 case "status" when args is ["status", "--verbose"]:
@@ -90,6 +100,7 @@ public sealed class CliApplication(Func<byte[],CancellationToken,ValueTask<byte[
                 await using var file=new FileStream(path,FileMode.CreateNew,FileAccess.Write,FileShare.None);
                 await file.WriteAsync(HelperProtocol.SerializeRequest(request),token);file.Flush(true);
                 await output.WriteLineAsync("Proposal: "+request.RequestId.ToString("D"));
+                _savedProposal=request.RequestId;
             }
             // Secret operations expose only fixed codes, even if a transport returns unexpected data.
             if(args[0]=="secret-set")await output.WriteLineAsync(ok?"secret_saved":"secret_save_failed");

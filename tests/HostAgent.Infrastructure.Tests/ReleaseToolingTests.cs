@@ -7,6 +7,17 @@ namespace HostAgent.Infrastructure.Tests;
 [Collection("ReleaseTooling")]
 public sealed class ReleaseToolingTests
 {
+    [Fact]
+    public async Task Desktop_release_cannot_pass_integrity_gate_with_missing_desktop_payload()
+    {
+        using var fixture=new PackageFixture();
+        var manifest=System.IO.Path.Combine(fixture.Path,"manifest.psd1");
+        var text=File.ReadAllText(manifest).Replace("Version='1.0.0'","Version='1.1.0'");
+        text=System.Text.RegularExpressions.Regex.Replace(text,",@\\{Path='Desktop/HostAgent.Desktop.exe';[^}]+\\}","");
+        File.WriteAllText(manifest,text);File.Delete(System.IO.Path.Combine(fixture.Path,"Desktop","HostAgent.Desktop.exe"));
+        var result=await Run("Test-Release.ps1",fixture.Path,"-DevVm");
+        Assert.NotEqual(0,result.Exit);Assert.Contains("release_missing_component",result.Error);
+    }
     // Defect: a hosted review builder must not allow the DEV/production machine to masquerade as its build host.
     [Fact]
     public async Task Hosted_review_builder_refuses_an_unapproved_environment_without_writing_output()
@@ -79,9 +90,11 @@ public sealed class ReleaseToolingTests
         Assert.True(json.RootElement.GetProperty("precopyValidationIsSystemDeferred").GetBoolean());
         Assert.True(json.RootElement.GetProperty("uninstallPreservesData").GetBoolean());
         Assert.Equal(2,json.RootElement.GetProperty("recoveryServiceCount").GetInt32());
-        Assert.Equal(8,json.RootElement.GetProperty("fileCount").GetInt32());
+        Assert.Equal(9,json.RootElement.GetProperty("fileCount").GetInt32());
         var installedPaths=json.RootElement.GetProperty("installedPaths").EnumerateArray().Select(x=>x.GetString()).ToArray();
         Assert.Contains("LICENSE",installedPaths);
+        Assert.Contains("Desktop/HostAgent.Desktop.exe",installedPaths);
+        Assert.Equal(1,json.RootElement.GetProperty("desktopShortcutCount").GetInt32());
         Assert.Contains("docs/operations/privacy.md",installedPaths);
         Assert.Contains("docs/legal/dotnet-runtime-10.0.12-LICENSE.txt",installedPaths);
         Assert.Contains("docs/legal/dotnet-runtime-10.0.12-THIRD-PARTY-NOTICES.txt",installedPaths);
@@ -146,7 +159,7 @@ public sealed class ReleaseToolingTests
         public PackageFixture()
         {
             Directory.CreateDirectory(Path);var entries=new List<string>();
-            foreach(var project in new[]{"Service","Helper","Cli"})
+            foreach(var project in new[]{"Service","Helper","Cli","Desktop"})
             {
                 var relative=project+"/HostAgent."+project+".exe";var path=System.IO.Path.Combine(Path,relative);
                 Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path)!);

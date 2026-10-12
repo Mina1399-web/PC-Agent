@@ -12,6 +12,18 @@ namespace HostAgent.Infrastructure.Tests;
 public sealed class CliTests
 {
     [Fact]
+    public async Task Desktop_session_shows_exact_target_and_requires_guid_without_auto_approval()
+    {
+        await using var fixture=new OperatorFixture();var request=Task3Fixture.Request();var calls=0;var approvals=0;
+        var app=new CliApplication((_,_)=>{calls++;return ValueTask.FromResult(AdminProtocol.Reply(true,"confirmation_required",JsonSerializer.Deserialize<JsonElement>(HelperProtocol.SerializeRequest(request))));},
+            _=>ValueTask.FromResult<string?>(null),
+            (id,_)=>{Assert.Equal(request.RequestId.ToString("D"),id);Assert.Contains("Resolved service: FixtureService",fixture.Output.ToString());return ValueTask.FromResult<string?>("refused");},
+            (_,_)=>{approvals++;throw new InvalidOperationException();},fixture.Output,fixture.Directory,WindowsIdentity.GetCurrent().User!,
+            (_,_)=>ValueTask.FromResult("Resolved service: FixtureService"));
+        Assert.Equal(1,await app.RunAsync(["propose-and-review",request.IncidentId,"RestartService","svc"],default));
+        Assert.Equal(1,calls);Assert.Equal(0,approvals);Assert.Contains("approval_cancelled",fixture.Output.ToString());
+    }
+    [Fact]
     public async Task Incident_command_requests_one_detail_record_and_prints_explanation_and_safe_recommendation()
     {
         const string incidentId = "b8720be8f5b741939291e97ad4198143";
