@@ -14,8 +14,7 @@ public sealed class WindowsEventLogCollector : ITelemetryCollector<EventLogTelem
     public const int MaximumEvents = 200;
     public const int MaximumEventsPerLog = 100;
     private static readonly TimeSpan InitialScanWindow = TimeSpan.FromMinutes(10);
-    private static readonly string InitialEventQuery =
-        $"*[System[(Level=1 or Level=2 or Level=3) and TimeCreated[timediff(@SystemTime) <= {(long)InitialScanWindow.TotalMilliseconds}]]]";
+    private static readonly TimeSpan BugCheckScanWindow = TimeSpan.FromHours(24);
     private const string CatchUpEventQuery = "*[System[(Level=1 or Level=2 or Level=3)]]";
     private readonly ICollectorCheckpointStore _checkpointStore;
     private readonly IEventLogReaderFactory _readerFactory;
@@ -136,6 +135,11 @@ public sealed class WindowsEventLogCollector : ITelemetryCollector<EventLogTelem
         var logResetDetected = checkpoint?.LastRecordId is not null
             && checkpoint.LastRecordFingerprint is { Length: > 0 }
             && WasLogCleared(logName, checkpoint, cancellationToken);
+        if (checkpoint?.InitialScanAtUtc is { } initialScanAtUtc)
+        {
+            return ReadInitialLog(logName, logResetDetected ? scannedAtUtc : initialScanAtUtc,
+                scannedAtUtc, logResetDetected ? null : checkpoint, events, warnings, cancellationToken);
+        }
         if (logResetDetected && checkpoint is not null)
         {
             warnings.Add($"event_log_{logName.ToLowerInvariant()}_reset_detected");
@@ -203,24 +207,33 @@ public sealed class WindowsEventLogCollector : ITelemetryCollector<EventLogTelem
                 logStateChecked: true);
         }
 
-        var initialEvents = new List<EventLogEntryMetadata>();
-        var initialWarnings = new List<string>();
-        var initialScanStart = scannedAtUtc - InitialScanWindow;
-        var initialRead = ReadFromReader(
-            logName,
-            null,
-            InitialEventQuery,
-            initialEvents,
-            initialWarnings,
-            cancellationToken);
-        AddResults(initialEvents, initialWarnings, events, warnings);
-        return SerializeCheckpoint(new EventLogCheckpoint(
-            EventLogCheckpoint.CurrentVersion,
-            initialRead.BookmarkXml,
-            initialRead.Truncated ? initialScanStart : scannedAtUtc,
-            initialRead.LastRecordId,
-            initialRead.LastRecordFingerprint));
+        return ReadInitialLog(logName, scannedAtUtc, scannedAtUtc, null, events, warnings, cancellationToken);
     }
+
+    private string ReadInitialLog(string logName, DateTimeOffset initialScanAtUtc, DateTimeOffset scannedAtUtc,
+        EventLogCheckpoint? checkpoint, ICollection<EventLogEntryMetadata> events, ICollection<string> warnings,
+        CancellationToken cancellationToken)
+    {
+        var recent = FormatTimestamp(initialScanAtUtc - InitialScanWindow);
+        var upper = FormatTimestamp(scannedAtUtc);
+        var condition = $"TimeCreated[@SystemTime >= '{recent}']";
+        if (logName == "System")
+            condition += $" or (Provider[@Name='Microsoft-Windows-WER-SystemErrorReporting'] and EventID=1001 and TimeCreated[@SystemTime >= '{FormatTimestamp(initialScanAtUtc - BugCheckScanWindow)}'])";
+        var cursor = checkpoint?.LastRecordId is { } id ? $" and EventRecordID > {id.ToString(CultureInfo.InvariantCulture)}" : string.Empty;
+        var query = $"*[System[(Level=1 or Level=2 or Level=3) and TimeCreated[@SystemTime <= '{upper}'] and ({condition}){cursor}]]";
+        var read = ReadFromReader(logName, null, query, events, warnings, cancellationToken,
+            checkpoint?.LastRecordId, checkpoint?.LastRecordFingerprint);
+        // Keep the selective bootstrap filter across bounded pages/restarts. Once
+        // complete, resume from the scan time rather than an old WER bookmark:
+        // that bookmark would otherwise backfill unrelated historical log entries.
+        return SerializeCheckpoint(new EventLogCheckpoint(EventLogCheckpoint.CurrentVersion, null,
+            read.Truncated ? initialScanAtUtc - (logName == "System" ? BugCheckScanWindow : InitialScanWindow) : scannedAtUtc,
+            read.LastRecordId, read.LastRecordFingerprint,
+            read.Truncated ? initialScanAtUtc : null, ResumeFromTime: !read.Truncated));
+    }
+
+    private static string FormatTimestamp(DateTimeOffset value) =>
+        value.UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'", CultureInfo.InvariantCulture);
 
     private string ReadSinceCheckpoint(
         string logName,
@@ -241,7 +254,7 @@ public sealed class WindowsEventLogCollector : ITelemetryCollector<EventLogTelem
             cursorRecordId = null;
         }
 
-        var cursorQuery = cursorRecordId is { } recordId
+        var cursorQuery = cursorRecordId is { } recordId && !checkpoint.ResumeFromTime
             ? CreateAfterRecordIdQuery(recordId)
             : checkpoint.LastScannedAtUtc == DateTimeOffset.MinValue
                 ? CatchUpEventQuery
@@ -264,7 +277,8 @@ public sealed class WindowsEventLogCollector : ITelemetryCollector<EventLogTelem
             recoveryRead.BookmarkXml,
             recoveryRead.Truncated ? checkpoint.LastScannedAtUtc : scannedAtUtc,
             recoveryRead.LastRecordId ?? cursorRecordId,
-            recoveryRead.LastRecordFingerprint ?? (cursorRecordId is null ? null : checkpoint.LastRecordFingerprint)));
+            recoveryRead.LastRecordFingerprint ?? (cursorRecordId is null ? null : checkpoint.LastRecordFingerprint),
+            ResumeFromTime: checkpoint.ResumeFromTime && recoveryRead.BookmarkXml is null));
     }
 
     private bool WasLogCleared(
@@ -476,7 +490,9 @@ public sealed class WindowsEventLogCollector : ITelemetryCollector<EventLogTelem
         string? BookmarkXml,
         DateTimeOffset LastScannedAtUtc,
         long? LastRecordId = null,
-        string? LastRecordFingerprint = null)
+        string? LastRecordFingerprint = null,
+        DateTimeOffset? InitialScanAtUtc = null,
+        bool ResumeFromTime = false)
     {
         public const int CurrentVersion = 1;
     }

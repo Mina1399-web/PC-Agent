@@ -18,7 +18,15 @@ public static class AdminProtocol
             var command=root.GetProperty("command").GetString();var body=root.GetProperty("body");
             switch(command)
             {
-                case "status":case "incidents":HelperProtocol.Exact(body);break;
+                case "status":
+                    if (body.TryGetProperty("verbose", out var verbose))
+                    {
+                        HelperProtocol.Exact(body, "verbose");
+                        _ = verbose.GetBoolean();
+                    }
+                    else HelperProtocol.Exact(body);
+                    break;
+                case "incidents":HelperProtocol.Exact(body);break;
                 case "incident":
                     HelperProtocol.Exact(body,"incidentId");
                     var incidentId=body.GetProperty("incidentId").GetString();

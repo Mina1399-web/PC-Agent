@@ -31,6 +31,7 @@ public sealed class TelemetryCollectionJob<TPayload> : ITelemetryCollectionJob w
     }
 
     public string CollectorId => _collector.CollectorId;
+    public IReadOnlyList<string> WarningCodes { get; private set; } = Array.Empty<string>();
 
     public async ValueTask<CollectorStatus> CollectAndPersistAsync(CancellationToken cancellationToken)
     {
@@ -90,6 +91,7 @@ public sealed class TelemetryCollectionJob<TPayload> : ITelemetryCollectionJob w
             health,
             cancellationToken);
 
+        WarningCodes = result.Warnings.ToArray();
         return result.Status;
     }
 

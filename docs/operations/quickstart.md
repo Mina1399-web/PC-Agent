@@ -24,6 +24,7 @@ In an elevated terminal:
 $agent = "$env:ProgramFiles\HostAgent\Cli\HostAgent.Cli.exe"
 & $agent --help
 & $agent status
+& $agent status --verbose
 & $agent incidents
 & $agent incident <incident-id>
 ```
@@ -31,6 +32,8 @@ $agent = "$env:ProgramFiles\HostAgent\Cli\HostAgent.Cli.exe"
 Use `incidents` to get an ID, then `incident <incident-id>` to inspect its durable diagnosis, confidence scope, evidence and recommended next step before proposing an operation. Bugcheck details can identify the stop code and dump, but will explicitly leave the driver unattributed until dump analysis confirms it; driver changes are never automatic. The detail command is read-only and does not return complete telemetry snapshots.
 
 Exit codes: 0 success, 1 rejected/unavailable/cancelled, 2 invalid command usage. Status reports configuration/mode and worker degradation. Each CLI transport has a deadline, pins the server service SID, and sends once.
+
+`status --verbose` additionally reports a bounded list of components and stable health codes. `optional_smart_unavailable` is informational and does not itself degrade the agent; missing required disk data, unavailable collectors and failed workers still do. No exception messages, raw collector warnings, paths or secret values enter this view. Plain `status` retains its existing response shape. This view covers collector and runtime-worker health; it does not enumerate per-notification delivery history.
 
 ## Notifications and heartbeat
 

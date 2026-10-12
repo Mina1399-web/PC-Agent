@@ -15,7 +15,12 @@ public sealed class AdminDispatcher(IHostAgentStore store,RemediationCoordinator
             var message=AdminProtocol.Parse(payload);var body=message.Body;
             switch(message.Command)
             {
-                case "status":return AdminProtocol.Reply(true,"ready",new{mode=configuration.Mode.ToString(),configuration.ReadOnly,
+                case "status":
+                    if (body.TryGetProperty("verbose", out var verbose) && verbose.GetBoolean())
+                        return AdminProtocol.Reply(true,"ready",new{mode=configuration.Mode.ToString(),configuration.ReadOnly,
+                            configuration.ConfigurationAvailable,degraded=health.Degraded,configuration.EnablePushover,configuration.EnableHeartbeat,
+                            health=health.Snapshot().Select(item=>new{component=item.Component,code=item.Code,degraded=item.Degraded})});
+                    return AdminProtocol.Reply(true,"ready",new{mode=configuration.Mode.ToString(),configuration.ReadOnly,
                     configuration.ConfigurationAvailable,degraded=health.Degraded,configuration.EnablePushover,configuration.EnableHeartbeat});
                 case "incidents":
                     var heads=await store.ReadIncidentHeadsAsync(token);

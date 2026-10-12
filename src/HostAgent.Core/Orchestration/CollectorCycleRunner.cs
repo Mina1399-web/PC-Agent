@@ -17,7 +17,10 @@ public sealed record CollectorCycleResult(
     CollectorCycleStatus Status,
     string? FailureCode,
     int ConsecutiveFailures,
-    DateTimeOffset? RetryAtUtc);
+    DateTimeOffset? RetryAtUtc)
+{
+    public IReadOnlyList<string> WarningCodes { get; init; } = Array.Empty<string>();
+}
 
 public sealed class CollectorCycleRunner
 {
@@ -124,7 +127,7 @@ public sealed class CollectorCycleRunner
             return status switch
             {
                 CollectorStatus.Success => RecordAvailable(job.CollectorId, state, CollectorCycleStatus.Succeeded),
-                CollectorStatus.Partial => RecordAvailable(job.CollectorId, state, CollectorCycleStatus.Partial),
+                CollectorStatus.Partial => RecordAvailable(job.CollectorId, state, CollectorCycleStatus.Partial, job.WarningCodes),
                 CollectorStatus.Unavailable => RecordFailure(
                     job.CollectorId,
                     state,
@@ -148,14 +151,16 @@ public sealed class CollectorCycleRunner
     private CollectorCycleResult RecordAvailable(
         string collectorId,
         ExecutionState state,
-        CollectorCycleStatus status)
+        CollectorCycleStatus status,
+        IReadOnlyList<string>? warningCodes = null)
     {
         lock (_statesLock)
         {
             state.IsRunning = false;
             state.ConsecutiveFailures = 0;
             state.RetryAtUtc = null;
-            return new CollectorCycleResult(collectorId, status, null, 0, null);
+            return new CollectorCycleResult(collectorId, status, null, 0, null)
+            { WarningCodes = warningCodes?.ToArray() ?? Array.Empty<string>() };
         }
     }
 

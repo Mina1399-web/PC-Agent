@@ -80,7 +80,7 @@ internal sealed class CollectionCoordinator : BackgroundService
     {
         await ApplyRetentionIfDueAsync(nowUtc ?? DateTimeOffset.UtcNow, cancellationToken);
         var results = await _runner.RunOnceAsync(cancellationToken);
-        _health.Set("collectors",results.Any(result=>result.Status!=CollectorCycleStatus.Succeeded));
+        _health.SetCollectors(results);
         foreach (var result in results)
         {
             LogResult(result);
