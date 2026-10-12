@@ -92,3 +92,13 @@ Files: docs/specs/host-agent-v1.md, docs/verification/dashboard-1.md, docs/opera
 - [ ] Commit exact reviewed increment files; retain original audit untracked. No production transfer. Package/deploy only after tests and explicit package-manifest/trust gates; distinguish build from installed acceptance.
 
 Engineering recommendation: keep telemetry/diagnostic explanations local and deterministic first. An optional explanatory assistant may be added later only with redaction, opt-in data egress and zero authority to approve operations. This is not part of the current implementation.
+
+Continuation checkpoint: source increment committed as
+37fb9158bbe20317f0b6f21732317c4891d4ce5d; this supersedes the proposed individual
+commit splits above. First desktop candidate failed its manifest gate and was
+not installed. Bounded literal manifest parsing was fixed test-first; fresh
+22 focused and 290 full Release tests pass, build has zero warnings/errors,
+independent parser review approves ce2c5414f955c3479acb02c3501edcb0b06040db.
+A subsequent authorized UI-interaction check is in progress in the design
+thread; wait for its stable handoff before the next integrated suite/package.
+Task 5 remains a subsequent disabled increment. Installed acceptance is pending.

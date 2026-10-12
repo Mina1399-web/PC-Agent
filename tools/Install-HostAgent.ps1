@@ -1,4 +1,62 @@
 param([Parameter(Mandatory)][string]$PackagePath,[switch]$DevVm,[string]$TrustedPublisherThumbprint,[switch]$PlanOnly)
+# Kept in both standalone trusted entry points: no external code or manifest evaluation.
+function Read-ReleaseManifest([string]$LiteralPath) {
+    function Get-ReleaseExpression($block) {
+        if($block -is [Management.Automation.Language.PipelineAst]){$pipeline=$block}
+        elseif($block -is [Management.Automation.Language.NamedBlockAst] -or $block -is [Management.Automation.Language.StatementBlockAst]) {
+            if($block.Statements.Count -ne 1 -or $block.Traps){throw 'release_manifest_invalid'}
+            $pipeline=$block.Statements[0]
+        }else{throw 'release_manifest_invalid'}
+        if($pipeline -isnot [Management.Automation.Language.PipelineAst] -or $pipeline.PipelineElements.Count -ne 1 -or $pipeline.Background){throw 'release_manifest_invalid'}
+        $command=$pipeline.PipelineElements[0]
+        if($command -isnot [Management.Automation.Language.CommandExpressionAst] -or $command.Redirections.Count){throw 'release_manifest_invalid'}
+        return $command.Expression
+    }
+    function Get-ReleaseMap($expression,[string[]]$keys) {
+        if($expression -isnot [Management.Automation.Language.HashtableAst] -or $expression.KeyValuePairs.Count -ne $keys.Count){throw 'release_manifest_invalid'}
+        $map=@{}
+        foreach($pair in $expression.KeyValuePairs) {
+            if($pair.Item1 -isnot [Management.Automation.Language.StringConstantExpressionAst]){throw 'release_manifest_invalid'}
+            $key=$pair.Item1.Value
+            if($key -cnotin $keys -or $map.ContainsKey($key)){throw 'release_manifest_invalid'}
+            $map[$key]=Get-ReleaseExpression $pair.Item2
+        }
+        return $map
+    }
+    function Get-ReleaseString($expression) {
+        if($expression -isnot [Management.Automation.Language.StringConstantExpressionAst]){throw 'release_manifest_invalid'}
+        return $expression.Value
+    }
+    $stream=[IO.File]::Open($LiteralPath,'Open','Read','Read')
+    try {
+        if($stream.Length -gt 4MB){throw 'release_manifest_limit'}
+        $reader=[IO.StreamReader]::new($stream,[Text.Encoding]::UTF8,$true,4096,$true)
+        try{$text=$reader.ReadToEnd()}finally{$reader.Dispose()}
+    }finally{$stream.Dispose()}
+    $tokens=$null;$errors=$null
+    $ast=[Management.Automation.Language.Parser]::ParseInput($text,[ref]$tokens,[ref]$errors)
+    if($errors -or $ast.ParamBlock -or $ast.DynamicParamBlock -or -not $ast.EndBlock.Unnamed -or $ast.BeginBlock -or $ast.ProcessBlock -or $ast.CleanBlock -or $ast.UsingStatements.Count){throw 'release_manifest_invalid'}
+    $root=Get-ReleaseMap (Get-ReleaseExpression $ast.EndBlock) @('Format','Version','SourceCommit','Files')
+    if($root.Format -isnot [Management.Automation.Language.ConstantExpressionAst] -or $root.Format.Value -isnot [int] -or $root.Format.Value -ne 1){throw 'release_manifest_invalid'}
+    $version=Get-ReleaseString $root.Version;$commit=Get-ReleaseString $root.SourceCommit
+    if($version -cnotmatch '^\d+\.\d+\.\d+$' -or $commit -cnotmatch '^[a-f0-9]{40}$' -or $root.Files -isnot [Management.Automation.Language.ArrayExpressionAst]){throw 'release_manifest_invalid'}
+    $items=@()
+    if($root.Files.SubExpression.Statements.Count) {
+        $expression=Get-ReleaseExpression $root.Files.SubExpression
+        $items=if($expression -is [Management.Automation.Language.ArrayLiteralAst]){@($expression.Elements)}else{@($expression)}
+    }
+    if($items.Count -gt 10000){throw 'release_manifest_limit'}
+    $seen=[Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    $files=@(foreach($item in $items) {
+        $entry=Get-ReleaseMap $item @('Path','Sha256','Length')
+        $path=Get-ReleaseString $entry.Path;$hash=Get-ReleaseString $entry.Sha256;$length=$entry['Length']
+        if($path -cnotmatch '^[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)*$' -or ($path.Split('/') | Where-Object {$_ -in '.','..'}) -or $path -eq 'manifest.psd1' -or -not $seen.Add($path) -or $hash -cnotmatch '^[A-Fa-f0-9]{64}$' -or $length -isnot [Management.Automation.Language.ConstantExpressionAst]){throw 'release_manifest_invalid'}
+        $bytes=$length.Value
+        if(($bytes -isnot [int] -and $bytes -isnot [long]) -or $bytes -lt 0){throw 'release_manifest_invalid'}
+        @{Path=$path;Sha256=$hash;Length=[long]$bytes}
+    })
+    return @{Format=1;Version=$version;SourceCommit=$commit;Files=$files}
+}
 $ErrorActionPreference='Stop'
 function New-ProtectedInstallerStage([string]$Source,[string]$Parent,[Security.Principal.SecurityIdentifier]$Owner) {
     $parentPath=[IO.Path]::GetFullPath($Parent)
@@ -52,7 +110,7 @@ function Test-StagedInstaller([string]$Stage,[bool]$Development,[string]$Publish
         }
     }
     if((Get-Item -LiteralPath $manifest).Length -gt 4MB){throw 'release_manifest_limit'}
-    $data=Import-PowerShellDataFile -LiteralPath $manifest
+    $data=Read-ReleaseManifest -LiteralPath $manifest
     if($data.Format -ne 1 -or $data.SourceCommit -notmatch '^[a-f0-9]{40}$' -or $data.Version -notmatch '^\d+\.\d+\.\d+$' -or $data.Files.Count -gt 10000){throw 'release_manifest_invalid'}
     $entry=@($data.Files | Where-Object { $_.Path -ceq 'HostAgent.msi' })
     if($entry.Count -ne 1 -or $entry[0].Sha256 -notmatch '^[A-Fa-f0-9]{64}$' -or (Get-Item -LiteralPath $msi).Length -ne $entry[0].Length -or

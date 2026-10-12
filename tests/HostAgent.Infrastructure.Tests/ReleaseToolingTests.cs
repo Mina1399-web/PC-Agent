@@ -8,6 +8,45 @@ namespace HostAgent.Infrastructure.Tests;
 public sealed class ReleaseToolingTests
 {
     [Fact]
+    public async Task Full_desktop_manifest_is_validated_without_executing_manifest_code()
+    {
+        using var fixture=new PackageFixture(1200);
+        var result=await Run("Test-Release.ps1",fixture.Path,"-DevVm");
+        Assert.True(result.Exit==0,result.Error);
+        using var json=JsonDocument.Parse(result.Out);
+        Assert.Equal(1209,json.RootElement.GetProperty("files").GetInt32());
+    }
+    [Theory]
+    [InlineData("expression")]
+    [InlineData("duplicate_root")]
+    [InlineData("duplicate_path")]
+    [InlineData("excess_count")]
+    [InlineData("excess_bytes")]
+    [InlineData("extra_block")]
+    public async Task Manifest_reader_rejects_expressions_duplicates_and_resource_excess(string mutation)
+    {
+        using var fixture=new PackageFixture();
+        var manifest=System.IO.Path.Combine(fixture.Path,"manifest.psd1");
+        var marker=System.IO.Path.Combine(fixture.Path,"must-not-exist.txt").Replace("'","''");
+        var text=File.ReadAllText(manifest);
+        var entry="@{Path='extra.txt';Sha256='"+new string('A',64)+"';Length=1}";
+        text=mutation switch
+        {
+            "expression"=>text.Replace("Format=1;","Format=$([IO.File]::WriteAllText('"+marker+"','executed');1);"),
+            "duplicate_root"=>text.Replace("Format=1;","Format=1;Format=1;"),
+            "duplicate_path"=>text.Replace("Files=@(","Files=@("+entry+","+entry+","),
+            "excess_count"=>text.Replace("Files=@(","Files=@("+string.Join(",",Enumerable.Repeat(entry,10001))+","),
+            "excess_bytes"=>new string(' ',4*1024*1024+1),
+            "extra_block"=>"dynamicparam { throw 'must_not_execute' } end { "+text+" }",
+            _=>throw new InvalidOperationException()
+        };
+        File.WriteAllText(manifest,text,new UTF8Encoding(false));
+        var result=await Run("Test-Release.ps1",fixture.Path,"-DevVm");
+        Assert.NotEqual(0,result.Exit);
+        Assert.Contains(mutation.StartsWith("excess",StringComparison.Ordinal)?"release_manifest_limit":"release_manifest_invalid",result.Error);
+        Assert.False(File.Exists(marker));
+    }
+    [Fact]
     public async Task Desktop_release_cannot_pass_integrity_gate_with_missing_desktop_payload()
     {
         using var fixture=new PackageFixture();
@@ -156,9 +195,15 @@ public sealed class ReleaseToolingTests
     private sealed class PackageFixture:IDisposable
     {
         public string Path{get;}=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"release-"+Guid.NewGuid().ToString("N"));
-        public PackageFixture()
+        public PackageFixture(int additionalFiles=0)
         {
             Directory.CreateDirectory(Path);var entries=new List<string>();
+            for(var i=0;i<additionalFiles;i++)
+            {
+                var relative="extra-"+i+".txt";var bytes=new byte[]{42};
+                File.WriteAllBytes(System.IO.Path.Combine(Path,relative),bytes);
+                entries.Add("@{Path='"+relative+"';Sha256='"+Convert.ToHexString(SHA256.HashData(bytes))+"';Length=1}");
+            }
             foreach(var project in new[]{"Service","Helper","Cli","Desktop"})
             {
                 var relative=project+"/HostAgent."+project+".exe";var path=System.IO.Path.Combine(Path,relative);

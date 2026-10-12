@@ -55,3 +55,22 @@ this is code inspection only, not proof of backup/installation execution.
 Live cross-account/installed/UAC checks and crash/soak/signing limits remain
 explicit. Local GUI availability is not a guarantee of OS stability or a
 proof that recommended actions repair a crash. No security policy was weakened.
+
+## Bounded release manifest parser review
+
+Fresh packaging found a confirmed availability defect: the enlarged desktop
+manifest exceeded Import-PowerShellDataFile's literal conversion limit.
+Both validator and staged installer now use an identical non-evaluating AST
+reader. It accepts only exact root/entry maps and permitted literal values,
+rejects additional script blocks, expressions, redirection and duplicates,
+and bounds input to 4 MiB / 10,000 files. Signature comments remain compatible;
+production signature verification still precedes parsing.
+
+Independent reviewer approved immutable tree
+ce2c5414f955c3479acb02c3501edcb0b06040db against 37fb9158bbe20317f0b6f21732317c4891d4ce5d,
+with no confirmed blocker. Both product readers and the updated outside-source
+harness reader were compared for identical text. Harness exact SHA-256:
+B5F3C617D2F47EA2B96E53EA514B568A200E0EBCEE4EAB86C3580297D4765FFD.
+Review did not execute tests or installation. Fresh 22 focused / 290 total
+passes are separately recorded; actual repaired package, installed acceptance
+and signed production variant are not inferred from this review.

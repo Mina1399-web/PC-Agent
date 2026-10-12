@@ -157,3 +157,50 @@ acceptance limits at this source checkpoint. The repeated VM crashes are not
 claimed repaired. Direct cleanup/quarantine/package automation remains the
 separate disabled next increment in the plan; guided Windows settings are
 available now.
+
+## Desktop release manifest stabilization (fresh continuation)
+
+Source checkpoint: 37fb9158bbe20317f0b6f21732317c4891d4ce5d.
+Execution was re-confirmed in AGENTPC / AgentPC\AgentPCdevtest, VirtualBox UUID
+46543236-8C5E-49DA-953C-DB17F9B1E402, with VBoxGuest/VBoxService running.
+Evidence for this continuation is outside Git under
+`%LOCALAPPDATA%\HostAgent-DEV-evidence\dashboard-install`.
+
+The first clean 1.1.0 DEV candidate published all four applications and built
+its MSI, then failed final validation: Import-PowerShellDataFile could not
+convert the enlarged 1,192-file desktop manifest. This candidate was not
+installed, and is preserved separately. A successful MSI build alone did not
+satisfy the package gate.
+
+Test-first regression added full-size manifest fixtures for validation and
+installer staging. `large-manifest-red.trx`: two expected failures. The first
+reader implementation run (`large-manifest-green.trx`) had 7 failures / 9
+passes due to AST shape/strict-null handling; it was corrected without
+removing the failures. `large-manifest-green-final.trx`: 21 passes. An added
+extra-script-block regression then produced 1 failure / 5 passes in
+`manifest-block-red.trx`; explicit single implicit EndBlock guards fixed it.
+`manifest-all-green.trx`: **22/22 passed**. Tests also reject expressions
+without executing their harmless marker, duplicate keys/paths, extra blocks,
+more than 10,000 files and manifests larger than 4 MiB.
+
+Both standalone product entry points now parse bounded literal AST data and
+never evaluate manifest content. Independent read-only review approved tree
+ce2c5414f955c3479acb02c3501edcb0b06040db against the source checkpoint above.
+
+```powershell
+dotnet test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj -c Release --filter 'FullyQualifiedName~ReleaseToolingTests|FullyQualifiedName~InstallerStagingTests' --logger 'trx;LogFileName=manifest-all-green.trx' --results-directory $evidence
+dotnet build HostAgent.sln -c Release -m:1
+dotnet test HostAgent.sln -c Release --no-build -m:1 --logger trx --results-directory "$evidence\manifest-suite"
+```
+
+`manifest-release-build.log`: exit 0, zero warnings/errors.
+`manifest-release-suite.log` and three distinct TRX: exit 0,
+**290/290 passed** (58 Core, 226 Infrastructure, 6 Desktop), zero failed/skipped.
+This run precedes the subsequent UI-interaction handoff and does not verify
+any later edit. The repaired candidate and installed acceptance remain pending
+at this checkpoint; installed product is still 1.0.5.0.
+
+The outside-source upgrade harness was updated only with this same reader and
+its import replacement. Exact reviewed SHA-256:
+B5F3C617D2F47EA2B96E53EA514B568A200E0EBCEE4EAB86C3580297D4765FFD.
+It has not yet executed. The prior reviewed harness is retained separately.

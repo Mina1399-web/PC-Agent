@@ -6,6 +6,22 @@ namespace HostAgent.Infrastructure.Tests;
 public sealed class InstallerStagingTests
 {
     [Fact]
+    public async Task Staged_manifest_accepts_full_desktop_file_count_as_literals_only()
+    {
+        var result=await Run("""
+            $manifest=Join-Path $source 'manifest.psd1'
+            $text=[IO.File]::ReadAllText($manifest)
+            $entries=0..1199 | ForEach-Object { "@{Path='extra-$_.txt';Sha256='"+('A'*64)+"';Length=1}" }
+            $text=$text.Replace('Files=@(','Files=@('+($entries -join ',')+',')
+            [IO.File]::WriteAllText($manifest,$text)
+            $owner=[Security.Principal.WindowsIdentity]::GetCurrent().User
+            $stage=New-ProtectedInstallerStage $source (Join-Path $root 'staging') $owner
+            Test-StagedInstaller $stage $true ''
+            'verified'
+            """);
+        Assert.True(result.Exit==0,result.Error+result.Out);Assert.Contains("verified",result.Out);
+    }
+    [Fact]
     public async Task Staging_is_isolated_protected_and_validated_after_source_changes()
     {
         var result=await Run("""
