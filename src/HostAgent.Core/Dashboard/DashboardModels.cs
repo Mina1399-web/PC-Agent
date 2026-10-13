@@ -5,7 +5,8 @@ public sealed record ViewDisk(string Drive, long FreeBytes, long CapacityBytes, 
 public sealed record ViewProcess(int Pid, string Name, double? CpuPercent, long MemoryBytes)
 { public long? StartTimeUtcTicks {get;init;} }
 public sealed record ViewService(string Name, string State);
-public sealed record ViewIncident(string Id, string State, string Code, int Confidence, string Severity, DateTimeOffset AtUtc, int Recurrences);
+public sealed record ViewIncident(string Id, string State, string Code, int Confidence, string Severity, DateTimeOffset AtUtc, int Recurrences)
+{ public string? AffectedService { get; init; } }
 public sealed record ViewHealth(string Component, string Code, bool Degraded, IReadOnlyList<string>? Reasons = null)
 { public string ReasonSummary => string.Join(", ", Reasons ?? Array.Empty<string>()); }
 public sealed record ViewEvidence(string Source, double? Value, DateTimeOffset AtUtc);

@@ -94,11 +94,17 @@ public sealed class DashboardDispatcher(IHostAgentStore store,ServiceConfigurati
     private async ValueTask<ViewIncident[]> Heads(CancellationToken token)
         =>(await store.ReadIncidentHeadsAsync(token)).OrderByDescending(x=>x.UpdatedAtUtc).Take(20).Select(Project).ToArray();
     private static ViewIncident Project(Incident x)=>new(x.IncidentId,x.State.ToString(),SafeCause(x.LatestDiagnosis.ProbableRootCause.Code),
-        x.LatestDiagnosis.Confidence,x.LatestDiagnosis.Severity.ToString(),x.LatestDiagnosis.ObservedAtUtc,x.RecurrenceCount);
+        x.LatestDiagnosis.Confidence,x.LatestDiagnosis.Severity.ToString(),x.LatestDiagnosis.ObservedAtUtc,x.RecurrenceCount)
+        {AffectedService=SafeAffectedService(x.LatestDiagnosis.ProbableRootCause.Code,x.LatestDiagnosis.ProbableRootCause.Subject)};
     private static ViewMetric? Current(ViewMetric[] points,DateTimeOffset now)=>points.LastOrDefault(x=>ViewFreshness.IsFresh(x.AtUtc,now));
     private static bool ValidDrive(string name)=>name.Length is 2 or 3 && char.IsAsciiLetter(name[0]) && name[1]==':' && (name.Length==2||name[2]=='\\');
     private static string SafeName(string value)=>new(value.Take(64).Select(c=>char.IsAsciiLetterOrDigit(c)||c is '.' or '-' or '_'?c:'_').ToArray());
     private static bool IsCrash(string value)=>value=="windows_bugcheck"||value.StartsWith("bugcheck_",StringComparison.Ordinal);
+    private static string? SafeAffectedService(string code,string? subject)
+        => code is "service_stopped" or "service_crash"
+            && subject is {Length:>0 and <=128}
+            && subject.All(character=>char.IsAsciiLetterOrDigit(character)||character is '.' or '_' or '-')
+                ?subject:null;
     private static string SafeCause(string value)=>value is "cpu_host_saturation" or "cpu_process_saturation" or "memory_pressure" or "disk_capacity"
         or "service_stopped" or "service_crash" or "windows_bugcheck" or "bugcheck_irql_not_less_or_equal"
         or "gateway_unreachable" or "dns_resolution_failure" or "internet_unreachable" or "network_unavailable"?value:"other_diagnosis";

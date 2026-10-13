@@ -144,6 +144,43 @@ public sealed class DashboardViewTests
     }
 
     [Fact]
+    public async Task Service_incident_exposes_only_a_validated_affected_service_identifier()
+    {
+        await using var f=await OperatingModeTests.Fixture.Create();
+        var saved=Assert.Single(await f.Store.ReadIncidentHeadsAsync(default));
+        var serviceIncident=saved with{LatestDiagnosis=saved.LatestDiagnosis with{
+            ProbableRootCause=new("service_stopped","A previously running service stopped unexpectedly","Spooler")}};
+        await f.Store.SaveIncidentBundleAsync(serviceIncident,default);
+        var dispatcher=new DashboardDispatcher(f.Store,new(),new(),TimeProvider.System);
+        using(var overview=JsonDocument.Parse(await dispatcher.DispatchAsync(ViewProtocol.Request("overview",new{}),default)))
+        {
+            var item=overview.RootElement.GetProperty("data").GetProperty("Incidents")[0];
+            Assert.Equal("Spooler",item.GetProperty("AffectedService").GetString());
+        }
+
+        using(var detail=JsonDocument.Parse(await dispatcher.DispatchAsync(
+            ViewProtocol.Request("incident",new{incidentId=saved.IncidentId}),default)))
+        {
+            var item=detail.RootElement.GetProperty("data").GetProperty("Incident");
+            Assert.Equal("Spooler",item.GetProperty("AffectedService").GetString());
+        }
+
+        await f.Store.SaveIncidentBundleAsync(serviceIncident with{LatestDiagnosis=serviceIncident.LatestDiagnosis with{
+            ProbableRootCause=new("service_stopped","A previously running service stopped unexpectedly","C:\\Users\\private\\service.exe")}},default);
+        using var redacted=JsonDocument.Parse(await dispatcher.DispatchAsync(
+            ViewProtocol.Request("incident",new{incidentId=saved.IncidentId}),default));
+        Assert.Equal(JsonValueKind.Null,redacted.RootElement.GetProperty("data").GetProperty("Incident").GetProperty("AffectedService").ValueKind);
+        Assert.DoesNotContain("C:\\Users\\private",redacted.RootElement.GetRawText());
+
+        await f.Store.SaveIncidentBundleAsync(serviceIncident with{LatestDiagnosis=serviceIncident.LatestDiagnosis with{
+            ProbableRootCause=new("memory_pressure","Memory pressure was observed.","private-token")}},default);
+        using var unrelated=JsonDocument.Parse(await dispatcher.DispatchAsync(
+            ViewProtocol.Request("incident",new{incidentId=saved.IncidentId}),default));
+        Assert.Equal(JsonValueKind.Null,unrelated.RootElement.GetProperty("data").GetProperty("Incident").GetProperty("AffectedService").ValueKind);
+        Assert.DoesNotContain("private-token",unrelated.RootElement.GetRawText());
+    }
+
+    [Fact]
     public async Task Missing_or_old_metrics_are_not_returned_as_current_and_invalid_request_is_fixed()
     {
         await using var f=await OperatingModeTests.Fixture.Create();

@@ -147,7 +147,9 @@ public partial class MainWindow:Window
             _selectedDetail=detail;
             if(detail is null){DetailText.Text="Detail není dostupný.";return;}
             var scope=detail.ConfidenceScope=="stop_code_classification_only"?"Confidence určuje klasifikaci stop kódu. Neurčuje vadný ovladač.":"Confidence je odhad pravděpodobné příčiny, nikoli záruka správné opravy.";
-            DetailText.Text=$"Incident: {detail.Incident.Id}\nKód: {detail.Incident.Code}\nStav: {detail.Incident.State}\nConfidence: {detail.Incident.Confidence} %\n{scope}\n\nOmezené důkazy (zdroj / hodnota / UTC):\n"+
+            DetailText.Text=$"Incident: {detail.Incident.Id}\nKód: {detail.Incident.Code}\nStav: {detail.Incident.State}\nConfidence: {detail.Incident.Confidence} %\n"+
+                (detail.Incident.AffectedService is{} service?$"Dotčená služba: {service}\n":string.Empty)+
+                $"{scope}\n\nOmezené důkazy (zdroj / hodnota / UTC):\n"+
                 string.Join("\n",detail.Evidence.Select(x=>$"{x.Source} / {x.Value?.ToString(CultureInfo.InvariantCulture)??"—"} / {x.AtUtc:O}"))+
                 (detail.Truncated?"\nDalší důkazy byly kvůli omezení rozsahu vynechány.":"")+"\n\nAutomatická oprava není tímto zobrazením schválena.";
         }
