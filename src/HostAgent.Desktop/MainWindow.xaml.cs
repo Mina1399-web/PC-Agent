@@ -93,6 +93,11 @@ public partial class MainWindow:Window
         catch {StatusText.Text="Obnovení dat se nepodařilo. Další pokus proběhne automaticky.";OperationButton.IsEnabled=false;OperationHintText.Text="Zásahy jsou zablokované, dokud se nepodaří obnovit stav.";}
         finally {_reading.Release();}
     }
+    private void MaintenanceClick(object sender,RoutedEventArgs e)
+    {
+        var window=new MaintenanceWindow(_controller){Owner=this};
+        window.ShowDialog();
+    }
     private static string Percent(ViewMetric? metric)=>metric is {} point?point.Value.ToString("0.#",CultureInfo.CurrentCulture)+" %":"—";
     private void SetEmptyStates(DashboardSnapshot? view)
     {

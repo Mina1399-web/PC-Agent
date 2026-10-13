@@ -14,6 +14,30 @@ namespace HostAgent.Infrastructure.Tests;
 
 public sealed class HealthStabilizationTests
 {
+    [Fact]
+    public async Task Dashboard_exposes_bounded_allowlisted_partial_reasons_without_raw_warning_text()
+    {
+        var health = new AgentRuntimeHealth();
+        health.SetCollectors([new CollectorCycleResult("disk", CollectorCycleStatus.Partial, null, 0, null)
+        { WarningCodes = ["smart_health_unavailable", "volume_metrics_unavailable", "synthetic-sensitive-error"] }]);
+        var disk = Assert.Single(health.Snapshot(), value => value.Component == "disk");
+        Assert.Equal(new[] { "smart_health_unavailable", "volume_metrics_unavailable" }, disk.Reasons);
+        var path = Path.Combine(Path.GetTempPath(), "dashboard-health-" + Guid.NewGuid() + ".db");
+        try
+        {
+            await using var store = new SqliteHostAgentStore(path);
+            await store.InitializeAsync(default);
+            var bytes = await new DashboardDispatcher(store, new(), health, TimeProvider.System)
+                .DispatchAsync(HostAgent.Infrastructure.Dashboard.ViewProtocol.Request("overview", new { }), default);
+            using var response = JsonDocument.Parse(bytes);
+            var view = response.RootElement.GetProperty("data").Deserialize<HostAgent.Core.Dashboard.DashboardSnapshot>()!;
+            var projected = Assert.Single(view.Health, value => value.Component == "disk");
+            Assert.Equal(disk.Reasons, projected.Reasons);
+            Assert.DoesNotContain("synthetic-sensitive-error", response.RootElement.GetRawText());
+        }
+        finally { File.Delete(path); }
+    }
+
     // A latched component failure would keep a recovered agent degraded indefinitely.
     [Fact]
     public async Task Mandatory_collector_health_recovers_after_failure_and_backoff_without_hiding_other_workers()

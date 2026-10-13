@@ -15,10 +15,14 @@ does not attribute a driver without dump analysis. No inbound HTTP service.
 
 Recommendations include evidence, expected qualitative benefit, impact and
 rollback limits. Maintenance opens fixed Windows settings for operator
-review. Direct file cleanup/package installation is a separately bounded
-subsequent capability and is not silently enabled by this UI. Manual
-allowlisted service/process operations use the existing elevated CLI, exact
-request approval and independent helper checks. Shadow remains default.
+review and offers a bounded user-temp preview/quarantine/restore workflow.
+That workflow only moves eligible top-level files from the current user's
+`%LOCALAPPDATA%\Temp` into a private, same-volume quarantine; exact preview
+confirmation is required, the operation rechecks fresh Confirmation-mode
+service state, and restore never overwrites. It does not free space, delete
+files, recurse or install packages. Manual allowlisted service/process
+operations use the existing elevated CLI, exact request approval and
+independent helper checks. Shadow remains default.
 
 The kill switch can be explicitly set in both configurations while
 preserving outbound choices. A post-action observation requires successful

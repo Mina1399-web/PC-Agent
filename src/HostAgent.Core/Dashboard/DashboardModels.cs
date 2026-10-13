@@ -6,7 +6,8 @@ public sealed record ViewProcess(int Pid, string Name, double? CpuPercent, long 
 { public long? StartTimeUtcTicks {get;init;} }
 public sealed record ViewService(string Name, string State);
 public sealed record ViewIncident(string Id, string State, string Code, int Confidence, string Severity, DateTimeOffset AtUtc, int Recurrences);
-public sealed record ViewHealth(string Component, string Code, bool Degraded);
+public sealed record ViewHealth(string Component, string Code, bool Degraded, IReadOnlyList<string>? Reasons = null)
+{ public string ReasonSummary => string.Join(", ", Reasons ?? Array.Empty<string>()); }
 public sealed record ViewEvidence(string Source, double? Value, DateTimeOffset AtUtc);
 public sealed record ViewIncidentDetail(ViewIncident Incident, string ConfidenceScope, IReadOnlyList<ViewEvidence> Evidence, bool Truncated);
 public sealed record ViewEvent(int EventId, long? RecordId, DateTimeOffset AtUtc, uint? BugCheckCode, string? DumpFileName);

@@ -1,9 +1,18 @@
 using System.Collections.Concurrent;
 using HostAgent.Core.Orchestration;
 namespace HostAgent.Service;
-public sealed record ComponentHealth(string Component, string Code, bool Degraded);
+public sealed record ComponentHealth(string Component, string Code, bool Degraded, IReadOnlyList<string> Reasons);
 public sealed class AgentRuntimeHealth
 {
+    private static readonly HashSet<string> AllowedWarnings = new(StringComparer.Ordinal)
+    {
+        "volume_not_ready", "volume_metrics_unavailable", "disk_io_counters_unavailable", "some_disk_io_counters_unavailable",
+        "smart_health_unavailable", "system_cpu_counter_unavailable", "cpu_baseline_not_ready", "process_list_unavailable",
+        "some_process_metrics_unavailable", "some_process_start_times_unavailable", "process_list_truncated",
+        "service_catalog_unavailable", "some_service_states_unavailable", "some_executable_paths_unavailable",
+        "some_network_adapter_details_unavailable", "no_network_adapters_available", "windows_version_registry_unavailable",
+        "shutdown_history_unavailable"
+    };
     private readonly ConcurrentDictionary<string, ComponentHealth> _components = new(StringComparer.Ordinal);
     public bool Degraded => _components.Values.Any(value => value.Degraded);
     public IReadOnlyList<ComponentHealth> Snapshot() => _components.Values.OrderBy(value => value.Component, StringComparer.Ordinal).ToArray();
@@ -13,7 +22,8 @@ public sealed class AgentRuntimeHealth
         // Never expose arbitrary caller text, exception messages or payloads.
         component = component is "collection_worker" or "collectors" or "diagnostics" or "publication" or "administration"
             ? component : "runtime";
-        _components[component] = new(component, degraded ? component + "_unavailable" : "healthy", degraded);
+        var code = degraded ? component + "_unavailable" : "healthy";
+        _components[component] = new(component, code, degraded, degraded ? [code] : []);
     }
 
     public void SetCollectors(IReadOnlyList<CollectorCycleResult> results)
@@ -34,7 +44,10 @@ public sealed class AgentRuntimeHealth
                     ? result.FailureCode : "collector_failed"
             };
             if (result.CollectorId is "system" or "cpu-memory" or "disk" or "process-services" or "network" or "event-log")
-                _components[result.CollectorId] = new(result.CollectorId, code, degraded);
+            {
+                var reasons = result.WarningCodes.Where(AllowedWarnings.Contains).Distinct(StringComparer.Ordinal).Take(8).ToArray();
+                _components[result.CollectorId] = new(result.CollectorId, code, degraded, reasons);
+            }
         }
         Set("collectors", anyDegraded);
     }

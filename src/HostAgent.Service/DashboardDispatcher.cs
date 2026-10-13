@@ -30,7 +30,7 @@ public sealed class DashboardDispatcher(IHostAgentStore store,ServiceConfigurati
                         process.Value?.Processes.OrderByDescending(x=>x.MemoryBytes).Take(10).Select(x=>new ViewProcess(x.ProcessId,SafeName(x.ProcessName),x.CpuUsagePercent,x.MemoryBytes){StartTimeUtcTicks=x.StartedAtUtc?.UtcTicks}).ToArray()??[],
                         process.Value?.Services.OrderBy(x=>x.ServiceName,StringComparer.Ordinal).Take(30).Select(x=>new ViewService(SafeName(x.ServiceName),x.Status.ToString())).ToArray()??[],
                         network.Value?.Adapters.Count(x=>x.Status=="Up"),await Heads(token),
-                        health.Snapshot().Take(16).Select(x=>new ViewHealth(x.Component,x.Code,x.Degraded)).ToArray(),MinuteMinimum(cpu),MinuteMinimum(memory)){KillSwitch=configuration.KillSwitch});
+                        health.Snapshot().Take(16).Select(x=>new ViewHealth(x.Component,x.Code,x.Degraded,x.Reasons)).ToArray(),MinuteMinimum(cpu),MinuteMinimum(memory)){KillSwitch=configuration.KillSwitch});
                 case "history":
                     var metric=request.Body.GetProperty("metric").GetString()=="cpu"?"cpu.usage.percent":"memory.used.percent";
                     // Minimum supported interval is 5s: 24h has at most 17,281 samples.

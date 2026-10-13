@@ -26,8 +26,29 @@ uvádí přínos, dopad a limity návratu. Instalace náhodného „optimalizát
 automatická změna ovladačů ani mazání osobních dat se nenavrhují.
 
 Údržba otevře konkrétní nastavení Windows: úložiště, aplikace nebo programy
-po spuštění. Host Agent zde zatím sám nemaže soubory a neinstaluje balíčky.
-OS-managed výběr a případné nevratné smazání musí zkontrolovat operátor.
+po spuštění. Samostatné **Dočasné soubory** nabízí read-only náhled a po
+výslovném potvrzení přesune všechny způsobilé soubory z tohoto náhledu do
+karantény aktuálního
+uživatele. Jde pouze o běžné soubory přímo v `%LOCALAPPDATA%\Temp`, nejméně
+sedm dní staré, maximálně 16 MiB každý; náhled prochází nejvýše 500 položek a
+navrhne nejvýše 100. Karanténa má limit 128 MiB a 256 záznamů, používá přesný
+jednorázový identifikátor náhledu, který platí deset minut, a před každým
+přesunem znovu ověřuje čerstvý stav služby. Obnova má vlastní přesný
+identifikátor a nikdy nepřepisuje soubor, který mezitím vznikl na původním
+místě. Nedostupné, změněné, zamčené nebo nepodporované položky se přeskočí.
+
+Karanténa soubory **nesmaže a neuvolní místo**; data zůstávají obnovitelná.
+Není nastavena automatická ani trvalá likvidace. Ručně kontrolujte obsah a
+obnovujte jen položky, kterým rozumíte. Přehled ani nástroj nemaže jiné
+soubory, neprochází podadresáře a nepřijímá zadané cesty. Režim Shadow,
+read-only, kill switch, zastaralý nebo nedostupný stav a zvýšený token vždy
+zablokují změnu. Nové vysvětlení zdravotního stavu používá pouze omezené
+stabilní kódy komponent; citlivý text výjimky se nezobrazuje.
+
+OS-managed výběr, instalaci balíčků a případné nevratné smazání musí
+zkontrolovat operátor. Funkce údržby byla ověřena automatizovanými testy nad
+syntetickými soubory ve VM; její provedení na uživatelském Temp ani uvolnění
+místa nejsou součástí provozního ověření.
 
 Pro **ruční zásah** nejdřív vyberte incident a zadejte již registrovaný alias
 helperu. Pro proces vyberte řádek v přehledu, který doplní PID a přesný čas
