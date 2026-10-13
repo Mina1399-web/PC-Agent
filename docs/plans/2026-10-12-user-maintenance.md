@@ -45,7 +45,7 @@
 
 - [x] Implement the separate Czech window and test preview/exact confirmation, Shadow blocking, restore target and manual confirmation using synthetic fixture files. Stale clearing/cancellation UI tests and actual Temp execution remain unverified.
 - [x] Run final focused suites, complete Release build/suite after the last code change, independent review and diff/secret checks. Latest Release result: 0 warnings/errors; Core 58/58, Infrastructure 264/264, Desktop 14/14. Independent read-only review approved with no outstanding findings.
-- [ ] Commit verified files; build a unique clean-source 1.2.0 DEV candidate and validate release/MSI/shortcut. Preserve installed 1.1.0/DB before any normal UAC product-only upgrade. Verify live view pipe, desktop lifecycle and fixture-only maintenance; record remaining live limits without claiming host deployment or crash repair.
+- [x] Commit verified files as `b689fec568dd1835ee88767ea6f4fc0ba63abadc`; build and validate the clean-source 1.2.0 DEV candidate; preserve installed 1.1.0/DB; upgrade through normal UAC; verify all 1,191 installed hashes, config/DB preservation and service stop/start. The unelevated Desktop window opened and closed cleanly. Actual Temp cleanup, rendered metrics/tray, soak, production signing/deployment and crash repair remain unverified or out of scope.
 
 Fresh execution evidence and exact release gate results are tracked in
 [`maintenance-1.md`](../verification/maintenance-1.md). Do not treat historical

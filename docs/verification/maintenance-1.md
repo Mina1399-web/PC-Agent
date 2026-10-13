@@ -85,6 +85,66 @@ before the final build and suite above.
 
 ## Scope and limits
 
+## DEV package and installed acceptance
+
+The verified source was committed as `b689fec568dd1835ee88767ea6f4fc0ba63abadc`
+on `codex/local-dashboard`. A clean detached worktree at that commit produced
+the unsigned DEV-only 1.2.0 package inside the approved VM:
+
+```powershell
+.\tools\Build-Release.ps1 -PackagePath 'C:\Users\AgentPCdevtest\Documents\ChatGPT\DevTest VM PC\HostAgent-DEV-tools\packages\HostAgent-DEV-1.2.0' -WixPath 'C:\Users\AgentPCdevtest\Documents\ChatGPT\DevTest VM PC\HostAgent-DEV-tools\wix\wix.exe' -DevVm -Version '1.2.0'
+& "$package\tools\Test-Release.ps1" -PackagePath $package -DevVm
+& .\tools\Test-Installer.ps1 -PackagePath $package
+```
+
+Build-Release and independent package validation exited 0. The release
+manifest validated **1,195 files** and names source commit `b689fec`. MSI
+inspection validated **1,191 installed files**, two services under
+`NT SERVICE\HostAgent` and `LocalSystem`, one desktop shortcut, the DEV VM
+identity guard, and data-preserving uninstall metadata. ZIP SHA-256 is
+`13C3653FB51CFBF7E7BB1408CAF1FF8847829B0C652EBBFB25499A3A61F2ECDB`; MSI is
+`940185F4AB95BE7D91A5C18EB26567CDCFF0889B035E0045A36D0C9C77E6DD8E`; manifest
+is `A38A5B014463F436E738FFB8E53E738E8EE7BCFB5D7677AF0E4BB1EB01192D53`.
+
+Before upgrading, the installed 1.1.0.0 product and both Running/Auto service
+identities were checked. The prior 1.1.0 rollback package validated against its
+manifest. A version-specific copy of the existing reviewed acceptance harness
+ran via normal UAC; the harness first checked the DEV VM, Shadow/read-only and
+outbound-disabled configuration, created a protected backup, performed the
+upgrade, checked installed hashes and then exercised service stop/start. Its
+result reports `backup`, `upgraded`, `stopStart` and `completed` all true;
+installed version is **1.2.0.0** and all **1,191** installed files matched.
+Configuration SHA-256 stayed
+`0D0DCCF65BDCCDED91AD1C1BF7B4E7AB5F738FF2E04E9D7D9A80E91BC1F2670F`. Both
+services returned Running/Auto with the original accounts. Explicit requested
+stop took 520 ms.
+
+Protected return point:
+`C:\ProgramData\HostAgent.StabilizationBackups\2026-10-13-maintenance-1.1.0`.
+Its consistent SQLite backup passed `integrity_check=ok`; it contains 12,084
+telemetry rows, 42 incidents, 872 snapshots, 882 diagnostic evidence rows, 80
+audit rows and two collector checkpoints. Read-only comparison after upgrade
+found no missing incident/snapshot/evidence/audit rows, no changes to immutable
+snapshot/evidence/audit records, both Event Log checkpoints preserved or
+advanced, and zero source DB changes. One new snapshot and diagnostic evidence
+row appeared during post-upgrade collection.
+
+Installed status before and after the service restart stayed Shadow,
+read-only, with Pushover and heartbeat disabled. Overall health remains
+degraded: CPU/memory, disk and process/services are partial, while system,
+network and Event Log are healthy. The same missing telemetry was recorded
+before this increment in [stabilization verification](stabilization-2.md) and
+[dashboard verification](dashboard-1.md); this install confirms it persists,
+not that the new maintenance code caused it. No permissions or security
+policies were enlarged to hide it.
+
+The installed 1.2.0 Desktop was opened unelevated, its `Host Agent` window
+appeared and it closed cleanly on request. This checks process/window lifecycle,
+not rendered metrics or tray behavior. The actual user Temp directory was not
+previewed or changed; maintenance UI behavior remains covered by synthetic
+fixtures only. The candidate is deliberately unsigned and DEV-VM-only, not a
+production release.
+
 All maintenance file tests used generated files below unique current-user
 `LocalAppData\Temp\HostAgent-Maintenance-Test-*` or
 `HostAgent-Maintenance-UI-*` fixture directories and cleaned only those exact
@@ -96,9 +156,8 @@ ten minutes and is consumed once. Quarantine does not reclaim space and has
 no automatic or permanent deletion. Restoration requires exact explicit
 confirmation and never replaces an existing file.
 
-No real user Temp cleanup, real Confirmation-mode service mutation, actual
-installed 1.2 candidate, MSI upgrade, long-duration soak, external push or
-heartbeat, production-host operation or signed release was exercised in this
-increment. Package generation and installed acceptance still require their
-own verified steps. These results establish source/build/test readiness for
-this increment, not complete live deployment acceptance.
+No real user Temp cleanup, real Confirmation-mode maintenance mutation,
+long-duration soak, external push or heartbeat, production-host operation or
+signed release was exercised. The installed DEV candidate passed bounded
+upgrade and UI lifecycle acceptance, but this does not establish complete
+production readiness or repair any host crash.
