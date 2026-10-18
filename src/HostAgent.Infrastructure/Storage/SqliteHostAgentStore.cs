@@ -27,7 +27,9 @@ public sealed partial class SqliteHostAgentStore : IHostAgentStore
         {
             DataSource = _databasePath,
             Mode = SqliteOpenMode.ReadWriteCreate,
-            Cache = SqliteCacheMode.Shared,
+            // WAL readers must not inherit shared-cache table locks from
+            // concurrent collector/incident writers in this process.
+            Cache = SqliteCacheMode.Private,
             DefaultTimeout = 15,
             ForeignKeys = true,
             Pooling = false

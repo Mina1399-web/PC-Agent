@@ -96,6 +96,43 @@ public sealed class Task2PersistenceTests
         Assert.Equal(10, assessment.Median);
     }
 
+    [Theory]
+    [InlineData(true, "Private")]
+    [InlineData(false, "Private")]
+    [InlineData(true, "Shared")]
+    [InlineData(false, "Shared")]
+    public async Task Incident_reads_do_not_wait_for_or_observe_an_uncommitted_WAL_writer(bool headsOnly, string writerCache)
+    {
+        var path = Path.Combine(Path.GetTempPath(), "HostAgentTests", Guid.NewGuid().ToString("N"), "concurrent.db");
+        await using var store = new SqliteHostAgentStore(path);
+        var diagnosis = new Diagnosis("diag", "disk:C", Now, DiagnosisSeverity.Critical, 82, [],
+            new("disk_capacity", "full", "C"), [], new("inspect", "inspect"), IncidentLifecycleState.Active);
+        await store.SaveIncidentBundleAsync(new("committed", "disk:C", IncidentLifecycleState.Active,
+            Now, Now, 1, diagnosis, [Snapshot() with { IncidentId = "committed" }]), default);
+        await using var writer = new SqliteConnection($"Data Source={path};Pooling=False;Cache={writerCache}");
+        await writer.OpenAsync();
+        await using var transaction = writer.BeginTransaction();
+        await using var update = writer.CreateCommand();
+        update.Transaction = transaction;
+        update.CommandText = "UPDATE incidents SET payload_json='{}';";
+        await update.ExecuteNonQueryAsync();
+        using var entered = new ManualResetEventSlim();
+        var read = Task.Run(async () =>
+        {
+            entered.Set();
+            return headsOnly ? await store.ReadIncidentHeadsAsync(default) : await store.ReadIncidentsAsync(default);
+        });
+        Assert.True(entered.Wait(TimeSpan.FromSeconds(5)));
+        bool completedWhileWriterHeld;
+        try { completedWhileWriterHeld = await Task.WhenAny(read, Task.Delay(TimeSpan.FromSeconds(2))) == read; }
+        finally { await transaction.RollbackAsync(); }
+        var incident = Assert.Single(await read.WaitAsync(TimeSpan.FromSeconds(20)));
+        Assert.True(completedWhileWriterHeld, "Incident read waited for a WAL writer instead of reading committed state.");
+        Assert.Equal("committed", incident.IncidentId);
+        Assert.Equal(82, incident.LatestDiagnosis.Confidence);
+        Assert.Single(incident.Snapshots);
+    }
+
     private static MethodInfo Method(string name)
     {
         var method = typeof(SqliteHostAgentStore).GetMethod(name);

@@ -16,6 +16,45 @@ namespace HostAgent.Infrastructure.Tests;
 public sealed class DashboardViewTests
 {
     [Fact]
+    public async Task Overview_pipe_returns_committed_incident_while_WAL_writer_is_open()
+    {
+        await using var f = await OperatingModeTests.Fixture.Create();
+        var expected = Assert.Single(await f.Store.ReadIncidentHeadsAsync(default));
+        await using var writer = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={f.Path};Pooling=False;Cache=Shared");
+        await writer.OpenAsync();
+        await using var transaction = writer.BeginTransaction();
+        await using var update = writer.CreateCommand();
+        update.Transaction = transaction;
+        update.CommandText = "UPDATE incidents SET payload_json='{}';";
+        await update.ExecuteNonQueryAsync();
+        using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+        var sid = identity.User!;
+        var name = "HostAgent-view-wal-" + Guid.NewGuid().ToString("N");
+        var dispatcher = new DashboardDispatcher(f.Store, new(), new(), TimeProvider.System);
+        var server = new AdminPipeServer(name, sid, sid, dispatcher.DispatchAsync, TimeSpan.FromSeconds(3));
+        using var stop = new CancellationTokenSource(TimeSpan.FromSeconds(8));
+        var serving = Task.Run(() => server.ServeOnceAsync(stop.Token));
+        try
+        {
+            var client = new ViewPipeClient(name, sid, TimeSpan.FromSeconds(3));
+            using var reply = JsonDocument.Parse(await client.SendAsync(ViewProtocol.Request("overview", new { }), stop.Token));
+            Assert.True(reply.RootElement.GetProperty("ok").GetBoolean());
+            var data = reply.RootElement.GetProperty("data");
+            Assert.Equal("Shadow", data.GetProperty("Mode").GetString());
+            Assert.True(data.GetProperty("ReadOnly").GetBoolean());
+            var incident = Assert.Single(data.GetProperty("Incidents").EnumerateArray());
+            Assert.Equal(expected.IncidentId, incident.GetProperty("Id").GetString());
+            Assert.Equal(expected.LatestDiagnosis.Confidence, incident.GetProperty("Confidence").GetInt32());
+        }
+        finally
+        {
+            stop.Cancel();
+            await transaction.RollbackAsync();
+            await serving.WaitAsync(TimeSpan.FromSeconds(5));
+        }
+    }
+
+    [Fact]
     public async Task Idle_view_listener_does_not_retire_at_a_request_deadline_boundary()
     {
         using var identity=System.Security.Principal.WindowsIdentity.GetCurrent();var sid=identity.User!;

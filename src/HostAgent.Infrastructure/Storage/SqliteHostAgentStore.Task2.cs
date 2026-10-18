@@ -118,7 +118,10 @@ public sealed partial class SqliteHostAgentStore
     {
         await EnsureInitializedAsync(cancellationToken);
         await using var connection = await OpenConnectionAsync(cancellationToken);
-        await using var transaction = connection.BeginTransaction();
+        // This is a consistent read of heads and snapshots, not a writer.
+        // BEGIN IMMEDIATE unnecessarily waits for telemetry/incident writers
+        // and can consume the View pipe deadline before the first SELECT.
+        await using var transaction = connection.BeginTransaction(deferred: true);
         var incidents = new List<Incident>();
         await using (var command = connection.CreateCommand())
         {
