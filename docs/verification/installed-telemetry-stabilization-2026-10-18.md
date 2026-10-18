@@ -137,3 +137,42 @@ Global health is not itself a RemediationCoordinator authorization gate: fixing
 an indicator does not enable actions. No blanket full-access mode, no silent
 switch, no assertion that every warning has been eliminated or product is 100%.
 Earlier chaos PASS records remain historical evidence for their own candidates.
+
+## Operator result and diagnostic guard correction — subsequent fresh evidence
+
+The operator returned the elevated script result: VM/account approved,
+HostAgent Running/PID6592 with unchanged identity; all three PDH counters passed
+open/add/two collections/format/CStatus/close (all native statuses zero).
+This is still elevated-interactive evidence, not service-token PDH proof.
+Installed notifications.db passed read-only quick_check=ok. Host-agent and
+helper-journal were NOTRUN at file_guard_unavailable, with the disk reason also
+NOTRUN. Their integrity and exact guard cause remain unverified; there is no
+evidence here that either database is corrupt. Overall remains INCOMPLETE.
+
+The diagnostic harness had a confirmed observability defect: its catch exposed
+only the stage and discarded the distinction between missing files, absent WAL
+sidecars, header/size/path guards, access denial and other IO failures. It now
+adds only a fixed allowlisted failureCode; guards, limits and read-only behavior
+are unchanged. Unknown exception text is never returned. New permanent tests:
+
+```powershell
+& "$env:USERPROFILE\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe" -I -B scripts/diagnostics/tests/test_installed_disk_probe.py
+```
+
+First RED: 1 PASS/6 expected FAIL (failureCode absent), then GREEN7/7.
+An additional timeout regression exposed Python TimeoutError inheriting OSError:
+RED7 PASS/1 expected FAIL, then the ordered classification correction GREEN8/8.
+Six existing disposable SQLite fixture tests also passed. PS5.1/PS7 parsing and
+embedded Python AST checks passed; git diff --check passed. Fresh retained
+evidence: `%LOCALAPPDATA%\\HostAgent-DEV-evidence\\probe-guard-classification-20261018T155314Z`
+(`focused-green.txt`, `existing-fixtures.json`). Earlier RED assertions are in
+the current execution tool transcript. Final script SHA-256:
+`104841980BD0F713F559FB930406B7973F79874ADA17670EE370AB220AA28E75`.
+
+No C# runtime/build input changed in this follow-up. The preceding466/466 Release
+suite remains evidence for the unchanged runtime source, not a newly rerun
+suite. No elevated probe/service/ACL/configuration operation was executed by
+the agent. The operator must rerun the updated read-only probe to establish
+which actual file guard blocked the two installed databases. Do not remove
+sidecars, raise size limits, switch to immutable on live DBs or repair databases
+based on the old generic NOTRUN result.

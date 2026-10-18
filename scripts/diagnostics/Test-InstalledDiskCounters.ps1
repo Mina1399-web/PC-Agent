@@ -172,8 +172,25 @@ def inspect_database(path, read_reason=False):
         if time.monotonic() >= deadline:
             raise TimeoutError()
         output['stage'] = 'complete'
-    except Exception:
+    except Exception as error:
         # No exception text, rows or arbitrary persisted strings leave this helper.
+        # A stage alone cannot distinguish a conservative guard from an IO fault.
+        known_guards = ('path_guard', 'header_guard', 'wal_sidecars_required',
+            'rollback_journal_present', 'size_guard', 'journal_mode_changed')
+        if isinstance(error, ValueError) and len(error.args) == 1 and error.args[0] in known_guards:
+            output['failureCode'] = error.args[0]
+        elif isinstance(error, FileNotFoundError):
+            output['failureCode'] = 'file_missing'
+        elif isinstance(error, PermissionError):
+            output['failureCode'] = 'access_denied'
+        elif isinstance(error, TimeoutError):
+            output['failureCode'] = 'deadline'
+        elif isinstance(error, OSError):
+            output['failureCode'] = 'file_io_unavailable'
+        elif isinstance(error, sqlite3.Error):
+            output['failureCode'] = 'sqlite_operation_failed'
+        else:
+            output['failureCode'] = 'probe_operation_failed'
         output['stage'] = stage + '_unavailable'
         if time.monotonic() >= deadline:
             output['stage'] = 'deadline'
