@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Globalization;
 using System.IO;
 using System.Windows.Controls;
 using System.Windows.Threading;
@@ -15,16 +16,19 @@ namespace HostAgent.Desktop.Tests;
 
 public sealed class DashboardUiTests
 {
+    // Each test process keeps its own synthetic captures; never overwrite earlier evidence.
+    private static readonly string CaptureDirectory = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HostAgent-DEV-evidence",
+        "dashboard-design-" + Guid.NewGuid().ToString("N"));
     [Fact]
     public async Task Real_wpf_window_renders_synthetic_data_and_clears_disconnected_metrics()
     {
-        var completion=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var thread=new Thread(()=>
+        await StaTest.RunAsync(()=>
         {
             MainWindow? window=null;
             try
             {
-                var now=DateTimeOffset.UtcNow;var online=true;var stale=false;
+                var now=DateTimeOffset.UtcNow;var online=true;var stale=false;var historyRequests=new List<string>();
                 var incident=new ViewIncident(Guid.NewGuid().ToString("N"),"Active","windows_bugcheck",88,"High",now.AddHours(-1),2);
                 var view=new DashboardSnapshot(now,"Shadow",true,false,new(now,42),new(now,64),new(now,7200),
                     [new("C:",5_368_709_120,137_438_953_472,now)],[new(42,"Ukázkový proces",1,1_610_612_736){StartTimeUtcTicks=100}],
@@ -35,6 +39,7 @@ public sealed class DashboardUiTests
                 var controller=new DashboardController((payload,_)=>
                 {
                     var request=ViewProtocol.Parse(payload);
+                    if(request.Command=="history")historyRequests.Add(request.Body.GetProperty("metric").GetString()??"null");
                     if(!online)return ValueTask.FromResult(AdminProtocol.Reply(false,"view_unavailable"));
                     return ValueTask.FromResult(request.Command switch
                     {
@@ -54,7 +59,10 @@ public sealed class DashboardUiTests
                 Assert.Equal("1",((TextBlock)window.FindName("IncidentCountText")).Text);
                 Assert.Single(((DataGrid)window.FindName("DisksGrid")).Items.Cast<object>());
                 Assert.Single(((DataGrid)window.FindName("ServicesGrid")).Items.Cast<object>());
-                Assert.Equal(4,((Canvas)window.FindName("Chart")).Children.OfType<Polyline>().Count());
+                PumpUntil(()=>((Canvas)window.FindName("Chart")).Children.OfType<Polyline>().Count()==4);
+                var chartLines=((Canvas)window.FindName("Chart")).Children.OfType<Polyline>().ToArray();
+                var chartDetails=string.Join(",",chartLines.Select(line=>line.Points.Count.ToString(CultureInfo.InvariantCulture)));
+                Assert.True(chartLines.Length==4,$"historyRequests={string.Join(",",historyRequests)}; linePointCounts={chartDetails}");
                 Assert.Equal(Visibility.Collapsed,((TextBlock)window.FindName("ChartEmptyText")).Visibility);
                 var processGrid=(DataGrid)window.FindName("ProcessGrid");processGrid.SelectedIndex=0;
                 Assert.Equal("42",((TextBox)window.FindName("PidInput")).Text);
@@ -67,7 +75,7 @@ public sealed class DashboardUiTests
                 foreach(var size in new[]{(1280d,880d),(1000d,760d),(850d,620d)})
                 {
                     window.Width=size.Item1;window.Height=size.Item2;window.UpdateLayout();
-                    Assert.Equal(size.Item1<1050?2:4,((System.Windows.Controls.Primitives.UniformGrid)window.FindName("MetricsGrid")).Columns);
+                    Assert.Equal(window.ActualWidth<1050?2:4,((System.Windows.Controls.Primitives.UniformGrid)window.FindName("MetricsGrid")).Columns);
                     Capture(window,$"overview-{size.Item1:0}-synthetic");
                 }
                 window.Width=1280;window.Height=880;
@@ -103,13 +111,21 @@ public sealed class DashboardUiTests
                 PumpUntil(()=>((TextBlock)window.FindName("StatusText")).Text.Contains("zastaralá"));
                 Assert.Null(controller.Snapshot);Assert.False(((Button)window.FindName("OperationButton")).IsEnabled);
                 Capture(window,"stale");
-                window.Close();window=null;completion.SetResult();
+                for (var cycle = 0; cycle < 3; cycle++)
+                {
+                    online = false;
+                    refresh.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    PumpUntil(() => ((TextBlock)window.FindName("CpuText")).Text == "—");
+                    Assert.Null(controller.Snapshot);
+                    Assert.False(((Button)window.FindName("OperationButton")).IsEnabled);
+                    online = true; stale = false;
+                    refresh.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    PumpUntil(() => ((TextBlock)window.FindName("CpuText")).Text == "42 %");
+                    Assert.NotNull(controller.Snapshot);
+                }
             }
-            catch(Exception error){window?.Close();completion.SetException(error);}
-            finally {Dispatcher.CurrentDispatcher.InvokeShutdown();}
-        });
-        thread.SetApartmentState(ApartmentState.STA);thread.IsBackground=true;thread.Start();
-        await completion.Task.WaitAsync(TimeSpan.FromSeconds(60));
+            finally {window?.Close();}
+        }, TimeSpan.FromSeconds(60));
     }
     private static void Capture(MainWindow window,string name)
     {
@@ -122,7 +138,7 @@ public sealed class DashboardUiTests
         var content=(FrameworkElement)window.Content;
         var bitmap=new RenderTargetBitmap((int)content.ActualWidth,(int)content.ActualHeight,96,96,PixelFormats.Pbgra32);bitmap.Render(content);
         var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));
-        var directory=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"HostAgent-DEV-evidence","dashboard-design");Directory.CreateDirectory(directory);
+        var directory=CaptureDirectory;Directory.CreateDirectory(directory);
         using var output=File.Create(Path.Combine(directory,name+".png"));encoder.Save(output);
     }
     private static void PumpUntil(Func<bool> condition)

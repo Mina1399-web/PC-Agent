@@ -7,6 +7,9 @@ using HostAgent.Core.Policy;
 using HostAgent.Core.Models.Policy;
 using HostAgent.Core.Models.Audit;
 using Microsoft.Data.Sqlite;
+using System.Diagnostics;
+using System.Security.Principal;
+using System.Collections.Concurrent;
 using Xunit;
 
 namespace HostAgent.Infrastructure.Tests;
@@ -55,6 +58,58 @@ public sealed class RemediationGuardTests
         Assert.Equal("execution_interrupted", audit[^1].Code);
         Assert.Equal("replayed_request", (await fixture.Dispatcher().ExecuteAsync(request, Task3Fixture.CallerSid, default)).Code);
         Assert.Equal(1, fixture.Executor.Calls);
+    }
+    [Fact]
+    public async Task Helper_stage_diagnostics_are_fixed_labels_and_do_not_change_results()
+    {
+        await using var fixture = new Task3Fixture();
+        var request = await fixture.Approve(Task3Fixture.Request());
+        var stages = new List<string>();
+        var response = await fixture.Dispatcher(stageObserver: stages.Add)
+            .ExecuteAsync(request, Task3Fixture.CallerSid, default);
+        Assert.Equal(HelperResult.Succeeded, response.Result);
+        Assert.Equal(new[] { "request_validated", "dispatcher_gate_acquired", "proposal_recorded", "approval_loaded",
+            "allowlist_resolved", "policy_decision_recorded", "operation_reserved", "execution_started_recorded",
+            "executor_invocation_scheduled", "executor_invocation_completed", "execution_outcome_recorded" }, stages);
+        Assert.DoesNotContain(stages, value => value.Contains(request.RequestId.ToString(), StringComparison.Ordinal));
+        var throwingObserver = fixture.Dispatcher(stageObserver: _ => throw new InvalidOperationException("observer failure"));
+        var second = await fixture.Approve(Task3Fixture.Request());
+        var observedDespiteThrowingDiagnostic = await throwingObserver.ExecuteAsync(second, Task3Fixture.CallerSid, default);
+        Assert.Equal(HelperResult.Denied, observedDespiteThrowingDiagnostic.Result);
+        Assert.Equal("cooldown", observedDespiteThrowingDiagnostic.Code);
+    }
+    [Fact]
+    public async Task Helper_timeout_over_named_pipe_is_indeterminate_audited_and_connection_recovers()
+    {
+        await using var fixture = new Task3Fixture();
+        fixture.Executor.Block = true;
+        using var identity = WindowsIdentity.GetCurrent();
+        var sid = identity.User!;
+        var pipe = "HostAgent-test-helper-timeout-" + Guid.NewGuid().ToString("N");
+        var stages = new ConcurrentQueue<string>();
+        var dispatcher = fixture.Dispatcher(settings: new(false, false, ExecutionTimeoutSeconds: 1), stageObserver: stages.Enqueue);
+        var server = new NamedPipeHelperServer(pipe, new PipeAuthorization(sid, sid), dispatcher,
+            TimeSpan.FromSeconds(8), boundary => stages.Enqueue("server:" + boundary));
+        var serving = Task.Run(async () => { await server.ServeOnceAsync(default); await server.ServeOnceAsync(default); });
+        var request = await fixture.Approve(Task3Fixture.Request());
+        var clock = Stopwatch.StartNew();
+        var first = await new NamedPipeHelperClient(pipe, sid, TimeSpan.FromSeconds(5), boundary => stages.Enqueue("client:" + boundary))
+            .ExecuteAsync(request, default);
+        Assert.InRange(clock.Elapsed, TimeSpan.Zero, TimeSpan.FromSeconds(4));
+        Assert.Equal(HelperResult.Indeterminate, first.Result);
+        Assert.Equal("execution_interrupted", first.Code);
+        var replay = await new NamedPipeHelperClient(pipe, sid, TimeSpan.FromSeconds(5))
+            .ExecuteAsync(request, default);
+        await serving.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(HelperResult.Denied, replay.Result);
+        Assert.Equal("replayed_request", replay.Code);
+        Assert.Equal(1, fixture.Executor.Calls);
+        var audit = await fixture.Journal.ReadAuditAsync(request.RequestId, default);
+        Assert.Contains(audit, row => row.Event == AuditEvent.ExecutionEnded && row.Code == "execution_interrupted");
+        Assert.Contains("executor_invocation_interrupted", stages);
+        Assert.Contains("server:server_response_written", stages);
+        Assert.Contains("client:client_response_validated", stages);
+        Assert.DoesNotContain(stages, value => value.Contains(request.RequestId.ToString(), StringComparison.Ordinal));
     }
     [Fact]
     public void Guard_enforces_attempt_rate_cooldown_and_restart_backoff_boundaries()
@@ -203,9 +258,10 @@ internal sealed class Task3Fixture : IAsyncDisposable
     public FixtureClock Clock { get; } = new();
     public Task3Fixture() => Journal = new(Path, [ApproverSid]);
     public static HelperOperationRequest Request() => HelperProtocol.ParseRequest(System.Text.Encoding.UTF8.GetBytes(HelperProtocolTests.ValidJson)) with { RequestId = Guid.NewGuid() };
-    public HelperDispatcher Dispatcher(HelperSettings? settings = null, IPolicyEngine? policy = null, SqliteHelperJournal? journal = null) =>
+    public HelperDispatcher Dispatcher(HelperSettings? settings = null, IPolicyEngine? policy = null, SqliteHelperJournal? journal = null,
+        Action<string>? stageObserver = null) =>
         new(journal ?? Journal, new HelperAllowlist([new("test-service", "FixtureService", [HelperOperation.StartService, HelperOperation.RestartService])], []),
-            Executor, policy ?? new PolicyEngine(), () => settings ?? new(false, false), timeProvider: Clock);
+            Executor, policy ?? new PolicyEngine(), () => settings ?? new(false, false), timeProvider: Clock, stageObserver: stageObserver);
     public async Task<HelperOperationRequest> Approve(HelperOperationRequest request)
     {
         var approval = new OperationApproval(Guid.NewGuid(), request.RequestId, request.IncidentId, request.DiagnosisId,
@@ -216,7 +272,7 @@ internal sealed class Task3Fixture : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await Journal.DisposeAsync();
-        foreach (var suffix in new[] { "", "-wal", "-shm" }) if (File.Exists(Path + suffix)) File.Delete(Path + suffix);
+        foreach (var suffix in new[] { "", "-wal", "-shm" }) if (File.Exists(Path + suffix)) ChaosFixtureRetention.DeleteFile(Path + suffix);
     }
     internal sealed class FakeExecutor : IOperationExecutor
     {

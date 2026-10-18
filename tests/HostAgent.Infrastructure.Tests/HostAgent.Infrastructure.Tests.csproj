@@ -1,17 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
+    <Using Include="System.IO" />
+    <Using Include="System.Net.Http" />
     <PackageReference Include="Microsoft.Data.Sqlite" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HostAgent.PipeProbe\HostAgent.PipeProbe.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\HostAgent.PipeProbe\HostAgent.PipeProbe.csproj" />
     <ProjectReference Include="..\..\src\HostAgent.Core\HostAgent.Core.csproj" />
     <ProjectReference Include="..\..\src\HostAgent.Infrastructure\HostAgent.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\HostAgent.Service\HostAgent.Service.csproj" />

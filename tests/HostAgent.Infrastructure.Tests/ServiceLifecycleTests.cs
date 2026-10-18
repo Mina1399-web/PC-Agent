@@ -13,6 +13,48 @@ namespace HostAgent.Infrastructure.Tests;
 public sealed class ServiceLifecycleTests
 {
     [Fact]
+    public async Task Successful_collection_cycle_duration_is_included_in_sampling_interval()
+    {
+        var clock = new SamplingClock();
+        using var worker = new ResilientWorker(_ =>
+        {
+            clock.Advance(TimeSpan.FromSeconds(20));
+            return Task.CompletedTask;
+        }, TimeSpan.FromSeconds(60), TimeSpan.FromMinutes(2), clock, _ => { });
+        await worker.StartAsync(default);
+        try
+        {
+            var delay = await clock.ScheduledDelay.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            // CPU evidence requires five samples within five minutes. Waiting a
+            // full minute AFTER a slow collection silently makes that impossible.
+            Assert.Equal(TimeSpan.FromSeconds(40), delay);
+        }
+        finally { await worker.StopAsync(default).WaitAsync(TimeSpan.FromSeconds(2)); }
+    }
+
+    private sealed class SamplingClock : TimeProvider
+    {
+        private long ticks;
+        public TaskCompletionSource<TimeSpan> ScheduledDelay { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+        public override long GetTimestamp() => Interlocked.Read(ref ticks);
+        public void Advance(TimeSpan elapsed) => Interlocked.Add(ref ticks, elapsed.Ticks);
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+        {
+            if (dueTime > TimeSpan.Zero && dueTime <= TimeSpan.FromSeconds(60))
+                ScheduledDelay.TrySetResult(dueTime);
+            return new DormantTimer();
+        }
+        private sealed class DormantTimer : ITimer
+        {
+            public bool Change(TimeSpan dueTime, TimeSpan period) => true;
+            public void Dispose() { }
+            public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+        }
+    }
+
+    [Fact]
     public async Task Reopened_incident_gets_fresh_notice_but_ordinary_samples_do_not_spam()
     {
         await using var fixture=await OperatingModeTests.Fixture.Create();
@@ -52,11 +94,11 @@ public sealed class ServiceLifecycleTests
         {
             entered.TrySetResult();
             try{await Task.Delay(Timeout.InfiniteTimeSpan,token);}
-            finally{await Task.Delay(100);cleaned=true;}
+            finally{await Task.Delay(600);cleaned=true;}
         },TimeSpan.FromSeconds(1),TimeSpan.FromSeconds(3),TimeProvider.System,_=>{});
         await worker.StartAsync(default);
         await entered.Task.WaitAsync(TimeSpan.FromSeconds(1));
-        await worker.StopAsync(default).WaitAsync(TimeSpan.FromSeconds(1));
+        await worker.StopAsync(default).WaitAsync(TimeSpan.FromSeconds(3));
         Assert.True(cleaned);
     }
     [Fact]
@@ -167,7 +209,7 @@ public sealed class ServiceLifecycleTests
             Assert.Same(timedOut.Task,await Task.WhenAny(timedOut.Task,Task.Delay(TimeSpan.FromSeconds(3))));
             await Task.Delay(100);
             Assert.Equal(1,calls);
-            await worker.StopAsync(default).WaitAsync(TimeSpan.FromSeconds(1));
+            await worker.StopAsync(default).WaitAsync(TimeSpan.FromSeconds(3));
         }
         finally {blocked.TrySetResult();}
     }

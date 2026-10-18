@@ -14,6 +14,52 @@ namespace HostAgent.Infrastructure.Tests;
 
 public sealed class HealthStabilizationTests
 {
+    [Theory]
+    [InlineData("some_service_start_modes_unavailable")]
+    [InlineData("some_service_triggers_unavailable")]
+    public void Partial_service_metadata_health_exposes_the_bounded_reason(string warning)
+    {
+        var health = new AgentRuntimeHealth();
+        health.SetCollectors([new CollectorCycleResult("process-services", CollectorCycleStatus.Partial, null, 0, null)
+        { WarningCodes = [warning, "synthetic-sensitive-error"] }]);
+
+        var component = Assert.Single(health.Snapshot(), value => value.Component == "process-services");
+        Assert.True(component.Degraded);
+        Assert.Equal("collector_partial", component.Code);
+        Assert.Equal(new[] { warning }, component.Reasons);
+        Assert.DoesNotContain("synthetic-sensitive-error", JsonSerializer.Serialize(health.Snapshot()));
+    }
+
+    [Fact]
+    public void Aggregate_health_reports_partial_availability_when_some_collectors_succeed()
+    {
+        var health = new AgentRuntimeHealth();
+        health.SetCollectors(
+        [
+            new("system", CollectorCycleStatus.Succeeded, null, 0, null),
+            new("event-log", CollectorCycleStatus.Succeeded, null, 0, null),
+            new("network", CollectorCycleStatus.Succeeded, null, 0, null),
+            new("cpu-memory", CollectorCycleStatus.Partial, null, 0, null)
+            { WarningCodes = ["some_process_metrics_unavailable"] }
+        ]);
+
+        var aggregate = Assert.Single(health.Snapshot(), item => item.Component == "collectors");
+        Assert.True(aggregate.Degraded);
+        Assert.Equal("collectors_partial", aggregate.Code);
+        Assert.Equal(new[] { "collectors_partial" }, aggregate.Reasons);
+    }
+
+    [Fact]
+    public void Empty_collection_cycle_is_not_reported_as_healthy()
+    {
+        var health = new AgentRuntimeHealth();
+        health.SetCollectors([]);
+
+        var aggregate = Assert.Single(health.Snapshot(), item => item.Component == "collectors");
+        Assert.True(aggregate.Degraded);
+        Assert.Equal("collectors_unavailable", aggregate.Code);
+    }
+
     [Fact]
     public async Task Dashboard_exposes_bounded_allowlisted_partial_reasons_without_raw_warning_text()
     {
@@ -35,7 +81,7 @@ public sealed class HealthStabilizationTests
             Assert.Equal(disk.Reasons, projected.Reasons);
             Assert.DoesNotContain("synthetic-sensitive-error", response.RootElement.GetRawText());
         }
-        finally { File.Delete(path); }
+        finally { ChaosFixtureRetention.DeleteFile(path); }
     }
 
     // A latched component failure would keep a recovered agent degraded indefinitely.
@@ -75,7 +121,7 @@ public sealed class HealthStabilizationTests
             health.Set("diagnostics", false);
             Assert.False(health.Degraded);
         }
-        finally { File.Delete(path); }
+        finally { ChaosFixtureRetention.DeleteFile(path); }
     }
 
     // Optional SMART alone must not hide real missing disk/system telemetry.
@@ -122,7 +168,7 @@ public sealed class HealthStabilizationTests
             Assert.DoesNotContain("synthetic-sensitive-error", response.RootElement.GetRawText());
             Assert.Equal(0, helper.Calls);
         }
-        finally { File.Delete(path); }
+        finally { ChaosFixtureRetention.DeleteFile(path); }
     }
 
     [Fact]

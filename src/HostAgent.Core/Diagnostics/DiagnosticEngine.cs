@@ -351,6 +351,13 @@ public sealed class DiagnosticEngine : IDiagnosticEngine
             }
             var service = services.Services.FirstOrDefault(item =>
                 item.ServiceName.Equals(change.ServiceName, StringComparison.OrdinalIgnoreCase));
+            if (service?.StartMode == HostServiceStartMode.Manual
+                || service is { StartMode: HostServiceStartMode.Automatic, HasTriggers: true })
+            {
+                // Demand-start and trigger services may stop normally when work completes.
+                // Without SCM crash metadata, its transition alone does not prove a failure.
+                continue;
+            }
             if (service is not null && service.Status != HostServiceStatus.Stopped)
             {
                 continue;

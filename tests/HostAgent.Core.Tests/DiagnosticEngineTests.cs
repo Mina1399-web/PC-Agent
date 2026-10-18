@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Reflection;
+using System.Text.Json;
 using HostAgent.Core.Models.Telemetry;
 using Xunit;
 
@@ -96,6 +97,41 @@ public sealed class DiagnosticEngineTests
             && Equals(ReadProperty(ReadProperty(diagnosis, "ProbableRootCause")!, "Subject"), "Spooler"));
         Assert.Equal(90, ReadInt32(diagnoses.Single(item => Equals(ReadProperty(ReadProperty(item, "ProbableRootCause")!, "Code"), "memory_pressure")), "Confidence"));
         Assert.Equal(88, ReadInt32(diagnoses.Single(item => Equals(ReadProperty(ReadProperty(item, "ProbableRootCause")!, "Code"), "service_stopped")), "Confidence"));
+    }
+
+    [Fact]
+    public async Task Manual_demand_start_service_stopping_without_crash_evidence_is_not_a_high_confidence_failure()
+    {
+        // Numeric enum values keep this regression compilable before ServiceTelemetry
+        // gains the StartMode field; currently JSON ignores that field and the test is RED.
+        var service = JsonSerializer.Deserialize<ServiceTelemetry>(
+            """{"ServiceName":"FrameServer","DisplayName":"Windows Camera Frame Server","Status":1,"StartMode":2}""");
+        Assert.NotNull(service);
+
+        var evidence = CreateEvidence(
+            processServices: new ProcessServiceTelemetry(
+                [],
+                [service],
+                [new ServiceStateChange("FrameServer", HostServiceStatus.Running, HostServiceStatus.Stopped, Now)]),
+            eventLog: new EventLogTelemetry(Now, [], []));
+
+        Assert.Empty(await EvaluateAsync(evidence));
+    }
+
+    [Theory]
+    [InlineData(true, false, 0)]
+    [InlineData(false, false, 88)]
+    [InlineData(true, true, 78)]
+    public async Task Automatic_trigger_service_stop_requires_crash_evidence_for_failure(bool hasTriggers, bool crash, int confidence)
+    {
+        var service = JsonSerializer.Deserialize<ServiceTelemetry>(
+            $$"""{"ServiceName":"SyntheticTrigger","DisplayName":"Synthetic trigger","Status":1,"StartMode":1,"HasTriggers":{{hasTriggers.ToString().ToLowerInvariant()}}}""")!;
+        var diagnoses = await EvaluateAsync(CreateEvidence(
+            processServices: new ProcessServiceTelemetry([], [service],
+                [new ServiceStateChange(service.ServiceName, HostServiceStatus.Running, HostServiceStatus.Stopped, Now)]),
+            eventLog: new EventLogTelemetry(Now, crash ? [Crash(42, service.ServiceName)] : [], [])));
+        if (confidence == 0) Assert.Empty(diagnoses);
+        else Assert.Equal(confidence, ReadInt32(Assert.Single(diagnoses), "Confidence"));
     }
 
     [Theory]

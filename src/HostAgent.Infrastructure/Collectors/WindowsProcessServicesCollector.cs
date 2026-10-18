@@ -137,10 +137,23 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
                 try
                 {
                     var status = MapStatus(controller.Status);
+                    var startMode = HostServiceStartMode.Unknown;
+                    try
+                    {
+                        startMode = MapStartMode(controller.StartType);
+                    }
+                    catch (Exception exception) when (
+                        exception is Win32Exception or InvalidOperationException or UnauthorizedAccessException)
+                    {
+                        warnings.Add("some_service_start_modes_unavailable");
+                    }
+
                     var service = new ServiceTelemetry(
                         controller.ServiceName,
                         controller.DisplayName,
-                        status);
+                        status,
+                        startMode,
+                        ReadTriggers(controller.ServiceName, warnings));
                     services.Add(service);
                     currentStates[service.ServiceName] = status;
                 }
@@ -226,6 +239,23 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
         ServiceControllerStatus.Paused => HostServiceStatus.Paused,
         _ => HostServiceStatus.Unknown
     };
+
+    private static HostServiceStartMode MapStartMode(ServiceStartMode startMode) => startMode switch
+    {
+        ServiceStartMode.Automatic => HostServiceStartMode.Automatic,
+        ServiceStartMode.Manual => HostServiceStartMode.Manual,
+        ServiceStartMode.Disabled => HostServiceStartMode.Disabled,
+        ServiceStartMode.Boot => HostServiceStartMode.Boot,
+        ServiceStartMode.System => HostServiceStartMode.System,
+        _ => HostServiceStartMode.Unknown
+    };
+
+    private static bool? ReadTriggers(string serviceName, ICollection<string> warnings)
+    {
+        var value = ServiceTriggerQuery.HasTriggers(serviceName);
+        if (value is null) warnings.Add("some_service_triggers_unavailable");
+        return value;
+    }
 
     private sealed record ProcessObservation(TimeSpan CpuTime, DateTimeOffset CapturedAtUtc);
 }

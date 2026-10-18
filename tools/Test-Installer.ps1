@@ -1,4 +1,4 @@
-param([Parameter(Mandatory)][string]$PackagePath)
+param([Parameter(Mandatory)][string]$PackagePath,[switch]$DevVm)
 $ErrorActionPreference='Stop'
 $installer=New-Object -ComObject WindowsInstaller.Installer
 $db=$installer.OpenDatabase((Join-Path ([IO.Path]::GetFullPath($PackagePath)) 'HostAgent.msi'),0)
@@ -53,7 +53,9 @@ foreach($required in @('LICENSE','docs/operations/privacy.md','docs/legal/dotnet
 }
 $conditions=@(Rows 'SELECT `Condition` FROM `LaunchCondition`' 1)
 $guarded=@($conditions | Where-Object { $_[0] -eq 'Installed OR WIX_UPGRADE_DETECTED OR (NOT EXISTING_MONITOR AND NOT EXISTING_HELPER)' }).Count -eq 1
+if (-not $guarded) { throw 'release_installer_existing_services_guard' }
 $devGuard=@($conditions | Where-Object { $_[0] -like '*DEV_MACHINE_GUID*' }).Count -eq 1
+if ($DevVm -and -not $devGuard) { throw 'release_installer_dev_vm_guard' }
 $devMatches=$false
 if($devGuard){
     # Read-only MSI session: evaluate the actual condition with Windows' own
@@ -63,6 +65,7 @@ if($devGuard){
     $condition=@($conditions | Where-Object { $_[0] -like '*DEV_MACHINE_GUID*' })[0][0]
     $devMatches=$session.EvaluateCondition($condition) -eq 1
 }
+if ($DevVm -and -not $devMatches) { throw 'release_installer_dev_vm_identity' }
 $shortcuts=@(Rows 'SELECT `Name`,`Directory_` FROM `Shortcut`' 2)
 $desktopShortcuts=@($shortcuts | Where-Object { $_[0].Split('|')[-1] -eq 'Host Agent' -and $_[1] -eq 'ProgramMenuFolder' })
 if($installedPaths -contains 'Desktop/HostAgent.Desktop.exe' -and $desktopShortcuts.Count -ne 1){throw 'release_installer_desktop_shortcut'}

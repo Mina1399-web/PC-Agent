@@ -1,6 +1,6 @@
 # Host Agent V1 operator guide
 
-Host Agent has two Windows services and an elevated local CLI. No dashboard, public listener, separate .NET installation or source-code editing is required. The MSI installs self-contained Windows x64 binaries under Program Files/HostAgent. Service startup does not require an interactive login.
+Host Agent has two Windows services, an elevated local CLI and a local dashboard that runs without elevation. Open **Host Agent** from Start; see the [dashboard and maintenance guide](dashboard.md). No public listener, separate .NET installation or source-code editing is required. The MSI installs self-contained Windows x64 binaries under Program Files/HostAgent. Service startup does not require an interactive login.
 
 ## Install
 
@@ -91,8 +91,8 @@ Build/test only in the approved VM using SDK 10.0.401, PowerShell 7 and account-
 MSI preflight additionally uses WixToolset.Dtf.CustomAction and WixToolset.Dtf.WindowsInstaller **5.0.2**, verified with dotnet nuget verify --all before extraction. Beside the wix tool directory, create dtf-5.0.2/wixtoolset.dtf.customaction and dtf-5.0.2/wixtoolset.dtf.windowsinstaller from the corresponding official NuGet packages. Build-Installer uses the existing Windows .NET Framework compiler and x64 DTF shim; the target Windows installation requires .NET Framework 4.8 or later. No framework/security-policy installation or modification is performed by the MSI. The existing owner-certificate path signs the managed preflight and its native container. Foundation treatment of the composite upstream DTF container requires provider agreement; do not indiscriminately re-sign upstream code as owned code.
 
 ```powershell
-pwsh -NoProfile -File tools/Build-Release.ps1 -PackagePath C:\DEV-Releases\HostAgent-1.0.0 -WixPath C:\DEV-Tools\wix\wix.exe -SigningCertificateThumbprint <trusted-signing-certificate-thumbprint>
-pwsh -NoProfile -File tools/Test-Release.ps1 -PackagePath C:\DEV-Releases\HostAgent-1.0.0 -TrustedPublisherThumbprint <independently-verified-publisher-thumbprint>
+pwsh -NoProfile -File tools/Build-Release.ps1 -PackagePath C:\DEV-Releases\HostAgent-1.2.2 -WixPath C:\DEV-Tools\wix\wix.exe -Version 1.2.2 -SigningCertificateThumbprint <trusted-signing-certificate-thumbprint>
+pwsh -NoProfile -File tools/Test-Release.ps1 -PackagePath C:\DEV-Releases\HostAgent-1.2.2 -TrustedPublisherThumbprint <independently-verified-publisher-thumbprint>
 ```
 
 Signing reads an existing CurrentUser certificate with a private key and Code Signing usage; it neither exports keys nor creates trust exceptions. First-party binaries/scripts and MSI are signed before final hashes. The manifest is itself Authenticode-signed and parsed as restricted data, never executed. Verification checks exact file membership, SHA-256/length, path/reparse boundaries and signatures against the pinned publisher. The signed manifest covers bundled runtime/native dependencies as well. Build-Release -DevVm creates an explicitly unsigned VM-only candidate; it cannot produce a signed production release.

@@ -46,7 +46,7 @@ try {
     }
     $null=& (Join-Path $PSScriptRoot 'Build-Installer.ps1') -PackagePath $output -WixPath $WixPath -Version $Version -DevVm:$DevVm -SigningCertificate $certificate
     if ($LASTEXITCODE -ne 0) { throw 'release_installer_build_failed' }
-    $null=& (Join-Path $PSScriptRoot 'Test-Installer.ps1') -PackagePath $output
+    $null=& (Join-Path $PSScriptRoot 'Test-Installer.ps1') -PackagePath $output -DevVm:$DevVm
     if (-not $DevVm) { Sign (Join-Path $output 'HostAgent.msi') }
     $entries=@()
     foreach ($file in Get-ChildItem -LiteralPath $output -Recurse -File | Sort-Object FullName) {

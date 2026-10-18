@@ -1,0 +1,31 @@
+{
+    "format":  1,
+    "scope":  "manual_normal_reboot_only_GUID_fixture",
+    "operatorVerifiedSnapshot":  "84c78c1b-61b9-4e41-a8ef-30db3a655ddf",
+    "files":  [
+                  {
+                      "path":  "RebootPersistence.psm1",
+                      "sha256":  "DC3BE411686B12B52D06E8B7E7AC486CAFDC98102C9A91341C0B20E549CC8388"
+                  },
+                  {
+                      "path":  "check-reboot-persistence.py",
+                      "sha256":  "BE0729E859A99E10B8105C027E970CF3B94BE1D30F430D50AB6C5EBE39F59E4D"
+                  },
+                  {
+                      "path":  "IsolatedScmSafety.psm1",
+                      "sha256":  "CC0CF6F85AEB40A12894F5CD7F910CFE8FD4D6F184DE886C2DD5780AA14A4BA8"
+                  },
+                  {
+                      "path":  "run-isolated-scm-candidate.ps1",
+                      "sha256":  "E2D003A07C9B5786A3BC7684E8F19174562A7C590C54181557656D31D34BCA33"
+                  },
+                  {
+                      "path":  "IsolatedScmRecovery.cs",
+                      "sha256":  "91E633B91C56C694D23FF61CEA27DCCA14E30B981DCDED7BA34B6C00ED3CF7E9"
+                  },
+                  {
+                      "path":  "CompleteCampaignMonitor.cs",
+                      "sha256":  "5477B18B434B7E151F42AE3B4C1EC9620E47B722001728A99344FEC7AFA48CD4"
+                  }
+              ]
+}

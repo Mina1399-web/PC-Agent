@@ -89,10 +89,12 @@ internal sealed class CollectionCoordinator : BackgroundService
         try
         {
             var incidents=await _diagnostics.ProcessAsync(nowUtc ?? DateTimeOffset.UtcNow, cancellationToken);
-            _health.Set("diagnostics",_diagnostics.BaselineFailureCode is not null);
+            _health.Set("diagnostics",_diagnostics.BaselineFailureCode is not null || _diagnostics.TelemetryFailureCode is not null);
             if(_publisher is not null) await _publisher.PublishAsync(incidents,nowUtc??DateTimeOffset.UtcNow,cancellationToken);
             if (_diagnostics.BaselineFailureCode is { } failureCode)
                 _logger.LogWarning("Adaptive baseline is degraded with {FailureCode}; fixed diagnosis remains active.", failureCode);
+            if (_diagnostics.TelemetryFailureCode is { } telemetryFailureCode)
+                _logger.LogWarning("A stored telemetry snapshot was ignored with {FailureCode}; diagnosis continued with valid peer collectors.", telemetryFailureCode);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
         catch (Exception exception)

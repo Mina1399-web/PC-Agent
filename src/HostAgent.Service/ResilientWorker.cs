@@ -12,6 +12,7 @@ public sealed class ResilientWorker(Func<CancellationToken,Task> cycle,TimeSpan 
         {
             while (!stoppingToken.IsCancellationRequested)
             {
+                var cycleStarted=clock.GetTimestamp();
                 using var deadlineSource=new CancellationTokenSource(deadline,clock);
                 using var linked=CancellationTokenSource.CreateLinkedTokenSource(stoppingToken,deadlineSource.Token);
                 var running=Task.Run(()=>cycle(linked.Token),CancellationToken.None);
@@ -40,6 +41,12 @@ public sealed class ResilientWorker(Func<CancellationToken,Task> cycle,TimeSpan 
                 catch { report("cycle_failed");failures++; }
                 var delay=TimeSpan.FromTicks((long)Math.Min(TimeSpan.FromHours(1).Ticks,
                     interval.Ticks*Math.Pow(2,Math.Min(Math.Max(failures-1,0),6))));
+                // Successful sampling uses start-to-start cadence. Slow collectors
+                // must not silently add their duration to every sampling interval.
+                // Failed cycles retain their full backoff; invocations never overlap.
+                if(failures==0)
+                    delay=TimeSpan.FromTicks(Math.Max(0,delay.Ticks-clock.GetElapsedTime(cycleStarted).Ticks));
+                if(delay==TimeSpan.Zero)await Task.Yield();
                 await Task.Delay(delay,clock,stoppingToken);
             }
         }
@@ -48,8 +55,10 @@ public sealed class ResilientWorker(Func<CancellationToken,Task> cycle,TimeSpan 
     }
     private static async Task DrainAsync(Task running)
     {
-        // Let cooperative dependencies release connections before DI disposal, without hanging on an uncooperative job.
-        try{await running.WaitAsync(TimeSpan.FromMilliseconds(500));}
+        // Allow cooperative I/O cleanup under load before DI disposal. Keep a
+        // finite grace period inside the host's 15-second shutdown budget;
+        // a dependency ignoring cancellation must still not block shutdown.
+        try{await running.WaitAsync(TimeSpan.FromSeconds(2));}
         catch{}
     }
 }

@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.Json;
 using HostAgent.Core.Contracts;
 using HostAgent.Core.Metrics;
 using HostAgent.Core.Models.Telemetry;
@@ -44,7 +45,7 @@ public sealed class CollectionCoordinatorTests
             Assert.Single(await store.ReadIncidentHeadsAsync(default));
             Assert.False(health.Degraded);
         }
-        finally{File.Delete(path);File.Delete(noticePath);}
+        finally{ChaosFixtureRetention.DeleteFile(path);ChaosFixtureRetention.DeleteFile(noticePath);}
     }
     [Fact]
     public void Collection_coordinator_accepts_notification_publisher_and_runtime_health_wiring()
@@ -74,6 +75,54 @@ public sealed class CollectionCoordinatorTests
         var repeated = Assert.Single(await store.ReadIncidentsAsync(CancellationToken.None));
         Assert.Equal(incident.IncidentId, repeated.IncidentId);
         Assert.Equal(1, repeated.RecurrenceCount);
+    }
+
+    [Theory]
+    [InlineData("disk", 1, "{}", "telemetry_payload_invalid")]
+    [InlineData("disk", 1, "{\"Value\":{\"Volumes\":null,\"Health\":null}}", "telemetry_payload_invalid")]
+    [InlineData("disk", 2, "{\"Value\":{\"Volumes\":[],\"Health\":[]}}", "telemetry_schema_unsupported")]
+    [InlineData("disk", 1, "{\"Value\":{\"Volumes\":[null],\"Health\":[]}}", "telemetry_payload_invalid")]
+    [InlineData("disk", 1, "{\"Value\":{\"Volumes\":[],\"Health\":[null]}}", "telemetry_payload_invalid")]
+    [InlineData("process-services", 1, "{\"Value\":{\"Processes\":[],\"Services\":[null],\"ServiceChanges\":[]}}", "telemetry_payload_invalid")]
+    [InlineData("network", 1, "{\"Value\":{\"Adapters\":[],\"Probes\":[null]}}", "telemetry_payload_invalid")]
+    [InlineData("event-log", 1, "{\"Value\":{\"Events\":[null],\"Checkpoints\":[]}}", "telemetry_payload_invalid")]
+    public async Task Malformed_optional_telemetry_snapshot_does_not_suppress_valid_cpu_diagnosis(
+        string collectorId, int schemaVersion, string payload, string expectedFailureCode)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var directory = Path.Combine(Path.GetTempPath(), "HostAgentTests", Guid.NewGuid().ToString("N"));
+        var path = Path.Combine(directory, "malformed-telemetry.db");
+        try
+        {
+            await using var store = new SqliteHostAgentStore(path);
+            await store.InitializeAsync(default);
+            for (var index = 0; index < 5; index++)
+            {
+                await store.SaveMetricSampleAsync(new(Guid.NewGuid(), "cpu.usage.percent", "host",
+                    now.AddMinutes(-4 + index), 95), default);
+            }
+
+            var system = new SystemTelemetry("Windows", "test", "test", null, TimeSpan.FromDays(1), null);
+            var cpu = new CpuMemoryTelemetry(95, 16L * 1024 * 1024 * 1024, 2L * 1024 * 1024 * 1024,
+                null, null, [new(42, "SyntheticSaturator", 95, 1024, null)], []);
+            await store.SaveTelemetrySnapshotAsync(new(Guid.NewGuid(), "system", 1, now,
+                JsonSerializer.Serialize(new { Value = system })), default);
+            await store.SaveTelemetrySnapshotAsync(new(Guid.NewGuid(), "cpu-memory", 1, now,
+                JsonSerializer.Serialize(new { Value = cpu })), default);
+            await store.SaveTelemetrySnapshotAsync(new(Guid.NewGuid(), collectorId, schemaVersion, now, payload), default);
+
+            using var processor = new DiagnosticCycleProcessor(store);
+            var incidents = await processor.ProcessAsync(now, default);
+
+            var cpuIncident = Assert.Single(incidents, incident =>
+                incident.LatestDiagnosis.ProbableRootCause.Code == "cpu_process_saturation");
+            Assert.Equal(85, cpuIncident.LatestDiagnosis.Confidence);
+            Assert.Equal(expectedFailureCode, processor.TelemetryFailureCode);
+        }
+        finally
+        {
+            if (Directory.Exists(directory)) ChaosFixtureRetention.DeleteDirectory(directory);
+        }
     }
 
     private sealed class NetworkCollector(DateTimeOffset now) : ITelemetryCollector<NetworkTelemetry>

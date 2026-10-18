@@ -1,8 +1,11 @@
 using System.Text;
 using System.Text.Json;
 using HostAgent.Core.Dashboard;
+using HostAgent.Core.Models.Diagnosis;
+using HostAgent.Core.Models.Incidents;
 using HostAgent.Core.Models.Telemetry;
 using HostAgent.Infrastructure.Dashboard;
+using HostAgent.Infrastructure.Administration;
 using HostAgent.Service;
 using HostAgent.Core.Orchestration;
 using HostAgent.Core.Contracts;
@@ -12,6 +15,79 @@ namespace HostAgent.Infrastructure.Tests;
 
 public sealed class DashboardViewTests
 {
+    [Fact]
+    public async Task Idle_view_listener_does_not_retire_at_a_request_deadline_boundary()
+    {
+        using var identity=System.Security.Principal.WindowsIdentity.GetCurrent();var sid=identity.User!;
+        var name="HostAgent-view-idle-stable-"+Guid.NewGuid().ToString("N");
+        using var stop=new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var server=new AdminPipeServer(name,sid,sid,(_,_)=>ValueTask.FromResult(AdminProtocol.Reply(true,"overview")),
+            TimeSpan.FromMilliseconds(500));
+        var serving=server.ServeOnceAsync(stop.Token);
+        try
+        {
+            await Task.Delay(750);
+            Assert.False(serving.IsCompleted,"An idle listener retired before a client connected; a concurrent connect can get a closing pipe.");
+            using var response=JsonDocument.Parse(await new ViewPipeClient(name,sid,TimeSpan.FromSeconds(2))
+                .SendAsync(ViewProtocol.Request("overview",new{}),stop.Token));
+            Assert.True(response.RootElement.GetProperty("ok").GetBoolean());
+            await serving;
+        }
+        finally{stop.Cancel();await serving;}
+    }
+
+    [Theory]
+    [InlineData("gateway_failure", 90)]
+    [InlineData("dns_failure", 90)]
+    [InlineData("internet_connectivity_failure", 80)]
+    public async Task Overview_preserves_network_diagnosis_code_and_confidence(string rootCauseCode, int confidence)
+    {
+        await using var f = await OperatingModeTests.Fixture.Create();
+        var now = DateTimeOffset.UtcNow;
+        var diagnosis = new Diagnosis(
+            Guid.NewGuid().ToString("N"),
+            "network:" + rootCauseCode,
+            now,
+            DiagnosisSeverity.High,
+            confidence,
+            [],
+            new ProbableRootCause(rootCauseCode, "Synthetic network diagnosis", null),
+            [],
+            new RemediationRecommendation("inspect_network", "Review network connectivity."),
+            IncidentLifecycleState.Detected);
+        var incident = new Incident(diagnosis.DiagnosisId, diagnosis.CorrelationKey, IncidentLifecycleState.Detected,
+            now, now, 1, diagnosis, []);
+        await f.Store.SaveIncidentBundleAsync(incident, default);
+
+        var bytes = await new DashboardDispatcher(f.Store, new(), new(), TimeProvider.System)
+            .DispatchAsync(ViewProtocol.Request("overview", new { }), default);
+
+        using var reply = JsonDocument.Parse(bytes);
+        Assert.True(reply.RootElement.GetProperty("ok").GetBoolean());
+        var projected = Assert.Single(reply.RootElement.GetProperty("data").GetProperty("Incidents").EnumerateArray(),
+            item => item.GetProperty("Id").GetString() == incident.IncidentId);
+        Assert.Equal(rootCauseCode, projected.GetProperty("Code").GetString());
+        Assert.Equal(confidence, projected.GetProperty("Confidence").GetInt32());
+    }
+
+    [Fact]
+    public async Task Overview_reports_stage_timings_without_payload_or_exception_text()
+    {
+        await using var f=await OperatingModeTests.Fixture.Create();var diagnostics=new List<DashboardDispatchDiagnostic>();
+        var dispatcher=new DashboardDispatcher(f.Store,new(),new(),TimeProvider.System,diagnostics.Add);
+        using var response=JsonDocument.Parse(await dispatcher.DispatchAsync(ViewProtocol.Request("overview",new{}),default));
+        Assert.True(response.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Contains(diagnostics,x=>x.Stage=="metric_cpu");
+        Assert.Contains(diagnostics,x=>x.Stage=="telemetry_disk");
+        Assert.Contains(diagnostics,x=>x.Stage=="incident_heads");
+        Assert.Contains(diagnostics,x=>x.Stage=="serialize_overview");
+        Assert.All(diagnostics,x=>Assert.InRange(x.ElapsedMilliseconds,0,30_000));
+        var safe=JsonSerializer.Serialize(diagnostics);
+        Assert.DoesNotContain(f.Path,safe,StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("payload",safe,StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("exception",safe,StringComparison.OrdinalIgnoreCase);
+    }
+
     [Fact]
     public async Task Five_second_collection_preserves_sustained_recommendations_and_complete_24hour_history_with_bounded_frames()
     {
@@ -54,6 +130,104 @@ public sealed class DashboardViewTests
         using var mismatch=JsonDocument.Parse(await new ViewPipeClient(name,new("S-1-5-21-1-2-3-9999"),TimeSpan.FromSeconds(2)).SendAsync(ViewProtocol.Request("overview",new{}),timeout.Token));
         await serving;Assert.False(mismatch.RootElement.GetProperty("ok").GetBoolean());
         Assert.Equal("view_identity_mismatch",mismatch.RootElement.GetProperty("code").GetString());Assert.Equal(1,calls);
+    }
+
+    [Fact]
+    public async Task View_worker_accepts_a_fresh_connection_after_a_timed_out_dispatch()
+    {
+        using var identity=System.Security.Principal.WindowsIdentity.GetCurrent();var sid=identity.User!;
+        var name="HostAgent-view-reconnect-"+Guid.NewGuid().ToString("N");var calls=0;
+        var failures=new List<PipeServerDiagnostic>();
+        var server=new AdminPipeServer(name,sid,sid,async(_,token)=>
+        {
+            if(Interlocked.Increment(ref calls)==1)await Task.Delay(Timeout.InfiniteTimeSpan,token);
+            return AdminProtocol.Reply(true,"overview");
+        },TimeSpan.FromMilliseconds(300),reportDiagnostic:failures.Add);
+        using var worker=new DashboardWorker(server.ServeOnceAsync);
+        await worker.StartAsync(default);
+        try
+        {
+            var client=new ViewPipeClient(name,sid,TimeSpan.FromSeconds(2));
+            using var first=JsonDocument.Parse(await client.SendAsync(ViewProtocol.Request("overview",new{}),default));
+            Assert.False(first.RootElement.GetProperty("ok").GetBoolean());
+            using var recovered=JsonDocument.Parse(await client.SendAsync(ViewProtocol.Request("overview",new{}),default));
+            Assert.True(recovered.RootElement.GetProperty("ok").GetBoolean());
+            Assert.Equal(2,calls);
+            var failure=Assert.Single(failures);Assert.Equal("dispatch",failure.Stage);Assert.Equal("server_deadline",failure.Kind);
+        }
+        finally{await worker.StopAsync(default).WaitAsync(TimeSpan.FromSeconds(3));}
+    }
+
+    [Fact]
+    public async Task Idle_listener_time_does_not_consume_an_authenticated_views_request_deadline()
+    {
+        using var identity=System.Security.Principal.WindowsIdentity.GetCurrent();var sid=identity.User!;
+        var name="HostAgent-view-late-"+Guid.NewGuid().ToString("N");
+        PipeServerDiagnostic? diagnostic=null;
+        using var lifetime=new CancellationTokenSource(TimeSpan.FromSeconds(8));
+        var serving=new AdminPipeServer(name,sid,sid,async(_,token)=>
+        {
+            await Task.Delay(1200,token);
+            return AdminProtocol.Reply(true,"overview");
+        },TimeSpan.FromSeconds(2),reportDiagnostic:value=>diagnostic=value).ServeOnceAsync(lifetime.Token);
+        await Task.Delay(1200,lifetime.Token);
+        using var reply=JsonDocument.Parse(await new ViewPipeClient(name,sid,TimeSpan.FromSeconds(3))
+            .SendAsync(ViewProtocol.Request("overview",new{}),lifetime.Token));
+        await serving;
+        Assert.True(reply.RootElement.GetProperty("ok").GetBoolean(),
+            $"client={reply.RootElement.GetProperty("code").GetString()}; server={diagnostic?.Stage}/{diagnostic?.Kind}");
+        Assert.Null(diagnostic);
+    }
+
+    [Fact]
+    public async Task Client_timeout_and_server_dispatch_deadline_are_reported_as_separate_safe_stages()
+    {
+        var sid=System.Security.Principal.WindowsIdentity.GetCurrent().User!;
+        var interactive=new System.Security.Principal.SecurityIdentifier(System.Security.Principal.WellKnownSidType.InteractiveSid,null);
+        var name="HostAgent-view-timeout-"+Guid.NewGuid().ToString("N");
+        PipeServerDiagnostic? serverDiagnostic=null;PipeClientDiagnostic? clientDiagnostic=null;
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(4));
+        var serving=new HostAgent.Infrastructure.Administration.AdminPipeServer(name,sid,interactive,
+            async(_,token)=>{await Task.Delay(Timeout.InfiniteTimeSpan,token);return Array.Empty<byte>();},
+            TimeSpan.FromMilliseconds(800),reportDiagnostic:value=>serverDiagnostic=value).ServeOnceAsync(deadline.Token);
+        var bytes=await new ViewPipeClient(name,sid,TimeSpan.FromMilliseconds(250),
+            reportDiagnostic:value=>clientDiagnostic=value).SendAsync(ViewProtocol.Request("overview",new{}),deadline.Token);
+        await serving;using var reply=JsonDocument.Parse(bytes);
+        Assert.False(reply.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Equal("view_unavailable",reply.RootElement.GetProperty("code").GetString());
+        Assert.Equal("response_frame",clientDiagnostic?.Stage);Assert.Equal("client_deadline",clientDiagnostic?.Kind);
+        Assert.Equal("dispatch",serverDiagnostic?.Stage);Assert.Equal("server_deadline",serverDiagnostic?.Kind);
+        Assert.InRange(clientDiagnostic!.ElapsedMilliseconds,150,1500);
+        Assert.InRange(serverDiagnostic!.ElapsedMilliseconds,600,2000);
+        Assert.DoesNotContain("payload",JsonSerializer.Serialize(clientDiagnostic),StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Caller_cancelled_view_reports_failure_stage_without_losing_diagnostics()
+    {
+        using var identity=System.Security.Principal.WindowsIdentity.GetCurrent();var sid=identity.User!;
+        var name="HostAgent-view-caller-cancel-"+Guid.NewGuid().ToString("N");
+        var entered=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        PipeClientDiagnostic? diagnostic=null;
+        using var serverLifetime=new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var caller=new CancellationTokenSource();
+        var serving=new HostAgent.Infrastructure.Administration.AdminPipeServer(name,sid,sid,
+            async(_,token)=>{entered.TrySetResult();await Task.Delay(Timeout.InfiniteTimeSpan,token);return Array.Empty<byte>();},
+            TimeSpan.FromSeconds(4)).ServeOnceAsync(serverLifetime.Token);
+        try
+        {
+            var pending=new ViewPipeClient(name,sid,TimeSpan.FromSeconds(5),value=>diagnostic=value)
+                .SendAsync(ViewProtocol.Request("overview",new{}),caller.Token).AsTask();
+            await entered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            caller.Cancel();
+            using var reply=JsonDocument.Parse(await pending.WaitAsync(TimeSpan.FromSeconds(2)));
+            Assert.Equal("view_unavailable",reply.RootElement.GetProperty("code").GetString());
+            Assert.NotNull(diagnostic);
+            Assert.Equal("response_frame",diagnostic.Stage);
+            Assert.Equal("caller_cancelled",diagnostic.Kind);
+            Assert.DoesNotContain(name,JsonSerializer.Serialize(diagnostic));
+        }
+        finally{serverLifetime.Cancel();await serving.WaitAsync(TimeSpan.FromSeconds(2));}
     }
 
     [Fact]

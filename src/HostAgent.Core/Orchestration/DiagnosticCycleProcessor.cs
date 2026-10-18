@@ -15,6 +15,7 @@ public sealed class DiagnosticCycleProcessor(IHostAgentStore store) : IDisposabl
     private readonly Dictionary<(string Metric, string Scope), (DateTimeOffset At, Guid Id)> _lastSamples = [];
     private readonly Dictionary<(string Metric, string Scope), BaselineAssessment> _assessments = [];
     public string? BaselineFailureCode { get; private set; }
+    public string? TelemetryFailureCode { get; private set; }
 
     public async ValueTask<IReadOnlyList<Incident>> ProcessAsync(DateTimeOffset nowUtc, CancellationToken cancellationToken)
     {
@@ -22,6 +23,7 @@ public sealed class DiagnosticCycleProcessor(IHostAgentStore store) : IDisposabl
         try
         {
             BaselineFailureCode = null;
+            TelemetryFailureCode = null;
             try
             {
                 var origins = await store.ReadBaselineOriginsAsync(cancellationToken);
@@ -62,9 +64,36 @@ public sealed class DiagnosticCycleProcessor(IHostAgentStore store) : IDisposabl
                 var records = await store.ReadTelemetrySnapshotsAsync(collectorId, nowUtc.AddMinutes(-2), nowUtc, 1, cancellationToken);
                 if (records.Count == 0) return null;
                 var record = records[0];
-                if (record.PayloadSchemaVersion != 1) throw new NotSupportedException("Unsupported telemetry schema.");
-                using var document = JsonDocument.Parse(record.PayloadJson);
-                var value = document.RootElement.GetProperty("Value").Deserialize<T>();
+                if (record.PayloadSchemaVersion != 1)
+                {
+                    TelemetryFailureCode ??= "telemetry_schema_unsupported";
+                    return null;
+                }
+
+                T? value;
+                try
+                {
+                    using var document = JsonDocument.Parse(record.PayloadJson);
+                    if (!document.RootElement.TryGetProperty("Value", out var payload))
+                    {
+                        TelemetryFailureCode ??= "telemetry_payload_invalid";
+                        return null;
+                    }
+
+                    value = payload.Deserialize<T>();
+                    if (value is null || !HasRequiredCollections(value))
+                    {
+                        TelemetryFailureCode ??= "telemetry_payload_invalid";
+                        return null;
+                    }
+                }
+                catch (Exception error) when (error is JsonException or InvalidOperationException
+                    or KeyNotFoundException or NotSupportedException)
+                {
+                    TelemetryFailureCode ??= "telemetry_payload_invalid";
+                    return null;
+                }
+
                 if (value is not null) timestamps.Add(record.SampledAtUtc);
                 return value;
             }
@@ -95,6 +124,20 @@ public sealed class DiagnosticCycleProcessor(IHostAgentStore store) : IDisposabl
         }
         finally { _gate.Release(); }
     }
+
+    private static bool HasRequiredCollections(object value) => value switch
+    {
+        CpuMemoryTelemetry cpu => HasRequiredItems(cpu.TopProcessesByCpu) && HasRequiredItems(cpu.TopProcessesByMemory),
+        DiskTelemetry disk => HasRequiredItems(disk.Volumes) && HasRequiredItems(disk.Health),
+        ProcessServiceTelemetry processServices => HasRequiredItems(processServices.Processes)
+            && HasRequiredItems(processServices.Services) && HasRequiredItems(processServices.ServiceChanges),
+        NetworkTelemetry network => HasRequiredItems(network.Adapters) && HasRequiredItems(network.Probes),
+        EventLogTelemetry eventLog => HasRequiredItems(eventLog.Events) && HasRequiredItems(eventLog.Checkpoints),
+        _ => true
+    };
+
+    private static bool HasRequiredItems<T>(IReadOnlyList<T>? values) where T : class
+        => values is not null && values.All(static value => value is not null);
 
     public async ValueTask<Incident> TransitionAsync(string incidentId, IncidentLifecycleState state,
         IncidentSnapshot snapshot, CancellationToken cancellationToken)

@@ -4,6 +4,7 @@ using System.Security.Principal;
 using HostAgent.Infrastructure.Administration;
 using HostAgent.Infrastructure.Pipes;
 using HostAgent.Infrastructure.Storage;
+using HostAgent.Service;
 using Xunit;
 namespace HostAgent.Infrastructure.Tests;
 public sealed class AdministrationTests
@@ -87,6 +88,108 @@ public sealed class AdministrationTests
         await serving;
         using var json=JsonDocument.Parse(result);
         Assert.True(json.RootElement.GetProperty("ok").GetBoolean());Assert.Equal(1,calls);
+    }
+    [Fact]
+    public async Task Pipe_creation_failure_is_sanitized_and_rethrown_for_worker_backoff()
+    {
+        var sid=WindowsIdentity.GetCurrent().User!;
+        var name="HostAgent-admin-create-failure-"+Guid.NewGuid().ToString("N");
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var first=new AdminPipeServer(name,sid,sid,(_,_)=>ValueTask.FromResult(AdminProtocol.Reply(true,"ready")),
+            TimeSpan.FromSeconds(3)).ServeOnceAsync(deadline.Token);
+        await using var client=new System.IO.Pipes.NamedPipeClientStream(".",name,
+            System.IO.Pipes.PipeAccessRights.ReadWrite|System.IO.Pipes.PipeAccessRights.Synchronize,
+            System.IO.Pipes.PipeOptions.Asynchronous,TokenImpersonationLevel.Identification,System.IO.HandleInheritability.None);
+        await client.ConnectAsync(deadline.Token);
+        string? failure=null;PipeServerDiagnostic? diagnostic=null;
+        try
+        {
+            await Assert.ThrowsAsync<IOException>(()=>new AdminPipeServer(name,sid,sid,(_,_)=>ValueTask.FromResult(AdminProtocol.Reply(true,"unexpected")),
+                TimeSpan.FromSeconds(1),code=>failure=code,reportDiagnostic:value=>diagnostic=value).ServeOnceAsync(deadline.Token));
+            Assert.Equal("control_server_create_failed",failure);
+            Assert.Equal("server_create",diagnostic?.Stage);Assert.Equal("io",diagnostic?.Kind);
+            Assert.InRange(diagnostic!.ElapsedMilliseconds,0,5000);
+            await HelperProtocol.WriteFrameAsync(client,AdminProtocol.Request("status",new{}),deadline.Token);
+            using var reply=JsonDocument.Parse(await HelperProtocol.ReadFrameAsync(client,deadline.Token));
+            Assert.True(reply.RootElement.GetProperty("ok").GetBoolean());
+        }
+        finally
+        {
+            deadline.Cancel();
+            try{await first;}catch(OperationCanceledException){}
+        }
+    }
+    [Fact]
+    public async Task Real_listener_creation_failure_uses_worker_backoff_instead_of_success_polling()
+    {
+        var sid=WindowsIdentity.GetCurrent().User!;var name="HostAgent-worker-create-"+Guid.NewGuid().ToString("N");
+        using var stop=new CancellationTokenSource(TimeSpan.FromSeconds(8));
+        var occupied=new AdminPipeServer(name,sid,sid,(_,_)=>ValueTask.FromResult(AdminProtocol.Reply(true,"unused")),
+            TimeSpan.FromSeconds(5)).ServeOnceAsync(stop.Token);
+        await using var connected=new System.IO.Pipes.NamedPipeClientStream(".",name,System.IO.Pipes.PipeDirection.InOut,
+            System.IO.Pipes.PipeOptions.Asynchronous);
+        await connected.ConnectAsync(stop.Token);
+        var retry=new TaskCompletionSource<PipeWorkerDiagnostic>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var calls=0;
+        using var worker=new DashboardWorker(token=>
+        {
+            Interlocked.Increment(ref calls);
+            return new AdminPipeServer(name,sid,sid,(_,_)=>ValueTask.FromResult(Array.Empty<byte>()),
+                TimeSpan.FromSeconds(1)).ServeOnceAsync(token);
+        },d=>retry.TrySetResult(d),TimeSpan.FromSeconds(5));
+        await worker.StartAsync(default);
+        try
+        {
+            var result=await retry.Task.WaitAsync(TimeSpan.FromSeconds(2));
+            Assert.Equal("io",result.Kind);Assert.Equal(5000,result.RetryDelayMilliseconds);
+            await Task.Delay(100);
+            Assert.Equal(1,Volatile.Read(ref calls));
+        }
+        finally{await worker.StopAsync(default).WaitAsync(TimeSpan.FromSeconds(2));stop.Cancel();await occupied;}
+    }
+
+    [Fact]
+    public async Task Idle_listener_service_stop_is_prompt_and_not_reported_as_a_view_failure()
+    {
+        var sid=WindowsIdentity.GetCurrent().User!;string? failure=null;PipeServerDiagnostic? diagnostic=null;
+        using var stop=new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
+        await new AdminPipeServer("HostAgent-admin-idle-"+Guid.NewGuid().ToString("N"),sid,sid,
+            (_,_)=>ValueTask.FromResult(AdminProtocol.Reply(true,"unused")),TimeSpan.FromMilliseconds(200),
+            code=>failure=code,reportDiagnostic:value=>diagnostic=value).ServeOnceAsync(stop.Token).WaitAsync(TimeSpan.FromSeconds(2));
+        Assert.Null(failure);Assert.Null(diagnostic);
+    }
+    [Fact]
+    public async Task Dispatch_deadline_reports_safe_stage_kind_and_elapsed_time()
+    {
+        var sid=WindowsIdentity.GetCurrent().User!;var name="HostAgent-admin-dispatch-timeout-"+Guid.NewGuid().ToString("N");
+        PipeServerDiagnostic? diagnostic=null;using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var server=new AdminPipeServer(name,sid,sid,async(_,token)=>
+        {await Task.Delay(Timeout.InfiniteTimeSpan,token);return Array.Empty<byte>();},TimeSpan.FromMilliseconds(300),
+            reportDiagnostic:value=>diagnostic=value).ServeOnceAsync(deadline.Token);
+        var response=await new AdminPipeClient(name,sid,TimeSpan.FromSeconds(2))
+            .SendAsync(AdminProtocol.Request("status",new{}),deadline.Token);
+        await server;using var reply=JsonDocument.Parse(response);
+        Assert.False(reply.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Equal("control_outcome_uncertain",reply.RootElement.GetProperty("code").GetString());
+        Assert.Equal("dispatch",diagnostic?.Stage);Assert.Equal("server_deadline",diagnostic?.Kind);
+        Assert.InRange(diagnostic!.ElapsedMilliseconds,200,2000);
+        Assert.DoesNotContain("payload",JsonSerializer.Serialize(diagnostic),StringComparison.OrdinalIgnoreCase);
+    }
+    [Fact]
+    public async Task Dashboard_worker_reports_sanitized_retry_and_recovers_after_transient_failure()
+    {
+        var calls=0;PipeWorkerDiagnostic? diagnostic=null;
+        var worker=new DashboardWorker(async token=>
+        {
+            if(Interlocked.Increment(ref calls)==1)throw new InvalidOperationException("private-payload-must-not-be-logged");
+            await Task.Delay(Timeout.InfiniteTimeSpan,token);
+        },reportDiagnostic:value=>diagnostic=value,retryDelay:TimeSpan.FromMilliseconds(10));
+        await worker.StartAsync(default);
+        await Task.Delay(250);
+        await worker.StopAsync(CancellationToken.None);
+        Assert.Equal(2,calls);Assert.Equal("serve",diagnostic?.Stage);Assert.Equal("unexpected",diagnostic?.Kind);
+        Assert.Equal(10,diagnostic?.RetryDelayMilliseconds);
+        Assert.DoesNotContain("private-payload",JsonSerializer.Serialize(diagnostic),StringComparison.OrdinalIgnoreCase);
     }
     [Fact]
     public async Task Wrong_server_owner_is_rejected_before_secret_payload_is_sent()

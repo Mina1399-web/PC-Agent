@@ -25,10 +25,22 @@ public enum HostServiceStatus
     Paused
 }
 
+public enum HostServiceStartMode
+{
+    Unknown,
+    Automatic,
+    Manual,
+    Disabled,
+    Boot,
+    System
+}
+
 public sealed record ServiceTelemetry(
     string ServiceName,
     string DisplayName,
-    HostServiceStatus Status);
+    HostServiceStatus Status,
+    HostServiceStartMode StartMode = HostServiceStartMode.Unknown,
+    bool? HasTriggers = null);
 
 public sealed record ServiceStateChange(
     string ServiceName,

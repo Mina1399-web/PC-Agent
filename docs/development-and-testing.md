@@ -1,5 +1,7 @@
 # Windows Development and Testing Environment
 
+Current resilience and source/package preparation: [2026-10-18 predeployment checkpoint](verification/predeployment-2026-10-18.md), [scoped final resilience assessment](verification/resilience-final-2026-10-18.md). Historical totals below remain dated checkpoints. An unsigned DEV candidate is not production acceptance.
+
 SignPath preparation update, 2026-10-11: the owner explicitly authorized
 GitHub-hosted builds/tests for this signing path. Ordinary development stays
 in the approved DEV VM; production-host builds/tests and security-policy
@@ -36,6 +38,32 @@ dotnet test HostAgent.sln --configuration Release
 ```
 
 Task-specific work should also run its focused filters first, recording the exact command, exit code, test count, and failures. A successful build establishes compilation only; it does not establish runtime or behavioral verification. Use an approved Windows test runner that actually loads and executes the built assemblies.
+
+### Explicit live-network test opt-in
+
+The Windows network collector integration test inspects real adapter metadata
+but leaves connectivity probes disabled during the normal suite. To run its
+live probe path in an explicitly authorized DEV VM session, the test process
+must receive `HOSTAGENT_TEST_LIVE_NETWORK=1`. That path attempts the configured
+gateway, public ICMP target `1.1.1.1` and DNS resolution of `example.com`; it is
+not a simulated outage. Any other value, including absence, keeps the test
+offline and asserts unavailable probe records with no target. This variable
+is test-only and does not configure the installed service or grant actions.
+Transport/diagnosis tests continue to use their existing synthetic fixtures.
+Report whether the opt-in was enabled; a passing offline suite does not
+establish live public-network connectivity or outage behavior.
+
+Desktop test collections run serially. Concurrent independent STA fixtures
+reproduced a WPF PackagePart resource-stream race in this DEV VM; a separate
+minimal WPF program reproduced the same stream-list boundary without HostAgent
+code. The installed desktop uses one UI thread. Keep collection serialization
+enabled while retaining each test's asynchronous stale/reordered/cancelled
+response assertions. See the [chaos preflight record](verification/chaos-resilience-2026-10-13.md)
+for the failed gate, reproduction rates and fresh verification limits.
+All WPF fixtures also use the shared `StaTest` lifetime: completion follows
+window cleanup, dispatcher shutdown and STA thread termination. Teardown
+exceptions must fail the test; never signal success before a `finally` block
+that closes a window or shuts down its dispatcher.
 
 ## Future production code signing
 

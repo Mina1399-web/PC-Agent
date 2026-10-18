@@ -117,6 +117,15 @@ public sealed class WindowsCollectorIntegrationTests
             });
         Assert.All(result.Value.Services, service => Assert.False(string.IsNullOrWhiteSpace(service.ServiceName)));
         Assert.All(result.Value.ServiceChanges, change => Assert.Equal(TimeSpan.Zero, change.ObservedAtUtc.Offset));
+
+        var manualService = Assert.Single(result.Value.Services, service => service.ServiceName == "FrameServer");
+        var startModeProperty = typeof(ServiceTelemetry).GetProperty("StartMode");
+        Assert.NotNull(startModeProperty);
+        Assert.Equal("Manual", startModeProperty!.GetValue(manualService)?.ToString());
+        // Read-only SCM queries in this Windows fixture confirm W32Time has
+        // triggers and EventLog has none. Unknown must not be serialized as false.
+        Assert.True(Assert.Single(result.Value.Services, service => service.ServiceName == "W32Time").HasTriggers);
+        Assert.False(Assert.Single(result.Value.Services, service => service.ServiceName == "EventLog").HasTriggers);
     }
 
     // Defect: a fresh installation contacts fixed Internet/DNS targets before the operator opts in.
@@ -137,10 +146,12 @@ public sealed class WindowsCollectorIntegrationTests
         });
     }
     [Fact]
-    public async Task Network_collector_returns_adapter_and_bounded_probe_records()
+    public async Task Network_collector_returns_adapter_and_bounded_probe_records_with_live_probes_opt_in()
     {
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-        var result = await new WindowsNetworkCollector(enableProbes:true).CollectAsync(timeout.Token);
+        // Public connectivity probes are a separate, explicit test-run choice.
+        var enableProbes = Environment.GetEnvironmentVariable("HOSTAGENT_TEST_LIVE_NETWORK") == "1";
+        var result = await new WindowsNetworkCollector(enableProbes).CollectAsync(timeout.Token);
 
         Assert.Equal("network", result.CollectorId);
         Assert.NotEqual(CollectorStatus.Failed, result.Status);
@@ -158,6 +169,15 @@ public sealed class WindowsCollectorIntegrationTests
         Assert.Contains(result.Value.Probes, probe => probe.Kind == NetworkProbeKind.Gateway);
         Assert.Contains(result.Value.Probes, probe => probe.Kind == NetworkProbeKind.InternetIp);
         Assert.Contains(result.Value.Probes, probe => probe.Kind == NetworkProbeKind.DnsResolution);
+        if (!enableProbes)
+        {
+            Assert.All(result.Value.Probes, probe =>
+            {
+                Assert.Equal(NetworkProbeStatus.Unavailable, probe.Status);
+                Assert.Equal("network_probes_disabled", probe.FailureCode);
+                Assert.Empty(probe.Target);
+            });
+        }
         Assert.All(
             result.Value.Probes,
             probe =>

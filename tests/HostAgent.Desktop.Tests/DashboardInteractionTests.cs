@@ -76,29 +76,45 @@ public sealed class DashboardInteractionTests
         Assert.DoesNotContain("older_evidence", ((TextBox)window.FindName("DetailText")).Text);
     });
 
-    private static async Task WithWindow(Action<MainWindow, FakeView> check)
+    [Fact]
+    public async Task Sta_fixture_waits_for_window_cleanup_before_reporting_completion()
     {
-        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var thread = new Thread(() =>
+        var cleanupEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var releaseCleanup = new ManualResetEventSlim();
+        var fixture = WithWindow((window, _) => window.Closed += (_, _) =>
         {
-            MainWindow? window = null;
-            try
-            {
-                var view = new FakeView();
-                window = new MainWindow(new DashboardController(view.Send));
-                window.Show();
-                PumpUntil(() => ((TextBlock)window.FindName("CpuText")).Text.Contains("42"));
-                check(window, view);
-                completion.SetResult();
-            }
-            catch (Exception error) { completion.SetException(error); }
-            finally { window?.Close(); Dispatcher.CurrentDispatcher.InvokeShutdown(); }
+            cleanupEntered.TrySetResult();
+            if (!releaseCleanup.Wait(TimeSpan.FromSeconds(10)))
+                throw new TimeoutException("Synthetic window cleanup was not released.");
         });
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.IsBackground = true;
-        thread.Start();
-        await completion.Task.WaitAsync(TimeSpan.FromSeconds(30));
+        try
+        {
+            await cleanupEntered.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            // A bounded negative observation while the fixture teardown is
+            // deliberately blocked: completion cannot precede its release.
+            var first = await Task.WhenAny(fixture, Task.Delay(TimeSpan.FromSeconds(1)));
+            Assert.NotSame(fixture, first);
+        }
+        finally
+        {
+            releaseCleanup.Set();
+            await fixture;
+        }
     }
+
+    private static Task WithWindow(Action<MainWindow, FakeView> check) => StaTest.RunAsync(() =>
+    {
+        MainWindow? window = null;
+        try
+        {
+            var view = new FakeView();
+            window = new MainWindow(new DashboardController(view.Send));
+            window.Show();
+            PumpUntil(() => ((TextBlock)window.FindName("CpuText")).Text.Contains("42"));
+            check(window, view);
+        }
+        finally { window?.Close(); }
+    });
 
     private static void Refresh(MainWindow window)
     {

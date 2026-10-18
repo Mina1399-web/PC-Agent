@@ -120,7 +120,7 @@ public sealed class ReleaseToolingTests
         var wix=System.IO.Path.Combine(root,"HostAgent-DEV-tools","wix","wix.exe");
         var build=await Run("Build-Installer.ps1",fixture.Path,"-WixPath",wix,"-DevVm");
         Assert.True(build.Exit==0,build.Error+build.Out);Assert.True(File.Exists(System.IO.Path.Combine(fixture.Path,"HostAgent.msi")));
-        var inspect=await Run("Test-Installer.ps1",fixture.Path);
+        var inspect=await Run("Test-Installer.ps1",fixture.Path,"-DevVm");
         Assert.True(inspect.Exit==0,inspect.Error+inspect.Out);using var json=JsonDocument.Parse(inspect.Out);
         Assert.Equal("NT SERVICE\\HostAgent",json.RootElement.GetProperty("monitorAccount").GetString());
         Assert.Equal("LocalSystem",json.RootElement.GetProperty("helperAccount").GetString());
@@ -141,6 +141,47 @@ public sealed class ReleaseToolingTests
         Assert.True(json.RootElement.GetProperty("devVmGuard").GetBoolean());
         Assert.True(json.RootElement.GetProperty("devVmIdentityMatches").GetBoolean(),
             "The actual MSI condition engine must accept the verified VM's Windows ComputerName casing.");
+    }
+    // Defect: the validator reports valid=true after the MSI's service-collision guard is removed.
+    [Fact]
+    public async Task Installer_validator_refuses_an_actual_msi_without_the_existing_service_guard()
+    {
+        using var fixture=new PackageFixture();
+        await BuildInstaller(fixture);
+        await MutateInstaller(fixture,"existing_guard");
+        var inspect=await Run("Test-Installer.ps1",fixture.Path);
+        Assert.NotEqual(0,inspect.Exit);
+        Assert.Contains("release_installer_existing_services_guard",inspect.Error);
+        Assert.Empty(inspect.Out);
+    }
+    // Defect: DEV validation reports valid=true when its guard is absent or rejects the actual VM.
+    [Theory]
+    [InlineData("dev_guard","release_installer_dev_vm_guard")]
+    [InlineData("dev_identity","release_installer_dev_vm_identity")]
+    public async Task Dev_installer_validator_enforces_the_actual_msi_identity_condition(string mutation,string expectedError)
+    {
+        using var fixture=new PackageFixture();
+        await BuildInstaller(fixture);
+        await MutateInstaller(fixture,mutation);
+        var inspect=await Run("Test-Installer.ps1",fixture.Path,"-DevVm");
+        Assert.NotEqual(0,inspect.Exit);
+        Assert.Contains(expectedError,inspect.Error);
+        Assert.Empty(inspect.Out);
+    }
+    // Production structure validation must not acquire a DEV-machine restriction.
+    [Fact]
+    public async Task Non_dev_installer_validation_does_not_require_a_dev_identity_guard()
+    {
+        using var fixture=new PackageFixture();
+        await BuildInstaller(fixture);
+        await MutateInstaller(fixture,"dev_guard");
+        var inspect=await Run("Test-Installer.ps1",fixture.Path);
+        Assert.True(inspect.Exit==0,inspect.Error+inspect.Out);
+        using var json=JsonDocument.Parse(inspect.Out);
+        Assert.True(json.RootElement.GetProperty("valid").GetBoolean());
+        Assert.True(json.RootElement.GetProperty("existingServicesGuarded").GetBoolean());
+        Assert.False(json.RootElement.GetProperty("devVmGuard").GetBoolean());
+        Assert.False(json.RootElement.GetProperty("devVmIdentityMatches").GetBoolean());
     }
     // Defect: verified release package cannot be validated without silently disabling the production signature gate.
     [Fact]
@@ -191,6 +232,48 @@ public sealed class ReleaseToolingTests
         try { await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(90)); }
         catch (TimeoutException) { process.Kill(entireProcessTree:true);await process.WaitForExitAsync();throw; }
         return(process.ExitCode,await output,await errors);
+    }
+    private static async Task BuildInstaller(PackageFixture fixture)
+    {
+        var root=System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory,"../../../../../../"));
+        var build=await Run("Build-Installer.ps1",fixture.Path,"-WixPath",System.IO.Path.Combine(root,"HostAgent-DEV-tools","wix","wix.exe"),"-DevVm");
+        Assert.True(build.Exit==0,build.Error+build.Out);
+    }
+    private static async Task MutateInstaller(PackageFixture fixture,string mutation)
+    {
+        // Edit only the newly built disposable MSI database; never open an install session.
+        var script=System.IO.Path.Combine(fixture.Path,"mutate-msi.ps1");
+        File.WriteAllText(script,"""
+            param([Parameter(Mandatory)][string]$PackagePath,[Parameter(Mandatory)][string]$Mutation)
+            $ErrorActionPreference='Stop'
+            $installer=New-Object -ComObject WindowsInstaller.Installer
+            $db=$installer.OpenDatabase((Join-Path $PackagePath 'HostAgent.msi'),1)
+            $view=$db.OpenView('SELECT `Condition` FROM `LaunchCondition`')
+            $null=$view.Execute()
+            $condition=$null
+            try {
+                while ($null -ne ($row=$view.Fetch())) {
+                    $value=$row.StringData(1)
+                    if (($Mutation -eq 'existing_guard' -and $value -eq 'Installed OR WIX_UPGRADE_DETECTED OR (NOT EXISTING_MONITOR AND NOT EXISTING_HELPER)') -or
+                        ($Mutation -in @('dev_guard','dev_identity') -and $value -like '*DEV_MACHINE_GUID*')) {
+                        if ($null -ne $condition) { throw 'fixture_ambiguous_guard' }
+                        $condition=$value
+                    }
+                }
+            } finally { $null=$view.Close() }
+            if ($null -eq $condition) { throw 'fixture_guard_missing' }
+            $escaped=$condition.Replace("'","''")
+            $sql='DELETE FROM `LaunchCondition` WHERE `Condition`='''+$escaped+''''
+            $write=$db.OpenView($sql)
+            try { $null=$write.Execute() } finally { $null=$write.Close() }
+            if ($Mutation -eq 'dev_identity') {
+                $write=$db.OpenView('INSERT INTO `LaunchCondition` (`Condition`,`Description`) VALUES (''ComputerName~="different-host" AND DEV_MACHINE_GUID="00000000-0000-0000-0000-000000000000"'',''Disposable identity mutation'')')
+                try { $null=$write.Execute() } finally { $null=$write.Close() }
+            }
+            $null=$db.Commit()
+            """,new UTF8Encoding(false));
+        var result=await Run(script,fixture.Path,"-Mutation",mutation);
+        Assert.True(result.Exit==0,result.Error+result.Out);
     }
     private sealed class PackageFixture:IDisposable
     {

@@ -51,7 +51,7 @@ public sealed class MaintenanceUiTests
                 Assert.Equal("synthetic payload", File.ReadAllText(original));
                 Assert.Contains("restore_complete", ((TextBlock)window.FindName("MaintenanceStatus")).Text);
             }
-            finally { window.Close(); Dispatcher.CurrentDispatcher.InvokeShutdown(); }
+            finally { window.Close(); }
         });
     }
 
@@ -74,7 +74,7 @@ public sealed class MaintenanceUiTests
                 PumpUntil(() => ((TextBlock)window.FindName("MaintenanceStatus")).Text.Contains("maintenance_not_approved"));
                 Assert.True(File.Exists(original));
             }
-            finally { window.Close(); Dispatcher.CurrentDispatcher.InvokeShutdown(); }
+            finally { window.Close(); }
         });
     }
 
@@ -92,17 +92,7 @@ public sealed class MaintenanceUiTests
     private static void Click(Window window, string name)
         => ((Button)window.FindName(name)).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
 
-    private static async Task RunSta(Action action)
-    {
-        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var thread = new Thread(() =>
-        {
-            try { SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext()); action(); completion.SetResult(); }
-            catch (Exception error) { completion.SetException(error); }
-        });
-        thread.SetApartmentState(ApartmentState.STA); thread.IsBackground = true; thread.Start();
-        await completion.Task.WaitAsync(TimeSpan.FromSeconds(30));
-    }
+    private static Task RunSta(Action action) => StaTest.RunAsync(action);
 
     private static void PumpUntil(Func<bool> condition)
     {
