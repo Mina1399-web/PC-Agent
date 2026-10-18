@@ -176,3 +176,50 @@ the agent. The operator must rerun the updated read-only probe to establish
 which actual file guard blocked the two installed databases. Do not remove
 sidecars, raise size limits, switch to immutable on live DBs or repair databases
 based on the old generic NOTRUN result.
+
+## Operator rerun with exact guard reasons
+
+The subsequent operator result again reports the same Running HostAgent PID6592,
+all three elevated-interactive PDH paths successful, and notifications.db
+quick_check=ok. The previously ambiguous guards are now identified:
+
+- host-agent: NOTRUN / wal_sidecars_required. This does not mean a failed
+  quick_check: SQLite was not opened. At least one required WAL/SHM sidecar was
+  absent. Exact individual sidecar absence was not reported.
+- helper-journal: NOTRUN / file_missing. The fixed path agrees with
+  HostAgent.Helper/Program.cs; the harness is not inspecting a guessed old path.
+
+Source inspection explains why neither observation proves a product failure.
+SqliteHostAgentStore uses Pooling=false and scoped connections: SQLite can close
+the last connection, checkpoint normally and remove its transient WAL/SHM while
+the main file retains WAL journal mode. SqliteHelperJournal's constructor only
+records its connection string; it opens/creates storage lazily on the first
+journal operation. Helper startup constructs it without opening a database.
+Consequently a Running helper need not already have a journal file. The operator
+result alone does not prove that the installed journal was never previously
+created or deleted, nor that an eventual first write will succeed.
+
+No installed database is repaired/created, no sidecars deleted, no guard lowered,
+no protected service stopped, and no mode switched. The same probe should not
+be repeated unchanged to obtain a green result. Main DB integrity, installed
+helper first-use audit persistence and service-context disk counters remain
+explicitly open; the observed absence is not relabeled as a successful integrity
+check. The existing usable View/history evidence is separate from full integrity.
+
+Fresh characterization tests against the actual current C# storage classes on
+disposable databases confirmed both lifecycle behaviors, 2/2 PASS, exit0,
+monitorFailure=null. The helper fixture is absent after construction, then its
+first journal read initializes healthy storage (read-only quick_check=ok). The
+host fixture retains WAL header bytes with both sidecars absent after normal
+initialization and successfully opens on its next ordinary store operation.
+These fixtures do not prove installed first-use write permissions or main DB
+integrity. They are characterization tests, not a red/green product correction.
+
+```powershell
+dotnet test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj -c Release --no-restore -m:1 /p:UseSharedCompilation=false --filter FullyQualifiedName~PersistenceFileLifecycleTests --logger 'console;verbosity=detailed'
+```
+
+Pinned SDK and unchanged memory watchdog as above. Fresh receipts/stdout/stderr:
+`predeployment-20261018T045333Z/installer-validator/persistence-lifecycle-characterization-20261018.*`.
+No runtime source changed; full suite was not repeated for this test/documentation
+addition. Previous466/466 is a separate earlier complete-suite run, not468/468.
