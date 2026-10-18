@@ -124,7 +124,7 @@ public sealed class WindowsCpuMemoryCollector : ITelemetryCollector<CpuMemoryTel
                 catch (Exception exception) when (
                     exception is Win32Exception or InvalidOperationException or NotSupportedException)
                 {
-                    warnings.Add("some_process_metrics_unavailable");
+                    warnings.Add(ProcessMetricFailure.Classify(exception));
                 }
             }
         }

@@ -8,7 +8,7 @@ public sealed class AgentRuntimeHealth
     {
         "volume_not_ready", "volume_metrics_unavailable", "disk_io_counters_unavailable", "some_disk_io_counters_unavailable",
         "smart_health_unavailable", "system_cpu_counter_unavailable", "cpu_baseline_not_ready", "process_list_unavailable",
-        "some_process_metrics_unavailable", "some_process_start_times_unavailable", "process_list_truncated",
+        "some_process_metrics_unavailable", "some_process_metrics_access_denied", "some_process_start_times_unavailable", "process_list_truncated",
         "service_catalog_unavailable", "some_service_states_unavailable", "some_executable_paths_unavailable",
         "some_service_start_modes_unavailable", "some_service_triggers_unavailable",
         "some_network_adapter_details_unavailable", "no_network_adapters_available", "windows_version_registry_unavailable",
@@ -35,10 +35,15 @@ public sealed class AgentRuntimeHealth
         {
             var optionalSmartOnly = result.CollectorId == "disk" && result.Status == CollectorCycleStatus.Partial
                 && result.WarningCodes.Count > 0 && result.WarningCodes.All(code => code == "smart_health_unavailable");
-            var degraded = result.Status != CollectorCycleStatus.Succeeded && !optionalSmartOnly;
+            // Executable paths are explicitly best-effort in the specification. Keep
+            // the capability warning visible, without hiding other process/service faults.
+            var optionalPathsOnly = result.CollectorId == "process-services" && result.Status == CollectorCycleStatus.Partial
+                && result.WarningCodes.Count > 0 && result.WarningCodes.All(code => code == "some_executable_paths_unavailable");
+            var degraded = result.Status != CollectorCycleStatus.Succeeded && !optionalSmartOnly && !optionalPathsOnly;
             anyDegraded |= degraded;
             anyTelemetryAvailable |= result.Status is CollectorCycleStatus.Succeeded or CollectorCycleStatus.Partial;
-            var code = optionalSmartOnly ? "optional_smart_unavailable" : result.Status switch
+            var code = optionalSmartOnly ? "optional_smart_unavailable"
+                : optionalPathsOnly ? "optional_process_paths_unavailable" : result.Status switch
             {
                 CollectorCycleStatus.Succeeded => "collector_healthy",
                 CollectorCycleStatus.Partial => "collector_partial",

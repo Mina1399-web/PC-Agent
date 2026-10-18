@@ -14,6 +14,49 @@ namespace HostAgent.Infrastructure.Tests;
 
 public sealed class HealthStabilizationTests
 {
+    [Fact]
+    public async Task Optional_process_path_remains_visible_without_degrading_dashboard_health()
+    {
+        var health = new AgentRuntimeHealth();
+        health.SetCollectors([new CollectorCycleResult("process-services", CollectorCycleStatus.Partial, null, 0, null)
+        { WarningCodes = ["some_executable_paths_unavailable"] }]);
+        var path = Path.Combine(Path.GetTempPath(), "optional-path-health-" + Guid.NewGuid() + ".db");
+        try
+        {
+            await using var store = new SqliteHostAgentStore(path);
+            await store.InitializeAsync(default);
+            var bytes = await new DashboardDispatcher(store, new(), health, TimeProvider.System)
+                .DispatchAsync(HostAgent.Infrastructure.Dashboard.ViewProtocol.Request("overview", new { }), default);
+            using var response = JsonDocument.Parse(bytes);
+            var view = response.RootElement.GetProperty("data").Deserialize<HostAgent.Core.Dashboard.DashboardSnapshot>()!;
+            var component = Assert.Single(view.Health, item => item.Component == "process-services");
+            Assert.False(component.Degraded);
+            Assert.Equal("optional_process_paths_unavailable", component.Code);
+            Assert.Equal(new[] { "some_executable_paths_unavailable" }, component.Reasons);
+            Assert.False(health.Degraded);
+            Assert.False(Assert.Single(view.Health, item => item.Component == "collectors").Degraded);
+        }
+        finally { ChaosFixtureRetention.DeleteFile(path); }
+    }
+
+    [Theory]
+    [InlineData("process-services", CollectorCycleStatus.Partial, "process_list_unavailable")]
+    [InlineData("process-services", CollectorCycleStatus.Partial, "some_process_metrics_unavailable")]
+    [InlineData("process-services", CollectorCycleStatus.Partial, "service_catalog_unavailable")]
+    [InlineData("process-services", CollectorCycleStatus.Partial, "unknown_warning")]
+    [InlineData("process-services", CollectorCycleStatus.Unavailable, "some_executable_paths_unavailable")]
+    [InlineData("process-services", CollectorCycleStatus.Failed, "some_executable_paths_unavailable")]
+    [InlineData("cpu-memory", CollectorCycleStatus.Partial, "some_executable_paths_unavailable")]
+    public void Optional_path_exception_cannot_hide_required_unknown_or_failed_collection(
+        string collector, CollectorCycleStatus status, string warning)
+    {
+        var health = new AgentRuntimeHealth();
+        health.SetCollectors([new CollectorCycleResult(collector, status, null, 0, null)
+        { WarningCodes = ["some_executable_paths_unavailable", warning] }]);
+        Assert.True(health.Degraded);
+        Assert.True(Assert.Single(health.Snapshot(), item => item.Component == collector).Degraded);
+    }
+
     [Theory]
     [InlineData("some_service_start_modes_unavailable")]
     [InlineData("some_service_triggers_unavailable")]

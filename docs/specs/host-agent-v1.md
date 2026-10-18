@@ -57,7 +57,7 @@ The sampling interval defaults to one minute and is configurable without tying s
 
 Every collector receives a cancellation token and has a configured timeout. A collector exception or timeout is converted to a health result and does not stop other collectors or the service. Retry uses bounded exponential backoff; no tight retry loop or empty catch is permitted. The service health state degrades when collectors repeatedly fail.
 
-Expected SMART unavailability remains a partial disk capability result but does not by itself degrade overall agent health. Other missing disk data and required-collector failures remain degrading. The elevated local CLI `status --verbose` exposes only a bounded component list with stable health codes; ordinary `status` preserves its response shape.
+Expected SMART unavailability remains a partial disk capability result but does not by itself degrade overall agent health. Likewise, a process-services Partial result caused exclusively by unavailable optional executable paths preserves its capability reason without degrading overall health. Other missing disk data, process metrics, mixed/unknown warnings and required-collector failures remain degrading. The elevated local CLI `status --verbose` exposes only a bounded component list with stable health codes; ordinary `status` preserves its response shape.
 
 ## Local storage
 
