@@ -28,7 +28,7 @@ try {
     if ($LASTEXITCODE -ne 0 -or (& git -C $source status --porcelain)) { throw 'release_clean_source_required' }
     $null=New-Item -ItemType Directory -Path $output
     foreach ($project in @('Service','Helper','Cli','Desktop')) {
-        & dotnet publish (Join-Path $source "src/HostAgent.$project/HostAgent.$project.csproj") --configuration Release --runtime win-x64 --self-contained true -p:DebugType=None -p:DebugSymbols=false -p:Version=$Version --output (Join-Path $output $project)
+        & dotnet publish (Join-Path $source "src/HostAgent.$project/HostAgent.$project.csproj") --configuration Release --runtime win-x64 --self-contained true -m:1 -p:UseSharedCompilation=false -p:DebugType=None -p:DebugSymbols=false -p:Version=$Version --output (Join-Path $output $project)
         if ($LASTEXITCODE -ne 0) { throw 'release_publish_failed' }
     }
     Copy-Item -LiteralPath (Join-Path $source 'docs') -Destination (Join-Path $output 'docs') -Recurse
