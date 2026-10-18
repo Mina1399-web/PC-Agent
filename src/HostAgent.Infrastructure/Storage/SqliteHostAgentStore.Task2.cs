@@ -114,6 +114,41 @@ public sealed partial class SqliteHostAgentStore
     public ValueTask<IReadOnlyList<Incident>> ReadIncidentHeadsAsync(CancellationToken cancellationToken) =>
         ReadIncidentsCoreAsync(true, cancellationToken);
 
+    public ValueTask<IReadOnlyList<Incident>> ReadIncidentSummariesAsync(int limit, CancellationToken cancellationToken)
+    {
+        if (limit < 1 || limit > 100) throw new ArgumentOutOfRangeException(nameof(limit));
+        return ReadIncidentSummariesCoreAsync(limit, null, cancellationToken);
+    }
+
+    public async ValueTask<Incident?> ReadIncidentSummaryAsync(string incidentId, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(incidentId);
+        return (await ReadIncidentSummariesCoreAsync(1, incidentId, cancellationToken)).SingleOrDefault();
+    }
+
+    private async ValueTask<IReadOnlyList<Incident>> ReadIncidentSummariesCoreAsync(int limit, string? incidentId,
+        CancellationToken cancellationToken)
+    {
+        await EnsureInitializedAsync(cancellationToken);
+        await using var connection = await OpenConnectionAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        // One SELECT: bound before deserialization, with no archive queries or
+        // writer reservation. Durable bundles store snapshots separately.
+        command.CommandText = incidentId is null
+            ? "SELECT payload_json FROM incidents ORDER BY updated_at_utc DESC, incident_id DESC LIMIT $limit;"
+            : "SELECT payload_json FROM incidents WHERE incident_id=$id LIMIT 1;";
+        if (incidentId is null) command.Parameters.AddWithValue("$limit", limit);
+        else command.Parameters.AddWithValue("$id", incidentId);
+        var incidents = new List<Incident>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            var incident = JsonSerializer.Deserialize<Incident>(reader.GetString(0)) ?? throw new JsonException("Missing incident.");
+            incidents.Add(incident with { Snapshots = [] });
+        }
+        return incidents;
+    }
+
     private async ValueTask<IReadOnlyList<Incident>> ReadIncidentsCoreAsync(bool operational, CancellationToken cancellationToken)
     {
         await EnsureInitializedAsync(cancellationToken);

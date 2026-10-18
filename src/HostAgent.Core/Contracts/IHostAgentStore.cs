@@ -14,6 +14,9 @@ public interface IHostAgentStore : ICollectorCheckpointStore, IAsyncDisposable
     ValueTask SaveIncidentBundleAsync(Incident incident, CancellationToken cancellationToken);
     ValueTask<IReadOnlyList<Incident>> ReadIncidentsAsync(CancellationToken cancellationToken);
     ValueTask<IReadOnlyList<Incident>> ReadIncidentHeadsAsync(CancellationToken cancellationToken);
+    // View projections do not require archived telemetry snapshots.
+    ValueTask<IReadOnlyList<Incident>> ReadIncidentSummariesAsync(int limit, CancellationToken cancellationToken);
+    ValueTask<Incident?> ReadIncidentSummaryAsync(string incidentId, CancellationToken cancellationToken);
 
     ValueTask InitializeAsync(CancellationToken cancellationToken);
 

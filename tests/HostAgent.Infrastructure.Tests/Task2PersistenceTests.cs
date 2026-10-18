@@ -133,6 +133,38 @@ public sealed class Task2PersistenceTests
         Assert.Single(incident.Snapshots);
     }
 
+    [Fact]
+    public async Task Summary_reads_bound_and_order_heads_without_loading_or_removing_durable_snapshots()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "HostAgentTests", Guid.NewGuid().ToString("N"), "summaries.db");
+        await using var store = new SqliteHostAgentStore(path);
+        var diagnosis = new Diagnosis("diag", "disk:C", Now, DiagnosisSeverity.Critical, 82, [],
+            new("disk_capacity", "full", "C"), [], new("inspect", "inspect"), IncidentLifecycleState.Active);
+        for (var index = 0; index < 25; index++)
+        {
+            var id = "incident-" + index.ToString("D2");
+            await store.SaveIncidentBundleAsync(new(id, "disk:" + index, IncidentLifecycleState.Active, Now,
+                Now.AddMinutes(Math.Min(index, 23)), 1, diagnosis,
+                [Snapshot() with { SnapshotId = "snapshot-" + index, IncidentId = id }]), default);
+        }
+        var summaries = await store.ReadIncidentSummariesAsync(2, default);
+        Assert.Equal(new[] { "incident-24", "incident-23" }, summaries.Select(x => x.IncidentId));
+        Assert.All(summaries, x => { Assert.Empty(x.Snapshots); Assert.Equal(82, x.LatestDiagnosis.Confidence); });
+        var selected = await store.ReadIncidentSummaryAsync("incident-00", default);
+        Assert.NotNull(selected);
+        Assert.Equal("incident-00", selected.IncidentId);
+        Assert.Equal(82, selected.LatestDiagnosis.Confidence);
+        Assert.Empty(selected.Snapshots);
+        Assert.Null(await store.ReadIncidentSummaryAsync("missing", default));
+        Assert.Null(await store.ReadIncidentSummaryAsync("' OR 1=1 --", default));
+        foreach (var limit in new[] { -1, 0, 101 })
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => store.ReadIncidentSummariesAsync(limit, default).AsTask());
+        await Assert.ThrowsAsync<ArgumentException>(() => store.ReadIncidentSummaryAsync(" ", default).AsTask());
+        var archive = await store.ReadIncidentsAsync(default);
+        Assert.Equal(25, archive.Count);
+        Assert.All(archive, x => Assert.Single(x.Snapshots));
+    }
+
     private static MethodInfo Method(string name)
     {
         var method = typeof(SqliteHostAgentStore).GetMethod(name);

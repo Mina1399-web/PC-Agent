@@ -15,6 +15,35 @@ namespace HostAgent.Infrastructure.Tests;
 
 public sealed class DashboardViewTests
 {
+    [Theory]
+    [InlineData("overview")]
+    [InlineData("incident")]
+    [InlineData("investigate")]
+    public async Task View_incident_projection_does_not_load_unused_archived_snapshots(string command)
+    {
+        await using var f = await OperatingModeTests.Fixture.Create();
+        var expected = Assert.Single(await f.Store.ReadIncidentHeadsAsync(default));
+        await using var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={f.Path};Pooling=False");
+        await connection.OpenAsync();
+        await using var update = connection.CreateCommand();
+        // A canary: valid SQLite JSON but deliberately not an IncidentSnapshot.
+        // View only needs the valid committed head, never this archive payload.
+        update.CommandText = "UPDATE incident_snapshots SET payload_json='[]';";
+        Assert.Equal(1, await update.ExecuteNonQueryAsync());
+        var dispatcher = new DashboardDispatcher(f.Store, new(), new(), TimeProvider.System);
+        var request = command == "incident" ? ViewProtocol.Request(command, new { incidentId = expected.IncidentId })
+            : ViewProtocol.Request(command, new { });
+        using var reply = JsonDocument.Parse(await dispatcher.DispatchAsync(request, default));
+        Assert.True(reply.RootElement.GetProperty("ok").GetBoolean(), "View unnecessarily read an archive snapshot.");
+        var data = reply.RootElement.GetProperty("data");
+        var incident = command == "incident" ? data.GetProperty("Incident")
+            : Assert.Single(data.GetProperty("Incidents").EnumerateArray());
+        Assert.Equal(expected.IncidentId, incident.GetProperty("Id").GetString());
+        Assert.Equal(expected.LatestDiagnosis.Confidence, incident.GetProperty("Confidence").GetInt32());
+        // Archive validation must still surface corruption, not hide or repair it.
+        await Assert.ThrowsAsync<JsonException>(() => f.Store.ReadIncidentsAsync(default).AsTask());
+    }
+
     [Fact]
     public async Task Overview_pipe_returns_committed_incident_while_WAL_writer_is_open()
     {

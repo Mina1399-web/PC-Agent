@@ -44,8 +44,7 @@ public sealed class DashboardDispatcher(IHostAgentStore store,ServiceConfigurati
                     return Reply("serialize_history",true,"history",points);
                 case "incident":
                     var id=request.Body.GetProperty("incidentId").GetString();
-                    var heads=await Timed("incident_heads",()=>store.ReadIncidentHeadsAsync(token));
-                    var incident=heads.SingleOrDefault(x=>x.IncidentId==id);
+                    var incident=await Timed("incident_summary",()=>store.ReadIncidentSummaryAsync(id!,token));
                     if(incident is null)return Reply("serialize_incident",false,"view_incident_not_found",null);
                     return Reply("serialize_incident",true,"incident",new ViewIncidentDetail(Project(incident),
                         IsCrash(incident.LatestDiagnosis.ProbableRootCause.Code)?"stop_code_classification_only":"probable_cause_estimate",
@@ -129,7 +128,7 @@ public sealed class DashboardDispatcher(IHostAgentStore store,ServiceConfigurati
         catch(Exception error) when(error is JsonException or InvalidOperationException or KeyNotFoundException){return null;}
     }
     private async ValueTask<ViewIncident[]> Heads(CancellationToken token)
-        =>(await store.ReadIncidentHeadsAsync(token)).OrderByDescending(x=>x.UpdatedAtUtc).Take(20).Select(Project).ToArray();
+        =>(await store.ReadIncidentSummariesAsync(20,token)).Select(Project).ToArray();
     private static ViewIncident Project(Incident x)=>new(x.IncidentId,x.State.ToString(),SafeCause(x.LatestDiagnosis.ProbableRootCause.Code),
         x.LatestDiagnosis.Confidence,x.LatestDiagnosis.Severity.ToString(),x.LatestDiagnosis.ObservedAtUtc,x.RecurrenceCount)
         {AffectedService=SafeAffectedService(x.LatestDiagnosis.ProbableRootCause.Code,x.LatestDiagnosis.ProbableRootCause.Subject)};
