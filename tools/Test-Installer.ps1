@@ -22,6 +22,17 @@ if ($controls.Count -ne 2 -or @($controls | Where-Object { ([int]$_[1] -band 163
 $bootstrap=@(Rows "SELECT ``Type``,``Target`` FROM ``CustomAction`` WHERE ``Action``='Bootstrap'" 2)
 $preflight=@(Rows "SELECT ``Type``,``Target`` FROM ``CustomAction`` WHERE ``Action``='ValidateInstallTree'" 2)
 $sequence=@(Rows 'SELECT `Action`,`Condition`,`Sequence` FROM `InstallExecuteSequence`' 3)
+$upgradeSequence=@{}
+foreach ($action in @('InstallInitialize','RemoveExistingProducts','ProcessComponents','InstallFiles','InstallFinalize')) {
+    $rows=@($sequence | Where-Object { $_[0] -eq $action })
+    if ($rows.Count -ne 1) { throw 'release_installer_upgrade_transaction' }
+    $upgradeSequence[$action]=[int]$rows[0][2]
+    if ($upgradeSequence[$action] -le 0) { throw 'release_installer_upgrade_transaction' }
+}
+if ($upgradeSequence['InstallInitialize'] -ge $upgradeSequence['RemoveExistingProducts'] -or
+    $upgradeSequence['RemoveExistingProducts'] -ge $upgradeSequence['ProcessComponents'] -or
+    $upgradeSequence['RemoveExistingProducts'] -ge $upgradeSequence['InstallFiles'] -or
+    $upgradeSequence['RemoveExistingProducts'] -ge $upgradeSequence['InstallFinalize']) { throw 'release_installer_upgrade_transaction' }
 $preflightSequence=@($sequence | Where-Object { $_[0] -eq 'ValidateInstallTree' })
 $firstWrite=@($sequence | Where-Object { $_[0] -in @('CreateFolders','InstallFiles') } | ForEach-Object { [int]$_[2] } | Sort-Object)[0]
 if ($preflight.Count -ne 1 -or [int]$preflight[0][0] -ne 3073 -or $preflight[0][1] -ne 'ValidateInstallTree' -or

@@ -75,7 +75,7 @@ if ($DevVm) {
 $xml=@"
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
 <Package Name="Host Agent V1" Manufacturer="Host Agent" Version="$Version" UpgradeCode="E839C131-FD8D-45AA-927E-A2364BD39AE2" Scope="perMachine" InstallerVersion="500">
-<MajorUpgrade DowngradeErrorMessage="A newer Host Agent version is installed." />
+<MajorUpgrade DowngradeErrorMessage="A newer Host Agent version is installed." Schedule="afterInstallInitialize" />
 <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
 $devCondition
 <Property Id="EXISTING_MONITOR"><RegistrySearch Id="FindMonitor" Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\HostAgent" Name="ImagePath" Type="raw" /></Property>

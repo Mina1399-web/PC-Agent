@@ -3,9 +3,10 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Xunit;
+using Xunit.Abstractions;
 namespace HostAgent.Infrastructure.Tests;
 [Collection("ReleaseTooling")]
-public sealed class ReleaseToolingTests
+public sealed class ReleaseToolingTests(ITestOutputHelper output)
 {
     [Fact]
     public async Task Full_desktop_manifest_is_validated_without_executing_manifest_code()
@@ -183,6 +184,52 @@ public sealed class ReleaseToolingTests
         Assert.False(json.RootElement.GetProperty("devVmGuard").GetBoolean());
         Assert.False(json.RootElement.GetProperty("devVmIdentityMatches").GetBoolean());
     }
+    // Defect: removing the installed product before InstallInitialize leaves it outside upgrade rollback.
+    [Fact]
+    public async Task Built_msi_removes_the_previous_product_inside_the_upgrade_transaction_before_new_components()
+    {
+        using var fixture=new PackageFixture();
+        await BuildInstaller(fixture);
+        using var sequence=await ReadInstallerSequence(fixture);
+        var initialize=sequence.RootElement.GetProperty("InstallInitialize").GetInt32();
+        var remove=sequence.RootElement.GetProperty("RemoveExistingProducts").GetInt32();
+        var components=sequence.RootElement.GetProperty("ProcessComponents").GetInt32();
+        var files=sequence.RootElement.GetProperty("InstallFiles").GetInt32();
+        var finalize=sequence.RootElement.GetProperty("InstallFinalize").GetInt32();
+        output.WriteLine($"Actual MSI sequence: InstallInitialize={initialize}; RemoveExistingProducts={remove}; ProcessComponents={components}; InstallFiles={files}; InstallFinalize={finalize}.");
+        Assert.True(initialize<remove,$"InstallInitialize={initialize} must precede RemoveExistingProducts={remove}.");
+        Assert.True(remove<components,$"RemoveExistingProducts={remove} must precede ProcessComponents={components}.");
+        Assert.True(remove<files,$"RemoveExistingProducts={remove} must precede InstallFiles={files}.");
+        Assert.True(remove<finalize,$"RemoveExistingProducts={remove} must precede InstallFinalize={finalize}.");
+    }
+    // Defect: the validator accepts missing, late or nontransactional removal of the previous product.
+    [Theory]
+    [InlineData("missing_remove")]
+    [InlineData("remove_before_initialize")]
+    [InlineData("remove_after_components")]
+    [InlineData("remove_after_finalize")]
+    public async Task Installer_validator_refuses_unsafe_upgrade_transaction_order(string mutation)
+    {
+        using var fixture=new PackageFixture();
+        await BuildInstaller(fixture);
+        await MutateInstaller(fixture,mutation);
+        var inspect=await Run("Test-Installer.ps1",fixture.Path,"-DevVm");
+        Assert.NotEqual(0,inspect.Exit);
+        Assert.Contains("release_installer_upgrade_transaction",inspect.Error);
+        Assert.Empty(inspect.Out);
+    }
+    // Defect: Sequence=0 disables InstallInitialize but otherwise satisfies the relative-order checks.
+    [Fact]
+    public async Task Installer_validator_refuses_a_disabled_install_initialize_action()
+    {
+        using var fixture=new PackageFixture();
+        await BuildInstaller(fixture);
+        await MutateInstaller(fixture,"initialize_disabled");
+        var inspect=await Run("Test-Installer.ps1",fixture.Path,"-DevVm");
+        Assert.NotEqual(0,inspect.Exit);
+        Assert.Contains("release_installer_upgrade_transaction",inspect.Error);
+        Assert.Empty(inspect.Out);
+    }
     // Defect: verified release package cannot be validated without silently disabling the production signature gate.
     [Fact]
     public async Task Dev_package_integrity_passes_and_production_unsigned_package_is_refused()
@@ -248,6 +295,28 @@ public sealed class ReleaseToolingTests
             $ErrorActionPreference='Stop'
             $installer=New-Object -ComObject WindowsInstaller.Installer
             $db=$installer.OpenDatabase((Join-Path $PackagePath 'HostAgent.msi'),1)
+            if ($Mutation -in @('missing_remove','remove_before_initialize','remove_after_components','remove_after_finalize','initialize_disabled')) {
+                $sequence=@{}
+                $view=$db.OpenView('SELECT `Action`,`Sequence` FROM `InstallExecuteSequence`')
+                $null=$view.Execute()
+                try { while ($null -ne ($row=$view.Fetch())) { $sequence[$row.StringData(1)]=[int]$row.IntegerData(2) } }
+                finally { $null=$view.Close() }
+                if (-not $sequence.ContainsKey('RemoveExistingProducts')) { throw 'fixture_upgrade_action_missing' }
+                $sql=if ($Mutation -eq 'missing_remove') { 'DELETE FROM `InstallExecuteSequence` WHERE `Action`=''RemoveExistingProducts''' }
+                elseif ($Mutation -eq 'initialize_disabled') { 'UPDATE `InstallExecuteSequence` SET `Sequence`=0 WHERE `Action`=''InstallInitialize''' }
+                else {
+                    $position=switch ($Mutation) {
+                        'remove_before_initialize' { $sequence['InstallInitialize']-1 }
+                        'remove_after_components' { $sequence['ProcessComponents']+1 }
+                        'remove_after_finalize' { $sequence['InstallFinalize']+1 }
+                    }
+                    'UPDATE `InstallExecuteSequence` SET `Sequence`='+$position+' WHERE `Action`=''RemoveExistingProducts'''
+                }
+                $write=$db.OpenView($sql)
+                try { $null=$write.Execute() } finally { $null=$write.Close() }
+                $null=$db.Commit()
+                return
+            }
             $view=$db.OpenView('SELECT `Condition` FROM `LaunchCondition`')
             $null=$view.Execute()
             $condition=$null
@@ -274,6 +343,25 @@ public sealed class ReleaseToolingTests
             """,new UTF8Encoding(false));
         var result=await Run(script,fixture.Path,"-Mutation",mutation);
         Assert.True(result.Exit==0,result.Error+result.Out);
+    }
+    private static async Task<JsonDocument> ReadInstallerSequence(PackageFixture fixture)
+    {
+        var script=System.IO.Path.Combine(fixture.Path,"read-msi-sequence.ps1");
+        File.WriteAllText(script,"""
+            param([Parameter(Mandatory)][string]$PackagePath)
+            $ErrorActionPreference='Stop'
+            $installer=New-Object -ComObject WindowsInstaller.Installer
+            $db=$installer.OpenDatabase((Join-Path $PackagePath 'HostAgent.msi'),0)
+            $view=$db.OpenView('SELECT `Action`,`Sequence` FROM `InstallExecuteSequence`')
+            $null=$view.Execute()
+            $sequence=@{}
+            try { while ($null -ne ($row=$view.Fetch())) { $sequence[$row.StringData(1)]=[int]$row.IntegerData(2) } }
+            finally { $null=$view.Close() }
+            $sequence | ConvertTo-Json -Compress
+            """,new UTF8Encoding(false));
+        var result=await Run(script,fixture.Path);
+        Assert.True(result.Exit==0,result.Error+result.Out);
+        return JsonDocument.Parse(result.Out);
     }
     private sealed class PackageFixture:IDisposable
     {
