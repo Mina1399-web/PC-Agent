@@ -23,13 +23,24 @@ public sealed class RemediationCoordinator(IHostAgentStore store, IHelperClient 
         try
         {
             request=HelperProtocol.ParseRequest(HelperProtocol.SerializeRequest(request));
-            var incident=(await store.ReadIncidentHeadsAsync(cancellationToken)).SingleOrDefault(value=>value.IncidentId==request.IncidentId);
+            var incident=await store.ReadIncidentAsync(request.IncidentId,cancellationToken);
             if (incident is null || incident.LatestDiagnosis.DiagnosisId!=request.DiagnosisId ||
                 incident.LatestDiagnosis.Confidence!=request.Confidence ||
                 !incident.LatestDiagnosis.Evidence.Select(value=>value.EvidenceId).SequenceEqual(request.EvidenceReferences) ||
                 incident.State is IncidentLifecycleState.Resolved or IncidentLifecycleState.Escalated)
                 return Response(HelperResult.Denied,"incident_not_actionable");
             var now=clock.GetUtcNow();
+            if (configuration.Mode==OperatingMode.Confirmation && !configuration.ReadOnly)
+            {
+                if (configuration.CollectionIntervalSeconds is <5 or >3600)
+                    return Response(HelperResult.Denied,"configuration_invalid");
+                // A fresh approval or lifecycle snapshot cannot make an old
+                // diagnosis current. Allow two configured collection periods,
+                // with three minutes as the minimum sampling allowance.
+                var maximumAge=TimeSpan.FromSeconds(Math.Max(180,2*configuration.CollectionIntervalSeconds));
+                if (incident.LatestDiagnosis.ObservedAtUtc>now || now-incident.LatestDiagnosis.ObservedAtUtc>maximumAge)
+                    return Response(HelperResult.Denied,"incident_evidence_stale");
+            }
             var auditToken=cancellationToken;
             var decision=new PolicyEngine().Evaluate(new()
             {

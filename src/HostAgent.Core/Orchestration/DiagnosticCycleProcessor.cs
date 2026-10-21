@@ -146,7 +146,9 @@ public sealed class DiagnosticCycleProcessor(IHostAgentStore store) : IDisposabl
         try
         {
             var engine = new IncidentEngine();
-            engine.Restore(await store.ReadIncidentHeadsAsync(cancellationToken));
+            var incident = await store.ReadIncidentAsync(incidentId, cancellationToken)
+                ?? throw new KeyNotFoundException("Unknown incident.");
+            engine.Restore([incident]);
             var updated = await engine.TransitionAsync(incidentId, state, snapshot, cancellationToken);
             await store.SaveIncidentBundleAsync(updated, cancellationToken);
             return updated;

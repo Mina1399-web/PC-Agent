@@ -13,12 +13,18 @@ public sealed record ViewEvidence(string Source, double? Value, DateTimeOffset A
 public sealed record ViewIncidentDetail(ViewIncident Incident, string ConfidenceScope, IReadOnlyList<ViewEvidence> Evidence, bool Truncated);
 public sealed record ViewEvent(int EventId, long? RecordId, DateTimeOffset AtUtc, uint? BugCheckCode, string? DumpFileName);
 public sealed record ViewInvestigation(DateTimeOffset AtUtc, IReadOnlyList<ViewEvent> Events, IReadOnlyList<ViewIncident> Incidents, string Limitation);
+// Availability describes diagnostic metadata, never the health of the disk.
+public sealed record ViewDiskIoDiagnostic(string Stage, string Counter, uint Status, uint? DataStatus, bool? ValueFinite);
+public sealed record ViewDiskIoDiagnostics(DateTimeOffset? AtUtc, string Status, IReadOnlyList<ViewDiskIoDiagnostic> Records);
 public sealed record DashboardSnapshot(DateTimeOffset GeneratedAtUtc, string Mode, bool ReadOnly, bool Degraded,
     ViewMetric? Cpu, ViewMetric? Memory, ViewMetric? Uptime, IReadOnlyList<ViewDisk> Disks,
     IReadOnlyList<ViewProcess> Processes, IReadOnlyList<ViewService> Services, int? ConnectedAdapters,
     IReadOnlyList<ViewIncident> Incidents, IReadOnlyList<ViewHealth> Health,
     IReadOnlyList<ViewMetric> RecentCpu, IReadOnlyList<ViewMetric> RecentMemory)
-{ public bool KillSwitch {get;init;} }
+{
+    public bool KillSwitch {get;init;}
+    public ViewDiskIoDiagnostics? DiskIoDiagnostics {get;init;}
+}
 public enum GuidedAction { None, StorageSettings, AppsSettings, StartupSettings, Investigate }
 public sealed record Recommendation(string Code, string Title, string Evidence, string Benefit, string Impact,
     string Rollback, GuidedAction Action, string? IncidentId = null);

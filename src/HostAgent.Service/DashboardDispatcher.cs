@@ -23,17 +23,17 @@ public sealed class DashboardDispatcher(IHostAgentStore store,ServiceConfigurati
                     var cpu=await Timed("metric_cpu",()=>Metrics("cpu.usage.percent",now.AddMinutes(-6),now,128,token));
                     var memory=await Timed("metric_memory",()=>Metrics("memory.used.percent",now.AddMinutes(-6),now,128,token));
                     var uptime=await Timed("metric_uptime",()=>Metrics("system.uptime.seconds",now.AddMinutes(-3),now,1,token));
-                    var disk=await Timed("telemetry_disk",()=>Latest<DiskTelemetry>("disk",now,token));
+                    var disk=await Timed("telemetry_disk",()=>Disk(now,token));
                     var process=await Timed("telemetry_process_services",()=>Latest<ProcessServiceTelemetry>("process-services",now,token));
                     var network=await Timed("telemetry_network",()=>Latest<NetworkTelemetry>("network",now,token));
                     var incidents=await Timed("incident_heads",()=>Heads(token));
                     return Reply("serialize_overview",true,"overview",new DashboardSnapshot(now,configuration.Mode.ToString(),configuration.ReadOnly,health.Degraded,
                         Current(cpu,now),Current(memory,now),Current(uptime,now),
-                        disk.Value?.Volumes.Where(x=>ValidDrive(x.RootPath)).Take(8).Select(x=>new ViewDisk(x.RootPath.TrimEnd('\\'),x.FreeBytes,x.CapacityBytes,disk.At)).ToArray()??[],
+                        disk.Volumes.Where(x=>ValidDrive(x.RootPath)).Take(8).Select(x=>new ViewDisk(x.RootPath.TrimEnd('\\'),x.FreeBytes,x.CapacityBytes,disk.At)).ToArray(),
                         process.Value?.Processes.OrderByDescending(x=>x.MemoryBytes).Take(10).Select(x=>new ViewProcess(x.ProcessId,SafeName(x.ProcessName),x.CpuUsagePercent,x.MemoryBytes){StartTimeUtcTicks=x.StartedAtUtc?.UtcTicks}).ToArray()??[],
                         process.Value?.Services.OrderBy(x=>x.ServiceName,StringComparer.Ordinal).Take(30).Select(x=>new ViewService(SafeName(x.ServiceName),x.Status.ToString())).ToArray()??[],
                         network.Value?.Adapters.Count(x=>x.Status=="Up"),incidents,
-                        health.Snapshot().Take(16).Select(x=>new ViewHealth(x.Component,x.Code,x.Degraded,x.Reasons)).ToArray(),MinuteMinimum(cpu),MinuteMinimum(memory)){KillSwitch=configuration.KillSwitch});
+                        health.Snapshot().Take(16).Select(x=>new ViewHealth(x.Component,x.Code,x.Degraded,x.Reasons)).ToArray(),MinuteMinimum(cpu),MinuteMinimum(memory)){KillSwitch=configuration.KillSwitch,DiskIoDiagnostics=disk.Diagnostics});
                 case "history":
                     var metric=request.Body.GetProperty("metric").GetString()=="cpu"?"cpu.usage.percent":"memory.used.percent";
                     // Minimum supported interval is 5s: 24h has at most 17,281 samples.
@@ -109,6 +109,68 @@ public sealed class DashboardDispatcher(IHostAgentStore store,ServiceConfigurati
             .OrderBy(x=>x.SampledAtUtc).Select(x=>new ViewMetric(x.SampledAtUtc,x.Value)).ToArray();
     private static ViewMetric[] MinuteMinimum(ViewMetric[] samples)=>samples.GroupBy(x=>x.AtUtc.UtcTicks/TimeSpan.FromMinutes(1).Ticks)
         .OrderBy(x=>x.Key).Select(g=>new ViewMetric(g.Max(x=>x.AtUtc),g.Min(x=>x.Value))).ToArray();
+    private async ValueTask<(DiskVolumeTelemetry[] Volumes,DateTimeOffset At,ViewDiskIoDiagnostics Diagnostics)> Disk(DateTimeOffset now,CancellationToken token)
+    {
+        var sample=(await store.ReadTelemetrySnapshotsAsync("disk",now.AddMinutes(-3),now,1,token)).FirstOrDefault();
+        var unavailable=new ViewDiskIoDiagnostics(null,"unavailable",[]);
+        if(sample is null||sample.PayloadSchemaVersion!=1||!ViewFreshness.IsFresh(sample.SampledAtUtc,now))
+            return([],default,unavailable);
+        try
+        {
+            using var doc=JsonDocument.Parse(sample.PayloadJson);
+            var root=doc.RootElement;
+            if(root.GetProperty("CollectorId").GetString()!="disk"||root.GetProperty("Status").GetInt32() is not (0 or 1))
+                return([],default,unavailable);
+            var value=root.GetProperty("Value");
+            var volumes=value.GetProperty("Volumes").Deserialize<DiskVolumeTelemetry[]>()??[];
+            // Parse diagnostics separately: a malformed optional item must not
+            // invalidate otherwise readable volume telemetry or the overview.
+            return(volumes,sample.SampledAtUtc,DiskDiagnostics(value,sample.SampledAtUtc));
+        }
+        catch(Exception error) when(error is JsonException or InvalidOperationException or KeyNotFoundException)
+        {return([],default,unavailable);}
+    }
+
+    private static ViewDiskIoDiagnostics DiskDiagnostics(JsonElement value,DateTimeOffset at)
+    {
+        var invalid=new ViewDiskIoDiagnostics(at,"invalid",[]);
+        var absent=new ViewDiskIoDiagnostics(at,"not_recorded",[]);
+        if(!value.TryGetProperty("IoCounters",out var io)||io.ValueKind==JsonValueKind.Null)return absent;
+        if(io.ValueKind!=JsonValueKind.Object)return invalid;
+        if(!io.TryGetProperty("Diagnostics",out var list)||list.ValueKind==JsonValueKind.Null)return absent;
+        if(list.ValueKind!=JsonValueKind.Array||list.GetArrayLength()>10)return invalid;
+        if(list.GetArrayLength()==0)return absent;
+        var records=new List<ViewDiskIoDiagnostic>(10);
+        var seen=new HashSet<(int,int)>();
+        foreach(var item in list.EnumerateArray())
+        {
+            if(item.ValueKind!=JsonValueKind.Object
+                ||!item.TryGetProperty("Stage",out var stageValue)||stageValue.ValueKind!=JsonValueKind.Number||!stageValue.TryGetInt32(out var stage)||stage is <0 or >5
+                ||!item.TryGetProperty("Counter",out var counterValue)||counterValue.ValueKind!=JsonValueKind.Number||!counterValue.TryGetInt32(out var counter)||counter is <0 or >3
+                ||!item.TryGetProperty("Status",out var statusValue)||statusValue.ValueKind!=JsonValueKind.Number||!statusValue.TryGetUInt32(out var status)
+                ||!seen.Add((stage,counter)))return invalid;
+            if((stage is 1 or 4)!=(counter is 1 or 2 or 3))return invalid;
+            uint? dataStatus=null;
+            if(item.TryGetProperty("DataStatus",out var data)&&data.ValueKind!=JsonValueKind.Null)
+            {
+                if(data.ValueKind!=JsonValueKind.Number||!data.TryGetUInt32(out var parsed)
+                    ||stage!=4||status is not (0 or 0xC0000BC6u))return invalid;
+                dataStatus=parsed;
+            }
+            bool? finite=null;
+            if(item.TryGetProperty("ValueFinite",out var finiteValue)&&finiteValue.ValueKind!=JsonValueKind.Null)
+            {
+                if(finiteValue.ValueKind is not (JsonValueKind.True or JsonValueKind.False)
+                    ||stage!=4||status!=0||dataStatus is not (0 or 1))return invalid;
+                finite=finiteValue.GetBoolean();
+            }
+            var stageName=stage switch{0=>"open_query",1=>"add_counter",2=>"collect_first",3=>"collect_second",4=>"format_value",_=>"close_query"};
+            var counterName=counter switch{1=>"read",2=>"write",3=>"latency",_=>"none"};
+            records.Add(new(stageName,counterName,status,dataStatus,finite));
+        }
+        return new(at,"available",records.AsReadOnly());
+    }
+
     private async ValueTask<(T? Value,DateTimeOffset At)> Latest<T>(string collector,DateTimeOffset now,CancellationToken token) where T:class
     {
         var sample=(await store.ReadTelemetrySnapshotsAsync(collector,now.AddMinutes(-3),now,1,token)).FirstOrDefault();

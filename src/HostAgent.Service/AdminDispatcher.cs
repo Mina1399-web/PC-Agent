@@ -23,12 +23,12 @@ public sealed class AdminDispatcher(IHostAgentStore store,RemediationCoordinator
                     return AdminProtocol.Reply(true,"ready",new{mode=configuration.Mode.ToString(),configuration.ReadOnly,
                     configuration.ConfigurationAvailable,degraded=health.Degraded,configuration.EnablePushover,configuration.EnableHeartbeat});
                 case "incidents":
-                    var heads=await store.ReadIncidentHeadsAsync(token);
-                    return AdminProtocol.Reply(true,"incidents",heads.OrderByDescending(x=>x.UpdatedAtUtc).Take(20).Select(x=>new
+                    var heads=await store.ReadIncidentSummariesAsync(20,token);
+                    return AdminProtocol.Reply(true,"incidents",heads.Select(x=>new
                         {x.IncidentId,state=x.State.ToString(),x.LatestDiagnosis.DiagnosisId,x.LatestDiagnosis.Confidence,severity=x.LatestDiagnosis.Severity.ToString()}));
                 case "incident":
                     var incidentId=body.GetProperty("incidentId").GetString();
-                    var selected=(await store.ReadIncidentHeadsAsync(token)).SingleOrDefault(x=>x.IncidentId==incidentId);
+                    var selected=await store.ReadIncidentSummaryAsync(incidentId!,token);
                     if(selected is null)return AdminProtocol.Reply(false,"incident_not_found");
                     var diagnosis=selected.LatestDiagnosis;
                     var isBugcheck=diagnosis.ProbableRootCause.Code=="windows_bugcheck"
@@ -60,7 +60,7 @@ public sealed class AdminDispatcher(IHostAgentStore store,RemediationCoordinator
                     await writeSecret(Enum.Parse<SecretName>(body.GetProperty("name").GetString()!),body.GetProperty("value").GetString()!,token);
                     return AdminProtocol.Reply(true,"secret_saved");
                 case "propose":
-                    var incident=(await store.ReadIncidentHeadsAsync(token)).SingleOrDefault(x=>x.IncidentId==body.GetProperty("incidentId").GetString());
+                    var incident=await store.ReadIncidentSummaryAsync(body.GetProperty("incidentId").GetString()!,token);
                     if(incident is null)return AdminProtocol.Reply(false,"incident_not_found");
                     var request=AdminProtocol.Proposal(body,incident.LatestDiagnosis.DiagnosisId,incident.LatestDiagnosis.Confidence,
                         incident.LatestDiagnosis.Evidence.Select(x=>x.EvidenceId).ToArray());

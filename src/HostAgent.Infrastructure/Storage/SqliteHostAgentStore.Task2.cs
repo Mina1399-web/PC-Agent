@@ -114,6 +114,46 @@ public sealed partial class SqliteHostAgentStore
     public ValueTask<IReadOnlyList<Incident>> ReadIncidentHeadsAsync(CancellationToken cancellationToken) =>
         ReadIncidentsCoreAsync(true, cancellationToken);
 
+    public async ValueTask<Incident?> ReadIncidentAsync(string incidentId, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(incidentId);
+        await EnsureInitializedAsync(cancellationToken);
+        await using var connection = await OpenConnectionAsync(cancellationToken);
+        await using var transaction = connection.BeginTransaction(deferred: true);
+        Incident? incident;
+        await using (var command = connection.CreateCommand())
+        {
+            command.Transaction = transaction;
+            command.CommandText = "SELECT payload_json FROM incidents WHERE incident_id=$id LIMIT 1;";
+            command.Parameters.AddWithValue("$id", incidentId);
+            var payload = await command.ExecuteScalarAsync(cancellationToken);
+            if (payload is null) return null;
+            incident = JsonSerializer.Deserialize<Incident>((string)payload) ?? throw new JsonException("Missing incident.");
+            if (incident.IncidentId != incidentId) throw new JsonException("Incident identity mismatch.");
+        }
+        await using (var command = connection.CreateCommand())
+        {
+            command.Transaction = transaction;
+            command.CommandText = "SELECT snapshot_id, captured_at_utc, payload_json FROM incident_snapshots WHERE incident_id=$id ORDER BY captured_at_utc DESC, snapshot_id DESC LIMIT 64;";
+            command.Parameters.AddWithValue("$id", incidentId);
+            var snapshots = new List<IncidentSnapshot>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var snapshot = JsonSerializer.Deserialize<IncidentSnapshot>(reader.GetString(2))
+                    ?? throw new JsonException("Missing snapshot.");
+                if (snapshot.IncidentId != incidentId || snapshot.SnapshotId != reader.GetString(0)
+                    || snapshot.CapturedAtUtc != ParseTimestamp(reader.GetString(1)))
+                    throw new JsonException("Snapshot identity mismatch.");
+                snapshots.Add(snapshot);
+            }
+            snapshots.Reverse();
+            incident = incident with { Snapshots = snapshots };
+        }
+        await transaction.CommitAsync(cancellationToken);
+        return incident;
+    }
+
     public ValueTask<IReadOnlyList<Incident>> ReadIncidentSummariesAsync(int limit, CancellationToken cancellationToken)
     {
         if (limit < 1 || limit > 100) throw new ArgumentOutOfRangeException(nameof(limit));
