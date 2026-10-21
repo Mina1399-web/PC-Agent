@@ -427,3 +427,30 @@ No mode/configuration/service/ACL change, host transfer or deployment occurred.
 Latest resource sample during the suite:1274.3MiB RAM,20.713GiB C: free.
 New complete packaging remains blocked by the unchanged20GiB floor; no
 unverified candidate installation command is provided.
+
+### Owner-authorized15GiB DEV disk floor and successful r2 publication
+
+The owner explicitly lowered the free-disk guard to15GiB. Fresh VM identity,
+account, UUID, VBoxService, clean branch and source HEADbf818144a17a759ac6588ce8c513e9cabd872d01
+were verified before execution. New external DEV publish/artifact runners use
+15GiB both initially and in their250ms monitor; original repository chaos
+runners and historical20GiB records were not rewritten. Tests verified disk
+15GiB-minus-one-byte rejection, exact15GiB acceptance and20GiB acceptance.
+Memory thresholds remain initial1024MiB, soft768MiB and hard512MiB; three
+boundary checks passed. Managed child heap remains384MiB. Guard hashes and
+validation receipts are preserved outside the repo in the existing evidence
+parent, as DevPublishMonitor15.cs / run-publish-15gib-check.ps1.
+
+`candidate-126-r2-publish-15gib` completed exit0 in401.9s, producing the full
+DEV-only1.2.6 r2 folder, MSI and ZIP from the clean verified source commit.
+monitorFailure=null, protectedServicesUnchanged=true, serviceControlPerformed=false.
+Package: `HostAgent-DEV-releases/HostAgent-1.2.6-dev-confirmation-diagnostics-r2`.
+Manifest SHA-256:262D2D6C044B441A3DB7924496EA6D8365D88D8A24D581903FEC77F7C5F7E07C.
+ZIP SHA-256:E5AD864C2DFF201595CC5C64776CA34B4A6E1440A870EABA5F34CD455153668B.
+Fresh separate `candidate-126-r2-artifact-15gib` Test-Release -DevVm passed
+exit0 in10.3s, monitorFailure=null/services unchanged. Post-publish resources:
+1681.0MiB RAM,19.83GiB free C:. The earlier disk blocker is closed for this
+DEV publication. No installation or mode change was performed. Prior572/572
+suite applies to the pinned source; no new full suite was run for external
+guard/documentation-only changes. Historical intermittent timeout findings
+and pending installed/native Confirmation acceptance remain open.
