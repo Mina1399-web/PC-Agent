@@ -279,3 +279,151 @@ skipped. The229compiled-input ledger comparison found zero changed files after
 the run. `git diff --check` passed. No new installed service-token telemetry,
 candidate deployment or native Confirmation acceptance follows from this
 source-level result. Installed1.2.5 remains unchanged Shadow/read-only.
+
+### Candidate packaging and diagnostic limits (fresh continuation)
+
+Verified source commit `6a9e5e7ff841ceb6eb489e384058e70ed02481db` contains
+all changes exercised by the 555-test run above. The guarded r1 publisher
+(`pdh-candidate-126-publish`) exited 1 after 209.4s with
+`release_build_failed`; monitorFailure=null, protectedServicesUnchanged=true.
+All four publish outputs, MSI and manifest exist, but no ZIP was produced.
+The generic publisher error does not establish which final stage failed.
+Do not install or represent this incomplete release as approved.
+
+A separate guarded read-only `tools/Test-Release.ps1 -DevVm` invocation
+(`pdh-candidate-126-artifact-check`) completed exit0 in 8.2s. It validated
+1209 listed files and source commit 6a9e5e7ff841ceb6eb489e384058e70ed02481db.
+Its monitorFailure=null and protectedServicesUnchanged=true. This establishes
+folder manifest integrity only, not successful packaging or live acceptance.
+Candidate directory: `HostAgent-DEV-releases/HostAgent-1.2.6-dev-confirmation-diagnostics-r1`;
+manifest SHA-256 `9A40631923FEC3FA6A77D8A03CBF1489B177AD93273D71AC185B86EEBA415D1B`.
+
+Independent review identified a narrower process-telemetry case requiring a
+regression: .NET 10.0.12 maps the Idle pseudo-process PID0 CPU-time open failure
+to Win32 error5. This does not justify suppressing other access denials or
+claiming the installed collector cause is completely known. Tests/fix are
+currently in progress; the 555-test result predates this new work.
+
+The operator token probe's `privilegesChanged=false` expresses no explicit
+privilege-change request in the probe, not a verified before/after token audit.
+.NET Process initialization can attempt to enable an already-assigned debug
+privilege. No privilege/ACL/group changes or token-access workaround were
+requested or performed in this continuation. Its earlier open_process_token
+error5 remains an incomplete service-token PDH measurement.
+
+### Exact Idle-process regression and fix
+
+`idle-process-context-red` ran the ProcessMetricFailureTests filter against the
+unchanged implementation: 19 tests, 17 pass and 2 expected behavioral failures,
+exit1, 202.5s outer duration. The real current .NET Idle CPU-time read produced
+native error5 and failed only the classification assertion. The minimal fix
+passes a known nullable PID from inside each collector's existing try block;
+only exact PID0+Win32 error5 omits the operational warning. Other PIDs, unknown
+IDs, other native codes and non-native errors retain existing degradation.
+`idle-process-context-green` repeated the same filter: 19/19 pass, exit0,
+168.5s outer duration. Both receipts have monitorFailure=null and unchanged
+protected services. Independent read-only implementation review found no
+blocker. These are source/current unprivileged test-process results, not
+installed service-token acceptance. A full Release rerun follows this change.
+
+### Isolated archive failure reproduced
+
+A bounded, separate Compress-Archive invocation on preserved r1 into a new
+scratch evidence path (`pdh-r1-archive-isolated`) failed exit1 after48.3s.
+Fixed diagnostics identify stage=archive, MethodInvocationException,
+errorId=OutOfMemoryException,Compress-Archive,
+innerType=System.OutOfMemoryException, heapLimit=18000000 (384MiB).
+monitorFailure=null; protectedServicesUnchanged=true; no service control.
+Thus archive creation itself reproduces the resource failure; it is not an
+inferred cause from missing ZIP alone. The archive module removes its partial
+output on exception, so absence of ZIP cannot establish that it never started.
+A bounded streaming ZIP regression/fix is in progress; no passing package or
+installation is claimed yet.
+
+### Streaming archive regression verified
+
+The new New-ReleaseArchive tooling entrypoint uses ZipFile Create mode,
+retains the base directory and refuses existing output, output inside source
+and reparse paths. The builder invokes this helper; no product runtime or
+installer permission change was made. Independent read-only review found no
+blocker. `release-archive-streaming-focused`:6/6pass, exit0,77.3s outer duration.
+
+`pdh-r1-streaming-archive-green` repeated archive creation on the SAME preserved
+517.7MiB r1 payload under the SAME384MiB heap limit and resource watchdog.
+It passed exit0 after106.3s, peak working set114282496bytes, and verified all
+1210 ZIP file entries by length and streaming SHA-256 against source files.
+ZIP size297265295bytes; SHA-256
+238FF1EB6009C3EFF50CDA8A099A03E2F28F38CB8DFCF78A647BCE51CF3E0E2D.
+All receipts show monitorFailure=null, protectedServicesUnchanged=true and no
+service-control operation. This repairs the reproduced archive resource
+failure; the original failed full publisher remains historical FAIL.
+
+The generated successful diagnostic ZIP was removed only after recording its
+hash/size and checking its exact scratch path and plain ancestors. Original
+r1 payload, all pre-existing packages and failure/success receipts remain.
+This recovers283MiB for further verification; no old evidence was deleted.
+Fresh `final-idle-archive-build` passed exit0 after30.8s. The full suite is
+in progress; it is not yet claimed passing.
+
+### Publishing resource gate (fresh preflight)
+
+After the successful scratch ZIP was removed, free C: space was20.766GiB
+(and20.760GiB during the final suite). The previous payload is517.7MiB and
+its verified ZIP297265295bytes; another full candidate of comparable size
+would cross the unchanged20GiB disk floor. No new publication or installation
+was attempted. Independent read-only inspection found no obvious newly-owned
+1GiB disposable artifact; the fresh MSI intermediate is only0.73MiB. Preserved
+packages, SDKs, source and evidence were not removed to force this gate.
+A further1GiB free-space reserve is needed before a new full candidate build.
+
+### Full-suite timeout findings remain open
+
+`final-idle-archive-suite` exited1 after545.9s: Core62pass,
+Infrastructure493pass/2fail (495total), Desktop15pass:570/572overall.
+monitorFailure=null and protectedServicesUnchanged=true. Failures:
+DashboardViewTests.Idle_listener_time_does_not_consume_an_authenticated_views_request_deadline
+(client=view_unavailable, server diagnostic absent), and
+ServiceLifecycleTests.Timeout_does_not_start_overlapping_cycle_and_stop_is_bounded
+(outer3s StopAsync wait at line212; timeout/one-cycle assertions passed).
+This is FAIL, not a verified complete Release acceptance.
+
+The unchanged two-test focused rerun `final-timeout-triage-focused` passed2/2,
+exit0,25.7s; monitorFailure=null, services unchanged. This establishes
+intermittence, not root cause or a fix. Read-only reviews found a2s intentional
+shutdown drain with only1s test scheduling margin, but no evidence proving
+scheduler/GC as cause or a product deadlock. Product deadlines and test budgets
+were not raised. Test-only bounded stage/timing instrumentation was added to
+capture the next failure without request payloads, paths or native exception
+text; validation and an instrumented full run follow.
+
+The first instrumentation validation `final-timeout-stage-instrumentation`
+failed at compile time (xUnit2020: Assert.True(false) must be Assert.Fail),
+exit1 after36.6s, monitorFailure=null/services unchanged. No tests ran in that
+attempt. The test-only assertion was corrected to Assert.Fail without changing
+its timing or failure condition; the retry is recorded separately.
+
+### Fresh final instrumented verification
+
+`final-timeout-stage-instrumentation-fix` passed2/2, exit0,39.2s after correcting
+the analyzer-only issue above. Independent read-only review confirmed the
+instrumentation preserves every original timeout/assertion condition and
+records no payload. `final-instrumented-build` passed exit0 in9.6s.
+`final-instrumented-suite` passed ALL572/572 (Core62, Infrastructure495,
+Desktop15), zero failures or skips, exit0 after518.2s. Commands remained:
+`dotnet build HostAgent.sln -c Release --no-restore -m:1 /p:UseSharedCompilation=false`
+and `dotnet test HostAgent.sln -c Release --no-build --no-restore -m:1 --logger console;verbosity=minimal`.
+Live network opt-in stayed0. Every completed final receipt has
+monitorFailure=null, protectedServicesUnchanged=true, serviceControlPerformed=false.
+The274-input hash ledger comparison found zero changes after the suite;
+`git diff --check` passed. Six protected installed critical hashes still match
+the pinned1.2.5 manifest. Both services retained their original PIDs3692/3432.
+
+This passing rerun does NOT erase the preceding570/572 full-suite failure or
+prove its cause was fixed. Two intermittent timing findings remain open with
+safe test-stage diagnostics now available. Source PID0 and archive resource
+fixes are verified; installed PDH root cause/service-context acceptance,
+new-candidate installation and native Confirmation acceptance remain OPEN.
+No mode/configuration/service/ACL change, host transfer or deployment occurred.
+Latest resource sample during the suite:1274.3MiB RAM,20.713GiB C: free.
+New complete packaging remains blocked by the unchanged20GiB floor; no
+unverified candidate installation command is provided.

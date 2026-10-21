@@ -59,7 +59,7 @@ try {
     if (-not $DevVm) { Sign $manifest }
     $null=& (Join-Path $PSScriptRoot 'Test-Release.ps1') -PackagePath $output -DevVm:$DevVm -TrustedPublisherThumbprint $SigningCertificateThumbprint
     if ($LASTEXITCODE -ne 0 -and $null -ne $LASTEXITCODE) { throw 'release_validation_failed' }
-    Compress-Archive -LiteralPath $output -DestinationPath ($output+'.zip') -CompressionLevel Optimal
+    & (Join-Path $PSScriptRoot 'New-ReleaseArchive.ps1') -PackagePath $output -ArchivePath ($output+'.zip')
     @{package=$output;zip=($output+'.zip');sourceCommit=$commit;devOnly=[bool]$DevVm;zipSha256=(Get-FileHash -LiteralPath ($output+'.zip') -Algorithm SHA256).Hash} | ConvertTo-Json -Compress
 } catch {
     $code=[string]$_.Exception.Message

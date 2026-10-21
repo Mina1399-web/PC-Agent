@@ -232,18 +232,28 @@ public sealed class DashboardViewTests
         using var identity=System.Security.Principal.WindowsIdentity.GetCurrent();var sid=identity.User!;
         var name="HostAgent-view-late-"+Guid.NewGuid().ToString("N");
         PipeServerDiagnostic? diagnostic=null;
+        PipeClientDiagnostic? clientDiagnostic=null;
+        var observed=System.Diagnostics.Stopwatch.StartNew();
+        long dispatchStarted=-1,dispatchCompleted=-1;
         using var lifetime=new CancellationTokenSource(TimeSpan.FromSeconds(8));
         var serving=new AdminPipeServer(name,sid,sid,async(_,token)=>
         {
+            Interlocked.Exchange(ref dispatchStarted,observed.ElapsedMilliseconds);
             await Task.Delay(1200,token);
+            Interlocked.Exchange(ref dispatchCompleted,observed.ElapsedMilliseconds);
             return AdminProtocol.Reply(true,"overview");
         },TimeSpan.FromSeconds(2),reportDiagnostic:value=>diagnostic=value).ServeOnceAsync(lifetime.Token);
         await Task.Delay(1200,lifetime.Token);
-        using var reply=JsonDocument.Parse(await new ViewPipeClient(name,sid,TimeSpan.FromSeconds(3))
+        var clientStarted=observed.ElapsedMilliseconds;
+        using var reply=JsonDocument.Parse(await new ViewPipeClient(name,sid,TimeSpan.FromSeconds(3),
+            reportDiagnostic:value=>clientDiagnostic=value)
             .SendAsync(ViewProtocol.Request("overview",new{}),lifetime.Token));
         await serving;
         Assert.True(reply.RootElement.GetProperty("ok").GetBoolean(),
-            $"client={reply.RootElement.GetProperty("code").GetString()}; server={diagnostic?.Stage}/{diagnostic?.Kind}");
+            $"client={reply.RootElement.GetProperty("code").GetString()}; server={diagnostic?.Stage}/{diagnostic?.Kind}; " +
+            $"clientStage={clientDiagnostic?.Stage}/{clientDiagnostic?.Kind}/{clientDiagnostic?.ElapsedMilliseconds}; " +
+            $"elapsedMs={observed.ElapsedMilliseconds}; clientStartedMs={clientStarted}; " +
+            $"dispatchStartedMs={Interlocked.Read(ref dispatchStarted)}; dispatchCompletedMs={Interlocked.Read(ref dispatchCompleted)}");
         Assert.Null(diagnostic);
     }
 

@@ -209,7 +209,14 @@ public sealed class ServiceLifecycleTests
             Assert.Same(timedOut.Task,await Task.WhenAny(timedOut.Task,Task.Delay(TimeSpan.FromSeconds(3))));
             await Task.Delay(100);
             Assert.Equal(1,calls);
-            await worker.StopAsync(default).WaitAsync(TimeSpan.FromSeconds(3));
+            var observed=System.Diagnostics.Stopwatch.StartNew();
+            var stopping=worker.StopAsync(default);
+            try {await stopping.WaitAsync(TimeSpan.FromSeconds(3));}
+            catch(TimeoutException)
+            {
+                Assert.Fail($"stop_wait_timeout; elapsedMs={observed.ElapsedMilliseconds}; " +
+                    $"stopTask={stopping.Status}; cycleTask={blocked.Task.Status}; calls={Volatile.Read(ref calls)}");
+            }
         }
         finally {blocked.TrySetResult();}
     }

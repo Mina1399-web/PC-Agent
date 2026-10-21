@@ -58,9 +58,11 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
                     continue;
                 }
 
+                int? knownProcessId = null;
                 try
                 {
                     var id = process.Id;
+                    knownProcessId = id;
                     var cpuTime = process.TotalProcessorTime;
                     var cpuPercent = UpdateProcessCpu(id, cpuTime, now);
                     DateTimeOffset? startedAt = null;
@@ -86,7 +88,8 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
                 catch (Exception exception) when (
                     exception is Win32Exception or InvalidOperationException or NotSupportedException)
                 {
-                    warnings.Add(ProcessMetricFailure.Classify(exception));
+                    if (ProcessMetricFailure.Classify(exception, knownProcessId) is { } warning)
+                        warnings.Add(warning);
                 }
             }
         }

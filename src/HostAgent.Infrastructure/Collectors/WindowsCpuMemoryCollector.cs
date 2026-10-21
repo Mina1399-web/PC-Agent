@@ -110,9 +110,11 @@ public sealed class WindowsCpuMemoryCollector : ITelemetryCollector<CpuMemoryTel
             cancellationToken.ThrowIfCancellationRequested();
             using (process)
             {
+                int? knownProcessId = null;
                 try
                 {
                     var id = process.Id;
+                    knownProcessId = id;
                     var name = process.ProcessName;
                     var memoryBytes = Math.Max(0, process.WorkingSet64);
                     var cpuTime = process.TotalProcessorTime;
@@ -124,7 +126,8 @@ public sealed class WindowsCpuMemoryCollector : ITelemetryCollector<CpuMemoryTel
                 catch (Exception exception) when (
                     exception is Win32Exception or InvalidOperationException or NotSupportedException)
                 {
-                    warnings.Add(ProcessMetricFailure.Classify(exception));
+                    if (ProcessMetricFailure.Classify(exception, knownProcessId) is { } warning)
+                        warnings.Add(warning);
                 }
             }
         }
