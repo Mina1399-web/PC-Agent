@@ -487,3 +487,48 @@ New installed diagnostic evidence records open_query=0, all three fixed
 add_counter calls=3221228488, close_query=0. No sampling/format stage ran after
 those additions failed. This pins the observed failure stage without claiming
 an unproved underlying cause or suppressing the real warnings.
+
+### Read-only counter-permission diagnosis and prepared operator step
+
+Fresh VM identity/UUID/VBoxService, clean source HEAD851976278e11f4265abce2c1f4660d6e7016d34e,
+1603.9MiB RAM and19.72GiB disk were verified. Installed1.2.6 live code
+0xC0000BC8 is PDH_CANNOT_READ_NAME_STRINGS (Microsoft PDH error-code table).
+Readonly Get-LocalGroupMember found groupS-1-5-32-558 empty and HostAgent not a
+member; independent review also found559 empty. The verified Perflib root ACL
+allows INTERACTIVE, SYSTEM, LOCAL/NETWORK SERVICE, Administrators and the
+performance groups; no HostAgent/Users/AuthenticatedUsers read entry is present.
+Microsoft documents Performance Monitor Users membership for noninteractive
+counter consumers. Installer/bootstrap source contains no such provisioning.
+This establishes a missing documented prerequisite consistent with the live
+failure; a post-change service-context A/B result is still pending. Special
+009/CurrentLanguage aliases must not be interpreted as missing/corrupt tables
+because PowerShell Get-Acl could not open them; independent metadata checks
+found counter/help data files present. No lodctr/rebuild/ACL/group/service
+mutation was performed during diagnosis.
+References:
+https://learn.microsoft.com/en-us/windows/win32/perfctrs/pdh-error-codes
+https://learn.microsoft.com/en-us/windows/win32/perfctrs/limited-user-access-support
+
+Prepared external operator script Enable-HostAgent-DevCounterRead.ps1,
+SHA256C66B1082EA4F7AF2E20465E481C1D6694FC643C7546E3398C3E66DD5BF49D05C,
+passed parsing, repeated actual read-only preflight and independent review.
+Seven fake-SCM guard cases passed: correct stop/start accepted; changed image,
+account, targetPID, helperPID and starting an already-running service refused.
+An initial validation harness incorrectly extracted an AST function body without
+its header parameter; that test-harness defect was corrected before the7/7 run.
+It is not an operator-script or product failure. No Release build/suite was run
+for this external operational artifact/documentation-only work.
+
+-Execute is NOT RUN. It requires PS7/admin, approvedVM/account, exact pinned
+1.2.6 manifest/six installed hashes, Running identities and Shadow/read-only
+configs. It adds ONLY HostAgent SID to read-only performance group558 and
+performs one bounded stop/start of HostAgent to create a new token. Existing
+membership refuses automatic replay. Helper identity/PID, config hashes and
+binaries are rechecked. SCM child operations have20s limits, state polling60s
+and local CIM query5s limits;250ms monitor retains1024/768/512MiB and15GiB.
+Monitor source hash is pinned. On failure, further actions stop, fixed-code
+results preserve primary/cleanup uncertainty, no automatic retry/removal or
+rollback occurs, and actual membership/service state is reported. The operator
+must return that JSON before any further attempt. No secrets/database content,
+security-policy modification or host operation is requested. Installed/runtime
+counter acceptance and durable installer provisioning remain OPEN.
