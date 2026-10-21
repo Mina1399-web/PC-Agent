@@ -454,3 +454,36 @@ DEV publication. No installation or mode change was performed. Prior572/572
 suite applies to the pinned source; no new full suite was run for external
 guard/documentation-only changes. Historical intermittent timeout findings
 and pending installed/native Confirmation acceptance remain open.
+
+### Owner-authorized installed1.2.6 upgrade and first live overview
+
+After the owner's explicit start instruction, fresh VM/account/UUID and
+resources were verified (1610.6MiB,19.83GiB). A pinned external operator wrapper
+verified old1.2.5 ProductCode9C59A7DC-1C6F-4C7D-9485-D9F800B05797,
+old/new manifest and critical binaries, Test-Release and Test-Installer.
+The initial PlanOnly output had a currentVersion metadata typo1.2.6; the
+wrapper metadata was corrected before elevation and its fresh PlanOnly output
+correctly showed current1.2.5/candidate1.2.6. No installation occurred in either
+PlanOnly run. Final wrapper SHA-256:
+A977AC57D1E9A1D00C4B8FCC74EA1868167037350B0E829AD1789D9D7859E36D.
+
+The ordinary agent token was not elevated. A normal Windows RunAs/UAC launch
+started the pinned operator wrapper; no UAC/security-policy workaround was
+used. The transactional MSI completed successfully. Receipt
+install-126-operator-result.json reports installed1.2.6, restartRequired=false,
+criticalInstalledHashesMatch=true, configurationPreserved=true, Shadow and
+readOnly=true. HostAgent Running PID6744; Helper Running PID10840.
+No host transfer or production-host operation occurred.
+
+Fresh guarded authenticated read-only overview
+`installed-126-view-acceptance` passed exit0 in1.8s,
+monitorFailure=null, services unchanged during the read. At20:27:19Z its CPU,
+memory and disk sample was approximately26s old. View returned one volume and
+three top-process entries. This establishes fresh live View/telemetry response,
+not complete database or native Confirmation acceptance. Overall health is
+still degraded: cpu-memory/process-services retain real access-denied metric
+warnings; disk retains disk_io_counters_unavailable plus optionalSMART.
+New installed diagnostic evidence records open_query=0, all three fixed
+add_counter calls=3221228488, close_query=0. No sampling/format stage ran after
+those additions failed. This pins the observed failure stage without claiming
+an unproved underlying cause or suppressing the real warnings.
