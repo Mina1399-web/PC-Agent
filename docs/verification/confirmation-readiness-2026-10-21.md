@@ -532,3 +532,24 @@ rollback occurs, and actual membership/service state is reported. The operator
 must return that JSON before any further attempt. No secrets/database content,
 security-policy modification or host operation is requested. Installed/runtime
 counter acceptance and durable installer provisioning remain OPEN.
+
+### Operator path failure and fresh preflight blockers
+
+The operator reported pwsh could not locate the original evidence-path script;
+that invocation did not enter the script. Fresh agent-side VM identity verified
+AGENTPC/VirtualBox/approvedUUID/account/VBoxService. Both original script and
+monitor actually exist in this connection and match reviewed SHA256C66B1082...
+D05C /248AA25C...CFC9. The exact reason for the operator's different path view
+is not established; do not infer a wrong machine without evidence.
+An identical copy of both files was created at
+`HostAgent-DEV-releases/counter-read-1.2.6/`; hashes match exactly, no overwrite
+or source/service/group/config change occurred.
+
+Fresh default read-only preflight on the copy failed with a5s CIM operation
+timeout while checking Win32_ComputerSystem (line84). A single unchanged
+read-only retry passed that stage but timed out on Win32_Service (line58).
+No -Execute run occurred; no membership or service control was attempted.
+Earlier preflight PASS is historical and does not override these failures.
+The next operator instruction is default read-only preflight only. The
+configuration step remains blocked until current identity/service checks pass.
+No timeout/threshold or Windows security setting was changed to force success.
