@@ -553,3 +553,37 @@ Earlier preflight PASS is historical and does not override these failures.
 The next operator instruction is default read-only preflight only. The
 configuration step remains blocked until current identity/service checks pass.
 No timeout/threshold or Windows security setting was changed to force success.
+
+### Fresh live counter acceptance after operator permission step — 2026-10-22
+
+The operator ran the reviewed `Enable-HostAgent-DevCounterRead.ps1 -Execute`
+from elevated PowerShell. Its result file
+`HostAgent-DEV-releases/counter-read-1.2.6/pdh-permission-result-20261022T055047993Z.json`
+records `memberAdded=true`, `membershipNow=true`, one HostAgent restart
+attempted, no automatic retry/rollback, no other group changes, and both
+HostAgent and HostAgent.Helper Running (HostAgent PID6308, Helper PID10840).
+The script reports `CONFIGURATION_APPLIED_LIVE_COUNTER_ACCEPTANCE_PENDING`,
+not acceptance. This supersedes the prior “-Execute NOT RUN” state above.
+
+Two fresh bounded authenticated read-only View checks then completed with exit0;
+runner records report `monitorFailure=null`, `protectedServicesUnchanged=true`,
+and `serviceControlPerformed=false`. Evidence is under
+`confirmation-readiness-20261021T130942Z/installed-126-view-after-countergrant-20261022/`
+and `.../installed-126-view-after-countergrant-rerun-20261022/`.
+The first View at 05:53:09Z showed all three fixed PDH counters added with
+status0, both collection calls status0, formatted data status0, and finite
+values; however `collection_worker_unavailable` was still present then. The
+second View at05:55:01Z showed the worker healthy and repeated the same
+successful three-counter sample. This confirms live service-context counter
+acceptance after the group membership/restart, and the transient worker status
+recovered on the later sample.
+
+The later View remains `mode=Shadow`, `readOnly=true`, `degraded=true` because
+cpu-memory and process-services report `some_process_metrics_access_denied`
+(and process-services also reports best-effort executable-path gaps).
+SMART reports `optional_smart_unavailable` with `Degraded=false`. One volume and
+four top-process entries were returned. The persistent process-metric access
+gaps and the absence of durable installer provisioning for Performance Monitor
+Users remain open; no full-access/Confirmation readiness is established.
+No secrets, database contents, production host, source binaries, or installer
+configuration were accessed or changed in these read-only acceptance checks.
