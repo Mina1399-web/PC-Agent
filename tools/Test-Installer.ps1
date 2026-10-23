@@ -63,6 +63,44 @@ foreach($required in @('LICENSE','docs/operations/privacy.md','docs/legal/dotnet
     if($required -notin $installedPaths){throw 'release_missing_notices'}
 }
 $conditions=@(Rows 'SELECT `Condition` FROM `LaunchCondition`' 1)
+$counterActions=@{
+    PrepareCounterRead=1
+    GrantCounterRead=3073
+    RollbackCounterReadGrant=3329
+    CommitCounterReadGrant=3585
+    ReleaseCounterRead=3073
+    RollbackCounterReadRelease=3329
+    CommitCounterReadRelease=3585
+}
+$counterSequence=@{}
+foreach($name in $counterActions.Keys) {
+    $actions=@(Rows ("SELECT ``Type``,``Source``,``Target`` FROM ``CustomAction`` WHERE ``Action``='"+$name+"'") 3)
+    $positions=@($sequence | Where-Object {$_[0] -ceq $name})
+    $condition=if($name -eq 'PrepareCounterRead'){'1'}elseif($name -match 'Release'){'REMOVE~="ALL" AND NOT UPGRADINGPRODUCTCODE'}else{'NOT REMOVE~="ALL"'}
+    if($actions.Count -ne 1 -or [int]$actions[0][0] -ne $counterActions[$name] -or
+        $actions[0][1] -cne 'PreflightBinary' -or $actions[0][2] -cne $name -or
+        $positions.Count -ne 1 -or $positions[0][1] -cne $condition -or [int]$positions[0][2] -le 0) {
+        throw 'release_installer_counter_read'
+    }
+    $counterSequence[$name]=[int]$positions[0][2]
+}
+foreach($name in @('StopServices','DeleteServices','InstallServices','StartServices','Bootstrap','InstallInitialize')) {
+    $positions=@($sequence|Where-Object {$_[0] -ceq $name})
+    if($positions.Count -ne 1){throw 'release_installer_counter_read'}
+    $counterSequence[$name]=[int]$positions[0][2]
+}
+foreach($chain in @(
+    @('PrepareCounterRead','InstallInitialize'),
+    @('StopServices','RollbackCounterReadRelease','ReleaseCounterRead','CommitCounterReadRelease','DeleteServices'),
+    @('InstallServices','Bootstrap','RollbackCounterReadGrant','GrantCounterRead','CommitCounterReadGrant','StartServices')
+)) {
+    for($i=1;$i -lt $chain.Count;$i++) {
+        if($counterSequence[$chain[$i-1]] -ge $counterSequence[$chain[$i]]){throw 'release_installer_counter_read'}
+    }
+}
+if(@($conditions|Where-Object {$_[0] -ceq 'NOT DISABLEROLLBACK AND NOT RollbackDisabled'}).Count -ne 1) {
+    throw 'release_installer_counter_read'
+}
 $guarded=@($conditions | Where-Object { $_[0] -eq 'Installed OR WIX_UPGRADE_DETECTED OR (NOT EXISTING_MONITOR AND NOT EXISTING_HELPER)' }).Count -eq 1
 if (-not $guarded) { throw 'release_installer_existing_services_guard' }
 $devGuard=@($conditions | Where-Object { $_[0] -like '*DEV_MACHINE_GUID*' }).Count -eq 1
@@ -80,4 +118,4 @@ if ($DevVm -and -not $devMatches) { throw 'release_installer_dev_vm_identity' }
 $shortcuts=@(Rows 'SELECT `Name`,`Directory_` FROM `Shortcut`' 2)
 $desktopShortcuts=@($shortcuts | Where-Object { $_[0].Split('|')[-1] -eq 'Host Agent' -and $_[1] -eq 'ProgramMenuFolder' })
 if($installedPaths -contains 'Desktop/HostAgent.Desktop.exe' -and $desktopShortcuts.Count -ne 1){throw 'release_installer_desktop_shortcut'}
-@{valid=$true;monitorAccount=$monitor[0][1];helperAccount=$helper[0][1];serviceCount=2;bootstrapIsSystemDeferred=$true;precopyValidationIsSystemDeferred=$true;uninstallPreservesData=$true;recoveryServiceCount=$recovery.Count;fileCount=$files.Count;installedPaths=$installedPaths;existingServicesGuarded=$guarded;devVmGuard=$devGuard;devVmIdentityMatches=$devMatches;desktopShortcutCount=$desktopShortcuts.Count} | ConvertTo-Json -Compress
+@{valid=$true;monitorAccount=$monitor[0][1];helperAccount=$helper[0][1];serviceCount=2;bootstrapIsSystemDeferred=$true;precopyValidationIsSystemDeferred=$true;counterReadTransactionGuarded=$true;uninstallPreservesData=$true;recoveryServiceCount=$recovery.Count;fileCount=$files.Count;installedPaths=$installedPaths;existingServicesGuarded=$guarded;devVmGuard=$devGuard;devVmIdentityMatches=$devMatches;desktopShortcutCount=$desktopShortcuts.Count} | ConvertTo-Json -Compress

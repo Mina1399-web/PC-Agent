@@ -6,7 +6,7 @@ using Xunit;
 using Xunit.Abstractions;
 namespace HostAgent.Infrastructure.Tests;
 [Collection("ReleaseTooling")]
-public sealed class ReleaseToolingTests(ITestOutputHelper output)
+public sealed partial class ReleaseToolingTests(ITestOutputHelper output)
 {
     [Fact]
     public async Task Full_desktop_manifest_is_validated_without_executing_manifest_code()
@@ -254,6 +254,41 @@ public sealed class ReleaseToolingTests(ITestOutputHelper output)
         var result=await Run("Test-Release.ps1",fixture.Path,"-DevVm");
         Assert.NotEqual(0,result.Exit);Assert.Contains("release_",result.Error);
     }
+    // Defect: the installed virtual account cannot read counters after a clean install,
+    // and a failed install has no rollback for the required narrowly scoped membership.
+    [Fact]
+    public async Task Built_msi_provisions_counter_read_inside_rollback_guarded_transaction()
+    {
+        using var fixture=new PackageFixture();
+        await BuildInstaller(fixture);
+        using var sequence=await ReadInstallerSequence(fixture);
+        Assert.True(sequence.RootElement.TryGetProperty("GrantCounterRead",out var grant),
+            "MSI has no transactional counter-read grant action.");
+        Assert.True(sequence.RootElement.GetProperty("InstallServices").GetInt32()<grant.GetInt32());
+        Assert.True(grant.GetInt32()<sequence.RootElement.GetProperty("StartServices").GetInt32());
+        Assert.True(sequence.RootElement.GetProperty("RollbackCounterReadGrant").GetInt32()<grant.GetInt32());
+        Assert.True(sequence.RootElement.GetProperty("StopServices").GetInt32()<sequence.RootElement.GetProperty("ReleaseCounterRead").GetInt32());
+        Assert.True(sequence.RootElement.GetProperty("ReleaseCounterRead").GetInt32()<sequence.RootElement.GetProperty("DeleteServices").GetInt32());
+        var inspect=await Run("Test-Installer.ps1",fixture.Path,"-DevVm");
+        Assert.Equal(0,inspect.Exit);
+        using var result=JsonDocument.Parse(inspect.Out);
+        Assert.True(result.RootElement.GetProperty("counterReadTransactionGuarded").GetBoolean());
+    }
+    // Defect: the validator accepts a package that can grant counters without SYSTEM/rollback,
+    // or removes installer-owned membership during the old-product removal of an upgrade.
+    [Theory]
+    [InlineData("counter_grant_type")]
+    [InlineData("counter_missing_rollback")]
+    [InlineData("counter_release_upgrade")]
+    [InlineData("counter_rollback_disabled")]
+    public async Task Installer_validator_refuses_unsafe_counter_permission_actions(string mutation)
+    {
+        using var fixture=new PackageFixture(); await BuildInstaller(fixture);
+        await MutateInstaller(fixture,mutation);
+        var inspect=await Run("Test-Installer.ps1",fixture.Path,"-DevVm");
+        Assert.NotEqual(0,inspect.Exit); Assert.Contains("release_installer_counter_read",inspect.Error);
+        Assert.Empty(inspect.Out);
+    }
     // Defect: installer performs changes during preflight, selects a privileged monitor, or hides missing elevation.
     [Fact]
     public async Task Installation_plan_is_read_only_and_defaults_to_shadow_and_virtual_service_account()
@@ -295,6 +330,18 @@ public sealed class ReleaseToolingTests(ITestOutputHelper output)
             $ErrorActionPreference='Stop'
             $installer=New-Object -ComObject WindowsInstaller.Installer
             $db=$installer.OpenDatabase((Join-Path $PackagePath 'HostAgent.msi'),1)
+            if($Mutation -like 'counter_*') {
+                $sql=switch($Mutation) {
+                    'counter_grant_type' {'UPDATE `CustomAction` SET `Type`=1025 WHERE `Action`=''GrantCounterRead'''}
+                    'counter_missing_rollback' {'DELETE FROM `InstallExecuteSequence` WHERE `Action`=''RollbackCounterReadGrant'''}
+                    'counter_release_upgrade' {'UPDATE `InstallExecuteSequence` SET `Condition`=''REMOVE~="ALL"'' WHERE `Action`=''ReleaseCounterRead'''}
+                    'counter_rollback_disabled' {'DELETE FROM `LaunchCondition` WHERE `Condition`=''NOT DISABLEROLLBACK AND NOT RollbackDisabled'''}
+                }
+                $verify=$db.OpenView('SELECT `Action` FROM `CustomAction` WHERE `Action`=''GrantCounterRead''');$null=$verify.Execute()
+                try {if($null -eq $verify.Fetch()){throw 'fixture_counter_action_missing'}} finally {$null=$verify.Close()}
+                $write=$db.OpenView($sql);try {$null=$write.Execute()}finally{$null=$write.Close()}
+                $null=$db.Commit();return
+            }
             if ($Mutation -in @('missing_remove','remove_before_initialize','remove_after_components','remove_after_finalize','initialize_disabled')) {
                 $sequence=@{}
                 $view=$db.OpenView('SELECT `Action`,`Sequence` FROM `InstallExecuteSequence`')
@@ -363,7 +410,7 @@ public sealed class ReleaseToolingTests(ITestOutputHelper output)
         Assert.True(result.Exit==0,result.Error+result.Out);
         return JsonDocument.Parse(result.Out);
     }
-    private sealed class PackageFixture:IDisposable
+    internal sealed class PackageFixture:IDisposable
     {
         public string Path{get;}=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"release-"+Guid.NewGuid().ToString("N"));
         public PackageFixture(int additionalFiles=0)

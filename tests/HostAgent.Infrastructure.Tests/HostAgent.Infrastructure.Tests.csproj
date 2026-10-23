@@ -6,6 +6,7 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\tools\installer\CounterReadTransaction.cs" Link="Installer\CounterReadTransaction.cs" />
     <Using Include="System.IO" />
     <Using Include="System.Net.Http" />
     <PackageReference Include="Microsoft.Data.Sqlite" />

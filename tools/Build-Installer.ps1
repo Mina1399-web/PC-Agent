@@ -18,7 +18,7 @@ $managed=Join-Path $work 'Preflight.dll'
 $embedded=Join-Path $work 'Preflight.CA.dll'
 $metadata=Join-Path $work 'AssemblyInfo.cs'
 [IO.File]::WriteAllText($metadata,'using System.Reflection; [assembly: AssemblyProduct("Host Agent V1")] [assembly: AssemblyInformationalVersion("'+$Version+'")] [assembly: AssemblyFileVersion("'+$Version+'.0")]',[Text.UTF8Encoding]::new($false))
-& "$env:SystemRoot\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo /optimize+ /target:library ("/out:"+$managed) ("/reference:"+$dtfAssembly) $metadata (Join-Path $PSScriptRoot 'installer/Preflight.cs') (Join-Path $PSScriptRoot '../src/HostAgent.Infrastructure/Security/InstallationTreeSecurity.cs') | Out-Null
+& "$env:SystemRoot\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo /optimize+ /target:library ("/out:"+$managed) ("/reference:"+$dtfAssembly) $metadata (Join-Path $PSScriptRoot 'installer/Preflight.cs') (Join-Path $PSScriptRoot 'installer/CounterReadTransaction.cs') (Join-Path $PSScriptRoot 'installer/WindowsCounterReadState.cs') (Join-Path $PSScriptRoot 'installer/CounterReadActions.cs') (Join-Path $PSScriptRoot '../src/HostAgent.Infrastructure/Security/InstallationTreeSecurity.cs') | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'release_preflight_compile_failed' }
 if (-not $DevVm) {
     if ((Set-AuthenticodeSignature -LiteralPath $managed -Certificate $SigningCertificate -HashAlgorithm SHA256).Status -ne 'Valid') { throw 'publisher_signature_required' }
@@ -77,6 +77,7 @@ $xml=@"
 <Package Name="Host Agent V1" Manufacturer="Host Agent" Version="$Version" UpgradeCode="E839C131-FD8D-45AA-927E-A2364BD39AE2" Scope="perMachine" InstallerVersion="500">
 <MajorUpgrade DowngradeErrorMessage="A newer Host Agent version is installed." Schedule="afterInstallInitialize" />
 <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+<Launch Condition="NOT DISABLEROLLBACK AND NOT RollbackDisabled" Message="Host Agent requires Windows Installer rollback to safely configure read-only performance counters." />
 $devCondition
 <Property Id="EXISTING_MONITOR"><RegistrySearch Id="FindMonitor" Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\HostAgent" Name="ImagePath" Type="raw" /></Property>
 <Property Id="EXISTING_HELPER"><RegistrySearch Id="FindHelper" Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\HostAgent.Helper" Name="ImagePath" Type="raw" /></Property>
@@ -88,7 +89,24 @@ $components
 <Binary Id="PreflightBinary" SourceFile="$(Escape $embedded)" />
 <CustomAction Id="ValidateInstallTree" BinaryRef="PreflightBinary" DllEntry="ValidateInstallTree" Execute="deferred" Impersonate="no" Return="check" />
 <CustomAction Id="Bootstrap" FileRef="$cliId" ExeCommand="--installer-bootstrap" Execute="deferred" Impersonate="no" Return="check" />
-<InstallExecuteSequence><Custom Action="ValidateInstallTree" Before="CreateFolders" Condition="NOT REMOVE~=&quot;ALL&quot;" /><Custom Action="Bootstrap" After="InstallServices" Condition="NOT REMOVE~=&quot;ALL&quot;" /></InstallExecuteSequence>
+<CustomAction Id="PrepareCounterRead" BinaryRef="PreflightBinary" DllEntry="PrepareCounterRead" Return="check" />
+<CustomAction Id="GrantCounterRead" BinaryRef="PreflightBinary" DllEntry="GrantCounterRead" Execute="deferred" Impersonate="no" Return="check" />
+<CustomAction Id="RollbackCounterReadGrant" BinaryRef="PreflightBinary" DllEntry="RollbackCounterReadGrant" Execute="rollback" Impersonate="no" Return="check" />
+<CustomAction Id="CommitCounterReadGrant" BinaryRef="PreflightBinary" DllEntry="CommitCounterReadGrant" Execute="commit" Impersonate="no" Return="check" />
+<CustomAction Id="ReleaseCounterRead" BinaryRef="PreflightBinary" DllEntry="ReleaseCounterRead" Execute="deferred" Impersonate="no" Return="check" />
+<CustomAction Id="RollbackCounterReadRelease" BinaryRef="PreflightBinary" DllEntry="RollbackCounterReadRelease" Execute="rollback" Impersonate="no" Return="check" />
+<CustomAction Id="CommitCounterReadRelease" BinaryRef="PreflightBinary" DllEntry="CommitCounterReadRelease" Execute="commit" Impersonate="no" Return="check" />
+<InstallExecuteSequence>
+<Custom Action="PrepareCounterRead" Before="InstallInitialize" Condition="1" />
+<Custom Action="ValidateInstallTree" Before="CreateFolders" Condition="NOT REMOVE~=&quot;ALL&quot;" />
+<Custom Action="Bootstrap" After="InstallServices" Condition="NOT REMOVE~=&quot;ALL&quot;" />
+<Custom Action="RollbackCounterReadGrant" After="Bootstrap" Condition="NOT REMOVE~=&quot;ALL&quot;" />
+<Custom Action="GrantCounterRead" After="RollbackCounterReadGrant" Condition="NOT REMOVE~=&quot;ALL&quot;" />
+<Custom Action="CommitCounterReadGrant" After="GrantCounterRead" Condition="NOT REMOVE~=&quot;ALL&quot;" />
+<Custom Action="RollbackCounterReadRelease" After="StopServices" Condition="REMOVE~=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+<Custom Action="ReleaseCounterRead" After="RollbackCounterReadRelease" Condition="REMOVE~=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+<Custom Action="CommitCounterReadRelease" After="ReleaseCounterRead" Condition="REMOVE~=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+</InstallExecuteSequence>
 </Package></Wix>
 "@
 $source=Join-Path $work 'Product.wxs'
