@@ -17,6 +17,13 @@ public static class CompleteProbeGuard
     }
     public static void ValidateVm(bool requireAdmin=false)
     {
+        ValidateIdentity(requireAdmin);
+        CheckLimits();
+    }
+    // Read-only identity regression checks are separate from authorization to
+    // execute a historical chaos probe. Live probes must use ValidateVm.
+    public static void ValidateIdentity(bool requireAdmin=false)
+    {
         using var bios=Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\BIOS",false);
         using var additions=new ServiceController("VBoxService");
         using var identity=WindowsIdentity.GetCurrent();
@@ -59,7 +66,6 @@ public static class CompleteProbeGuard
         if(!operatorAccount && !testService)throw new InvalidOperationException("approved_test_identity_required");
         if(requireAdmin && (!operatorAccount || !new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator)))
             throw new InvalidOperationException("administrator_required");
-        CheckLimits();
     }
     public static string NewDirectory(Guid id,string prefix)
     {

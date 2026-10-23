@@ -11,6 +11,8 @@ public sealed class CompleteProbeGuardVmIntegrationTests
         if (!OperatingSystem.IsWindows() || !string.Equals(Environment.MachineName, "AGENTPC", StringComparison.OrdinalIgnoreCase))
             throw SkipException.ForSkip("The live identity integration check runs only inside the approved HostAgent-DEV VM.");
 
-        CompleteProbeGuard.ValidateVm();
+        // This regression verifies the read-only UUID/COM identity reader,
+        // not permission to run an old chaos probe's resource-intensive work.
+        CompleteProbeGuard.ValidateIdentity();
     }
 }
