@@ -111,12 +111,16 @@ public sealed class WindowsCpuMemoryCollector : ITelemetryCollector<CpuMemoryTel
             using (process)
             {
                 int? knownProcessId = null;
+                var stage=ProcessMetricReadStage.Identity;
                 try
                 {
                     var id = process.Id;
                     knownProcessId = id;
+                    stage=ProcessMetricReadStage.Name;
                     var name = process.ProcessName;
+                    stage=ProcessMetricReadStage.WorkingSet;
                     var memoryBytes = Math.Max(0, process.WorkingSet64);
+                    stage=ProcessMetricReadStage.CpuTime;
                     var cpuTime = process.TotalProcessorTime;
                     var path = TryGetExecutablePath(process);
                     seenProcessIds.Add(id);
@@ -128,6 +132,8 @@ public sealed class WindowsCpuMemoryCollector : ITelemetryCollector<CpuMemoryTel
                 {
                     if (ProcessMetricFailure.Classify(exception, knownProcessId) is { } warning)
                         warnings.Add(warning);
+                    if (ProcessMetricFailure.ClassifyStage(exception,knownProcessId,stage) is { } detail)
+                        warnings.Add(detail);
                 }
             }
         }

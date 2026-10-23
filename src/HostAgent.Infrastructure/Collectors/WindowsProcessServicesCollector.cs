@@ -59,10 +59,12 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
                 }
 
                 int? knownProcessId = null;
+                var stage=ProcessMetricReadStage.Identity;
                 try
                 {
                     var id = process.Id;
                     knownProcessId = id;
+                    stage=ProcessMetricReadStage.CpuTime;
                     var cpuTime = process.TotalProcessorTime;
                     var cpuPercent = UpdateProcessCpu(id, cpuTime, now);
                     DateTimeOffset? startedAt = null;
@@ -74,14 +76,20 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
                         exception is Win32Exception or InvalidOperationException or NotSupportedException)
                     {
                         warnings.Add("some_process_start_times_unavailable");
+                        if(ProcessMetricFailure.ClassifyStage(exception,knownProcessId,ProcessMetricReadStage.StartTime) is { } detail)
+                            warnings.Add(detail);
                     }
-
+                    stage=ProcessMetricReadStage.Name;
+                    var name=process.ProcessName;
+                    var path=TryGetExecutablePath(process,warnings);
+                    stage=ProcessMetricReadStage.WorkingSet;
+                    var memoryBytes=Math.Max(0,process.WorkingSet64);
                     result.Add(new ProcessTelemetry(
                         id,
-                        process.ProcessName,
-                        TryGetExecutablePath(process, warnings),
+                        name,
+                        path,
                         cpuPercent,
-                        Math.Max(0, process.WorkingSet64),
+                        memoryBytes,
                         startedAt));
                     seen.Add(id);
                 }
@@ -90,6 +98,8 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
                 {
                     if (ProcessMetricFailure.Classify(exception, knownProcessId) is { } warning)
                         warnings.Add(warning);
+                    if (ProcessMetricFailure.ClassifyStage(exception,knownProcessId,stage) is { } detail)
+                        warnings.Add(detail);
                 }
             }
         }
