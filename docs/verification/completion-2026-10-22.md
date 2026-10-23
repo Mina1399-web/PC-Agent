@@ -239,7 +239,94 @@ environment paths. A verified23-file source copy is retained outside Git at
 identity-test files were added to scope); commits preserve the subsequent work.
 The current source changes do not alter installed configuration or data;
 Shadow/read-only remains the required installed mode. No host project transfer,
-production installation, actual helper action or external notification occurred.
+production installation, action through the installed helper or external notification occurred.
+
+## DEV1.2.7 artifact and operator handoff — 2026-10-23
+
+Code/tests are preserved in separate commits:
+
+- d83bea955d887330d6e536e39aa17171dee9b7c6: transactional counter-read provisioning.
+- 3e0e80beecebdccdc5bf6d0b1b9b3640c8c93b73: bounded process read-stage reasons.
+- 6f04faf61e74b2deaedfa4bc34ac0ec3c2f7a5c9: identity-only regression separation.
+- babed598f2326b7bc5c19f3a272aca53a2119f84: isolated native fixture/fault receipts.
+- dfa14d66429d66c211fd609dad1bfa1cfbfce75b: preparation/verification documentation.
+
+Normal fast-forward push to origin/codex/installed-telemetry-stabilization
+was verified by ls-remote at dfa14d6. No force, main modification, public binary
+release or production-host/project transfer occurred. Subsequent evidence-only
+documentation can advance the branch without changing this package's source.
+
+From the clean dfa14d6 checkout, `Build-Release.ps1 -Version 1.2.7 -DevVm`
+created the new folder and ZIP, without overwriting1.2.6 or any older artifact:
+
+`C:\Users\AgentPCdevtest\Documents\ChatGPT\DevTest VM PC\HostAgent-DEV-releases\HostAgent-1.2.7-dev-counter-read-r1`
+
+| Evidence | Actual result |
+|---|---|
+| candidate127-publish | exit0,130.6s; Test-Installer/Test-Release executed by builder; minimum1625.54MiB/end1954.65MiB; protected services unchanged |
+| candidate127-artifact-audit | exit1,12.3s: the new external audit incorrectly assumed a flat ZIP. Source New-ReleaseArchive intentionally preserves the base directory. No package changed; not a product defect |
+| candidate127-artifact-audit-r2 | PASS_ARTIFACT_ONLY, exit0,15.0s: corrected strict expected root; all1212 manifest files and1213 ZIP entries verified by streamed SHA256/length; MSI1208 file rows,7 transactional actions,2 service identities and DEV binding verified; monitor null |
+| candidate127-production-refusal.json | Expected exit1 publisher_signature_required when DevVm omitted; no install/policy change |
+
+Package manifest SHA256:
+`BD6F516D6E741EB9EE8D683A210045F86C0237DED6FC4B0A98B7F246AB281A4F`
+
+MSI SHA256:
+`3098A857005F8FD5073FB80990A256AEB636D8193076AF9E0BE9BC51DCE0D043`
+
+ZIP SHA256:
+`4F55687CA388CA84371B01FF3F68E19D919840EC7A85588E4E034D7E429A3323`
+
+Support independently read MSI tables with OpenDatabase(...,0), confirming
+action types/conditions/order, ownProcess/Auto accounts, restart/restart/none
+recovery authoring and DEV Windows MachineGuid binding. Windows MachineGuid
+is distinct from the SMBIOS VirtualBox UUID checked by the operator harness.
+MSI and first-party executables are NotSigned, expected only for this DEV
+artifact. Embedded CAB payload comparison, actual MSI execution, live upgrade/
+repair/rollback/recovery and installed1.2.7 acceptance are NOT RUN. The installed
+1.2.6 installation was not replaced.
+
+The separately reviewed native fixture manifest exists outside Git:
+
+`C:\Users\AgentPCdevtest\Documents\ChatGPT\DevTest VM PC\HostAgent-DEV-releases\counter-native-1.2.7\fixture-manifest.json`
+
+SHA256 `027A72468D4F10703001E35410CB67519AD3B5D1A8510338086F485E9DDA7259`.
+It pins85 current source/tool files and6 expected installed hashes from the
+reviewed1.2.6 release. Read-CounterFixtureManifest verified the exact input set.
+Run079cce4df06f46a6b5c36e7818a25e2f targets only
+`C:\ProgramData\HostAgentCounterFixture-079cce4df06f46a6b5c36e7818a25e2f` and
+its corresponding GUID group/service/private registry key. No native test has
+run. This is a one-use gate: existing fixture scope causes refusal, not reuse.
+
+After reviewing the source, the operator may run the following once from an
+elevated PowerShell inside the approved VM. The outer entrypoint hash check is
+compatible with Windows PowerShell5.1; execution itself uses the verified
+existing PowerShell7 path. The script performs its own VM/account,85-input/
+6-installed-file pins, resource, GUID-scope and protected-service preflight
+before any fixture mutation. It never starts/stops/reconfigures HostAgent.
+
+```powershell
+$entry = 'C:\Users\AgentPCdevtest\Documents\ChatGPT\DevTest VM PC\HostAgent-DEV\scripts\diagnostics\Test-CounterReadMsiFixture.ps1'
+if ((Get-FileHash -LiteralPath $entry -Algorithm SHA256).Hash -cne '80838B12A68442B83CC868DA6179598F1A9F6C30D77745140239A25CE90D4352') { throw 'reviewed_entrypoint_mismatch' }
+& 'C:\Users\AgentPCdevtest\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\powershell\pwsh.exe' -NoProfile -NonInteractive -File $entry -ManifestPath 'C:\Users\AgentPCdevtest\Documents\ChatGPT\DevTest VM PC\HostAgent-DEV-releases\counter-native-1.2.7\fixture-manifest.json' -ExpectedManifestSha256 '027A72468D4F10703001E35410CB67519AD3B5D1A8510338086F485E9DDA7259' -Execute
+```
+
+Return the final JSON, particularly status, failure/failedPhase, phases,
+protectedIdentityUnchanged and memory. PASS_FIXTURE_ONLY requires actual native
+fault receipts, state proofs, quiescence, confirmed cleanup and memory recovery;
+it is not product installation or permission to switch out of Shadow.
+
+Final read-only handoff preflight freshly verified all85 source/tool pins,
+all6 installed hashes, both Running services at PID3984/3520 and absent GUID
+scope. Initial free memory2194.7MiB, C:17.54GiB. Evidence:
+`final-native-handoff-preflight.json`; nativeExecuted=false. No elevated command
+in the block above was run by the agent.
+
+Remaining order: native fixture operator result; separately reviewed DEV1.2.7
+installation and fresh service-context denial-stage/View/database acceptance;
+exact Confirmation-operation acceptance on harmless isolated targets; signing/
+provider/provenance and eventual target-policy acceptance. No pilot or blanket
+full-access permission is established by this handoff.
 
 ## Fresh distribution checks
 
@@ -252,7 +339,7 @@ returned main188e3e259519e8713cee7aed84fcec7e40aa408c and this work branch
 The existing workflow automatically triggers only on codex/signpath-preparation;
 this current work branch has not established a new hosted build or signing run.
 
-SignPath's terms and GitHub trusted-build documentation were refreshed today.
+SignPath's terms and GitHub trusted-build documentation were refreshed on2026-10-22.
 They still require a released/documented OSS project, MFA/approval roles,
 provider-approved provenance and GitHub-hosted jobs for the OSS signing path.
 Public source alone does not close those gates. No enrollment application,
