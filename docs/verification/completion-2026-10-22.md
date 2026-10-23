@@ -1,5 +1,8 @@
 # Installed-product completion verification — 2026-10-22
 
+Continuation: [fresh 2026-10-23 verification](completion-2026-10-23.md).
+The dated results below remain historical evidence for their exact artifacts.
+
 ## Scope and baseline
 
 Source return point: `5828569580fd1f7816b815c1380ba8fdffd41692`,

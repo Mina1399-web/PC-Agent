@@ -120,8 +120,14 @@ $stage=$null;$msiLock=$null;$manifestLock=$null
 try {
     if ($PlanOnly) {
         $validation=@{PackagePath=$PackagePath;DevVm=$DevVm;TrustedPublisherThumbprint=$TrustedPublisherThumbprint}
-        $null=& (Join-Path $PSScriptRoot 'Test-Release.ps1') @validation
-        if ($LASTEXITCODE -ne 0 -and $null -ne $LASTEXITCODE) { throw 'release_validation_failed' }
+        # Script success does not reset LASTEXITCODE. Ignore a caller's stale
+        # native exit and initialize it for strict-mode callers with no prior native call.
+        $LASTEXITCODE=0
+        $validationOutput=@(& (Join-Path $PSScriptRoot 'Test-Release.ps1') @validation)
+        if ($LASTEXITCODE -ne 0 -or $validationOutput.Count -ne 1) { throw 'release_validation_failed' }
+        $receipt=$validationOutput[0] | ConvertFrom-Json -ErrorAction Stop
+        if ($receipt.valid -isnot [bool] -or -not $receipt.valid -or
+            $receipt.devOnly -isnot [bool] -or $receipt.devOnly -ne [bool]$DevVm) { throw 'release_validation_failed' }
         @{mode='Shadow';readOnly=$true;monitorAccount='NT SERVICE\HostAgent';helperAccount='LocalSystem';changesPerformed=$false} | ConvertTo-Json -Compress
         exit 0
     }
