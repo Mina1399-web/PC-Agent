@@ -200,3 +200,30 @@ GUID, rebuilt input pins and newly reviewed manifest because the fixture
 runner source hash changed. No elevated fixture execution, MSI matrix, service
 registration, host-project transfer, or production installation was performed
 for this addendum.
+
+## Fresh counter-read fixture manifest preflight (2026-10-24)
+
+A new run scope was prepared read-only as
+`b3f8fc8ad562409e996948f4e10c6da0`. The default preparation script returned
+`READ_ONLY_PLAN`, `changesPerformed=false`, and `nativeMatrixRun=false`; all 85
+current source/tool input pins were included. The separately written external
+manifest is
+`HostAgent-DEV-releases/counter-fixture-b3f8fc8ad562409e996948f4e10c6da0/review-manifest.json`,
+SHA256 `FDA33BD1623EE0111DF2D136AB4D87BB1111142504821450D8C3DB1F7C8AD5E4`.
+Its six installed-file pins were read from the running DEV installation,
+version 1.2.6. The manifest was then validated read-only against all 85 source
+inputs and all six installed-file hashes; result:
+`MANIFEST_INPUTS_AND_INSTALL_PINS_MATCH`. The pinned runner SHA256 is
+`FBEFA6D8FEEA1C07D423908126B2DF699B0D19B90196D9B4477B7BDEB076A74E`.
+
+The approved VM identity and account matched. At final preflight, HostAgent
+(PID 3928) and HostAgent.Helper (PID 3388) were both Running with the expected
+automatic start configuration and image paths. Free memory was 1934.2 MiB and
+C: free space was 15.78 GiB, above the unchanged 768 MiB start and 15 GiB disk
+guards. The new ProgramData fixture root did not exist. The actual fixture
+runner's default read-only preflight also returned `READ_ONLY_PREFLIGHT`,
+`changesPerformed=false`, `nativeMatrixRun=false`, and the same six installed
+hashes. No service, group, registry, ACL, database, MSI or product-file
+operation was performed. This manifest is prepared and hash-validated, but
+native matrix acceptance remains NOT RUN pending the operator's one-time
+elevated invocation.
