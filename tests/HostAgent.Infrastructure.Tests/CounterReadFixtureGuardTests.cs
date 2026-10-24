@@ -342,6 +342,102 @@ public sealed class CounterReadFixtureGuardTests_ReleaseToolingTests
         Assert.False(receipt.RootElement.GetProperty("nativeOperationsPerformed").GetBoolean());
     }
 
+    [Fact]
+    public async Task Pre_matrix_failure_receipt_identifies_stage_and_exception_without_persisting_exception_message()
+    {
+        using var fixture = new ReleaseToolingTests.PackageFixture();
+        var sourceRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
+        var entry = Path.Combine(sourceRoot, "scripts", "diagnostics", "Test-CounterReadMsiFixture.ps1");
+        var probe = Path.Combine(fixture.Path, "failure-diagnostics-regression.ps1");
+        File.WriteAllText(probe, """
+            param([string]$Entry)
+            $ErrorActionPreference='Stop'
+            $tokens=$null;$errors=$null
+            $ast=[System.Management.Automation.Language.Parser]::ParseFile($Entry,[ref]$tokens,[ref]$errors)
+            if($errors.Count){throw 'entry_parse_failed'}
+            $node=$ast.Find({param($n) $n-is[System.Management.Automation.Language.FunctionDefinitionAst]-and$n.Name-ceq'Get-CounterFixtureFailureDetails'},$true)
+            if(-not$node){[pscustomobject]@{present=$false}|ConvertTo-Json;exit 0}
+            . ([scriptblock]::Create($node.Extent.Text))
+            $secretLikeMessage='provider-secret-looking-detail-must-not-be-recorded'
+            $record=[System.Management.Automation.ErrorRecord]::new(
+                [UnauthorizedAccessException]::new($secretLikeMessage),'local_group_create_failed',
+                [System.Management.Automation.ErrorCategory]::PermissionDenied,$null)
+            $details=Get-CounterFixtureFailureDetails $record 'local_group_create' @('fixture_stage_failed_preserve')
+            [pscustomobject]@{present=$true;details=$details;messageLeaked=($details|ConvertTo-Json -Compress).Contains($secretLikeMessage)}|ConvertTo-Json -Depth 4
+            """);
+
+        var result = await RunChild("pwsh.exe", "-NoProfile", "-NonInteractive", "-File", probe, "-Entry", entry);
+
+        Assert.Equal(0, result.Exit);
+        Assert.True(string.IsNullOrWhiteSpace(result.Error), result.Error);
+        using var receipt = JsonDocument.Parse(result.Out);
+        Assert.True(receipt.RootElement.GetProperty("present").GetBoolean(),
+            "The harness needs an explicit pre-MSI failure diagnostic mapper.");
+        var details = receipt.RootElement.GetProperty("details");
+        Assert.Equal("local_group_create", details.GetProperty("failureStage").GetString());
+        Assert.Equal("fixture_access_denied", details.GetProperty("failureCode").GetString());
+        Assert.Equal("System.UnauthorizedAccessException", details.GetProperty("exceptionType").GetString());
+        Assert.NotEqual(0, details.GetProperty("hResult").GetInt32());
+        Assert.False(receipt.RootElement.GetProperty("messageLeaked").GetBoolean());
+    }
+
+    [Fact]
+    public async Task Fixture_runner_marks_local_group_and_build_boundaries_before_their_first_write()
+    {
+        using var fixture = new ReleaseToolingTests.PackageFixture();
+        var sourceRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
+        var entry = File.ReadAllText(Path.Combine(sourceRoot, "scripts", "diagnostics", "Test-CounterReadMsiFixture.ps1"));
+
+        var groupStage = entry.IndexOf("$script:FixtureStage='local_group_create'", StringComparison.Ordinal);
+        var groupCreate = entry.IndexOf("New-LocalGroup -Name $scope.Name", StringComparison.Ordinal);
+        var buildStage = entry.IndexOf("$script:FixtureStage='fixture_build'", StringComparison.Ordinal);
+        var buildCall = entry.IndexOf("Build-CounterFixture $scope", StringComparison.Ordinal);
+
+        Assert.True(groupStage >= 0 && groupStage < groupCreate,
+            "A local-group creation failure must be attributed to its bounded stage.");
+        Assert.True(buildStage >= 0 && buildStage < buildCall,
+            "A fixture build failure must be attributed before Build-CounterFixture starts.");
+        Assert.Contains("failureStage=", entry, StringComparison.Ordinal);
+        Assert.Contains("failureExceptionType=", entry, StringComparison.Ordinal);
+        Assert.Contains("failureHResult=", entry, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Fixture_runner_refreshes_stage_for_each_msi_phase_and_keeps_cleanup_errors_attributed()
+    {
+        using var fixture = new ReleaseToolingTests.PackageFixture();
+        var sourceRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
+        var entry = File.ReadAllText(Path.Combine(sourceRoot, "scripts", "diagnostics", "Test-CounterReadMsiFixture.ps1"));
+        var phaseFunction = entry.IndexOf("function Invoke-FixturePhase", StringComparison.Ordinal);
+        var phaseStage = entry.IndexOf("$script:FixtureStage='msi_phase'", phaseFunction, StringComparison.Ordinal);
+        var phaseCall = entry.IndexOf("$receipt=Invoke-FixtureClient", phaseFunction, StringComparison.Ordinal);
+        var cleanupDetails = entry.IndexOf("Get-CounterFixtureFailureDetails $_ 'cleanup'", StringComparison.Ordinal);
+        var cleanupCatch = entry.IndexOf("}catch{", entry.IndexOf("if(-not$failure-and$quiescent", StringComparison.Ordinal), StringComparison.Ordinal);
+
+        Assert.True(phaseStage >= phaseFunction && phaseStage < phaseCall,
+            "Every native phase must refresh its stage before its first subprocess or MSI operation.");
+        var cleanupFailureAssignment = entry.IndexOf("$failure='fixture_cleanup_unconfirmed_preserve'", cleanupCatch, StringComparison.Ordinal);
+        Assert.True(cleanupCatch >= 0 && cleanupDetails > cleanupCatch && cleanupDetails < cleanupFailureAssignment,
+            "A cleanup failure must be captured before its safe failure code is assigned.");
+        Assert.Contains("failureExceptionType=", entry, StringComparison.Ordinal);
+        Assert.Contains("failureHResult=", entry, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Fixture_receipt_preserves_specific_phase_and_late_failure_exit_state()
+    {
+        using var fixture = new ReleaseToolingTests.PackageFixture();
+        var sourceRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
+        var entry = File.ReadAllText(Path.Combine(sourceRoot, "scripts", "diagnostics", "Test-CounterReadMsiFixture.ps1"));
+
+        Assert.Contains("if($Msi){$script:FixtureStage='msi_phase/'+$script:FixtureCurrentPhase}", entry, StringComparison.Ordinal);
+        Assert.Contains("$failure='fixture_post_run_memory_recovery_unconfirmed';$failureStage='post_run_memory_recovery'", entry, StringComparison.Ordinal);
+        Assert.Contains("$failure='protected_identity_changed';$failureStage=$script:FixtureStage;$failureExceptionType=$null;$failureHResult=$null", entry, StringComparison.Ordinal);
+        Assert.Contains("$failure='fixture_receipt_write_failed';$failureStage='receipt_write'", entry, StringComparison.Ordinal);
+        Assert.Contains("$result.failure=$failure", entry, StringComparison.Ordinal);
+        Assert.Contains("$result.nativeAcceptance='INCOMPLETE';$result.preservedForManualReview=$true", entry, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("Test-CounterReadMsiFixture.ps1")]
     [InlineData("Prepare-CounterReadMsiFixture.ps1")]

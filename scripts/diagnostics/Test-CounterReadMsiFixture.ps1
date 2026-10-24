@@ -10,7 +10,28 @@ $ErrorActionPreference='Stop';Set-StrictMode -Version Latest
 $script:FixtureMonitor=$null
 $script:FixtureInitialFreeMiB=$null
 $script:FixtureCurrentPhase=$null
+$script:FixtureStage='preflight'
 $locks=@();$scope=$null;$before=$null;$steps=@();$failure=$null;$quiescent=$true;$createdGroup=$false;$createdService=$false;$createdRoot=$false;$build=$null;$seeded=$false;$msiAttempted=$false
+$failureStage=$null;$failureExceptionType=$null;$failureHResult=$null
+function Get-CounterFixtureFailureDetails([System.Management.Automation.ErrorRecord]$ErrorRecord,[string]$Stage,[string[]]$Known) {
+    # Exception text/stacks may expose user data, commands, and paths. Keep the
+    # receipt actionable with only a fixed code, explicit stage, CLR type, and
+    # HRESULT; never persist the raw exception message or script stack.
+    $exception=$ErrorRecord.Exception.GetBaseException()
+    $message=$ErrorRecord.Exception.Message
+    if($message -in $Known){$code=$message}else{
+        $code=switch($exception.GetType().FullName){
+            'System.UnauthorizedAccessException' {'fixture_access_denied'}
+            'System.Security.SecurityException' {'fixture_access_denied'}
+            'System.IO.IOException' {'fixture_io_failure'}
+            'System.Management.Automation.CommandNotFoundException' {'fixture_command_unavailable'}
+            'System.Management.Automation.MethodInvocationException' {'fixture_invocation_failure'}
+            'System.Runtime.InteropServices.COMException' {'fixture_com_failure'}
+            default {'fixture_unclassified_exception'}
+        }
+    }
+    [pscustomobject]@{failureCode=$code;failureStage=$Stage;exceptionType=$exception.GetType().FullName;hResult=[int]$exception.HResult}
+}
 function Get-ProtectedFixtureIdentity($Manifest) {
     $services=@(Get-CimInstance Win32_Service -Filter "Name='HostAgent' OR Name='HostAgent.Helper'"|Sort-Object Name)
     if($services.Count-ne2){throw 'protected_identity_mismatch'}
@@ -41,6 +62,7 @@ function Assert-FixtureStillSafe {
     if($svc -and ($svc.State-ne'Stopped'-or$svc.StartMode-ne'Manual'-or$svc.StartName-ine('NT SERVICE\'+$scope.Name)-or$svc.PathName-cne('"'+(Join-Path $scope.ProgramFiles 'Inert.exe')+'"'))){throw 'fixture_service_identity_or_state_changed'}
 }
 function Ensure-FixtureRegistration {
+    $script:FixtureStage='private_service_registration'
     $existing=Get-CimInstance Win32_Service -Filter ("Name='"+$scope.Name+"'")
     if(-not$existing){
         Invoke-CounterFixtureTool (Join-Path $env:WINDIR 'System32\sc.exe') @('create',$scope.Name,'binPath=',('"'+(Join-Path $scope.ProgramFiles 'Inert.exe')+'"'),'type=','own','start=','demand','obj=',('NT SERVICE\'+$scope.Name)) (Join-Path $scope.Root ('service-create-'+[Guid]::NewGuid().ToString('N')))
@@ -49,6 +71,7 @@ function Ensure-FixtureRegistration {
     Assert-FixtureStillSafe
 }
 function Invoke-FixtureClient([string[]]$Arguments,[string]$Name,[switch]$Msi) {
+    if($Msi){$script:FixtureStage='msi_phase/'+$script:FixtureCurrentPhase}elseif(-not$script:FixtureStage){$script:FixtureStage='fixture_client_operation'}
     Assert-FixtureStillSafe
     if((Get-FileHash -LiteralPath $build.Controller).Hash-cne$build.ControllerSha256-or(Get-FileHash -LiteralPath $build.Msi).Hash-cne$build.MsiSha256){throw 'fixture_artifact_pin_changed'}
     $info=[Diagnostics.ProcessStartInfo]::new();$info.FileName=$build.Controller;$info.UseShellExecute=$false;$info.CreateNoWindow=$true;$info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true
@@ -104,6 +127,7 @@ function Assert-FixtureFaultReceipt($Receipt,[int]$Expected,[string]$FailPhase) 
 }
 function Invoke-FixturePhase([string]$Name,[string]$Operation,[string]$FailPhase,[int]$Expected,[bool]$Member,[bool]$Owned,[string]$Journal) {
     $script:FixtureCurrentPhase=$Name
+    $script:FixtureStage='msi_phase'
     $receipt=Invoke-FixtureClient @($Operation,$FailPhase) $Name -Msi
     if($receipt.msiExitCode-ne$Expected){throw 'fixture_unexpected_msi_exit'}
     Assert-FixtureFaultReceipt $receipt $Expected $FailPhase
@@ -114,10 +138,12 @@ function Invoke-FixturePhase([string]$Name,[string]$Operation,[string]$FailPhase
 }
 try {
     # Non-admin Execute refusal precedes every read/write/compilation.
+    $script:FixtureStage='authorization'
     if($Execute){$principal=[Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent());if(-not$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){throw 'elevated_operator_required'}}
     $prepare=Join-Path $PSScriptRoot 'Prepare-CounterReadMsiFixture.ps1'
     $manifest=$null
     if($Execute){
+        $script:FixtureStage='manifest_validation'
         if($ExpectedManifestSha256-cnotmatch'^[A-F0-9]{64}$'-or-not$ManifestPath){throw 'reviewed_manifest_pin_required'}
         $manifestLock=[IO.File]::Open($ManifestPath,'Open','Read','Read');$locks+=$manifestLock
         if($manifestLock.Length-gt4MB-or(Get-FileHash -LiteralPath $ManifestPath).Hash-cne$ExpectedManifestSha256){throw 'reviewed_manifest_mismatch'}
@@ -129,9 +155,11 @@ try {
         if((Get-FileHash -LiteralPath $prepare).Hash-cne$entry[0].Sha256){throw 'reviewed_input_pin_mismatch'}
     }
     . $prepare
+    $script:FixtureStage='vm_resource_and_protected_identity_preflight'
     Assert-CounterFixtureVm;Assert-CounterFixtureResources
     $before=Get-ProtectedFixtureIdentity $manifest
     if(-not$Execute){[pscustomobject]@{status='READ_ONLY_PREFLIGHT';changesPerformed=$false;nativeMatrixRun=$false;protectedIdentity=$before;next='Prepare and separately review/pin an external manifest before Execute.'}|ConvertTo-Json -Depth 6;return}
+    $script:FixtureStage='scope_validation'
     $scope=Get-CounterFixtureScope $manifest.RunId ''
     $null=Read-CounterFixtureManifest $ManifestPath $ExpectedManifestSha256 $scope.Id
     foreach($file in $manifest.Files){Assert-CounterFixturePlainPath $file.Path;$stream=[IO.File]::Open($file.Path,'Open','Read','Read');$locks+=$stream;if((Get-FileHash -LiteralPath $file.Path).Hash-cne$file.Sha256-or$stream.Length-ne$file.Length){throw 'reviewed_input_pin_mismatch'}}
@@ -141,6 +169,7 @@ try {
         (Get-LocalGroup -Name $scope.Name -ErrorAction SilentlyContinue)-or(Get-CimInstance Win32_Service -Filter ("Name='"+$scope.Name+"'"))){throw 'fixture_scope_already_exists_preserve'}
     Assert-CounterFixturePlainPath $scope.ProgramFiles
     # Independent 250ms watchdog is active throughout fixture setup/build/matrix.
+    $script:FixtureStage='watchdog_start'
     Add-Type -TypeDefinition @'
 using System; using System.Runtime.InteropServices; using System.Threading;
 public sealed class CounterReadFixtureParentMonitor:IDisposable {
@@ -169,11 +198,14 @@ public sealed class CounterReadFixtureParentMonitor:IDisposable {
 }
 '@
     $script:FixtureMonitor=[CounterReadFixtureParentMonitor]::new()
+    $script:FixtureStage='fixture_root_create'
     New-FixtureProtectedDirectory $scope.Root
     $createdRoot=$true
+    $script:FixtureStage='local_group_create'
     $group=New-LocalGroup -Name $scope.Name -Description 'GUID isolated HostAgent counter transaction fixture'
     $createdGroup=$true;$groupSid=$group.SID.Value
     # showsid derives a virtual service SID without registration or start.
+    $script:FixtureStage='service_sid_derivation'
     $sidInfo=[Diagnostics.ProcessStartInfo]::new();$sidInfo.FileName=Join-Path $env:WINDIR 'System32\sc.exe';$sidInfo.UseShellExecute=$false;$sidInfo.CreateNoWindow=$true;$sidInfo.RedirectStandardOutput=$true;$sidInfo.RedirectStandardError=$true;$sidInfo.ArgumentList.Add('showsid');$sidInfo.ArgumentList.Add($scope.Name)
     $sidProcess=[Diagnostics.Process]::Start($sidInfo)
     $sidOutput=$sidProcess.StandardOutput.ReadToEndAsync();$sidErrors=$sidProcess.StandardError.ReadToEndAsync()
@@ -187,20 +219,27 @@ public sealed class CounterReadFixtureParentMonitor:IDisposable {
         if($sidText.Length-gt65536-or$sidError.Length-ne0){throw 'fixture_sid_derivation_failed'}
     }finally{$sidProcess.Dispose()}
     $matches=[regex]::Matches($sidText,'S-1-5-80-(\d+-){4}\d+');if($matches.Count-ne1){throw 'fixture_sid_derivation_failed'};$memberSid=$matches[0].Value
+    $script:FixtureStage='fixture_build'
     $build=Build-CounterFixture $scope $memberSid $groupSid $manifest
+    $script:FixtureStage='artifact_pin_validation'
     foreach($artifact in $build.Artifacts){$stream=[IO.File]::Open($artifact.Path,'Open','Read','Read');$locks+=$stream;if((Get-FileHash -LiteralPath $artifact.Path).Hash-cne$artifact.Sha256){throw 'fixture_artifact_pin_changed'}}
     # All subsequent controller calls use the pinned fixed-target executable.
+    $script:FixtureStage='private_service_registration'
     Ensure-FixtureRegistration
+    $script:FixtureStage='initial_proof'
     $proof=Invoke-FixtureClient @('--proof') 'initial-proof';Assert-FixtureProof $proof $false $false 'absent'
     Invoke-FixturePhase 'missing-grant-rollback' 'install' 'deferred_grant' 1603 $false $false 'absent'
     Ensure-FixtureRegistration
+    $script:FixtureStage='seed_add'
     $proof=Invoke-FixtureClient @('--seed-add') 'preexisting-seed';$seeded=$true;Assert-FixtureProof $proof $true $false 'absent'
     Invoke-FixturePhase 'preexisting-grant-rollback' 'install' 'deferred_grant' 1603 $true $false 'absent'
     Ensure-FixtureRegistration
     Invoke-FixturePhase 'preexisting-install' 'install' 'none' 0 $true $false 'committed'
     Invoke-FixturePhase 'preexisting-uninstall-preserve' 'uninstall' 'none' 0 $true $false 'committed'
     Ensure-FixtureRegistration
+    $script:FixtureStage='seed_remove_preproof'
     $seedProof=Invoke-FixtureClient @('--proof') 'before-remove-private-seed'
+    $script:FixtureStage='seed_remove'
     $proof=Invoke-FixtureClient @('--seed-remove') 'remove-private-seed';$seeded=$false;Assert-FixtureSeedRemoval $seedProof $proof
     Ensure-FixtureRegistration
     Invoke-FixturePhase 'late-commit-grant-rollback' 'install' 'commit_grant' 1603 $false $false 'absent'
@@ -215,13 +254,15 @@ public sealed class CounterReadFixtureParentMonitor:IDisposable {
         'fixture_scope_already_exists_preserve','fixture_reparse_path_rejected','fixture_native_target_marker_mismatch','fixture_resource_abort','fixture_sid_derivation_failed',
         'fixture_client_hard_deadline_quiescence_unconfirmed','fixture_client_output_limit','fixture_client_failed_preserve','fixture_msi_not_quiescent_or_resource_abort','fixture_unexpected_msi_exit','fixture_proof_mismatch','fixture_fault_not_proved',
         'fixture_build_resource_or_deadline','fixture_build_tool_failed','fixture_service_identity_or_state_changed','fixture_group_identity_changed')
-    $failure=if($_.Exception.Message-in$known){$_.Exception.Message}else{'fixture_stage_failed_preserve'}
+    $details=Get-CounterFixtureFailureDetails $_ $script:FixtureStage $known
+    $failure=$details.failureCode;$failureStage=$details.failureStage;$failureExceptionType=$details.exceptionType;$failureHResult=$details.hResult
 }finally{
     if($Execute){
         # Never start cleanup after any failure or unconfirmed MSI. Preserve the
         # group/service/journal for exact manual inspection instead of guessing.
         if(-not$failure-and$quiescent-and$createdGroup-and$build){
             try{
+                $script:FixtureStage='cleanup'
                 Assert-FixtureStillSafe
                 if(@(Get-LocalGroupMember -Group $scope.Name).Count-ne0){throw 'fixture_group_not_empty'}
                 $svc=Get-CimInstance Win32_Service -Filter ("Name='"+$scope.Name+"'")
@@ -229,28 +270,29 @@ public sealed class CounterReadFixtureParentMonitor:IDisposable {
                 if((Get-LocalGroup -Name $scope.Name).SID.Value-cne$build.GroupSid){throw 'fixture_group_identity_changed'}
                 if(@(Get-LocalGroupMember -Group $scope.Name).Count-ne0){throw 'fixture_group_not_empty'}
                 Remove-LocalGroup -Name $scope.Name
-            }catch{$failure='fixture_cleanup_unconfirmed_preserve'}
+            }catch{$cleanupDetails=Get-CounterFixtureFailureDetails $_ 'cleanup' @();$failure='fixture_cleanup_unconfirmed_preserve';$failureStage=$cleanupDetails.failureStage;$failureExceptionType=$cleanupDetails.exceptionType;$failureHResult=$cleanupDetails.hResult}
         }
         $endingFreeMiB=$null
         if($script:FixtureMonitor){
             try{
                 $recovery=[Diagnostics.Stopwatch]::StartNew()
                 do{$endingFreeMiB=(Get-CimInstance Win32_OperatingSystem -OperationTimeoutSec 5).FreePhysicalMemory/1024;if($endingFreeMiB-gt768){break};Start-Sleep -Milliseconds 250}while($recovery.Elapsed.TotalSeconds-lt30)
-                if($endingFreeMiB-le768-and-not$failure){$failure='fixture_post_run_memory_recovery_unconfirmed'}
-            }catch{if(-not$failure){$failure='fixture_post_run_memory_read_failed'}}
-            try{$script:FixtureMonitor.Dispose();if($script:FixtureMonitor.FailureCode-and-not$failure){$failure='fixture_resource_abort'}}catch{$failure='fixture_monitor_shutdown_unconfirmed'}
+                if($endingFreeMiB-le768-and-not$failure){$failure='fixture_post_run_memory_recovery_unconfirmed';$failureStage='post_run_memory_recovery';$failureExceptionType=$null;$failureHResult=$null}
+            }catch{if(-not$failure){$failure='fixture_post_run_memory_read_failed';$failureStage='post_run_memory_recovery';$failureExceptionType=$_.Exception.GetBaseException().GetType().FullName;$failureHResult=[int]$_.Exception.GetBaseException().HResult}}
+            try{$script:FixtureStage='watchdog_shutdown';$script:FixtureMonitor.Dispose();if($script:FixtureMonitor.FailureCode-and-not$failure){$failure='fixture_resource_abort';$failureStage='watchdog_shutdown';$failureExceptionType=$null;$failureHResult=$null}}catch{$failure='fixture_monitor_shutdown_unconfirmed';$failureStage='watchdog_shutdown';$failureExceptionType=$_.Exception.GetBaseException().GetType().FullName;$failureHResult=[int]$_.Exception.GetBaseException().HResult}
         }
         $protectedUnchanged=$false
-        if($before){try{$after=Get-ProtectedFixtureIdentity $manifest;$protectedUnchanged=($before|ConvertTo-Json -Depth 6 -Compress)-ceq($after|ConvertTo-Json -Depth 6 -Compress);if(-not$protectedUnchanged){$failure='protected_identity_changed'}}catch{$failure='protected_identity_verification_failed'}}
+        if($before){try{$script:FixtureStage='protected_identity_final_check';$after=Get-ProtectedFixtureIdentity $manifest;$protectedUnchanged=($before|ConvertTo-Json -Depth 6 -Compress)-ceq($after|ConvertTo-Json -Depth 6 -Compress);if(-not$protectedUnchanged){$failure='protected_identity_changed';$failureStage=$script:FixtureStage;$failureExceptionType=$null;$failureHResult=$null}}catch{$failure='protected_identity_verification_failed';$failureStage='protected_identity_final_check';$failureExceptionType=$_.Exception.GetBaseException().GetType().FullName;$failureHResult=[int]$_.Exception.GetBaseException().HResult}}
         $result=[ordered]@{scenario='isolated_guid_counter_read_native_msi_matrix';status=if($failure){if(-not$scope){'NOTRUN'}else{'FAIL'}}else{'PASS_FIXTURE_ONLY'};
-            failure=$failure;reason=$failure;failedPhase=if($failure){$script:FixtureCurrentPhase}else{$null};quiescenceConfirmed=if($msiAttempted){$quiescent}else{$null};protectedIdentityUnchanged=$protectedUnchanged;phases=$steps;
+            failure=$failure;reason=$failure;failureStage=$failureStage;failureExceptionType=$failureExceptionType;failureHResult=$failureHResult;
+            failedPhase=if($failure){$script:FixtureCurrentPhase}else{$null};quiescenceConfirmed=if($msiAttempted){$quiescent}else{$null};protectedIdentityUnchanged=$protectedUnchanged;phases=$steps;
             changesPerformed=($createdRoot-or$createdGroup-or$createdService);nativeMatrixRun=$msiAttempted;
             failureBeforeFirstMsi=([bool]$failure-and-not$msiAttempted);
             memory=[pscustomobject]@{initialFreeMiB=$script:FixtureInitialFreeMiB;endingFreeMiB=$endingFreeMiB;minimumFreeMiB=if($script:FixtureMonitor){$script:FixtureMonitor.MinimumFreeMiB}else{$null};lowMemoryWarningObserved=if($script:FixtureMonitor){$script:FixtureMonitor.LowMemoryWarningObserved}else{$false};startRequiresAboveMiB=768;runtimeWarningMiB=768;emergencyAbortMiB=512;postRunRecovered=($null-ne$endingFreeMiB-and$endingFreeMiB-gt768)};
             nativeAcceptance=if(-not$msiAttempted){'NOTRUN'}elseif($failure){'INCOMPLETE'}else{'PASS_FIXTURE_ONLY'};
             nativeFixtureIsInstalledProductAcceptance=$false;sourceAndProductPackageModified=$false;rebootPerformed=$false;
             evidenceDirectory=if($scope){$scope.Root}else{$null};preservedForManualReview=([bool]$failure-and[bool]$scope);expectedReviewedManifestSha256=$ExpectedManifestSha256}
-        if($createdRoot-and$scope-and(Test-Path -LiteralPath $scope.Root)){try{$result|ConvertTo-Json -Depth 7|Set-Content -LiteralPath (Join-Path $scope.Root 'result.json')}catch{$result.failure='fixture_receipt_write_failed';$result.reason='fixture_receipt_write_failed';$result.status='FAIL'}}
+        if($createdRoot-and$scope-and(Test-Path -LiteralPath $scope.Root)){try{$script:FixtureStage='receipt_write';$result|ConvertTo-Json -Depth 7|Set-Content -LiteralPath (Join-Path $scope.Root 'result.json')}catch{$failure='fixture_receipt_write_failed';$failureStage='receipt_write';$failureExceptionType=$_.Exception.GetBaseException().GetType().FullName;$failureHResult=[int]$_.Exception.GetBaseException().HResult;$result.failure=$failure;$result.reason=$failure;$result.status='FAIL';$result.failureStage=$failureStage;$result.failureExceptionType=$failureExceptionType;$result.failureHResult=$failureHResult;$result.failureBeforeFirstMsi=([bool]$failure-and-not$msiAttempted);$result.nativeAcceptance='INCOMPLETE';$result.preservedForManualReview=$true}}
         $result|ConvertTo-Json -Depth 7
     }
     foreach($lock in $locks){$lock.Dispose()}

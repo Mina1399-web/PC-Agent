@@ -143,3 +143,60 @@ documentation files found no credential-pattern matches or whitespace errors.
 No binaries, databases, SDK/runtime or extracted CAB evidence are staged for
 Git. Only the installer source, its new regression tests and dated verification
 documentation are intended for the normal work-branch commit/push.
+
+## Counter-read fixture failure diagnostics addendum (2026-10-24)
+
+The operator supplied a read-only inventory for failed fixture run
+`079cce4df06f46a6b5c36e7818a25e2f`. It confirmed the approved VirtualBox VM,
+elevated operator identity, protected `HostAgent` Running, and absence of the
+GUID-scoped fixture service, local group, and registry key. The preserved
+fixture root contained only `result.json`; there was no `build` directory or
+tool log. The earlier receipt said `failureBeforeFirstMsi=true` and
+`nativeMatrixRun=false`, while `changesPerformed=true`. Those facts narrow the
+failure to fixture setup before the first MSI attempt, after the root had been
+created, but do not establish the exact failing command or exception. No
+database, secrets, exception text, or protected service state was changed by
+the read-only inventory.
+
+To make a fresh, separately reviewed attempt diagnosable without persisting
+exception messages or stacks, the fixture runner now records a bounded stage,
+a fixed failure category, CLR exception type, and integer HRESULT. Explicit
+stages cover local-group creation, fixture build, each named MSI phase,
+cleanup, memory recovery, final protected-service identity check, and receipt
+write. A receipt-write failure now also makes the process exit nonzero. This is
+harness instrumentation only; it does not imply native MSI acceptance or
+identify the cause of the prior run.
+
+Regression coverage was added for sanitized failure details, setup-stage
+placement, per-phase attribution, cleanup attribution, late memory failure,
+protected-identity mismatch, and receipt-write exit state. Test-first checks
+observed the expected failures before the corresponding harness corrections.
+After the final edits, the complete focused fixture guard class passed 21/21.
+The Release build passed with 0 warnings and 0 errors. The full Release suite
+passed 638/638 (Core 62, Infrastructure 561, Desktop 15) with `DOTNET_ROOT`
+set to the account-local SDK directory; the initial retry without that
+process-local variable had three environment-dependent test failures and is
+not counted as a product test failure.
+
+Fresh focused rerun command:
+
+```powershell
+$env:DOTNET_ROOT = Join-Path $env:LOCALAPPDATA 'HostAgent-DEV-tools\dotnet-10.0.401'
+& (Join-Path $env:DOTNET_ROOT 'dotnet.exe') test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj --configuration Release --no-build --no-restore -m:1 --filter 'FullyQualifiedName~CounterReadFixtureGuardTests' --logger 'console;verbosity=minimal'
+```
+
+The earlier full Release verification used:
+
+```powershell
+& (Join-Path $env:DOTNET_ROOT 'dotnet.exe') build HostAgent.sln --configuration Release --no-restore -m:1 --verbosity minimal
+& (Join-Path $env:DOTNET_ROOT 'dotnet.exe') test HostAgent.sln --configuration Release --no-build --no-restore -m:1 --logger 'console;verbosity=minimal'
+```
+
+An independent read-only review found no remaining issue in the changed
+failure-attribution paths. The original fixture failure remains unexplained
+because the old receipt did not record stage or exception type. The old GUID
+scope is preserved and must not be reused. A future native run needs a fresh
+GUID, rebuilt input pins and newly reviewed manifest because the fixture
+runner source hash changed. No elevated fixture execution, MSI matrix, service
+registration, host-project transfer, or production installation was performed
+for this addendum.
