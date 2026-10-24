@@ -227,3 +227,45 @@ hashes. No service, group, registry, ACL, database, MSI or product-file
 operation was performed. This manifest is prepared and hash-validated, but
 native matrix acceptance remains NOT RUN pending the operator's one-time
 elevated invocation.
+
+## Counter fixture group-creation diagnosis and corrected candidate (2026-10-25)
+
+The operator's run of the preceding manifest failed at
+`failureStage=local_group_create` with
+`failureExceptionType=System.Management.Automation.ValidationMetadataException`,
+before the first MSI. Protected identity was unchanged, memory recovered from
+1571.4 MiB to 1845.7 MiB (minimum 1838.8 MiB), and native acceptance remained
+NOT RUN. Read-only inspection of the actual `New-LocalGroup` command metadata
+showed `Description` has a `ValidateLength` maximum of 48 characters; the
+runner's supplied description was 51 characters. This is the confirmed
+harness defect. The operator's preserved GUID directory remains intact and
+must not be reused.
+
+A regression test extracts the actual `-Description` argument from the runner
+and compares it with the installed cmdlet's real validation metadata. Its red
+run failed with `Fixture description length 51 exceeds New-LocalGroup's real
+48-character limit`. The runner description was shortened to
+`HostAgent counter-read fixture`. The same focused test then passed 1/1 and
+the full fixture guard class passed 22/22.
+
+Release build after the fix passed with 0 warnings and 0 errors. The solution
+test run reported Core 62/62 and Infrastructure 562/562; the tool session was
+lost after Desktop started and before the overall summary was captured.
+Desktop was then run independently and passed 15/15. Thus all three Release
+test projects passed, 639 total; an overall solution-process exit code was
+not captured. Resource checks remained above the 768 MiB start and 15 GiB disk
+floors.
+
+Because the runner hash changed, a fresh run was prepared as
+`76600fa6de6c47c5b890441dee38140e`. Its external manifest is
+`HostAgent-DEV-releases/counter-fixture-76600fa6de6c47c5b890441dee38140e/review-manifest.json`,
+SHA256 `C6A17492D5E1129570683197D35111B5DEB4E6E3BDDE5DCA7E5F272DEB16C061`.
+Read-only validation matched all 85 current inputs and 6 installed-file pins;
+the pinned runner hash is
+`9C266F465F96A8906DCA903B422F3959D373A22A79D75A83BFB6CF6AC18BC928`.
+Installed version remained 1.2.6. The actual runner returned
+`READ_ONLY_PREFLIGHT`, `changesPerformed=false`, and `nativeMatrixRun=false`;
+HostAgent PID 3996 and HostAgent.Helper PID 3248 remained Running. Free memory
+was 2325.3 MiB, C: had 16.86 GiB free, and the new GUID ProgramData scope was
+absent. No group, service, registry, ACL, database or MSI operation was
+performed during this preparation. The native MSI matrix is still NOT RUN.

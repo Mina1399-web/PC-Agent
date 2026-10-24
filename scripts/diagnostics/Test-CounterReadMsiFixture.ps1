@@ -202,7 +202,7 @@ public sealed class CounterReadFixtureParentMonitor:IDisposable {
     New-FixtureProtectedDirectory $scope.Root
     $createdRoot=$true
     $script:FixtureStage='local_group_create'
-    $group=New-LocalGroup -Name $scope.Name -Description 'GUID isolated HostAgent counter transaction fixture'
+    $group=New-LocalGroup -Name $scope.Name -Description 'HostAgent counter-read fixture'
     $createdGroup=$true;$groupSid=$group.SID.Value
     # showsid derives a virtual service SID without registration or start.
     $script:FixtureStage='service_sid_derivation'

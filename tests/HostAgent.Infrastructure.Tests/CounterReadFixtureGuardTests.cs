@@ -403,6 +403,43 @@ public sealed class CounterReadFixtureGuardTests_ReleaseToolingTests
     }
 
     [Fact]
+    public async Task Fixture_local_group_description_respects_the_real_cmdlet_validation_limit()
+    {
+        using var fixture = new ReleaseToolingTests.PackageFixture();
+        var sourceRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
+        var entry = Path.Combine(sourceRoot, "scripts", "diagnostics", "Test-CounterReadMsiFixture.ps1");
+        var probe = Path.Combine(fixture.Path, "local-group-description-contract.ps1");
+        File.WriteAllText(probe, """
+            param([string]$Entry)
+            $ErrorActionPreference='Stop'
+            $tokens=$null;$errors=$null
+            $ast=[System.Management.Automation.Language.Parser]::ParseFile($Entry,[ref]$tokens,[ref]$errors)
+            if($errors.Count){throw 'parse_failed'}
+            $command=$ast.Find({param($node) $node -is [System.Management.Automation.Language.CommandAst] -and $node.GetCommandName() -ceq 'New-LocalGroup'},$true)
+            if(-not$command){throw 'local_group_command_missing'}
+            $elements=@($command.CommandElements)
+            $descriptionIndex=-1
+            for($i=0;$i -lt $elements.Count;$i++){
+                if($elements[$i] -is [System.Management.Automation.Language.CommandParameterAst] -and $elements[$i].ParameterName -ceq 'Description'){$descriptionIndex=$i+1;break}
+            }
+            if($descriptionIndex -lt 1 -or $descriptionIndex -ge $elements.Count){throw 'description_argument_missing'}
+            $description=$elements[$descriptionIndex].Value
+            $validator=(Get-Command New-LocalGroup).Parameters['Description'].Attributes | Where-Object {$_ -is [System.Management.Automation.ValidateLengthAttribute]}
+            if(-not$validator){throw 'description_length_contract_missing'}
+            [pscustomobject]@{descriptionLength=$description.Length;maximumLength=$validator.MaxLength;withinLimit=($description.Length -le $validator.MaxLength)}|ConvertTo-Json
+            """);
+
+        var result = await RunChild("pwsh.exe", "-NoProfile", "-NonInteractive", "-File", probe, "-Entry", entry);
+
+        Assert.Equal(0, result.Exit);
+        Assert.True(string.IsNullOrWhiteSpace(result.Error), result.Error);
+        using var receipt = JsonDocument.Parse(result.Out);
+        Assert.Equal(48, receipt.RootElement.GetProperty("maximumLength").GetInt32());
+        Assert.True(receipt.RootElement.GetProperty("withinLimit").GetBoolean(),
+            $"Fixture description length {receipt.RootElement.GetProperty("descriptionLength").GetInt32()} exceeds New-LocalGroup's real 48-character limit.");
+    }
+
+    [Fact]
     public async Task Fixture_runner_refreshes_stage_for_each_msi_phase_and_keeps_cleanup_errors_attributed()
     {
         using var fixture = new ReleaseToolingTests.PackageFixture();
