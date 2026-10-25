@@ -44,8 +44,14 @@ This record captures only checks executed on 2026-10-25 in the approved DEV VM. 
 - Fresh service check: `HostAgent` Running (PID 3060, `NT SERVICE\\HostAgent`) and `HostAgent.Helper` Running (PID 3076, LocalSystem); installed paths matched the expected Program Files directories.
 - Fresh installed executable SHA-256 checks matched the corresponding entries in the reviewed candidate manifest (manifest SHA-256 `4020A1E7E8F9855F8E8A0161442B5EDA16519FB3A45A3B9193EC69A80A90E754`): Service `AE37E41FD05FB89CB1E820A9CB22C4FD83CDA06475A9216DE1CE6767C8C8064F`; Helper `B326AE31BEF7F1551E2D4C762373FED2BE48D31344D939C887A0D27559DA6607`.
 - `HostAgent.Desktop` process was present (PID 1104) during the check. This confirms the dashboard client process is running, but this follow-up did not independently re-check its rendered telemetry values.
-- The current operator shell is not elevated, so installed `status --verbose` and protected database integrity checks were not performed by this follow-up. Previous elevated CLI attempt was blocked with `administrator_required`; database file access from the non-elevated shell was denied. No permissions, services, or databases were changed.
+- This follow-up's non-elevated shell could not run installed `status --verbose` (`administrator_required`) or open protected database files (access denied). The operator subsequently supplied a successful elevated `status --verbose` response; database integrity checks remain pending. No permissions, services, or databases were changed by this follow-up.
 - The operator-reported install response and read-only checks do not establish telemetry/database acceptance, service-token PDH acceptance, or product health. Keep Shadow/read-only enabled. MSI signing is still absent, so the DEV package remains unsuitable for production/general distribution.
+
+## Operator status response — 2026-10-25
+
+- Operator supplied the elevated CLI response: `ok=true`, `code=ready`, `ConfigurationAvailable=true`, `mode=Shadow`, `ReadOnly=true`, `degraded=true`, Pushover and heartbeat disabled.
+- Health was reported healthy for administration, collection_worker, diagnostics, publication, event-log, network, and system; optional SMART was unavailable with `degraded=false`. Collectors aggregate, CPU/memory, and process/services were partial/degraded. This is CLI health evidence, not proof that all telemetry is complete or that storage is healthy.
+- The operator output did not contain database integrity results. No database quick_check is claimed by this section.
 
 ## Evidence locations
 
