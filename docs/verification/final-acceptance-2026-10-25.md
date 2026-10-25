@@ -32,10 +32,20 @@ This record captures only checks executed on 2026-10-25 in the approved DEV VM. 
 
 ## Remaining acceptance gates
 
-- The 1.2.7 package has not been installed or exercised live. A one-time elevated operator run in the DEV VM is required to test the upgrade, live telemetry/database acceptance, dashboard behavior, and rollback/reporting against the installed product. Current installed services were left untouched.
+- At the time this record was first written, 1.2.7 had not been installed. The later operator installation and read-only checks are recorded in the follow-up below; live telemetry/database acceptance is still incomplete.
 - Production-grade signing/provenance is not available in this checkout: no eligible signing certificate/private key was present in the user certificate store, and no completed SignPath signing workflow/enrollment was verified. Do not distribute the unsigned DEV VM MSI.
 - Shadow/read-only remains the only approved operating mode. Confirmation/full-access mode, real remediation, reboot acceptance for this candidate, and external notification delivery were not performed or approved by this record.
 - Do not interpret source tests, artifact validation, or installer-table inspection as installed-product acceptance.
+
+## Operator installation follow-up — 2026-10-25
+
+- Operator-reported installer result: `installed=true`, `restartRequired=false`. Independently read from Windows uninstall metadata: product `Host Agent V1`, version `1.2.7`, install date `20261025`.
+- Fresh VM identity check: `AGENTPC`, account `AgentPC\\AgentPCdevtest`, VirtualBox UUID `46543236-8C5E-49DA-953C-DB17F9B1E402`; VBox Guest Additions service Running. At the check, free RAM was 1,823.5 MiB and C: had 15.78 GiB free.
+- Fresh service check: `HostAgent` Running (PID 3060, `NT SERVICE\\HostAgent`) and `HostAgent.Helper` Running (PID 3076, LocalSystem); installed paths matched the expected Program Files directories.
+- Fresh installed executable SHA-256 checks matched the corresponding entries in the reviewed candidate manifest (manifest SHA-256 `4020A1E7E8F9855F8E8A0161442B5EDA16519FB3A45A3B9193EC69A80A90E754`): Service `AE37E41FD05FB89CB1E820A9CB22C4FD83CDA06475A9216DE1CE6767C8C8064F`; Helper `B326AE31BEF7F1551E2D4C762373FED2BE48D31344D939C887A0D27559DA6607`.
+- `HostAgent.Desktop` process was present (PID 1104) during the check. This confirms the dashboard client process is running, but this follow-up did not independently re-check its rendered telemetry values.
+- The current operator shell is not elevated, so installed `status --verbose` and protected database integrity checks were not performed by this follow-up. Previous elevated CLI attempt was blocked with `administrator_required`; database file access from the non-elevated shell was denied. No permissions, services, or databases were changed.
+- The operator-reported install response and read-only checks do not establish telemetry/database acceptance, service-token PDH acceptance, or product health. Keep Shadow/read-only enabled. MSI signing is still absent, so the DEV package remains unsuitable for production/general distribution.
 
 ## Evidence locations
 
