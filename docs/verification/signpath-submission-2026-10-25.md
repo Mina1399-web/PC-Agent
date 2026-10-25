@@ -185,3 +185,120 @@ is inactive and does not represent a tested signer.
 completed within the recorded scope. Submission remains gated on listed
 owner/provider work; no admission, native acceptance, public release or
 signature is claimed.**
+
+## Operator source verification and harness follow-up
+
+The operator's newly supplied console output records a Release build with
+0 warnings/0 errors and Core62/62 PASS. Build receipt
+`operator-release-build-53be94ba00ae4b27ad3feeb73cab916d`: exit0,
+monitorFailure=null, minimumRAM1145.9MiB/disk15.784GiB. Core receipt
+`operator-release-core-2ce7a4e96cd6468796f753f66b27effb`: exit0,
+monitorFailure=null, minimumRAM1324.5MiB/disk15.790GiB.
+
+That same run's full Infrastructure project returned559PASS/3FAIL/0skipped
+of562; Desktop was NOT RUN because the runner stopped on the failure.
+Receipt `operator-release-infrastructure-621d68cfee694cb0894cfb1a06f00b0c`:
+exit1, monitorFailure=null, minimumRAM1262.4MiB/disk15.644GiB.
+These operator-supplied results are separate from agent-executed follow-ups.
+
+All three failures were `ArgumentNullException(path1)` before application
+startup: `ColdAdminPipeTests.cs:17` (two cases) and
+`OperatorHostingTests.cs:19` read `Environment.GetEnvironmentVariable("DOTNET_ROOT")`
+and combine the result with `dotnet.exe`. The portable operator harness did
+not set that variable. This finding is test-environment orchestration, not
+evidence of a product failure.
+
+Actual agent-executed focused reproduction used the same Release assemblies,
+approved DEV VM/non-elevated context, SDK10.0.401 with runtime10.0.12,
+`DOTNET_ROOT`/`DOTNET_ROOT_X64` absent and:
+
+```powershell
+dotnet test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj --configuration Release --no-build --no-restore -m:1 --filter "FullyQualifiedName~ColdAdminPipeTests|FullyQualifiedName~OperatorHostingTests.Actual_cli_process_shows_help_without_installation_or_elevation" --logger "console;verbosity=minimal"
+```
+
+Here `dotnet` denotes the explicitly addressed, hash-verified portable SDK,
+invoked through the unchanged memory/disk watchdog. RED:3FAIL/0PASS, same
+null-path exception, receipt `dotnet-root-red-bf39590796b4465c88d06fee5a4d1d68`,
+exit1/null monitor/minimumRAM1282.2MiB/disk15.775GiB/56.5s. GREEN: identical
+command/filter with both roots set to the verified SDK directory,3PASS/0FAIL/
+0skipped, receipt `dotnet-root-green-1d0591d5c9664bf8abc4bad0927bbbd6`,
+exit0/null monitor/minimumRAM966.6MiB/disk15.773GiB/37.1s.
+
+The source-external operator runner now sets both roots only in its process
+and restores the previous values in `finally`. Its PATH/Git setup remains
+process-local and checked. Independent file-only review found no actionable
+issue in that setup/restoration and confirmed full project calls still have
+no test filters. No product/test source was changed and no test was removed.
+Fresh complete Infrastructure/Desktop results remain pending at this entry;
+focused3PASS alone is not complete suite success. No installation or signing
+was performed by this correction.
+
+### Subsequent unfiltered failure: lifecycle-test cleanup
+
+The agent's full Infrastructure rerun completed561PASS/1FAIL/0skipped of562,
+exit1, monitorFailure=null, minimumRAM923.1MiB/disk15.621GiB/569.0s.
+Receipt: `rootfix-full-infrastructure-3c4d62ec41e747028ccdd1a60205abe5`.
+All three formerly null-runtime cases passed within that full run. Desktop
+remained NOT RUN because the controller stopped after Infrastructure failed.
+
+The remaining failure was an IOException deleting the isolated fixture's
+`mode-<GUID>.db` in `OperatingModeTests.Fixture.DisposeAsync`, following
+`Slow_notification_does_not_delay_heartbeat_worker_or_service_shutdown`.
+The full failure is retained; no retry changed it to PASS. A subsequent
+single-test detailed run passed1/1, receipt
+`lifecycle-lock-repro-0505456119df4ba7b06039eeb7868337`, exit0/null monitor,
+minimumRAM1384.9MiB/disk15.752GiB/14.4s. That does not close the full-suite gate.
+
+Independent source review established a test cleanup defect: readiness
+assertions could bypass awaited `host.StopAsync`, and its two-second
+`WaitAsync` could abandon an ongoing shutdown. Synchronous host disposal
+then did not join worker cleanup before deleting SQLite fixtures, potentially
+masking the original assertion/timeout. The host contract allows15s and an
+individual worker may drain for2s. The specific original trigger is unproven;
+this result alone does not establish a product deadlock. Deterministic
+test-harness regression/correction and subsequent full verification remain
+open at this entry. No product-source fix or candidate acceptance is claimed.
+
+### 2026-10-26 test-only correction
+
+Added `TestHostLifetime` in the test project and three deterministic tests:
+a real Generic Host holds a private GUID file until explicitly released
+cooperative cancellation cleanup; the original synthetic assertion is
+re-thrown only after cleanup; stop/dispose failures are aggregated without
+masking the primary failure; observed successful stop remains distinguished
+from disposal failure. No real installed service or database is targeted.
+
+The decisive RED used a happy-path-only helper and produced1PASS/2FAIL,
+exit1/null monitor/minimumRAM1461.9MiB/disk15.748GiB/12.6s, receipt
+`lifetime-helper-red-8fbceb7a22dd4ff4920b37069eef138d`. GREEN on the same
+command/filter produced3PASS/0FAIL, exit0/null monitor/minimumRAM1717.1MiB/
+disk15.750GiB/11.9s, receipt
+`lifetime-helper-green-15348d5a97d84127b0f57cd9a7bc7463`. An earlier fixture
+setup mistake used an externally owned worker registration and timed out;
+receipt `f811f1f4c7cd49b3922a48ab1a0ca011` is retained but is not the decisive
+RED. Both decisive runs used `dotnet test` Release/no-restore/single MSBuild
+node/no shared compiler, filter `FullyQualifiedName~TestHostLifetimeTests`.
+
+The existing slow-notification test now uses that lifetime, a signalled
+readiness deadline aligned with the15s host contract, explicit assertions
+that the sender is still blocked while the heartbeat has occurred and is
+finished after shutdown, and DB cleanup only after observed stop. If stop is
+unconfirmed the isolated DBs are retained and their paths reported. Multiple
+assertion/cleanup failures remain visible together. This replaces scheduler
+races and error masking, not product timeouts or authorization controls.
+
+Actual integrated Release compilation/focused test command:
+
+```powershell
+dotnet test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj --configuration Release --no-restore -m:1 -nr:false -p:UseSharedCompilation=false --filter "FullyQualifiedName~ServiceLifecycleTests|FullyQualifiedName~TestHostLifetimeTests" --logger "console;verbosity=minimal"
+```
+
+Result14/14PASS,0failed/0skipped, exit0/null monitor, minimumRAM1571.9MiB/
+disk15.749GiB/32.3s, receipt
+`lifecycle-integrated-focused-77a045e1cfa64be3ac7e030056c96063`. The same
+verified portable SDK/watchdog and process-local ROOT/X64/network-off context
+were used. Product `src` and existing security/runtime guards are unchanged.
+The previous full-suite failure remains recorded; fresh complete Release
+build/project suites are required after this test-source correction. A fresh
+hosted candidate must retain its own source/artifact anchors rather than
+relabel the preserved34fe candidate as a new-source build.

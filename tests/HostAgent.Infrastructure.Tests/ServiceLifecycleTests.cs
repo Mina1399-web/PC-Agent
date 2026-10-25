@@ -7,10 +7,12 @@ using HostAgent.Service;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
+using Xunit.Abstractions;
+using System.Runtime.ExceptionServices;
 using HostAgent.Core.Diagnostics;
 using HostAgent.Core.Models.Incidents;
 namespace HostAgent.Infrastructure.Tests;
-public sealed class ServiceLifecycleTests
+public sealed class ServiceLifecycleTests(ITestOutputHelper output)
 {
     [Fact]
     public async Task Successful_collection_cycle_duration_is_included_in_sampling_interval()
@@ -104,15 +106,17 @@ public sealed class ServiceLifecycleTests
     [Fact]
     public async Task Slow_notification_does_not_delay_heartbeat_worker_or_service_shutdown()
     {
-        await using var fixture=await OperatingModeTests.Fixture.Create();
+        var fixture=await OperatingModeTests.Fixture.Create();
         var path=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".db");
+        TestHostLifetime? lifetime=null;
+        var failures=new List<Exception>();
         try
         {
             var notificationStore=new SqliteNotificationStore(path);
             await notificationStore.EnqueueAsync(new("n","i",DiagnosisSeverity.High,"Synthetic"),DateTimeOffset.UtcNow,default);
             var blocked=new BlockingNotification();
             var heartbeat=new SignallingHeartbeat();
-            using var host=new HostBuilder().ConfigureServices(services=>
+            var host=new HostBuilder().ConfigureServices(services=>
             {
                 services.AddSingleton<IHostAgentStore>(fixture.Store);
                 services.AddSingleton<INotificationStore>(notificationStore);
@@ -122,19 +126,44 @@ public sealed class ServiceLifecycleTests
                 services.AddSingleton<DiagnosticCycleProcessor>();
                 ServiceRuntime.AddWorkers(services,new());
             }).Build();
-            await host.StartAsync();
-            Assert.Same(blocked.Entered.Task,await Task.WhenAny(blocked.Entered.Task,Task.Delay(2000)));
-            Assert.Same(heartbeat.Called.Task,await Task.WhenAny(heartbeat.Called.Task,Task.Delay(1000)));
-            await host.StopAsync().WaitAsync(TimeSpan.FromSeconds(2));
+            lifetime=new(host);
+            await lifetime.RunAsync(async()=>
+            {
+                // Prove independence while the sender is still blocked, rather
+                // than racing thread-pool scheduling against 1/2-second delays.
+                using var readiness=new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                await blocked.Entered.Task.WaitAsync(readiness.Token);
+                await heartbeat.Called.Task.WaitAsync(readiness.Token);
+                Assert.False(blocked.Finished.Task.IsCompleted);
+            });
             Assert.True(heartbeat.Last!.Stopping);
+            Assert.True(blocked.Finished.Task.IsCompletedSuccessfully);
         }
-        finally{File.Delete(path);}
+        catch(Exception error){failures.Add(error);}
+        if(lifetime is null || lifetime.StopCompleted)
+        {
+            try{File.Delete(path);}catch(Exception error){failures.Add(error);}
+            try{await fixture.DisposeAsync();}catch(Exception error){failures.Add(error);}
+        }
+        else
+        {
+            // Never race deletion against an unconfirmed shutdown, or replace
+            // its primary assertion/timeout with a secondary SQLite lock error.
+            output.WriteLine("Unconfirmed shutdown; retained isolated databases: {0}; {1}",path,fixture.Path);
+        }
+        if(failures.Count>1)throw new AggregateException(failures);
+        if(failures.Count==1)ExceptionDispatchInfo.Capture(failures[0]).Throw();
     }
     private sealed class BlockingNotification:INotificationSender
     {
         public TaskCompletionSource Entered{get;}=new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource Finished{get;}=new(TaskCreationOptions.RunContinuationsAsynchronously);
         public async ValueTask<DeliveryResult> SendAsync(Notification notification,CancellationToken cancellationToken)
-        {Entered.TrySetResult();await Task.Delay(Timeout.InfiniteTimeSpan,cancellationToken);return new(DeliveryState.Sent,"synthetic");}
+        {
+            Entered.TrySetResult();
+            try{await Task.Delay(Timeout.InfiniteTimeSpan,cancellationToken);return new(DeliveryState.Sent,"synthetic");}
+            finally{Finished.TrySetResult();}
+        }
         public ValueTask<DeliveryResult> PollAsync(string receipt,CancellationToken cancellationToken)=>throw new NotSupportedException();
     }
     private sealed class SignallingHeartbeat:IHeartbeatSender

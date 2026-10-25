@@ -30,6 +30,17 @@ WSL may be used for platform-neutral editing or Core-only analysis, but it does 
 
 ## Standard verification commands
 
+Run the complete suite with a non-elevated token: real user-maintenance
+fixtures intentionally reject elevation. When using a portable SDK, set
+`DOTNET_ROOT` and `DOTNET_ROOT_X64` to the directory containing the verified
+`dotnet.exe` for the test process and its children. Merely invoking an
+absolute `dotnet.exe` does not populate these variables. Cold-process pipe
+and CLI integration tests use `DOTNET_ROOT` to start a separate runtime;
+without it they fail before product startup. Keep these settings local to
+the test process and restore prior values in `finally`; do not write machine
+or user environment settings. The guarded SignPath operator wrapper handles
+this setup/restoration. See the [fresh reproduction and correction](verification/signpath-submission-2026-10-25.md#operator-source-verification-and-harness-follow-up).
+
 From the repository root in PowerShell, use the repository's pinned .NET SDK and execute:
 
 ```powershell
