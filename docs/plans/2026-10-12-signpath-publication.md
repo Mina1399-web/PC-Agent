@@ -1,5 +1,10 @@
 # SignPath publication and application preparation
 
+Historical 2026-10-12 checklist. The
+[2026-10-25 continuation](2026-10-25-signpath-submission.md) records current
+public source, successful hosted MSI candidate and remaining owner gates.
+Unchecked historical items below must not override that newer evidence.
+
 The owner authorized all preparation steps up to, but excluding, sending the
 SignPath application. Existing public-source and GitHub-hosted build consent
 remain effective. Preserve main and all existing history; no force push,

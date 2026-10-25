@@ -1,5 +1,10 @@
 # SignPath preparation plan
 
+Historical 2026-10-11 plan. Follow the
+[current continuation](2026-10-25-signpath-submission.md) for executed hosted
+candidate evidence and remaining owner/provider gates; dated statements below
+are retained as history.
+
 Authorized: public open-source publication; separately, GitHub-hosted builds
 and tests for this signing path. Preserve all existing commits, DEV baseline,
 production host/project/security policy and the clean-win-base snapshot.

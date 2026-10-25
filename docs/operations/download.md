@@ -11,7 +11,9 @@ remote-command service.
 
 ## Download status
 
-The project is preparing a **1.2.8 unsigned submission preview**. No public
+The project has built and artifact-verified a **1.2.8 unsigned submission
+preview** in [run 40230180663](https://github.com/Mina1399-web/PC-Agent/actions/runs/40230180663).
+No public
 installer download is claimed until a release is actually published in
 [GitHub Releases](https://github.com/Mina1399-web/PC-Agent/releases).
 Temporary Actions artifacts are candidate evidence and require a GitHub

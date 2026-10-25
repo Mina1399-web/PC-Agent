@@ -1,0 +1,88 @@
+# INACTIVE EXAMPLE. This file is outside .github/workflows and was not run.
+# Copy/adapt only AFTER SignPath admission, owner MFA/roles, reviewed provider
+# configuration, a protected GitHub environment and manual signing approval.
+# It signs the owned stage only; it does NOT produce a final signed MSI/release.
+name: Proposed owned signing stage
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        type: string
+      expected_source_sha:
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: proposed-owned-signing
+  cancel-in-progress: false
+jobs:
+  owned-stage:
+    runs-on: windows-2025
+    timeout-minutes: 45
+    environment: signpath-production
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
+      EXPECTED_SOURCE_SHA: ${{ inputs.expected_source_sha }}
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      SIGNPATH_ORGANIZATION_ID: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+      SIGNPATH_PROJECT_SLUG: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+      SIGNPATH_SIGNING_POLICY_SLUG: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+      SIGNPATH_ARTIFACT_CONFIGURATION_SLUG: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+      EXPECTED_PUBLISHER: ${{ vars.SIGNPATH_PUBLISHER_THUMBPRINT }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Owner-configured scope gate
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:EXPECTED_SOURCE_SHA -cnotmatch '^[a-f0-9]{40}$' -or $env:EXPECTED_SOURCE_SHA -cne $env:GITHUB_SHA -or $env:RELEASE_VERSION -cnotmatch '^\d+\.\d+\.\d+$') { throw 'reviewed_source_required' }
+          if ($env:EXPECTED_PUBLISHER -cnotmatch '^[A-Fa-f0-9]{40}$') { throw 'independently_verified_publisher_pin_required' }
+          foreach ($name in @('SIGNPATH_ORGANIZATION_ID','SIGNPATH_PROJECT_SLUG','SIGNPATH_SIGNING_POLICY_SLUG','SIGNPATH_ARTIFACT_CONFIGURATION_SLUG')) {
+            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) { throw 'provider_configuration_required' }
+          }
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1
+        with:
+          dotnet-version: '10.0.401'
+      - name: Required source verification
+        shell: pwsh
+        run: |
+          # Run the reviewed build/test gates from review-build.yml here.
+          # This deliberate stop prevents activating an incomplete example.
+          throw 'integrate_reviewed_build_tests_and_current_VM_acceptance_before_activation'
+      - name: Prepare unsigned owned-stage input
+        shell: pwsh
+        run: |
+          ./tools/Restore-SubmissionTools.ps1 -OutputPath "$env:RUNNER_TEMP/submission-tools"
+          $tools = "$env:RUNNER_TEMP/submission-tools"
+          ./tools/Build-SubmissionPreview.ps1 -PackagePath "$env:RUNNER_TEMP/unsigned-input" -Version $env:RELEASE_VERSION -WixPath "$tools/wix/wix.exe" -DtfRoot $tools -WixSourceArchive "$tools/wix-source-aa65968c419420d32e3e1b647aea0082f5ca5b78.zip"
+      - name: Store unsigned artifact with GitHub origin
+        id: unsigned
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          path: ${{ runner.temp }}/unsigned-input.zip
+          archive: false
+          if-no-files-found: error
+      - name: Request manually approved owned-stage signing
+        uses: SignPath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3 resolved 2026-10-25
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ steps.unsigned.outputs.artifact-id }}
+          parameters: |
+            version: ${{ toJSON(inputs.version) }}
+          wait-for-completion: true
+          output-artifact-directory: ${{ runner.temp }}/signed-owned-stage-quarantine
+      # Required next implementation: compare exact members to unsigned input,
+      # allow byte changes ONLY for config-listed owned PEs, verify trusted
+      # Authenticode chain/timestamp/independent publisher pin on every one.
+      # Rebuild the DTF composite/MSI only via the provider-approved design,
+      # request separate manual MSI signing, regenerate FINAL byte hashes and
+      # sign the final manifest. Do not publish this intermediate directory.

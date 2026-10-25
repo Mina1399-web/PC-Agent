@@ -9,6 +9,11 @@ can be submitted. Do not infer approval or eligibility from this document.
 
 - **Project:** Host Agent V1
 - **Source repository:** <https://github.com/Mina1399-web/PC-Agent>
+- **Reviewed candidate source:**
+  <https://github.com/Mina1399-web/PC-Agent/commit/34fe3baf0b37b9cda1db1a2ac95c34f854efbaba>;
+  preserved as `codex/signpath-candidate-1.2.8`. The owner must publish the
+  corresponding binary release and correct the stale default landing branch
+  before claiming those gates complete.
 - **License:** MIT for first-party source; third-party components retain their
   respective licenses and notices.
 - **Proposed project description:** Host Agent V1 is a Windows local monitoring
@@ -32,6 +37,9 @@ can be submitted. Do not infer approval or eligibility from this document.
   prepares a separate unsigned 1.2.8 MSI submission candidate with explicit
   install disclosure/acknowledgement, fresh dependency metadata and immutable
   WiX source. Its actual run and native acceptance are recorded separately.
+- **Fresh candidate evidence:** Run `40230180663` succeeded at source
+  `34fe3baf0b37b9cda1db1a2ac95c34f854efbaba`. Artifact checks passed for
+  1,230 files and 17 owned signing entries; native acceptance remains pending.
 - **Reputation:** New project. Do not claim public adoption, endorsements,
   established reputation, or previous signed releases. Ask SignPath to assess
   eligibility under its reputation policy.
@@ -94,3 +102,4 @@ the final application submission action.
 - [Code signing policy](code-signing-policy.md)
 - [Current readiness evidence](../verification/signpath-readiness-2026-10-25.md)
 - [Current continuation and remaining gates](../verification/signpath-submission-2026-10-25.md)
+- [All owner steps with exact artifact links/checksums](signpath-owner-steps.md)

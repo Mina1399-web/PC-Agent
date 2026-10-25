@@ -6,7 +6,7 @@ This is an application attachment draft. No message or request has been sent.
 
 1. **Initial release and reputation.** This is a new maintained Windows
    monitoring application. We can supply a GitHub-hosted unsigned MSI candidate
-   and reproducible build/test evidence; an initial public installer preview
+   and verifiable build/test evidence; an initial public installer preview
    and its native acceptance must be established before claiming the
    released-application requirement. We have no adoption or independent
    reputation to claim. Please assess whether this project can qualify, and

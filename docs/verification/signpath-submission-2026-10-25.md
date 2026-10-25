@@ -14,15 +14,15 @@ service control, trust change or production-host operation.
 
 | Gate | Current evidence / remaining action |
 | --- | --- |
-| Open source and component provenance | MIT first-party source; dated dependency/source mapping prepared. Fresh candidate inventory pending hosted run. |
+| Open source and component provenance | MIT first-party source; dated mapping and fresh candidate inventory generated/validated in successful CI. |
 | Maintained project | Current source and preserved development history are public; provider reputation assessment remains external. |
 | Released in intended form and download description | Functionality/download page and release text prepared. Public MSI release and native candidate acceptance remain pending. |
-| Owned signing scope and metadata | Exact owned PE paths and product/version checks prepared; upstream runtime/SQLite/DTF excluded from owned signing. |
+| Owned signing scope and metadata | 17 exact owned PE paths and product/version checks passed in CI; upstream runtime/SQLite/DTF excluded from owned signing. |
 | Privacy and announced changes | Outbound defaults off; operator opt-in preserved. Full disclosure/plan reader and explicit preview MSI acknowledgement prepared. Provider must assess conditional native-UI requirement. |
 | Uninstall and retention | Existing MSI transaction/removal design preserved; current native preview install/removal not executed. |
 | Team MFA and roles | Proposed owner roles documented; actual account verification is owner-only. |
 | Home/download signing policy | Current source pages link policy/privacy; default GitHub landing branch still requires owner administration. |
-| Hosted origin and artifact | Existing successful binary-review run is historical. New MSI workflow execution pending; actual SignPath connector still requires onboarding. |
+| Hosted origin and artifact | New MSI workflow 40230180663 succeeded; artifact/run/source linkage independently confirmed. SignPath connector still requires onboarding. |
 | Provider configuration/manual approval | Owned-stage configuration generated with candidate; composite DTF treatment and final signing stages await provider acceptance. |
 
 Sources: [Foundation conditions](https://signpath.org/terms.html),
@@ -89,10 +89,57 @@ remains required in the non-elevated DEV VM suite. No product guard or test was
 weakened. The workflow also logs installed runtime inventory to distinguish
 framework-dependent test runtimes from the self-contained 10.0.12 payload.
 
-Pending: fresh hosted Release build/tests, restored dependency inventory,
-actual MSI artifact tables, exact payload membership/hashes, owned-file
-metadata, ZIP/manifest checks and final independent evidence review.
-No new candidate hash or successful native installation is claimed yet.
+The corrected workflow
+[40230180663](https://github.com/Mina1399-web/PC-Agent/actions/runs/40230180663)
+completed **SUCCESS** at source
+`34fe3baf0b37b9cda1db1a2ac95c34f854efbaba`:
+
+- Windows Server 2025 GitHub-hosted runner; SDK 10.0.401; compiler 0 warnings
+  and 0 errors. Runtime inventory was printed. Host was 10.0.13 and shared
+  runtimes included both 10.0.12 and 10.0.13; tests were not forced to the
+  exact 10.0.12 self-contained payload patch.
+- All 62 preparation checks passed; Core **62/62**, filtered Infrastructure
+  **449/449**, filtered Desktop **13/13**, with 0 failed/skipped in each run.
+  The documented six Infrastructure classes and two Desktop maintenance
+  cases remain in the complete DEV suite. No complete current DEV suite is
+  claimed.
+- Pinned DTF nupkg hashes/NuGet signatures and immutable WiX source archive
+  hash passed. A fresh metadata-only inventory from restored assets and
+  published dependencies was included. This is separate from the earlier
+  observed 49-package local graph; no uninspected new graph count is invented.
+- Custom-action compilation, DTF assembly and WiX MSI build completed.
+  Directory and ZIP validation both returned PASS: **1,230 manifested files**,
+  **17 exact owned PE entries**, metadata, complete lengths/hashes, notices,
+  source archive, MSI identities/transaction/acknowledgement and exact
+  installed-path table membership. Inspection used database tables only.
+- Final receipt: `PREPARED_NATIVE_ACCEPTANCE_PENDING`,
+  `signingPerformed=false`, `installerExecuted=false`.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| ZIP, 322,777,962 bytes | `722CAA759CD0E249C8F27549849148F524F1248DF05939AEAA901B417E566E9A` |
+| `HostAgent.msi` | `78241E9B8EE79C9B9CFFD89D4F1634616CF946BC18644010162B5750F29A2272` |
+| `manifest.json` | `444D696AC0C879A1446A8FC85D8C62DA6AD6D15878B1FED8FC1F63C360189E93` |
+
+[Candidate artifact 12612639952](https://github.com/Mina1399-web/PC-Agent/actions/runs/40230180663/artifacts/12612639952)
+expires 2026-11-08. Its API size/digest and source/run linkage independently
+match the builder receipt. Test reports were uploaded as artifact
+`12612891030`, SHA-256
+`3947baa10b8bcad55b497e4138a1d135517198338fd05338dbf9047291b5bae3`.
+The setup action logged a 409 warning for its attempted latest-runtime
+download but then installed the pinned SDK successfully; that warning did
+not fail the tests/build.
+
+A fresh read-only reviewer confirmed the source diff, run/job logs, artifact
+API linkage and these scopes, with no actionable P1/P2 finding. The reviewer
+did not locally download/rehash MSI/manifest bytes or certify native
+acceptance or SignPath eligibility.
+
+The separate candidate reference
+[`codex/signpath-candidate-1.2.8`](https://github.com/Mina1399-web/PC-Agent/tree/codex/signpath-candidate-1.2.8)
+was created and re-read through the GitHub API at exact source `34fe3baf...`.
+It preserves source for an owner-created release; it is not an enforced
+branch-protection claim or an existing public binary release.
 
 ## Evidence and limits
 
@@ -103,11 +150,38 @@ archive: 12,377,495 bytes; SHA-256
 `AC593BF21864D9AD4B44720A702DAE3651A51D199CFD5AEE080AAA1286AB72F1`.
 The hosted builder must verify those bytes before distribution.
 
-The embedded public application form was identified on the official apply
-page, but the browser control surface failed to attach the page. No fields
-were filled. Repository administration/default branch, public release
-publication, personal contact information, MFA, provider onboarding and
-legal consent remain owner actions if unavailable through current tools.
+The public application embed was identified on the official apply page, but
+the browser control surface failed to attach it. A subsequently opened Chrome
+window could not be controlled because current-page identification was
+insufficient for policy enforcement; browser input stopped. No form fields,
+settings, account or release were changed. An alternative non-interactive
+existing-Git-auth API probe was rejected **before execution** by automatic
+approval review (`blocked by policy`); no credentials were read. That method
+was not retried or disguised.
 
-**Status: preparation in progress; not ready to submit until applicable
-owner/provider gates and the remaining candidate checks are completed.**
+Local candidate staging was refused by its resource guard before downloading
+or creating the target directory. Later free RAM was only 559.9 MiB; the owner
+must close unneeded applications before local checks. The CI artifact is
+available, but no locally extracted candidate/path/hash result is claimed.
+The local handoff contains source-check orchestration, exact CI checksum
+sums, release text and owner instructions; it contains no installer bytes.
+
+Final documentation-only review: `git diff --check` passed and all ten
+changed/new documentation/example files passed local Markdown-link and known
+secret-pattern checks. A subsequent read showed 460.1 MiB available RAM;
+no further local build, test, extraction or installation was attempted.
+Independent final handoff review found no P1/P2 issue in its bounded static
+scope. A P3 wording ambiguity was corrected: full Infrastructure tests open
+isolated SQLite fixtures; the orchestration does not request opening installed
+product databases. Tool paths were confirmed present without executing them.
+
+The [owner checklist](../operations/signpath-owner-steps.md) lists resource
+recovery/full VM suite, local candidate verification/native acceptance,
+default-branch administration, public release, MFA/roles/contact/consent and
+provider decisions. The [post-admission design](../signing/after-admission.md)
+is inactive and does not represent a tested signer.
+
+**Status: independently executable preparation and hosted candidate checks
+completed within the recorded scope. Submission remains gated on listed
+owner/provider work; no admission, native acceptance, public release or
+signature is claimed.**
