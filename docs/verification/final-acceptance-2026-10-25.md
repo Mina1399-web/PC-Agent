@@ -53,6 +53,12 @@ This record captures only checks executed on 2026-10-25 in the approved DEV VM. 
 - Health was reported healthy for administration, collection_worker, diagnostics, publication, event-log, network, and system; optional SMART was unavailable with `degraded=false`. Collectors aggregate, CPU/memory, and process/services were partial/degraded. This is CLI health evidence, not proof that all telemetry is complete or that storage is healthy.
 - The operator output did not contain database integrity results. No database quick_check is claimed by this section.
 
+## Operator database check result — 2026-10-25
+
+- Operator supplied: `host-agent=not_run:OperationalError`, `notifications=ok`, `helper-journal=not_run:FileNotFoundError`. The notifications result is a successful read-only integrity check. The main database was not checked; the result does not establish corruption because the probe omitted SQLite error code/name and WAL/SHM metadata.
+- The helper-journal file was absent at the documented fixed path. This is consistent with the current implementation: `SqliteHelperJournal` opens/initializes storage lazily on the first journal operation, and helper startup alone does not create it. No helper operation was invoked to force creation.
+- No database was repaired, created, checkpointed, or modified by the follow-up. Main database integrity remains unverified; helper journal integrity is not applicable until a normal approved helper journal operation creates that file.
+
 ## Evidence locations
 
 Detailed stdout/stderr and watchdog receipts are under `%LOCALAPPDATA%\\HostAgent-DEV-evidence\\final-acceptance-20261025`. The release package and ZIP are under `HostAgent-DEV-releases` outside the repository.
