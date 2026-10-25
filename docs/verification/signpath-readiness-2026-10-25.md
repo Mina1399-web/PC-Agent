@@ -30,13 +30,26 @@ version 1.2.7 and the preparation branch. Their scope remains:
 - Pinned GitHub Actions and SDK; read-only repository permission and no
   persisted checkout credentials.
 - Release compilation and the existing Core/portable Windows integration
-  test set; exact-identity DEV MSI tests remain separate.
+  test set. The hosted test filter excludes `ReleaseToolingTests`,
+  `InstallerStagingTests`, `CompleteProbeGuardVmIntegrationTests`,
+  `UserMaintenanceTests`, `HostAgentDataDirectoryTests`, and
+  `WindowsCollectorIntegrationTests`. These exact-identity, installer,
+  non-admin-token, ACL-owner, and Windows 11 service-inventory checks remain
+  required in the complete approved DEV VM suite; the hosted run does not
+  verify them.
 - Unsigned binary-review archive only. No MSI, installation, certificate,
   signing token, repository write permission, or signing request is included.
 - Artifact outputs are temporary GitHub Actions artifacts, not a public
   product release.
 
-The workflow has not yet had a fresh successful run for this updated source.
+The first hosted run for commit `428da9367dc6ec358e70c3652c45025c9c47364f`
+completed its Release build successfully, then failed its test step: 43
+environment-bound tests failed and 460 passed. The failures came from the
+hosted runner executing VM-only MSI/probe checks, tests requiring a normal
+non-administrator token, a directory-owner assertion tied to that token, and
+Windows 11 service-inventory assumptions. The unsigned review payload was
+skipped because tests failed. A narrower hosted filter has now been prepared
+without changing tests or product safeguards; a fresh hosted run is pending.
 Local Release build and test execution are also pending because the current
 VM has less than the documented 15 GiB free-space floor. No guard was lowered.
 
@@ -77,7 +90,8 @@ No application was submitted and no legal consent was accepted.
 ## Fresh checks in this preparation
 
 - PowerShell parsed `tools/Build-Review.ps1` without parser errors.
-- Static workflow contract assertions passed: selected preparation branch,
+- Static workflow contract assertions passed before the filter correction:
+  selected preparation branch,
   version 1.2.7 in workflow and builder, pinned checkout/setup-dotnet/upload
   actions, read-only content permission, and no signing, install, or release
   builder step.
@@ -89,8 +103,8 @@ No application was submitted and no legal consent was accepted.
 - At the check, C: had 15,999,873,024 bytes free, below the repository's
   15 GiB build/test floor (16,106,127,360 bytes). Therefore no Release build,
   test suite, or package was run. No guard or threshold was changed.
-- The updated GitHub workflow has not been pushed or executed yet. No hosted
-  test report or workflow artifact is claimed.
+- The current filter correction has not yet been pushed or executed. No
+  successful hosted test report or unsigned review payload is claimed.
 
 ## Readiness
 

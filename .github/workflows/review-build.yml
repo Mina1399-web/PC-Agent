@@ -33,9 +33,12 @@ jobs:
         run: |
           dotnet test tests/HostAgent.Core.Tests/HostAgent.Core.Tests.csproj --configuration Release --no-build --logger trx --results-directory "$env:RUNNER_TEMP/test-results"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          # The ReleaseToolingTests class executes exact-identity DEV MSI checks;
-          # these remain in the complete VM suite, with no forged runner identity.
-          dotnet test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj --configuration Release --no-build --filter 'FullyQualifiedName!~ReleaseToolingTests' --logger trx --results-directory "$env:RUNNER_TEMP/test-results"
+          # Keep identity-, elevation-, install-, and OS-image-specific tests in
+          # the complete approved Windows 11 DEV VM suite. GitHub's hosted
+          # runner is not a substitute for its non-admin operator account or
+          # exact VM identity. Do not weaken those tests to make hosted CI pass.
+          $hostedFilter = 'FullyQualifiedName!~ReleaseToolingTests&FullyQualifiedName!~InstallerStagingTests&FullyQualifiedName!~CompleteProbeGuardVmIntegrationTests&FullyQualifiedName!~UserMaintenanceTests&FullyQualifiedName!~HostAgentDataDirectoryTests&FullyQualifiedName!~WindowsCollectorIntegrationTests'
+          dotnet test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj --configuration Release --no-build --filter $hostedFilter --logger trx --results-directory "$env:RUNNER_TEMP/test-results"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Unsigned binary-review payload
         shell: pwsh

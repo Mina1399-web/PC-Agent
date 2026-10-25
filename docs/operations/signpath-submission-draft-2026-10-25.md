@@ -28,8 +28,9 @@ can be submitted. Do not infer approval or eligibility from this document.
   action revisions and .NET SDK 10.0.401. The current workflow is intended to
   produce an unsigned binary-review archive containing self-contained
   executables, with no MSI or installation script. It is not a supported
-  product release. A successful hosted run for the current source has not yet
-  been recorded.
+  product release. A fresh run for the updated workflow is still required;
+  the preceding run built successfully but its test filter included VM- and
+  account-specific suites that cannot pass on GitHub's hosted runner.
 - **Reputation:** New project. Do not claim public adoption, endorsements,
   established reputation, or previous signed releases. Ask SignPath to assess
   eligibility under its reputation policy.
@@ -51,7 +52,10 @@ can be submitted. Do not infer approval or eligibility from this document.
    without rewriting either existing history. The public default `main` is
    stale; the histories do not share a merge base.
 3. Run the updated unsigned review workflow on GitHub-hosted Windows and
-   inspect the resulting test reports and artifact manifest.
+   inspect the resulting test reports and artifact manifest. The hosted filter
+   must leave exact-identity, installer, non-admin ACL, and Windows 11
+   service-inventory tests in the complete DEV VM suite; these exclusions are
+   not evidence that those suites passed.
 4. Complete a current dependency and redistribution review, including the
    WiX DTF custom action and applicable source/notices obligations.
 5. Resolve SignPath's requirements for displaying privacy information during
