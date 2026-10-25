@@ -86,6 +86,14 @@ This record captures only checks executed on 2026-10-25 in the approved DEV VM. 
 - Fresh agent-side read-only post-check: approved VM identity unchanged, HostAgent Running (PID 8812), Helper Running (PID 3076), 1,832.8 MiB free RAM, and 15.67 GiB free on C:. Agent token remained non-elevated.
 - No source/installer changes were made. The next bounded attempt needs a longer SQL deadline plus an in-query free-memory guard (cancel below 768 MiB, hard abort at/below 512 MiB); service stop/check/start must again be operator-run. No integrity result is claimed yet.
 
+## Operator host database integrity completion — 2026-10-25
+
+- Operator reran the guarded offline check with a 120-second SQL deadline and in-query memory thresholds. The host database returned `quickCheck=ok` in 2.0 seconds; minimum observed free RAM was 2,056.1 MiB, above the 768 MiB soft floor and 512 MiB hard abort. WAL/SHM/journal sidecars were absent, the header remained WAL, and the stopped-database immutable/query-only check completed. The harness also verified the main database hash did not change during the quick_check.
+- The operator block reported no failure, restored `HostAgent` to Running, retained the Helper process, and confirmed `mode=Shadow`, `readOnly=true`.
+- Independent fresh read-only post-check by the agent confirmed approved VM identity and Guest Additions Running; `HostAgent` Running as `NT SERVICE\\HostAgent` (PID 3608) and `HostAgent.Helper` Running as LocalSystem (PID 3076). Agent-side free RAM was 1,683.0 MiB and C: free space 15.67 GiB.
+- Database coverage now: `host-agent.db` read-only `quick_check=ok`; `notifications.db` operator-reported read-only `quick_check=ok`; helper journal remains absent and therefore not checked, as no normal helper journal operation has yet created it. No helper operation was invoked to create it.
+- No product source, installer, permission, configuration, or operating-mode change was made. The previously recorded 30/30 focused process-metric tests remain the latest source-test evidence; no Release build/full suite was needed or claimed for this documentation-only update.
+
 ## Evidence locations
 
 Detailed stdout/stderr and watchdog receipts are under `%LOCALAPPDATA%\\HostAgent-DEV-evidence\\final-acceptance-20261025`. The release package and ZIP are under `HostAgent-DEV-releases` outside the repository.
