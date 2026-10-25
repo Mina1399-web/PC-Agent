@@ -59,6 +59,19 @@ This record captures only checks executed on 2026-10-25 in the approved DEV VM. 
 - The helper-journal file was absent at the documented fixed path. This is consistent with the current implementation: `SqliteHelperJournal` opens/initializes storage lazily on the first journal operation, and helper startup alone does not create it. No helper operation was invoked to force creation.
 - No database was repaired, created, checkpointed, or modified by the follow-up. Main database integrity remains unverified; helper journal integrity is not applicable until a normal approved helper journal operation creates that file.
 
+## Read-only collector diagnosis and focused regression run — 2026-10-25
+
+- Fresh environment check remained on the approved VM/account and branch `codex/installed-telemetry-stabilization`; the working tree was clean before this diagnostic. The agent token was not elevated. HostAgent, HostAgent.Helper, and VBoxService were Running. Free RAM was 2,080.0 MiB and C: free space was 15.78 GiB.
+- Read-only UI Automation inspection of the running installed dashboard (PID 1104) returned current health details without changing the view's application data or invoking controls:
+  - `cpu-memory`: `collector_partial`, reasons `some_process_metrics_access_denied` and `process_cpu_time_access_denied`.
+  - `process-services`: `collector_partial`, reasons `some_process_metrics_access_denied`, `process_cpu_time_access_denied`, and `some_executable_paths_unavailable`.
+  - `disk`: `optional_smart_unavailable`, reason `smart_health_unavailable`, `Degraded=false`.
+- Source inspection confirms that host-wide CPU comes from `GetSystemTimes` and total/available physical/page-file memory from `GlobalMemoryStatusEx`; the detailed current access-denied stage is individual process CPU-time retrieval (`Process.TotalProcessorTime`), and the process-services collector also reports unavailable executable paths for some entries. The observed warning list contains no `system_cpu_counter_unavailable` or `cpu_baseline_not_ready`; the memory collector is Partial rather than Unavailable, so the evidence points to partial per-process values rather than missing host-wide CPU/RAM. Native error 5 is intentionally retained as partial health; no service permissions were broadened.
+- Focused regression command: `C:\Users\AgentPCdevtest\AppData\Local\HostAgent-DEV-tools\dotnet-10.0.401\dotnet.exe test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj --configuration Release --no-build --no-restore -m:1 --filter 'FullyQualifiedName~ProcessMetricFailureTests|FullyQualifiedName~ProcessReadStageTests' --logger 'console;verbosity=minimal'` — PASS, 30/30, 0 failed, 0 skipped. This validates the bounded classifier contract; it is not a service-token live collector test.
+- A separate interactive `Get-Counter` attempt returned `CounterApiError`; that command's failure is not attributed to HostAgent's own system CPU/memory APIs. Service-token PDH acceptance remains unverified.
+- Current database state remains: operator-reported notifications `quick_check=ok`; main host DB `NOTRUN` with only `OperationalError` reported (SQLite extended error code/name and WAL/SHM metadata not captured); helper journal absent and lazily created by the normal helper journal's first operation. No database was repaired, created, checkpointed, or modified. Main DB integrity remains open.
+- No product source or installer change was justified by these diagnostics. Therefore this follow-up made no source changes, and did not claim or rerun a Release build or full Release suite.
+
 ## Evidence locations
 
 Detailed stdout/stderr and watchdog receipts are under `%LOCALAPPDATA%\\HostAgent-DEV-evidence\\final-acceptance-20261025`. The release package and ZIP are under `HostAgent-DEV-releases` outside the repository.
