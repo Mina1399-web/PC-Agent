@@ -6,6 +6,10 @@ restored and published dependency graph, embedded binaries, notices, and
 source obligations before creating a public signed-release candidate. The
 open WiX DTF custom-action question is tracked in the
 [current SignPath readiness record](../verification/signpath-readiness-2026-10-25.md).
+The new [dated component/source mapping](distribution-components-2026-10-25.md)
+and candidate-generated inventory supplement this history. The immutable WiX
+input-to-source mapping is established there; provider treatment of the
+composite action remains separate.
 
 Dashboard increment, 2026-10-12: the new self-contained WPF/Windows Forms
 desktop also redistributes Microsoft.WindowsDesktop.App.Runtime.win-x64

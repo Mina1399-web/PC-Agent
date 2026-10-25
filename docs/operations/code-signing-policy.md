@@ -52,15 +52,19 @@ must be agreed with SignPath before implementation.
 The existing builder reads a CurrentUser/My certificate and is VM-bound;
 it is not a SignPath integration. A DEV package remains VM-only, unsigned
 and unsuitable for production. The separately guarded GitHub-hosted unsigned
-review workflow for version 1.2.7 passed its Release build and declared hosted
+binary-review workflow for version 1.2.7 passed its Release build and declared hosted
 test subset on 2026-10-25 at commit
 `a74f039781e1e587f4dde07d58450e0ad582858c`. Its temporary review archive is
-not a signed or supported production release. The workflow does not sign,
-create an MSI, install, or replace the production release path, and does not
-weaken the DEV MSI machine restriction. See the [current readiness record](../verification/signpath-readiness-2026-10-25.md)
-for exact test counts and exclusions.
-See the [current readiness record](../verification/signpath-readiness-2026-10-25.md)
-and [application draft](signpath-submission-draft-2026-10-25.md).
+not a signed or supported production release. That binary-only artifact
+contained no MSI and was not signed or installed. A later continuation prepares a separate
+unsigned 1.2.8 MSI submission candidate with explicit installation disclosure
+and acknowledgement. Its native acceptance/public release and provider
+composite-action decision remain gates. See the
+[current continuation](../verification/signpath-submission-2026-10-25.md)
+and [earlier readiness record](../verification/signpath-readiness-2026-10-25.md)
+for exact executed tests and limits. The original production path and DEV MSI
+machine restriction remain intact. See the
+[application draft](signpath-submission-draft-2026-10-25.md).
 
 See [privacy](privacy.md), [dependency inventory](../legal/dependencies.md),
 [current preparation and remaining gates](signpath-submission-draft-2026-10-25.md),

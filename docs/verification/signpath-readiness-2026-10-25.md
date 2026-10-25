@@ -1,5 +1,9 @@
 # SignPath readiness checkpoint — 2026-10-25
 
+This checkpoint covers the earlier binary-review preparation. Continue with
+[the MSI submission preparation](signpath-submission-2026-10-25.md); results
+below retain their original source/artifact scope.
+
 This records the source, repository, workflow, and submission preparation
 checks made on 2026-10-25. It does not claim SignPath eligibility, enrollment,
 signing, or a public release. The historical preparation records remain

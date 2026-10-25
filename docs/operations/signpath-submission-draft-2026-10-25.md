@@ -25,12 +25,13 @@ can be submitted. Do not infer approval or eligibility from this document.
   third-party binaries as Host Agent. The MSI includes WiX DTF custom-action
   components whose exact signing and redistribution treatment is unresolved.
 - **Build system:** GitHub Actions on GitHub-hosted Windows runners, pinned
-  action revisions and .NET SDK 10.0.401. The current workflow is intended to
-  produce an unsigned binary-review archive containing self-contained
-  executables, with no MSI or installation script. It is not a supported
-  product release. The updated workflow completed successfully on 2026-10-25
+  action revisions and .NET SDK 10.0.401. The earlier binary-review workflow
+  completed successfully on 2026-10-25
   for commit `a74f039781e1e587f4dde07d58450e0ad582858c`; this proves only the
-  hosted review build and its declared test subset.
+  hosted review build and its declared test subset. The current continuation
+  prepares a separate unsigned 1.2.8 MSI submission candidate with explicit
+  install disclosure/acknowledgement, fresh dependency metadata and immutable
+  WiX source. Its actual run and native acceptance are recorded separately.
 - **Reputation:** New project. Do not claim public adoption, endorsements,
   established reputation, or previous signed releases. Ask SignPath to assess
   eligibility under its reputation policy.
@@ -38,10 +39,11 @@ can be submitted. Do not infer approval or eligibility from this document.
   maintainer/author/reviewer/approver. Confirm actual role assignments and MFA
   directly in GitHub and SignPath before submission. No other member is
   asserted here.
-- **Public release/download:** No public production MSI release is currently
-  established. The 1.2.7 artifact verified in the DEV VM is machine-guarded,
-  unsigned, and not suitable for public distribution. The review workflow
-  archive is not an application release.
+- **Public release/download:** No public MSI release is currently established.
+  The [functionality/download page](download.md) and unsigned preview release
+  text are prepared; native acceptance and actual public publication remain
+  gates. The old 1.2.7 exact-machine DEV MSI must not be relabelled as the new
+  preview. A temporary review artifact does not establish public release.
 
 ## Current blockers before the form is ready
 
@@ -51,19 +53,22 @@ can be submitted. Do not infer approval or eligibility from this document.
 2. Promote a complete licensed source branch to GitHub's project landing page
    without rewriting either existing history. The public default `main` is
    stale; the histories do not share a merge base.
-3. Keep the hosted review evidence attached to the reviewed source commit.
+3. Keep the hosted candidate evidence attached to the reviewed source commit.
    The hosted filter leaves exact-identity, installer, non-admin ACL, and
    Windows 11 service-inventory tests in the complete DEV VM suite; these
    exclusions are not evidence that those suites passed. The current run is
    recorded in the readiness checkpoint.
-4. Complete a current dependency and redistribution review, including the
-   WiX DTF custom action and applicable source/notices obligations.
-5. Resolve SignPath's requirements for displaying privacy information during
-   MSI installation. The current native MSI has no privacy-consent screen;
-   current source says active connectivity probes default off and optional
-   outbound features are operator-enabled.
-6. After any revised MSI/privacy interface, perform installed-product
-   acceptance and create the exact release candidate to be submitted.
+4. Verify the generated candidate inventory and included immutable WiX source
+   against the [dated component mapping](../legal/distribution-components-2026-10-25.md).
+   Do not sign upstream files as Host Agent; the composite action's treatment
+   requires the provider's decision.
+5. Present the [prepared provider questions](signpath-provider-questions.md),
+   including DTF composition and conditional privacy-display expectations.
+   Absence of a native privacy wizard alone is not a proven violation: the
+   documented condition concerns transfer to systems not specified by the
+   user. Fresh outbound defaults are off and operator opt-in is explicit.
+6. Perform owner-run native installation acceptance of the exact new preview
+   and publish it only with truthful scope/limits and final hashes.
 7. Verify MFA, assign actual author/reviewer/approver roles, and review the
    final provider artifact configuration. These account-specific items are
    deliberately not guessed or stored in source.
@@ -88,3 +93,4 @@ the final application submission action.
 - [Project privacy disclosure](privacy.md)
 - [Code signing policy](code-signing-policy.md)
 - [Current readiness evidence](../verification/signpath-readiness-2026-10-25.md)
+- [Current continuation and remaining gates](../verification/signpath-submission-2026-10-25.md)

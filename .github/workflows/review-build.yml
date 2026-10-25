@@ -23,12 +23,19 @@ jobs:
       - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:
           dotnet-version: '10.0.401'
+      - name: Submission preparation regression checks
+        shell: pwsh
+        run: |
+          foreach ($test in @('Test-SigningDependencyInventory.ps1','Test-SubmissionManifest.ps1','Test-InstallerSource.ps1','Test-HostedSubmissionGuards.ps1')) {
+            & (Join-Path $PSHOME 'pwsh.exe') -NoProfile -NonInteractive -File (Join-Path './tools/tests' $test)
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
       - name: Release build
         shell: pwsh
         run: |
           dotnet build HostAgent.sln --configuration Release -m:1 -p:UseSharedCompilation=false
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Core and portable Windows integration tests
+      - name: Core, portable Windows integration and desktop tests
         shell: pwsh
         run: |
           dotnet test tests/HostAgent.Core.Tests/HostAgent.Core.Tests.csproj --configuration Release --no-build --logger trx --results-directory "$env:RUNNER_TEMP/test-results"
@@ -40,14 +47,21 @@ jobs:
           $hostedFilter = 'FullyQualifiedName!~ReleaseToolingTests&FullyQualifiedName!~InstallerStagingTests&FullyQualifiedName!~CompleteProbeGuardVmIntegrationTests&FullyQualifiedName!~UserMaintenanceTests&FullyQualifiedName!~HostAgentDataDirectoryTests&FullyQualifiedName!~WindowsCollectorIntegrationTests'
           dotnet test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj --configuration Release --no-build --filter $hostedFilter --logger trx --results-directory "$env:RUNNER_TEMP/test-results"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Unsigned binary-review payload
+          dotnet test tests/HostAgent.Desktop.Tests/HostAgent.Desktop.Tests.csproj --configuration Release --no-build --logger trx --results-directory "$env:RUNNER_TEMP/test-results"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Restore pinned submission build inputs
         shell: pwsh
-        run: ./tools/Build-Review.ps1 -PackagePath "$env:RUNNER_TEMP/HostAgent-1.2.7-unsigned-review" -Version 1.2.7
-      - name: Publish review payload
+        run: ./tools/Restore-SubmissionTools.ps1 -OutputPath "$env:RUNNER_TEMP/submission-tools"
+      - name: Unsigned MSI submission candidate and artifact checks
+        shell: pwsh
+        run: |
+          $tools = "$env:RUNNER_TEMP/submission-tools"
+          ./tools/Build-SubmissionPreview.ps1 -PackagePath "$env:RUNNER_TEMP/HostAgent-1.2.8-submission-preview" -Version 1.2.8 -WixPath "$tools/wix/wix.exe" -DtfRoot $tools -WixSourceArchive "$tools/wix-source-aa65968c419420d32e3e1b647aea0082f5ca5b78.zip"
+      - name: Preserve unsigned submission candidate
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: HostAgent-1.2.7-unsigned-review-${{ github.sha }}
-          path: ${{ runner.temp }}/HostAgent-1.2.7-unsigned-review.zip
+          path: ${{ runner.temp }}/HostAgent-1.2.8-submission-preview.zip
+          archive: false
           if-no-files-found: error
           retention-days: 14
       - name: Preserve test results

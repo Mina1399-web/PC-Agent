@@ -1,5 +1,20 @@
-param([Parameter(Mandatory)][string]$PackagePath,[switch]$DevVm)
+param([Parameter(Mandatory)][string]$PackagePath,[switch]$DevVm,[switch]$ArtifactOnly,[switch]$SubmissionPreview)
 $ErrorActionPreference='Stop'
+if($ArtifactOnly -and $DevVm){throw 'release_installer_artifact_only_dev_identity'}
+if($SubmissionPreview -and -not $ArtifactOnly){throw 'release_installer_submission_requires_artifact_only'}
+function Assert-HostAgentSubmissionPreviewTables([object[]]$Conditions,[object[]]$Properties){
+    if(@($Conditions|Where-Object {$_[0] -like '*DEV_MACHINE_GUID*'}).Count -ne 0){throw 'release_installer_submission_identity'}
+    $ackCondition=@($Conditions | Where-Object {$_[0] -ceq 'REMOVE~="ALL" OR HOSTAGENT_INSTALL_ACK="YES"'})
+    if($ackCondition.Count -ne 1){throw 'release_installer_submission_acknowledgement'}
+    foreach($term in @('docs/operations/privacy.md','NT SERVICE\HostAgent','LocalSystem','Performance Monitor Users','ProgramData','Shadow','off')){
+        if(-not $ackCondition[0][1].Contains($term,[StringComparison]::Ordinal)){throw 'release_installer_submission_disclosure'}
+    }
+    $secure=@($Properties|Where-Object {$_[0] -ceq 'SecureCustomProperties'})
+    if($secure.Count -ne 1 -or 'HOSTAGENT_INSTALL_ACK' -cnotin $secure[0][1].Split(';') -or
+        @($Properties|Where-Object {$_[0] -ceq 'HOSTAGENT_INSTALL_ACK' -and $_[1] -ne ''}).Count -ne 0){
+        throw 'release_installer_submission_acknowledgement'
+    }
+}
 $installer=New-Object -ComObject WindowsInstaller.Installer
 $db=$installer.OpenDatabase((Join-Path ([IO.Path]::GetFullPath($PackagePath)) 'HostAgent.msi'),0)
 function Rows([string]$sql,[int]$columns) {
@@ -62,7 +77,7 @@ $installedPaths=@(foreach($row in @(Rows 'SELECT `Component_`,`FileName` FROM `F
 foreach($required in @('LICENSE','docs/operations/privacy.md','docs/legal/dotnet-runtime-10.0.12-LICENSE.txt','docs/legal/dotnet-runtime-10.0.12-THIRD-PARTY-NOTICES.txt')) {
     if($required -notin $installedPaths){throw 'release_missing_notices'}
 }
-$conditions=@(Rows 'SELECT `Condition` FROM `LaunchCondition`' 1)
+$conditions=@(Rows 'SELECT `Condition`,`Description` FROM `LaunchCondition`' 2)
 $counterActions=@{
     PrepareCounterRead=1
     GrantCounterRead=3073
@@ -106,7 +121,12 @@ if (-not $guarded) { throw 'release_installer_existing_services_guard' }
 $devGuard=@($conditions | Where-Object { $_[0] -like '*DEV_MACHINE_GUID*' }).Count -eq 1
 if ($DevVm -and -not $devGuard) { throw 'release_installer_dev_vm_guard' }
 $devMatches=$false
-if($devGuard){
+if($ArtifactOnly){$devMatches=$null}
+if($SubmissionPreview){
+    $properties=@(Rows 'SELECT `Property`,`Value` FROM `Property`' 2)
+    Assert-HostAgentSubmissionPreviewTables $conditions $properties
+}
+if($devGuard -and -not $ArtifactOnly){
     # Read-only MSI session: evaluate the actual condition with Windows' own
     # ComputerName property and the local identity value; no install actions.
     $session=$installer.OpenPackage((Join-Path ([IO.Path]::GetFullPath($PackagePath)) 'HostAgent.msi'),1)
@@ -115,7 +135,8 @@ if($devGuard){
     $devMatches=$session.EvaluateCondition($condition) -eq 1
 }
 if ($DevVm -and -not $devMatches) { throw 'release_installer_dev_vm_identity' }
+$devIdentityStatus=if($ArtifactOnly){'NOTRUN'}elseif($devGuard -and $devMatches){'VERIFIED'}elseif($devGuard){'MISMATCH'}else{'NOT_APPLICABLE'}
 $shortcuts=@(Rows 'SELECT `Name`,`Directory_` FROM `Shortcut`' 2)
 $desktopShortcuts=@($shortcuts | Where-Object { $_[0].Split('|')[-1] -eq 'Host Agent' -and $_[1] -eq 'ProgramMenuFolder' })
 if($installedPaths -contains 'Desktop/HostAgent.Desktop.exe' -and $desktopShortcuts.Count -ne 1){throw 'release_installer_desktop_shortcut'}
-@{valid=$true;monitorAccount=$monitor[0][1];helperAccount=$helper[0][1];serviceCount=2;bootstrapIsSystemDeferred=$true;precopyValidationIsSystemDeferred=$true;counterReadTransactionGuarded=$true;uninstallPreservesData=$true;recoveryServiceCount=$recovery.Count;fileCount=$files.Count;installedPaths=$installedPaths;existingServicesGuarded=$guarded;devVmGuard=$devGuard;devVmIdentityMatches=$devMatches;desktopShortcutCount=$desktopShortcuts.Count} | ConvertTo-Json -Compress
+@{valid=$true;monitorAccount=$monitor[0][1];helperAccount=$helper[0][1];serviceCount=2;bootstrapIsSystemDeferred=$true;precopyValidationIsSystemDeferred=$true;counterReadTransactionGuarded=$true;uninstallPreservesData=$true;recoveryServiceCount=$recovery.Count;fileCount=$files.Count;installedPaths=$installedPaths;existingServicesGuarded=$guarded;devVmGuard=$devGuard;devVmIdentityMatches=$devMatches;devVmIdentityStatus=$devIdentityStatus;artifactOnly=[bool]$ArtifactOnly;submissionPreview=[bool]$SubmissionPreview;desktopShortcutCount=$desktopShortcuts.Count} | ConvertTo-Json -Compress

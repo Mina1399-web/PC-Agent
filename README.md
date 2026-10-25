@@ -9,14 +9,18 @@ installation. Connectivity probes, Pushover and heartbeat are off by default; co
 
 ## Code signing policy
 
-The project is **not enrolled or signed by SignPath**. The unsigned GitHub
-binary-review archive contains self-contained executables, but no MSI or
-installation script; it is not a supported product release. See the
+The project is **not enrolled or signed by SignPath**. The earlier unsigned
+binary-review archive is historical. Current preparation adds a separately
+guarded unsigned MSI submission candidate; public release/native acceptance
+remain explicit gates. See the
 [Code signing policy](docs/operations/code-signing-policy.md),
 [current readiness and application draft](docs/operations/signpath-submission-draft-2026-10-25.md),
-and [current readiness evidence](docs/verification/signpath-readiness-2026-10-25.md).
+and [current preparation evidence](docs/verification/signpath-submission-2026-10-25.md).
 There is not yet a public release suitable for submission as the release to be
 signed.
+
+Read the [download/functionality page](docs/operations/download.md) and
+[announced installation changes](docs/operations/submission-preview.md).
 
 ## Project status
 

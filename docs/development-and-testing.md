@@ -5,7 +5,9 @@ Current resilience and source/package preparation: [2026-10-18 predeployment che
 SignPath preparation update, 2026-10-11: the owner explicitly authorized
 GitHub-hosted builds/tests for this signing path. Ordinary development stays
 in the approved DEV VM; production-host builds/tests and security-policy
-changes remain prohibited. No cloud workflow is active or verified yet.
+changes remain prohibited. The binary-review workflow passed on 2026-10-25;
+the later unsigned MSI candidate path is tracked in the
+[current continuation](verification/signpath-submission-2026-10-25.md).
 See [signing preparation](operations/signpath-preparation.md); historical
 VM-only statements below remain historical stage evidence.
 
