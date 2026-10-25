@@ -79,6 +79,13 @@ This record captures only checks executed on 2026-10-25 in the approved DEV VM. 
 - `notifications.db` remains operator-reported `quick_check=ok`. `helper-journal.db` remains absent as expected before its first normal journal operation; no artificial helper operation was invoked.
 - A trustworthy main-database integrity check now requires the operator to quiesce only `HostAgent`, verify no nonempty WAL/journal remains, inspect the stopped database read-only, and start/verify the same service afterward. This privileged service control was not performed by the agent. No database or sidecar was created, repaired, checkpointed, or modified.
 
+## Operator offline integrity attempt — 2026-10-25
+
+- Operator ran the guarded one-service stop/check/restart block. Only `HostAgent` was stopped; `HostAgent.Helper` retained PID 3076. The block restarted HostAgent, verified both services Running, verified unchanged installed hashes, and confirmed Shadow/read-only afterward.
+- With HostAgent stopped, all three sidecars were absent and the database header still indicated WAL. SQLite opened `mode=ro&immutable=1`, but the 10-second progress deadline interrupted `quick_check(1)`. The returned extended result was `SQLITE_INTERRUPT` (code 9), and the harness reported `host_agent_quick_check_failed_or_not_run`. This is a harness time limit, not an integrity failure; quick_check remains incomplete.
+- Fresh agent-side read-only post-check: approved VM identity unchanged, HostAgent Running (PID 8812), Helper Running (PID 3076), 1,832.8 MiB free RAM, and 15.67 GiB free on C:. Agent token remained non-elevated.
+- No source/installer changes were made. The next bounded attempt needs a longer SQL deadline plus an in-query free-memory guard (cancel below 768 MiB, hard abort at/below 512 MiB); service stop/check/start must again be operator-run. No integrity result is claimed yet.
+
 ## Evidence locations
 
 Detailed stdout/stderr and watchdog receipts are under `%LOCALAPPDATA%\\HostAgent-DEV-evidence\\final-acceptance-20261025`. The release package and ZIP are under `HostAgent-DEV-releases` outside the repository.
