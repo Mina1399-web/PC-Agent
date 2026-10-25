@@ -75,6 +75,20 @@ These conditions do not guarantee admission or replace provider decisions.
 
 ## Candidate and local integration results
 
+The first MSI-workflow run
+[40229564002](https://github.com/Mina1399-web/PC-Agent/actions/runs/40229564002),
+source `51e066f68bd1b3e261960a6f24467b6fc2eeeb22`, passed the 62 new synthetic
+checks (8 inventory + 39 manifest + 11 MSI-source groups + 4 host-refusal
+checks), Release build, Core 62/62 and filtered Infrastructure 449/449.
+Desktop produced 13 PASS and 2 FAIL, both `MaintenanceUiTests` constructing
+real `UserMaintenance` under the elevated hosted runner token. The normal-user
+guard rejected that token with `maintenance_scope`, as designed. The workflow
+stopped; no MSI candidate/archive was built or uploaded. The hosted Desktop
+filter now excludes precisely that two-test class; the full 15-test class set
+remains required in the non-elevated DEV VM suite. No product guard or test was
+weakened. The workflow also logs installed runtime inventory to distinguish
+framework-dependent test runtimes from the self-contained 10.0.12 payload.
+
 Pending: fresh hosted Release build/tests, restored dependency inventory,
 actual MSI artifact tables, exact payload membership/hashes, owned-file
 metadata, ZIP/manifest checks and final independent evidence review.

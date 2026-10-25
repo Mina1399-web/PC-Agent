@@ -33,6 +33,10 @@ jobs:
       - name: Release build
         shell: pwsh
         run: |
+          dotnet --info
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet --list-runtimes
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           dotnet build HostAgent.sln --configuration Release -m:1 -p:UseSharedCompilation=false
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Core, portable Windows integration and desktop tests
@@ -47,7 +51,9 @@ jobs:
           $hostedFilter = 'FullyQualifiedName!~ReleaseToolingTests&FullyQualifiedName!~InstallerStagingTests&FullyQualifiedName!~CompleteProbeGuardVmIntegrationTests&FullyQualifiedName!~UserMaintenanceTests&FullyQualifiedName!~HostAgentDataDirectoryTests&FullyQualifiedName!~WindowsCollectorIntegrationTests'
           dotnet test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj --configuration Release --no-build --filter $hostedFilter --logger trx --results-directory "$env:RUNNER_TEMP/test-results"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          dotnet test tests/HostAgent.Desktop.Tests/HostAgent.Desktop.Tests.csproj --configuration Release --no-build --logger trx --results-directory "$env:RUNNER_TEMP/test-results"
+          # These two real user-maintenance UI cases also require a normal
+          # non-admin token; retain them in the complete DEV VM suite.
+          dotnet test tests/HostAgent.Desktop.Tests/HostAgent.Desktop.Tests.csproj --configuration Release --no-build --filter 'FullyQualifiedName!~MaintenanceUiTests' --logger trx --results-directory "$env:RUNNER_TEMP/test-results"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Restore pinned submission build inputs
         shell: pwsh
