@@ -44,14 +44,29 @@ version 1.2.7 and the preparation branch. Their scope remains:
 
 The first hosted run for commit `428da9367dc6ec358e70c3652c45025c9c47364f`
 completed its Release build successfully, then failed its test step: 43
-environment-bound tests failed and 460 passed. The failures came from the
-hosted runner executing VM-only MSI/probe checks, tests requiring a normal
-non-administrator token, a directory-owner assertion tied to that token, and
-Windows 11 service-inventory assumptions. The unsigned review payload was
-skipped because tests failed. A narrower hosted filter has now been prepared
-without changing tests or product safeguards; a fresh hosted run is pending.
-Local Release build and test execution are also pending because the current
-VM has less than the documented 15 GiB free-space floor. No guard was lowered.
+environment-bound tests failed and 460 passed. The hosted runner had executed
+VM-only MSI/probe checks, tests requiring a normal non-administrator token, a
+directory-owner assertion tied to that token, and Windows 11 service-inventory
+assumptions. The unsigned review payload was skipped. Those tests were not
+weakened; the hosted filter was narrowed to keep them in the complete DEV VM
+suite.
+
+A fresh run then completed successfully for commit
+`a74f039781e1e587f4dde07d58450e0ad582858c`: Release build succeeded with 0
+warnings and 0 errors; Core tests passed 62/62; filtered Infrastructure tests
+passed 449/449. The 6 excluded classes listed above were not run in this hosted
+workflow. The unsigned review artifact
+[`HostAgent-1.2.7-unsigned-review-a74f039781e1e587f4dde07d58450e0ad582858c`](https://github.com/Mina1399-web/PC-Agent/actions/runs/40217705947/artifacts/12608288196)
+was uploaded successfully (194,338,040 bytes; GitHub-reported ZIP SHA-256
+`215c4a6b8e2cb9aa1a156e283b6c2456d4df76a59dce35c676a8ab59459c158f`; expires
+2026-11-08). This is a temporary review artifact, not a public release or a
+signed package. The test-results artifact was also uploaded (ID
+`12607538901`; SHA-256
+`d5bc148fdacafbd7cec21279e43b448d99cfc4ceb1d5041e1f202e3ee52de095`).
+
+Local Release build and test execution remain pending because the current VM
+has 14.89 GiB free on C:, below the documented 15 GiB floor. No guard was
+lowered.
 
 ## Product and eligibility gates
 
@@ -103,8 +118,12 @@ No application was submitted and no legal consent was accepted.
 - At the check, C: had 15,999,873,024 bytes free, below the repository's
   15 GiB build/test floor (16,106,127,360 bytes). Therefore no Release build,
   test suite, or package was run. No guard or threshold was changed.
-- The current filter correction has not yet been pushed or executed. No
-  successful hosted test report or unsigned review payload is claimed.
+- After the recorded hosted run, `git diff --check` passed and the preparation
+  branch was clean at `a74f039781e1e587f4dde07d58450e0ad582858c`, matching
+  `origin/codex/signpath-submission-prep`.
+- This verification record was amended afterward to add the hosted CI result;
+  that documentation-only amendment has not required another build. Its diff
+  is checked separately before commit.
 
 ## Readiness
 

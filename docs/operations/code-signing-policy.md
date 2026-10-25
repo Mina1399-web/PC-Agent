@@ -51,10 +51,14 @@ must be agreed with SignPath before implementation.
 
 The existing builder reads a CurrentUser/My certificate and is VM-bound;
 it is not a SignPath integration. A DEV package remains VM-only, unsigned
-and unsuitable for production. A separately guarded GitHub-hosted unsigned
-review build path is aligned to version 1.2.7; a fresh hosted execution is
-still unverified. It does not sign, create an MSI, install or replace the
-production release path, and does not weaken the DEV MSI machine restriction.
+and unsuitable for production. The separately guarded GitHub-hosted unsigned
+review workflow for version 1.2.7 passed its Release build and declared hosted
+test subset on 2026-10-25 at commit
+`a74f039781e1e587f4dde07d58450e0ad582858c`. Its temporary review archive is
+not a signed or supported production release. The workflow does not sign,
+create an MSI, install, or replace the production release path, and does not
+weaken the DEV MSI machine restriction. See the [current readiness record](../verification/signpath-readiness-2026-10-25.md)
+for exact test counts and exclusions.
 See the [current readiness record](../verification/signpath-readiness-2026-10-25.md)
 and [application draft](signpath-submission-draft-2026-10-25.md).
 

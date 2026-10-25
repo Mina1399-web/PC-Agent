@@ -14,7 +14,7 @@ binary-review archive contains self-contained executables, but no MSI or
 installation script; it is not a supported product release. See the
 [Code signing policy](docs/operations/code-signing-policy.md),
 [current readiness and application draft](docs/operations/signpath-submission-draft-2026-10-25.md),
-and [historical preparation evidence](docs/verification/signpath-publication.md).
+and [current readiness evidence](docs/verification/signpath-readiness-2026-10-25.md).
 There is not yet a public release suitable for submission as the release to be
 signed.
 

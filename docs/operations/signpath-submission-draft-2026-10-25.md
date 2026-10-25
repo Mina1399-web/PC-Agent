@@ -28,9 +28,9 @@ can be submitted. Do not infer approval or eligibility from this document.
   action revisions and .NET SDK 10.0.401. The current workflow is intended to
   produce an unsigned binary-review archive containing self-contained
   executables, with no MSI or installation script. It is not a supported
-  product release. A fresh run for the updated workflow is still required;
-  the preceding run built successfully but its test filter included VM- and
-  account-specific suites that cannot pass on GitHub's hosted runner.
+  product release. The updated workflow completed successfully on 2026-10-25
+  for commit `a74f039781e1e587f4dde07d58450e0ad582858c`; this proves only the
+  hosted review build and its declared test subset.
 - **Reputation:** New project. Do not claim public adoption, endorsements,
   established reputation, or previous signed releases. Ask SignPath to assess
   eligibility under its reputation policy.
@@ -51,11 +51,11 @@ can be submitted. Do not infer approval or eligibility from this document.
 2. Promote a complete licensed source branch to GitHub's project landing page
    without rewriting either existing history. The public default `main` is
    stale; the histories do not share a merge base.
-3. Run the updated unsigned review workflow on GitHub-hosted Windows and
-   inspect the resulting test reports and artifact manifest. The hosted filter
-   must leave exact-identity, installer, non-admin ACL, and Windows 11
-   service-inventory tests in the complete DEV VM suite; these exclusions are
-   not evidence that those suites passed.
+3. Keep the hosted review evidence attached to the reviewed source commit.
+   The hosted filter leaves exact-identity, installer, non-admin ACL, and
+   Windows 11 service-inventory tests in the complete DEV VM suite; these
+   exclusions are not evidence that those suites passed. The current run is
+   recorded in the readiness checkpoint.
 4. Complete a current dependency and redistribution review, including the
    WiX DTF custom action and applicable source/notices obligations.
 5. Resolve SignPath's requirements for displaying privacy information during
