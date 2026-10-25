@@ -1,5 +1,12 @@
 # Dependency and license review for SignPath
 
+**Current-state limit:** the inventories below are dated historical reviews,
+not a complete audit of the current 1.2.7 distributable. Refresh the full
+restored and published dependency graph, embedded binaries, notices, and
+source obligations before creating a public signed-release candidate. The
+open WiX DTF custom-action question is tracked in the
+[current SignPath readiness record](../verification/signpath-readiness-2026-10-25.md).
+
 Dashboard increment, 2026-10-12: the new self-contained WPF/Windows Forms
 desktop also redistributes Microsoft.WindowsDesktop.App.Runtime.win-x64
 10.0.12. Its cached official NuGet package LICENSE was copied byte-for-byte

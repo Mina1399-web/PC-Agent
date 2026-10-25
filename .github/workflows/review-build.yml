@@ -1,7 +1,7 @@
 name: Public review build
 on:
   push:
-    branches: ['codex/signpath-preparation']
+    branches: ['codex/signpath-submission-prep']
     paths-ignore: ['docs/**', '**.md', 'LICENSE']
   workflow_dispatch:
 permissions:
@@ -37,14 +37,14 @@ jobs:
           # these remain in the complete VM suite, with no forged runner identity.
           dotnet test tests/HostAgent.Infrastructure.Tests/HostAgent.Infrastructure.Tests.csproj --configuration Release --no-build --filter 'FullyQualifiedName!~ReleaseToolingTests' --logger trx --results-directory "$env:RUNNER_TEMP/test-results"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Unsigned source-review payload
+      - name: Unsigned binary-review payload
         shell: pwsh
-        run: ./tools/Build-Review.ps1 -PackagePath "$env:RUNNER_TEMP/HostAgent-1.0.3-review" -Version 1.0.3
+        run: ./tools/Build-Review.ps1 -PackagePath "$env:RUNNER_TEMP/HostAgent-1.2.7-unsigned-review" -Version 1.2.7
       - name: Publish review payload
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: HostAgent-1.0.3-review-${{ github.sha }}
-          path: ${{ runner.temp }}/HostAgent-1.0.3-review.zip
+          name: HostAgent-1.2.7-unsigned-review-${{ github.sha }}
+          path: ${{ runner.temp }}/HostAgent-1.2.7-unsigned-review.zip
           if-no-files-found: error
           retention-days: 14
       - name: Preserve test results

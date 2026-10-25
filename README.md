@@ -9,12 +9,14 @@ installation. Connectivity probes, Pushover and heartbeat are off by default; co
 
 ## Code signing policy
 
-The owner approved preparing a free SignPath Foundation application and
-GitHub-hosted builds/tests for that path. The project is **not yet enrolled
-or signed by SignPath**. See the [proposed Code signing policy](docs/operations/code-signing-policy.md),
-[eligibility review and application draft](docs/operations/signpath-preparation.md),
-and [historical preparation evidence](docs/verification/signpath-preparation.md). See the [publication continuation](docs/verification/signpath-publication.md) for subsequent work.
-The existing VM-only unsigned candidate remains unsuitable for production.
+The project is **not enrolled or signed by SignPath**. The unsigned GitHub
+binary-review archive contains self-contained executables, but no MSI or
+installation script; it is not a supported product release. See the
+[Code signing policy](docs/operations/code-signing-policy.md),
+[current readiness and application draft](docs/operations/signpath-submission-draft-2026-10-25.md),
+and [historical preparation evidence](docs/verification/signpath-publication.md).
+There is not yet a public release suitable for submission as the release to be
+signed.
 
 ## Project status
 

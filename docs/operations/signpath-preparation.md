@@ -1,4 +1,9 @@
-# SignPath Foundation preparation
+# SignPath Foundation preparation (historical)
+
+This document records the initial 2026-10-11 assessment and application draft;
+its branch, repository visibility, release, and workflow statements are not
+current. Use the [current readiness and application draft](signpath-submission-draft-2026-10-25.md)
+for today's status. Historical evidence is retained below rather than rewritten.
 
 This is the historical 2026-10-11 preparation checkpoint. Subsequent work and
 the current publication/application status are in the

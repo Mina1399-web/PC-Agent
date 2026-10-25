@@ -1,8 +1,8 @@
-param([Parameter(Mandatory)][string]$PackagePath,[string]$Version='1.0.3')
+param([Parameter(Mandatory)][string]$PackagePath,[string]$Version='1.2.7')
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 try {
-    # This path only produces unsigned review payloads. It never calls an installer,
+    # This path only produces unsigned binary-review payloads. It never calls an installer,
     # obtains a certificate, changes trust, or weakens the separate production gate.
     if ($env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or
         $env:RUNNER_OS -ne 'Windows' -or $env:GITHUB_REPOSITORY -ne 'Mina1399-web/PC-Agent') {
@@ -25,7 +25,7 @@ try {
     }
     Copy-Item -LiteralPath (Join-Path $source 'LICENSE') -Destination (Join-Path $output 'LICENSE')
     Copy-Item -LiteralPath (Join-Path $source 'docs') -Destination (Join-Path $output 'docs') -Recurse
-    [IO.File]::WriteAllText((Join-Path $output 'REVIEW-ONLY.txt'),"Unsigned prerelease payload for source/build review. No MSI, installation script or production acceptance is supplied. Do not bypass Windows protections. Source: $commit`nRead docs/operations/privacy.md before any use.",[Text.UTF8Encoding]::new($false))
+    [IO.File]::WriteAllText((Join-Path $output 'REVIEW-ONLY.txt'),"Unsigned binary-review package. It contains self-contained executables but no MSI or installation script, and is not a supported product release or production acceptance. Do not bypass Windows protections. Source: $commit`nRead docs/operations/privacy.md before any use.",[Text.UTF8Encoding]::new($false))
     $binaries=@(Get-ChildItem -LiteralPath $output -File -Recurse | Where-Object { $_.Name -match '^HostAgent.*\.(exe|dll)$' })
     if($binaries.Count -lt 9){throw 'review_missing_component'}
     foreach($file in $binaries) {
