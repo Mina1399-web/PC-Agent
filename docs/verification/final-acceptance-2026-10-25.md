@@ -72,6 +72,13 @@ This record captures only checks executed on 2026-10-25 in the approved DEV VM. 
 - Current database state remains: operator-reported notifications `quick_check=ok`; main host DB `NOTRUN` with only `OperationalError` reported (SQLite extended error code/name and WAL/SHM metadata not captured); helper journal absent and lazily created by the normal helper journal's first operation. No database was repaired, created, checkpointed, or modified. Main DB integrity remains open.
 - No product source or installer change was justified by these diagnostics. Therefore this follow-up made no source changes, and did not claim or rerun a Release build or full Release suite.
 
+## Operator WAL metadata follow-up — 2026-10-25
+
+- Operator supplied fresh guarded probe output for the installed main database: header journal mode `wal`; `-wal`, `-shm`, and `-journal` sidecars all absent; `quickCheck=not_run:wal_sidecars_missing`.
+- The probe rejected the database before opening SQLite. This is not a failed `quick_check` and does not indicate database corruption. It explains why a read-only `mode=ro` check cannot establish the main database result while the WAL header remains and required sidecars are absent.
+- `notifications.db` remains operator-reported `quick_check=ok`. `helper-journal.db` remains absent as expected before its first normal journal operation; no artificial helper operation was invoked.
+- A trustworthy main-database integrity check now requires the operator to quiesce only `HostAgent`, verify no nonempty WAL/journal remains, inspect the stopped database read-only, and start/verify the same service afterward. This privileged service control was not performed by the agent. No database or sidecar was created, repaired, checkpointed, or modified.
+
 ## Evidence locations
 
 Detailed stdout/stderr and watchdog receipts are under `%LOCALAPPDATA%\\HostAgent-DEV-evidence\\final-acceptance-20261025`. The release package and ZIP are under `HostAgent-DEV-releases` outside the repository.
