@@ -97,10 +97,13 @@ provider assignments are not inferred from GitHub admin rights.
 
 The [Foundation conditions](https://signpath.org/terms.html) and
 [trusted GitHub build documentation](https://docs.signpath.io/trusted-build-systems/github)
-were read on 2026-10-26. Public release/functionality preparation is complete;
-account confirmation and the provider's reputation, DTF and privacy decisions
-remain external requirements. Actual trusted signing is a post-admission step,
-not a result of publishing an unsigned preview.
+were read on 2026-10-26. A follow-up read-only account check found GitHub
+two-factor enrollment still requires an owner action before the MFA
+requirement can be considered satisfied. SignPath MFA and project roles
+remain unverified. Public release/functionality preparation is complete;
+the provider's reputation, DTF and privacy decisions remain external
+requirements. Actual trusted signing is a post-admission step, not a result
+of publishing an unsigned preview.
 
 The current instruction is to leave the application unfilled and unsubmitted
 and not accept legal terms. No provider message or signing request was sent,

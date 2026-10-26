@@ -8,9 +8,9 @@ for this signing path. Production host security boundaries are unchanged.
 
 Proposed maintainer, code-review owner and release-signing approver:
 [@Mina1399-web](https://github.com/Mina1399-web). GitHub owner admin permission
-was confirmed read-only. GitHub MFA could not be determined from the current
-API response; it remains **NEOVĚŘENO**. SignPath MFA and actual membership also
-remain unverified. Proposed roles are not claims of provider account assignment.
+was confirmed read-only. Complete and verify GitHub two-factor authentication
+before applying. SignPath MFA and actual membership remain unverified.
+Proposed roles are not claims of provider account assignment.
 CODEOWNERS is a review routing hint, not an enforced protection rule.
 AI assistance does not supply the owner's manual signing approval.
 

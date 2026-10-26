@@ -105,10 +105,10 @@ See the current [owner checklist](signpath-owner-steps.md),
 [public-safe application facts](signpath-submission-draft-2026-10-25.md) and
 [provider questions](signpath-provider-questions.md).
 
-GitHub owner/admin access is confirmed, but the authenticated API response
-does not expose MFA. GitHub MFA, SignPath MFA and actual provider membership
-remain **NEOVĚŘENO**. Confirm actual author/reviewer/approver roles and owner
-contact details directly in authenticated accounts. Only SignPath can decide
+GitHub owner/admin access is confirmed. Complete and verify GitHub
+two-factor authentication before applying. SignPath MFA and actual provider membership remain
+**NEOVĚŘENO**. Confirm actual author/reviewer/approver roles and owner contact
+details directly in authenticated accounts. Only SignPath can decide
 eligibility/reputation, DTF composite signing treatment and the conditional
 privacy-display requirement.
 

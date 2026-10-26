@@ -43,9 +43,11 @@ the release. Reinstallation is not required to repeat the publication checks.
 
 ## Checks that require the owner's authenticated accounts
 
-1. Verify MFA in [GitHub password and authentication settings](https://github.com/settings/security).
-   The current API session confirms `Mina1399-web` and repository admin access
-   but does not expose the account's MFA field. MFA remains **NEOVĚŘENO**.
+1. Complete and verify two-factor authentication in [GitHub password and authentication settings](https://github.com/settings/security)
+   and retain recovery information securely. The authenticated account check
+   found enrollment is still needed before the SignPath MFA requirement can
+   be considered satisfied. No authenticator or recovery method was added by
+   this preparation.
 2. Sign into the owner's actual SignPath account; verify MFA and actual
    organization/project membership. No provider membership, MFA or organization
    ID is inferred from GitHub ownership. These remain **NEOVĚŘENO**.

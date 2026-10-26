@@ -74,9 +74,10 @@ DTF composition and the conditional privacy-installation requirement.
 
 ## Remaining owner/provider requirements
 
-- Verify GitHub and SignPath MFA and actual SignPath membership. The current
-  GitHub API session confirms owner/admin access but omits the MFA field:
-  MFA remains **NEOVĚŘENO**, not disabled or enabled by inference.
+- Complete and verify GitHub two-factor authentication before applying.
+  SignPath MFA and actual organization/project membership remain
+  **NEOVĚŘENO**; GitHub administrator access does not prove provider
+  membership.
 - The proposed maintainer/author/reviewer/approver is `@Mina1399-web`.
   Confirm actual provider roles and manual approval; no other team member is asserted.
 - The owner must supply their personal name/contact email directly and review
