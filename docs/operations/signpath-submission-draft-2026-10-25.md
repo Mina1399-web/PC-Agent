@@ -1,4 +1,4 @@
-# SignPath application draft — 2026-10-25
+# SignPath application draft — updated 2026-10-26
 
 **Not submitted.** This is a public-safe draft of product facts and current
 gates. The authenticated form still needs the owner's contact details, MFA,
@@ -10,8 +10,8 @@ can be submitted. Do not infer approval or eligibility from this document.
 - **Project:** Host Agent V1
 - **Source repository:** <https://github.com/Mina1399-web/PC-Agent>
 - **Reviewed candidate source:**
-  <https://github.com/Mina1399-web/PC-Agent/commit/34fe3baf0b37b9cda1db1a2ac95c34f854efbaba>;
-  preserved as `codex/signpath-candidate-1.2.8`. The owner must publish the
+  <https://github.com/Mina1399-web/PC-Agent/commit/82465b48d6137b4f81a57f33900f3da69c194658>;
+  preserved as `codex/signpath-candidate-1.2.8-r2`. The owner must publish the
   corresponding binary release and correct the stale default landing branch
   before claiming those gates complete.
 - **License:** MIT for first-party source; third-party components retain their
@@ -29,17 +29,17 @@ can be submitted. Do not infer approval or eligibility from this document.
   and, if the provider accepts the composition, the Host Agent MSI. Do not sign
   third-party binaries as Host Agent. The MSI includes WiX DTF custom-action
   components whose exact signing and redistribution treatment is unresolved.
-- **Build system:** GitHub Actions on GitHub-hosted Windows runners, pinned
-  action revisions and .NET SDK 10.0.401. The earlier binary-review workflow
-  completed successfully on 2026-10-25
-  for commit `a74f039781e1e587f4dde07d58450e0ad582858c`; this proves only the
-  hosted review build and its declared test subset. The current continuation
-  prepares a separate unsigned 1.2.8 MSI submission candidate with explicit
-  install disclosure/acknowledgement, fresh dependency metadata and immutable
-  WiX source. Its actual run and native acceptance are recorded separately.
-- **Fresh candidate evidence:** Run `40230180663` succeeded at source
-  `34fe3baf0b37b9cda1db1a2ac95c34f854efbaba`. Artifact checks passed for
-  1,230 files and 17 owned signing entries; native acceptance remains pending.
+- **Build system:** GitHub Actions on GitHub-hosted Windows runners with pinned
+  action revisions. Setup requests SDK10.0.401; global.json permits latestFeature,
+  so the latest successful run actually selected SDK10.0.402/host runtime10.0.14.
+  The self-contained payload remains pinned to10.0.12. Separate full DEV VM
+  verification used SDK10.0.401/runtime10.0.12. No bit-for-bit reproduction
+  or exact401 hosted execution is claimed.
+- **Fresh candidate evidence:** Run `40243225067` succeeded at source
+  `82465b48d6137b4f81a57f33900f3da69c194658`. Artifact checks passed for
+  1,234 files and17 owned signing entries. The complete DEV Release build
+  passed0warnings/0errors and642/642tests; local artifact-only validation
+  also passed. Native installation, live UI/database acceptance remain pending.
 - **Reputation:** New project. Do not claim public adoption, endorsements,
   established reputation, or previous signed releases. Ask SignPath to assess
   eligibility under its reputation policy.
@@ -64,8 +64,8 @@ can be submitted. Do not infer approval or eligibility from this document.
 3. Keep the hosted candidate evidence attached to the reviewed source commit.
    The hosted filter leaves exact-identity, installer, non-admin ACL, and
    Windows 11 service-inventory tests in the complete DEV VM suite; these
-   exclusions are not evidence that those suites passed. The current run is
-   recorded in the readiness checkpoint.
+   exclusions alone are not evidence that those suites passed. The separate
+   complete VM642/642PASS at82465 is now recorded in the current continuation.
 4. Verify the generated candidate inventory and included immutable WiX source
    against the [dated component mapping](../legal/distribution-components-2026-10-25.md).
    Do not sign upstream files as Host Agent; the composite action's treatment
@@ -90,9 +90,12 @@ can be submitted. Do not infer approval or eligibility from this document.
   consent presented by SignPath.
 - Complete CAPTCHA if requested.
 
-No credentials, API tokens, private keys, VM identifiers, operational logs,
+No credentials, API tokens, private keys, VM configuration exports, operational logs,
 database contents, or secrets belong in this draft or repository. Stop before
 the final application submission action.
+The live authenticated form was not rendered/filled by this preparation;
+the owner must check its actual fields and consent text rather than assume
+this draft is a complete form-schema inventory.
 
 ## References
 
@@ -100,6 +103,7 @@ the final application submission action.
 - [SignPath GitHub trusted-build requirements](https://docs.signpath.io/trusted-build-systems/github)
 - [Project privacy disclosure](privacy.md)
 - [Code signing policy](code-signing-policy.md)
-- [Current readiness evidence](../verification/signpath-readiness-2026-10-25.md)
+- [Earlier readiness checkpoint](../verification/signpath-readiness-2026-10-25.md)
+- [Current exact r2 candidate](signpath-candidate-1.2.8-r2.md)
 - [Current continuation and remaining gates](../verification/signpath-submission-2026-10-25.md)
 - [All owner steps with exact artifact links/checksums](signpath-owner-steps.md)

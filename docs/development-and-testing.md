@@ -15,6 +15,13 @@ Current V1 completion uses account-local SDK **10.0.401** and runtime **10.0.12*
 
 ## Development host
 
+The requested SDK version is not an exact hosted selection lock:
+`global.json` allows `latestFeature`. The2026-10-26 r2 GitHub run selected
+10.0.402 even though setup requested10.0.401. Record actual SDK/runtime
+inventory per run. The separately completed642-test DEV gate used actual
+SDK10.0.401/runtime10.0.12; do not infer a framework-dependent hosted test's
+runtime from the self-contained package pin alone.
+
 The embedded MSI preflight uses WiX DTF 5.0.2 packages, verified using dotnet nuget verify --all and extracted outside the repository beside the wix tool directory. See the release guide for the required layout. Infrastructure integration tests run serially to avoid parallel PowerShell/MSI compiler resource contention in the DEV VM; each child process has a bounded 90-second deadline and is terminated on timeout. This changes the test harness, not product security timeouts.
 
 Builds and automated unit/integration tests for Host Agent must run on a Windows development or test environment whose approved execution policy permits locally built development assemblies to load. The protected production mini PC is not a development test host and must retain its existing Smart App Control and Code Integrity posture.

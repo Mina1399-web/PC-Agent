@@ -302,3 +302,127 @@ The previous full-suite failure remains recorded; fresh complete Release
 build/project suites are required after this test-source correction. A fresh
 hosted candidate must retain its own source/artifact anchors rather than
 relabel the preserved34fe candidate as a new-source build.
+
+### Completed full DEV gate at82465
+
+After the test-only correction, commit
+`82465b48d6137b4f81a57f33900f3da69c194658` was pushed normally to
+`codex/signpath-submission-prep`. Independent review found no blocking issue
+in the corrected test lifetime/invariants; product `src` is unchanged.
+The actual updated operator wrapper was then executed by the agent in the
+approved DEV VM/non-elevated context, using verified portable SDK10.0.401/
+runtime10.0.12, all SDK hashes, unchanged resource guards and no test filters.
+
+| Phase | Actual result | Minimum RAM MiB | Minimum C: GiB | Elapsed seconds | Receipt suffix |
+| --- | --- | ---: | ---: | ---: | --- |
+| Release solution build |0warnings/0errors, exit0|1240.8|15.746|122.5|`operator-release-build-2f1f854adc5c470893a01ac5efe3573d`|
+| Core |62/62PASS|1687.5|15.750|13.0|`operator-release-core-795d06aa27e044459bf479dd530f3e5c`|
+| Infrastructure |565/565PASS|850.6|15.606|521.3|`operator-release-infrastructure-d97b9afc8b1945f2947d8ddd48838027`|
+| Desktop |15/15PASS|1048.8|15.732|67.1|`operator-release-desktop-17515ec1a91440ccb7293e0397a1e003`|
+
+Every phase exited0 with monitorFailure=null. All three projects had0failed
+and0skipped tests: **642/642PASS**, including the three added regressions.
+The wrapper's final JSON was `SOURCE_CHECKS_COMPLETED`, candidateSource and
+workingHead both82465, protectedServicesUnchanged=true,
+serviceControlPerformed=false, liveNetworkOptIn=false. It checked installed
+service identity/PID/path/accounts/image hashes before and after project
+execution without controlling those services. Receipts/stdout/stderr are
+in the source-external `SignPath-1.2.8-34fe3ba-handoff` directory; that historic
+directory name is not the new candidate's source identity.
+
+This closes the previously incomplete source build/suite gate at the stated
+commit. Earlier failures remain recorded. It does not prove native MSI
+acceptance, installed telemetry completeness, public release, SignPath
+admission or a signature.
+
+### Fresh hosted candidate, separately bound to82465
+
+The [new candidate record](../operations/signpath-candidate-1.2.8-r2.md)
+records successful run40243225067/job121319287226, independently inspected
+through GitHub logs/API: Release0warnings/0errors,62 preparation checks,
+Core62/62, filtered Infrastructure452/452 and filtered Desktop13/13PASS.
+Candidate directory/archive/MSI-table validation passed for1,234 manifested
+files and17 owned signing entries. No signing or MSI execution occurred.
+
+Important version evidence: setup requests10.0.401 but source global.json
+allows latestFeature; this hosted run selected SDK10.0.402, hostruntime10.0.14.
+It also had10.0.12 installed, but that listing does not establish the exact
+runtime used per framework-dependent test. The published self-contained
+payload remains10.0.12. The separate complete VM suite above actually used
+SDK10.0.401/runtime10.0.12. Do not describe both environments as exact401.
+
+New artifact12618056110 is322,802,124bytes, ZIP SHA-256
+`C68119D7F394174FBBB49AC915BCF2B287CABCF59CBF14FF0557321BDA51E033`;
+manifest`5DCF79DC3284B4937EBA64D4F50A7831A1FFE4F0891AE4D4B190A500B136B25A`;
+MSI`F3CAA8EBCD8EBE9F163FE2D2E196F83D5B948DEC93EC6BADC2BA0452EF0AA197`.
+The GitHub artifact API digest/source/run linkage were independently re-read.
+New reference `codex/signpath-candidate-1.2.8-r2` was created by normal Git
+push at82465; older34fe reference/artifacts remain intact. No default-branch,
+public release, application, account or production-host change was made.
+
+### Local r2 staging and read-only artifact gate
+
+The GitHub artifact was actually downloaded to the new source-external
+`HostAgent-DEV-releases/SignPath-1.2.8-82465b4-handoff/HostAgent-1.2.8-submission-preview.zip`.
+Length322,802,124 and SHA-256C68119D7... matched before extraction. The archive
+has1,235 entries/570,229,057 expanded bytes. It was extracted without overwrite
+to the new sibling `SignPath-1.2.8-82465b4-candidate`, after rejecting unsafe,
+duplicate and symlink entries and checking resource headroom. These paths
+now exist; they are not placeholders or references to the older34fe package.
+
+Low disk space initially refused the local artifact reader, and one later
+attempt was stopped by disk_floor_15_gib at14.979GiB, receipt
+`r2-local-artifact-preflight-retry-57c0c216ca284e75ba974aebb913dfde`.
+Those runs are NOT PASS and did not install anything. The15GiB build/test/
+artifact guard was not lowered. Cleanup-only NTFS compression then operated
+solely on reviewed own SDK/cache, the uninstalled candidate and generated
+Infrastructure Release output. It was allowed to free space below the
+ordinary execution floor; memory limits remained active. No files were
+deleted, no ACL/Windows policy changed, no source/installed bytes altered.
+Post-compression SHA-256 comparisons matched all5,577 portable SDK files,
+all11,155 old project SDK-cache files and171 generated test-output files.
+
+Final guarded local Read-SubmissionPlan at exact82465/version1.2.8/manifest
+5DCF79DC... returned PASS for all1,234 manifested package files/17 owned entries and MSI
+table inspection. It displayed the existing privacy/install disclosures and
+returned readOnlyPlan=true, changesPerformed=false, installerExecuted=false.
+Receipt `r2-local-artifact-preflight-after-cache-cleanup-4ede74c6cd494cefbb3919f5e54498f7`:
+exit0/null monitor/minimumRAM1483.5MiB/disk15.602GiB/23.0s. This successful
+local gate is separate from the preserved earlier resource interruptions.
+
+The new handoff includes exact checksum sums, release text, owner instructions
+and an unexecuted owner-only `Read-InstalledPreview.ps1`. That probe's syntax
+was parsed and its extracted actual resource-guard function passed6 synthetic
+checks: cache after a fake300ms sensor read, initial1024MiB, soft767MiB,
+hard511MiB, disk14.9GiB and total301s deadline. This did not execute its main
+installed-product path or establish native acceptance. The sensor cache starts
+after measurement; nominal250ms interval includes actual CIM/disk latency.
+Total/metadata-child/CLI deadlines are300/150/35s. Installed UI/database
+acceptance remains explicitly incomplete even if future file/status checks pass.
+
+Remaining resource blocker: actual MSI is117,670,676bytes. The prepared native
+transaction reserve is15GiB +2×570,229,057bytes +MSI, or16.171724GiB free.
+Last measured15.599113GiB is0.572611GiB short; allow at least1GiB additional
+headroom rather than lowering the floor. Owner native install requires that
+reserve and a freshly host-verified rollback snapshot. Native installation,
+live installed UI/DB checks, public release/default-branch administration,
+owner MFA/identity/consent and provider decisions remain open. No application
+was submitted, signature requested or production host/project changed.
+
+Final independent read-only review re-read the full-build/project receipts,
+local artifact receipt, five source toolkit pins and PowerShell pin, r2 Git
+reference and empty Releases API. It found no blocking P1/P2 issue in the
+intended documentation/handoff scope. One P3 measurement wording discrepancy
+was corrected to15.599GiB; no threshold was lowered. Static parser checks
+passed for the prepared installed probe and five PowerShell blocks in its
+owner guide. Its main installed-product path remains unexecuted.
+
+An unrelated uncommitted edit was observed in
+`docs/verification/final-acceptance-2026-10-25.md`, changing a historical
+reported disk floor15GiB to10GiB. It was not made by this work, was not staged
+or reverted, and does not change the actual15GiB guards/results above.
+The owner-authorized Support thread checked read-only and found no source
+attribution or explicit instruction there to lower that historical value.
+That difference remains preserved for separate owner review, outside this
+work's published commits. Current public default branch was re-read as main
+and Releases API remained empty; no public binary release is claimed.

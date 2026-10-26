@@ -5,31 +5,23 @@ not the older exact-machine 1.2.7 DEV MSI. No application has been sent.
 
 ## Exact source and artifacts
 
-- Source commit: `34fe3baf0b37b9cda1db1a2ac95c34f854efbaba`.
-- Preserved candidate branch: [`codex/signpath-candidate-1.2.8`](https://github.com/Mina1399-web/PC-Agent/tree/codex/signpath-candidate-1.2.8). Its SHA was independently checked after creation. It is a pinned preparation reference, not an enforced protected branch or a published release.
-- Successful [build/test/candidate run 40230180663](https://github.com/Mina1399-web/PC-Agent/actions/runs/40230180663).
-- [Download the candidate ZIP](https://github.com/Mina1399-web/PC-Agent/actions/runs/40230180663/artifacts/12612639952) while signed into GitHub. The artifact expires **2026-11-08**. If expired, rebuild and use the new receipt; do not reuse old hashes for different bytes.
-- ZIP `HostAgent-1.2.8-submission-preview.zip`, 322,777,962 bytes, SHA-256 `722CAA759CD0E249C8F27549849148F524F1248DF05939AEAA901B417E566E9A`.
-- Inside the ZIP: `manifest.json` SHA-256 `444D696AC0C879A1446A8FC85D8C62DA6AD6D15878B1FED8FC1F63C360189E93`; `HostAgent.msi` SHA-256 `78241E9B8EE79C9B9CFFD89D4F1634616CF946BC18644010162B5750F29A2272`.
+- Source commit: `82465b48d6137b4f81a57f33900f3da69c194658`.
+- Preserved candidate branch: [`codex/signpath-candidate-1.2.8-r2`](https://github.com/Mina1399-web/PC-Agent/tree/codex/signpath-candidate-1.2.8-r2). Its SHA was independently checked after creation. It is a pinned preparation reference, not an enforced protected branch or a published release.
+- Successful [build/test/candidate run 40243225067](https://github.com/Mina1399-web/PC-Agent/actions/runs/40243225067).
+- [Download the candidate ZIP](https://github.com/Mina1399-web/PC-Agent/actions/runs/40243225067/artifacts/12618056110) while signed into GitHub. The artifact expires **2026-11-09 00:11 Prague time**. If expired, rebuild and use the new receipt; do not reuse old hashes for different bytes.
+- ZIP `HostAgent-1.2.8-submission-preview.zip`, 322,802,124 bytes, SHA-256 `C68119D7F394174FBBB49AC915BCF2B287CABCF59CBF14FF0557321BDA51E033`.
+- Inside the ZIP: `manifest.json` SHA-256 `5DCF79DC3284B4937EBA64D4F50A7831A1FFE4F0891AE4D4B190A500B136B25A`; `HostAgent.msi` SHA-256 `F3CAA8EBCD8EBE9F163FE2D2E196F83D5B948DEC93EC6BADC2BA0452EF0AA197`.
 
-## 1. Finish the resource-blocked DEV source verification
+## 1. Source verification completed — no repeat needed
 
-Close unneeded Chrome windows in the DEV VM; one Chrome window was opened
-during preparation and could not be controlled after browser automation
-stopped. Aim for at least 2 GiB available RAM so compilation has headroom.
-Actual guards remain initial >1,024 MiB, soft stop below 768 MiB, hard 512 MiB,
-and 15 GiB free on C:. Do not lower them.
-
-Use the supplied local `Run-RemainingDevSourceChecks.ps1` in a **non-elevated**
-PowerShell. The real user-maintenance tests intentionally reject an
-administrator token. With no `-Execute`, the script reports a read-only plan.
-With `-Execute`, it performs Release build, then all Core, Infrastructure and
-Desktop tests separately, without hosted filters or live-network opt-in.
-It stops on the first failure and preserves logs. It performs no service
-control, MSI installation, mode/configuration change or installed-product
-database opening. Infrastructure tests use isolated SQLite fixtures.
-Return the final JSON, each project's actual passed/failed/skipped summary
-and the watchdog receipts. An interrupted run is not a successful suite.
+At exact source82465, the complete approved DEV VM run passed: Release build
+0warnings/0errors, Core62/62, Infrastructure565/565 and Desktop15/15,
+total642PASS/0failed/0skipped. The wrapper reported SOURCE_CHECKS_COMPLETED,
+protected services unchanged and no service control/live-network opt-in.
+See the [full receipts and prior failures](../verification/signpath-submission-2026-10-25.md#completed-full-dev-gate-at82465).
+Do not repeat these runs unless source or unresolved evidence changes.
+This gate does not establish native installation, live UI/database acceptance
+or a signature.
 
 ## 2. Download, verify and read the exact candidate
 
@@ -41,24 +33,34 @@ Its root is flat: `HostAgent.msi`, `manifest.json`, `Service`, `Helper`, `Cli`,
 In non-elevated **PowerShell 7**, adjust only the new extraction path:
 
 ```powershell
-$package = 'C:\path\to\new\extracted\candidate'
+$package = 'C:\Users\AgentPCdevtest\Documents\ChatGPT\DevTest VM PC\HostAgent-DEV-releases\SignPath-1.2.8-82465b4-candidate'
 & (Join-Path $package 'tools\Read-SubmissionPlan.ps1') `
     -PackagePath $package `
-    -ExpectedSourceCommit '34fe3baf0b37b9cda1db1a2ac95c34f854efbaba' `
+    -ExpectedSourceCommit '82465b48d6137b4f81a57f33900f3da69c194658' `
     -ExpectedVersion '1.2.8' `
-    -ExpectedManifestSha256 '444D696AC0C879A1446A8FC85D8C62DA6AD6D15878B1FED8FC1F63C360189E93'
+    -ExpectedManifestSha256 '5DCF79DC3284B4937EBA64D4F50A7831A1FFE4F0891AE4D4B190A500B136B25A'
 ```
 
-This validates the exact files/metadata/MSI tables and displays privacy and
-installation changes. It does not install. Local download/extraction was
-refused by the resource guard during preparation, so no local candidate
-directory or local rehash result is claimed.
+This validates exact files/metadata/MSI tables and displays privacy and
+installation changes without installing. This candidate directory and the
+ZIP in the sibling `SignPath-1.2.8-82465b4-handoff` now actually exist.
+Local guarded Read-SubmissionPlan passed all1,234 files/17 owned entries,
+exit0/no watchdog intervention. Earlier resource refusals remain historical.
+Do not substitute the preserved older34fe candidate or its hashes.
 
 ## 3. Owner-run native acceptance in the DEV VM
 
 Depends on steps 1–2 passing. Create and host-verify a fresh rollback snapshot
 of the current DEV VM, preserving `clean-win-base` and earlier snapshots.
 Do not perform this installation on the physical production host.
+
+Before installation also satisfy the transaction reserve:15GiB baseline plus
+2×570,229,057 expanded package bytes plus117,670,676 MSI bytes, total at least
+16.172GiB free. The last measured15.599GiB does not meet that reserve. Free
+at least another0.573GiB in the DEV VM (prefer1GiB headroom) or extend its
+storage through an owner-reviewed VM operation; do not delete protected data,
+old evidence or snapshots and do not lower the guard. The read-only installed
+probe and complete Czech commands are in the new source-external handoff.
 
 Read [announced installation changes](submission-preview.md) and
 [privacy](privacy.md), confirm existing Shadow/read-only and outbound choices,
@@ -90,7 +92,7 @@ probe was rejected before execution by automatic policy.
 Depends on successful native acceptance and human review. In
 [new GitHub Release](https://github.com/Mina1399-web/PC-Agent/releases/new),
 create tag `v1.2.8-preview.1` targeting the preserved branch
-`codex/signpath-candidate-1.2.8` (verify SHA `34fe3baf...`), title
+`codex/signpath-candidate-1.2.8-r2` (verify SHA `82465b48...`), title
 **Host Agent V1 1.2.8 unsigned preview**, and mark it **pre-release**.
 Use the [prepared release description](../releases/1.2.8-preview.1.md), replace
 its draft instructions with the actual native result, and use absolute links.

@@ -23,14 +23,18 @@ Windows protections and the production-host boundary.
 - [x] Prepare download/functionality and release pages, application text,
       provider questions, inactive after-admission design and owner checklist.
 - [x] Prepare local operator source-check orchestration and copyable handoff;
-      syntax checked only, privileged/native commands not executed.
+      portable SDK/Git/process ROOT setup verified and complete DEV Release
+      build plus642/642tests passed after test-only lifecycle correction.
+- [x] Refresh separately anchored hosted r2 candidate at82465, preserve old34fe,
+      download/extract/hash-check and pass local read-only artifact validation.
+- [x] Prepare new owner post-install read-only probe; syntax/extracted resource
+      logic checked only, installed-product execution remains owner-gated.
 
 ## Owner/provider gates still open
 
-- [ ] Close unneeded VM applications; complete full non-elevated DEV Release
-      build and Core/Infrastructure/Desktop suite under unchanged guards.
-- [ ] Download/reverify candidate locally and perform approved native DEV
-      installation acceptance with fresh rollback protection.
+- [ ] Supply native installation disk/rollback reserve and fresh host-verified
+      VM snapshot, then perform owner-run native DEV installation acceptance,
+      live dashboard and database checks. Source suite need not be repeated.
 - [ ] Update the public default branch without rewriting `main` or history.
 - [ ] Publish the exact reviewed installer preview with actual acceptance,
       source commit, download assets, functionality/privacy and policy links.

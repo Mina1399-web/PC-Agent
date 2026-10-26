@@ -12,7 +12,10 @@ remote-command service.
 ## Download status
 
 The project has built and artifact-verified a **1.2.8 unsigned submission
-preview** in [run 40230180663](https://github.com/Mina1399-web/PC-Agent/actions/runs/40230180663).
+preview r2** in [run40243225067](https://github.com/Mina1399-web/PC-Agent/actions/runs/40243225067),
+source`82465b48d6137b4f81a57f33900f3da69c194658`.
+The [candidate record](signpath-candidate-1.2.8-r2.md) identifies its exact
+hashes and separate642-test DEV gate; native acceptance remains pending.
 No public
 installer download is claimed until a release is actually published in
 [GitHub Releases](https://github.com/Mina1399-web/PC-Agent/releases).
