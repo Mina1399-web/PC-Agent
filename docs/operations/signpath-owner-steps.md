@@ -1,126 +1,74 @@
-# Owner steps remaining before SignPath submission
+# Remaining SignPath steps after unsigned preview publication
 
-All values below refer to the successfully built unsigned **1.2.8** candidate,
-not the older exact-machine 1.2.7 DEV MSI. No application has been sent.
+Updated 2026-10-26. **Prepared, not submitted; unsigned.**
+This checklist supersedes earlier instructions to change the landing branch,
+publish this preview, or repeat native installation as a publication prerequisite.
+It does not claim full installed acceptance or SignPath eligibility.
 
-## Exact source and artifacts
+## Completed preparation
 
-- Source commit: `82465b48d6137b4f81a57f33900f3da69c194658`.
-- Preserved candidate branch: [`codex/signpath-candidate-1.2.8-r2`](https://github.com/Mina1399-web/PC-Agent/tree/codex/signpath-candidate-1.2.8-r2). Its SHA was independently checked after creation. It is a pinned preparation reference, not an enforced protected branch or a published release.
-- Successful [build/test/candidate run 40243225067](https://github.com/Mina1399-web/PC-Agent/actions/runs/40243225067).
-- [Download the candidate ZIP](https://github.com/Mina1399-web/PC-Agent/actions/runs/40243225067/artifacts/12618056110) while signed into GitHub. The artifact expires **2026-11-09 00:11 Prague time**. If expired, rebuild and use the new receipt; do not reuse old hashes for different bytes.
-- ZIP `HostAgent-1.2.8-submission-preview.zip`, 322,802,124 bytes, SHA-256 `C68119D7F394174FBBB49AC915BCF2B287CABCF59CBF14FF0557321BDA51E033`.
-- Inside the ZIP: `manifest.json` SHA-256 `5DCF79DC3284B4937EBA64D4F50A7831A1FFE4F0891AE4D4B190A500B136B25A`; `HostAgent.msi` SHA-256 `F3CAA8EBCD8EBE9F163FE2D2E196F83D5B948DEC93EC6BADC2BA0452EF0AA197`.
+- Default branch: `codex/signpath-submission-prep`. The root README exposes
+  functionality/download, privacy and Code signing policy links. `main` and
+  all pre-existing branch histories were retained without force-push.
+- Public [Host Agent V1 1.2.8 unsigned preview](https://github.com/Mina1399-web/PC-Agent/releases/tag/v1.2.8-preview.1):
+  pre-release tag `v1.2.8-preview.1` points exactly to
+  `82465b48d6137b4f81a57f33900f3da69c194658`.
+- Exactly four uploaded public assets: ZIP, MSI, manifest and SHA256SUMS.
+  Anonymous downloads matched all approved SHA-256 values and byte lengths.
+  See [downloads](download.md) and
+  [publication verification](../verification/signpath-publication-2026-10-26.md).
+- Successful [hosted run 40243225067](https://github.com/Mina1399-web/PC-Agent/actions/runs/40243225067)
+  and prior complete DEV Release build: 0 warnings/errors, 642/642 tests.
+  Hosted exclusions and the complete DEV run remain separately recorded in
+  [candidate evidence](../verification/signpath-submission-2026-10-25.md).
+  No build, test, installer or service operation was repeated for publication.
+- The candidate's generated inventory, component mapping, exact WiX source
+  archive and owned-file configuration were inspected read-only against its
+  manifest. This is artifact evidence, not provider approval.
 
-## 1. Source verification completed — no repeat needed
+## Installed preview limitation remains explicit
 
-At exact source82465, the complete approved DEV VM run passed: Release build
-0warnings/0errors, Core62/62, Infrastructure565/565 and Desktop15/15,
-total642PASS/0failed/0skipped. The wrapper reported SOURCE_CHECKS_COMPLETED,
-protected services unchanged and no service control/live-network opt-in.
-See the [full receipts and prior failures](../verification/signpath-submission-2026-10-25.md#completed-full-dev-gate-at82465).
-Do not repeat these runs unless source or unresolved evidence changes.
-This gate does not establish native installation, live UI/database acceptance
-or a signature.
+Owner-supplied inspection reported version 1.2.8, 1,225 matching installed
+files, zero unexpected files, preserved configuration and both services
+Running during the preview probe. It returned
+`INSTALL_ACCEPTANCE_INCOMPLETE`, with partial CPU/process telemetry caused by
+denied access. Shadow/read-only remained active.
 
-## 2. Download, verify and read the exact candidate
+Owner-supplied offline-copy SQLite checks reported `quick_check=ok` for
+`host-agent.db` and `notifications.db`; the absent helper journal remains
+`NOTRUN`. A later owner-run recovery returned both services to Running.
+No claim is made that every database exists, every metric works, or the
+preview is approved for production. These limitations are published with
+the release. Reinstallation is not required to repeat the publication checks.
 
-Download the ZIP above to the DEV VM. Confirm its SHA-256 before extraction;
-extract into a **new** directory without overwriting an older candidate.
-Its root is flat: `HostAgent.msi`, `manifest.json`, `Service`, `Helper`, `Cli`,
-`Desktop`, `docs`, `tools`, `LICENSE` and signing preparation files.
+## Checks that require the owner's authenticated accounts
 
-In non-elevated **PowerShell 7**, adjust only the new extraction path:
+1. Verify MFA in [GitHub password and authentication settings](https://github.com/settings/security).
+   The current API session confirms `Mina1399-web` and repository admin access
+   but does not expose the account's MFA field. MFA remains **NEOVĚŘENO**.
+2. Sign into the owner's actual SignPath account; verify MFA and actual
+   organization/project membership. No provider membership, MFA or organization
+   ID is inferred from GitHub ownership. These remain **NEOVĚŘENO**.
+3. Confirm the intended author/reviewer/approver membership in
+   [Code signing policy](code-signing-policy.md). The proposed single owner
+   is `@Mina1399-web`; actual SignPath role assignments remain unverified.
+4. Review the [prepared application facts](signpath-submission-draft-2026-10-25.md)
+   and [provider questions](signpath-provider-questions.md). The owner must
+   supply personal contact details directly, review the live fields and
+   personally handle identity/authentication challenges and applicable consent.
 
-```powershell
-$package = 'C:\Users\AgentPCdevtest\Documents\ChatGPT\DevTest VM PC\HostAgent-DEV-releases\SignPath-1.2.8-82465b4-candidate'
-& (Join-Path $package 'tools\Read-SubmissionPlan.ps1') `
-    -PackagePath $package `
-    -ExpectedSourceCommit '82465b48d6137b4f81a57f33900f3da69c194658' `
-    -ExpectedVersion '1.2.8' `
-    -ExpectedManifestSha256 '5DCF79DC3284B4937EBA64D4F50A7831A1FFE4F0891AE4D4B190A500B136B25A'
-```
+The existing instruction remains: **do not fill or submit the SignPath
+application or accept legal terms during this preparation**.
+No application, provider message or signing request has been sent.
 
-This validates exact files/metadata/MSI tables and displays privacy and
-installation changes without installing. This candidate directory and the
-ZIP in the sibling `SignPath-1.2.8-82465b4-handoff` now actually exist.
-Local guarded Read-SubmissionPlan passed all1,234 files/17 owned entries,
-exit0/no watchdog intervention. Earlier resource refusals remain historical.
-Do not substitute the preserved older34fe candidate or its hashes.
+## Decisions only SignPath can provide
 
-## 3. Owner-run native acceptance in the DEV VM
+- Eligibility/reputation of this new project; no adoption or endorsement is claimed.
+- Treatment of WiX DTF's composite custom action in a signed MSI.
+- Whether the disclosed outbound opt-in and installation disclosure satisfy
+  the conditional privacy-display requirement.
 
-Depends on steps 1–2 passing. Create and host-verify a fresh rollback snapshot
-of the current DEV VM, preserving `clean-win-base` and earlier snapshots.
-Do not perform this installation on the physical production host.
-
-Before installation also satisfy the transaction reserve:15GiB baseline plus
-2×570,229,057 expanded package bytes plus117,670,676 MSI bytes, total at least
-16.172GiB free. The last measured15.599GiB does not meet that reserve. Free
-at least another0.573GiB in the DEV VM (prefer1GiB headroom) or extend its
-storage through an owner-reviewed VM operation; do not delete protected data,
-old evidence or snapshots and do not lower the guard. The read-only installed
-probe and complete Czech commands are in the new source-external handoff.
-
-Read [announced installation changes](submission-preview.md) and
-[privacy](privacy.md), confirm existing Shadow/read-only and outbound choices,
-and approve the exact candidate. Then use Windows Installer as administrator
-inside the approved DEV VM, with `HOSTAGENT_INSTALL_ACK=YES` and `/norestart`.
-The MSI itself refuses install/repair/upgrade without acknowledgement.
-Keep normal Windows protections and rollback enabled; stop if policy blocks it.
-
-Record MSI exit code (0 = completed, 3010 = completed but restart pending),
-installed version 1.2.8, installed first-party hashes against the manifest,
-both services' identity/state, `status --verbose`, and the rendered dashboard.
-Shadow/read-only must remain enabled. Return failures as failures; do not
-force a missing metric to look healthy. Old database integrity evidence stays
-dated; a fresh check must be reported separately if performed.
-
-## 4. Correct the public landing branch
-
-At [repository settings](https://github.com/Mina1399-web/PC-Agent/settings),
-change the default branch from stale `main` to
-`codex/signpath-submission-prep`. This changes the landing reference only;
-keep `main` and both histories intact. Verify the repository root displays
-the current README, MIT license, privacy and Code signing policy links.
-Browser/account confirmation must be performed by the owner: current tools
-could not complete repository administration, and an existing-credential API
-probe was rejected before execution by automatic policy.
-
-## 5. Publish the reviewed unsigned preview
-
-Depends on successful native acceptance and human review. In
-[new GitHub Release](https://github.com/Mina1399-web/PC-Agent/releases/new),
-create tag `v1.2.8-preview.1` targeting the preserved branch
-`codex/signpath-candidate-1.2.8-r2` (verify SHA `82465b48...`), title
-**Host Agent V1 1.2.8 unsigned preview**, and mark it **pre-release**.
-Use the [prepared release description](../releases/1.2.8-preview.1.md), replace
-its draft instructions with the actual native result, and use absolute links.
-Upload the exact ZIP, MSI, manifest and a SHA-256 sums file; verify the
-downloaded published bytes match the receipt. Do not publish a different DEV
-MSI or claim a SignPath signature. The release/download page must describe
-the actual functionality and limits. A source tag or temporary Actions
-artifact alone does not satisfy the intended-form release gate.
-
-## 6. Owner identity, account conditions and application review
-
-Verify GitHub MFA and the actual author/reviewer/approver roles. SignPath MFA
-and account roles must be verified when that account is available; do not
-claim them verified beforehand. Review the
-[application text](signpath-submission-draft-2026-10-25.md) and
-[provider questions](signpath-provider-questions.md), including the new
-project's reputation, DTF composite signing and conditional privacy UI.
-These are provider decisions; no reputation, endorsement or approval is
-invented by preparation.
-
-Open [the official application](https://signpath.org/apply), enter your own
-name/contact email directly, the public source and actual published release
-links, and the signing-policy/privacy links. Review all presented terms,
-personal-data consent and any CAPTCHA yourself. Keep credentials, production
-secrets and telemetry out of the form and repository. **Stop before final
-submission for the requested review**; no form has been submitted here.
-
-After admission, [the inactive signing design](../signing/after-admission.md)
-lists the real provider IDs, protected submitter secret, GitHub App scope,
-manual approval, publisher pin and final-byte verification still required.
-That later signing activation is not a completed pre-application result.
+After admission, follow the [inactive signing design](../signing/after-admission.md).
+Actual provider IDs, scoped integration, protected submitter credentials,
+manual signing approval and independent publisher verification must exist
+before activation. No placeholder credential or automatic signing was enabled.

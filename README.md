@@ -9,18 +9,21 @@ installation. Connectivity probes, Pushover and heartbeat are off by default; co
 
 ## Code signing policy
 
-The project is **not enrolled or signed by SignPath**. The earlier unsigned
-binary-review archive is historical. Current preparation adds a separately
-guarded unsigned MSI submission candidate; public release/native acceptance
-remain explicit gates. See the
-[Code signing policy](docs/operations/code-signing-policy.md),
-[current readiness and application draft](docs/operations/signpath-submission-draft-2026-10-25.md),
-and [current preparation evidence](docs/verification/signpath-submission-2026-10-25.md).
-There is not yet a public release suitable for submission as the release to be
-signed.
+The project is **not enrolled, sponsored or signed by SignPath**.
+[Host Agent V1 1.2.8 unsigned preview](https://github.com/Mina1399-web/PC-Agent/releases/tag/v1.2.8-preview.1)
+is publicly available for authorized testing in the approved Windows DEV VM.
+It is a **pre-release**, not approved for production. Initial installed
+acceptance remains incomplete and some CPU/process metrics remain partial.
 
-Read the [download/functionality page](docs/operations/download.md) and
+Read the [download/functionality page](docs/operations/download.md),
+[Code signing policy](docs/operations/code-signing-policy.md),
+[privacy disclosure](docs/operations/privacy.md) and
 [announced installation changes](docs/operations/submission-preview.md).
+The [publication verification](docs/verification/signpath-publication-2026-10-26.md)
+records the immutable source, four independently downloaded assets and remaining
+account/provider checks. The
+[application preparation](docs/operations/signpath-submission-draft-2026-10-25.md)
+has not been submitted.
 
 ## Project status
 

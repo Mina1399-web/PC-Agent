@@ -1,8 +1,11 @@
 # SignPath application package and remaining gates — 2026-10-26
 
-**Status: prepared, not submitted.** This dated handoff supersedes only the
-older “native acceptance pending” wording for the 1.2.8 candidate. It does not
-alter historical test records or claim SignPath eligibility/approval.
+**Status: public unsigned preview published; application not submitted.**
+The earlier repository observations below describe the pre-publication
+checkpoint, not the current GitHub state. The
+[publication verification](../verification/signpath-publication-2026-10-26.md)
+supersedes the landing/public-download blockers. Historical tests and bounded
+installed results remain unchanged; SignPath eligibility/approval is not claimed.
 
 ## Freshly checked repository and candidate
 
@@ -56,7 +59,7 @@ The full DEV Release run on the candidate source is recorded separately:
 has a narrower documented test scope and exclusions. These are source/build
 results, not a claim that every installed runtime metric is complete. See
 [`signpath-submission-2026-10-25.md`](../verification/signpath-submission-2026-10-25.md)
-and [`installed-readonly-diagnostics-2026-10-26.md`](../verification/installed-readonly-diagnostics-2026-10-26.md)
+and [the public publication record](../verification/signpath-publication-2026-10-26.md)
 for the scoped evidence and limitations.
 
 ## Prepared project description for the application
@@ -79,53 +82,47 @@ inventory and Code signing policy. State that the candidate is an unsigned
 preview. Do not claim public downloads, reputation, signatures, provider
 acceptance, or an established user base without new evidence.
 
-## Required actions before the application can be submitted
+## Completed public preparation
 
-1. **Update GitHub's landing branch.** The owner must change the repository
-   default branch from stale `main` to the reviewed current branch
-   `codex/signpath-submission-prep` (or a reviewed successor). Keep `main`
-   and all histories intact; do not force-push. Then confirm the root page
-   presents the current README, Code signing policy, privacy and functionality
-   links. The README should be refreshed after the release is published so it
-   no longer says that no public release exists.
-2. **Publish the exact unsigned preview.** Create pre-release tag
-   `v1.2.8-preview.1` targeting the reviewed candidate source commit
-   `82465b48d6137b4f81a57f33900f3da69c194658`. Use the exact verified ZIP,
-   MSI, manifest and `SHA256SUMS.txt` from the preserved handoff; verify the
-   published downloads against the hashes above. Do not substitute another
-   DEV installer. Include the prepared functionality, privacy and install
-   disclosure, limits, Code signing policy link and unsigned status in the
-   release page. Replace “acceptance pending” in the release draft with the
-   bounded owner-supplied results above.
-3. **Verify the published state.** Re-read the public release and download
-   links, asset sizes and SHA-256 values; confirm the homepage and release
-   page both expose the Code signing policy and privacy link. SignPath's
-   stated free-OSS conditions require that the project already be released
-   in the form intended for signing and that functionality be documented on
-   its download page.
-4. **Complete account-owned checks.** The owner must verify MFA on GitHub and
-   SignPath; confirm the actual author/reviewer/approver membership; personally
-   review the form's live fields, terms, privacy consent and CAPTCHA. The
-   proposed single owner is `@Mina1399-web`; this document does not assert
-   current MFA or SignPath account membership.
-5. **Answer provider questions honestly.** Disclose the young project's
-   limited reputation and ask SignPath to assess eligibility. Ask for a
-   decision on the WiX DTF custom-action composition and the conditional
-   privacy-installation requirement. Do not claim that either is approved.
+- The default branch is now `codex/signpath-submission-prep`; `main`, all
+  other pre-existing branches and their histories were retained.
+- [Host Agent V1 1.2.8 unsigned preview](https://github.com/Mina1399-web/PC-Agent/releases/tag/v1.2.8-preview.1)
+  is published as a pre-release. Tag `v1.2.8-preview.1` resolves exactly to
+  source `82465b48d6137b4f81a57f33900f3da69c194658`.
+- Exactly four uploaded public assets were downloaded anonymously and
+  matched their approved SHA-256 and sizes. The
+  [download page](download.md) now exposes those assets and actual limitations.
+- The root README, release and download pages link the Code signing policy
+  and privacy disclosure. Public text retains unsigned status, partial
+  telemetry, incomplete installed acceptance and absent helper-journal check.
+- Documentation was synchronized after publication without modifying source
+  code, workflows, packages, release tag or asset bytes. No builds/tests,
+  installer or service operations were repeated.
 
-Only after those steps, open [SignPath's application page](https://signpath.org/apply),
-fill in the owner's own contact details, public repository and actual release
-URLs, project description, privacy and signing-policy URLs, and review the
-provider's displayed consent. Stop at the final submit control for the
-owner's last review. No application has been sent.
+## Remaining before application submission
+
+See the current [owner checklist](signpath-owner-steps.md),
+[public-safe application facts](signpath-submission-draft-2026-10-25.md) and
+[provider questions](signpath-provider-questions.md).
+
+GitHub owner/admin access is confirmed, but the authenticated API response
+does not expose MFA. GitHub MFA, SignPath MFA and actual provider membership
+remain **NEOVĚŘENO**. Confirm actual author/reviewer/approver roles and owner
+contact details directly in authenticated accounts. Only SignPath can decide
+eligibility/reputation, DTF composite signing treatment and the conditional
+privacy-display requirement.
+
+The owner's instruction remains: do not fill or submit the SignPath
+application and do not accept legal terms during this preparation.
+No application, provider message or signing request has been sent.
 
 ## Current decision
 
-**Not ready to submit today:** the public release prerequisite is unmet and
-the GitHub default landing page is stale. The candidate artifacts, source
-references, product description, policy/privacy pages and prior test/install
-evidence are prepared. New repository reputation is a provider decision and
-cannot be guaranteed by this preparation.
+Public landing and binary-download preparation are complete and verified.
+The preview remains unsigned, restricted to approved DEV VM testing and
+incomplete in installed acceptance. Account/identity checks and provider
+decisions are still outstanding. This is not a claim of admission, signing,
+production readiness or complete application acceptance.
 
 ## Official references
 

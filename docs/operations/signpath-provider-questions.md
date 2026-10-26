@@ -6,11 +6,12 @@ This is an application attachment draft. No message or request has been sent.
 
 1. **Initial release and reputation.** This is a new maintained Windows
    monitoring application. We can supply a GitHub-hosted unsigned MSI candidate
-   and verifiable build/test evidence; an initial public installer preview
-   and its native acceptance must be established before claiming the
-   released-application requirement. We have no adoption or independent
-   reputation to claim. Please assess whether this project can qualify, and
-   what initial release/reputation evidence you require.
+   and verifiable build/test evidence. The [1.2.8 unsigned public preview](https://github.com/Mina1399-web/PC-Agent/releases/tag/v1.2.8-preview.1)
+   is now published with independently checked ZIP/MSI/manifest/checksum
+   downloads. Initial installed acceptance remains incomplete with disclosed
+   partial CPU/process telemetry; this is not a production-approved release.
+   We have no adoption or independent reputation to claim. Please assess
+   whether this project can qualify, and what additional evidence you require.
 2. **DTF composite custom action.** The MSI embeds Host Agent's owned managed
    `Preflight.dll` inside a native `Preflight.CA.dll` assembled by WiX DTF 5.0.2.
    Its upstream SfxCA shim and `WixToolset.Dtf.WindowsInstaller.dll` come from

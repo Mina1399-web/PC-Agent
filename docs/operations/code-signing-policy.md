@@ -8,8 +8,9 @@ for this signing path. Production host security boundaries are unchanged.
 
 Proposed maintainer, code-review owner and release-signing approver:
 [@Mina1399-web](https://github.com/Mina1399-web). GitHub owner admin permission
-was confirmed read-only. MFA, branch-protection and SignPath membership
-settings still need verification.
+was confirmed read-only. GitHub MFA could not be determined from the current
+API response; it remains **NEOVĚŘENO**. SignPath MFA and actual membership also
+remain unverified. Proposed roles are not claims of provider account assignment.
 CODEOWNERS is a review routing hint, not an enforced protection rule.
 AI assistance does not supply the owner's manual signing approval.
 
@@ -58,8 +59,13 @@ test subset on 2026-10-25 at commit
 not a signed or supported production release. That binary-only artifact
 contained no MSI and was not signed or installed. A later continuation prepares a separate
 unsigned 1.2.8 MSI submission candidate with explicit installation disclosure
-and acknowledgement. Its native acceptance/public release and provider
-composite-action decision remain gates. See the
+and acknowledgement. Its [public unsigned preview](https://github.com/Mina1399-web/PC-Agent/releases/tag/v1.2.8-preview.1)
+has now been published and all four uploaded assets independently downloaded
+and verified. Initial installed acceptance remains incomplete with partial
+CPU/process telemetry. The helper-journal integrity check remains `NOTRUN`;
+production approval and the provider's composite-action decision remain gates.
+See [publication verification](../verification/signpath-publication-2026-10-26.md),
+the
 [current continuation](../verification/signpath-submission-2026-10-25.md)
 and [earlier readiness record](../verification/signpath-readiness-2026-10-25.md)
 for exact executed tests and limits. The original production path and DEV MSI

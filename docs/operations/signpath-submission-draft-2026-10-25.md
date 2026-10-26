@@ -1,109 +1,98 @@
-# SignPath application draft — updated 2026-10-26
+# SignPath application facts after publication — 2026-10-26
 
-**Not submitted.** This is a public-safe draft of product facts and current
-gates. The authenticated form still needs the owner's contact details, MFA,
-provider account setup, applicable consent, and an actual release before it
-can be submitted. Do not infer approval or eligibility from this document.
+**Prepared, not filled or submitted.** This public-safe document records the
+published unsigned preview and bounded evidence. It contains no private contact
+details, credentials, telemetry or claim of provider approval.
 
-## Form content draft
+## Reusable public project facts
 
-- **Project:** Host Agent V1
-- **Source repository:** <https://github.com/Mina1399-web/PC-Agent>
-- **Reviewed candidate source:**
-  <https://github.com/Mina1399-web/PC-Agent/commit/82465b48d6137b4f81a57f33900f3da69c194658>;
-  preserved as `codex/signpath-candidate-1.2.8-r2`. The owner must publish the
-  corresponding binary release and correct the stale default landing branch
-  before claiming those gates complete.
-- **License:** MIT for first-party source; third-party components retain their
-  respective licenses and notices.
-- **Proposed project description:** Host Agent V1 is a Windows local monitoring
-  and incident-assistance application. It gathers bounded system, resource,
-  service, network and event metadata, stores diagnoses and incident history
-  locally, and presents a local dashboard. Shadow/read-only is the default.
-  Optional outbound notifications and heartbeat require operator configuration.
-  A separate local helper supports a small typed allowlist of administrative
-  actions behind policy checks and operation-specific approval.
-  It has no public listener, cloud command channel, vulnerability scanner,
-  arbitrary shell, or security-policy bypass.
-- **Proposed code-signing format:** Windows x64 first-party executable files
-  and, if the provider accepts the composition, the Host Agent MSI. Do not sign
-  third-party binaries as Host Agent. The MSI includes WiX DTF custom-action
-  components whose exact signing and redistribution treatment is unresolved.
-- **Build system:** GitHub Actions on GitHub-hosted Windows runners with pinned
-  action revisions. Setup requests SDK10.0.401; global.json permits latestFeature,
-  so the latest successful run actually selected SDK10.0.402/host runtime10.0.14.
-  The self-contained payload remains pinned to10.0.12. Separate full DEV VM
-  verification used SDK10.0.401/runtime10.0.12. No bit-for-bit reproduction
-  or exact401 hosted execution is claimed.
-- **Fresh candidate evidence:** Run `40243225067` succeeded at source
-  `82465b48d6137b4f81a57f33900f3da69c194658`. Artifact checks passed for
-  1,234 files and17 owned signing entries. The complete DEV Release build
-  passed0warnings/0errors and642/642tests; local artifact-only validation
-  also passed. Native installation, live UI/database acceptance remain pending.
-- **Reputation:** New project. Do not claim public adoption, endorsements,
-  established reputation, or previous signed releases. Ask SignPath to assess
-  eligibility under its reputation policy.
-- **Maintainers and roles:** GitHub owner `@Mina1399-web` is the proposed
-  maintainer/author/reviewer/approver. Confirm actual role assignments and MFA
-  directly in GitHub and SignPath before submission. No other member is
-  asserted here.
-- **Public release/download:** No public MSI release is currently established.
-  The [functionality/download page](download.md) and unsigned preview release
-  text are prepared; native acceptance and actual public publication remain
-  gates. The old 1.2.7 exact-machine DEV MSI must not be relabelled as the new
-  preview. A temporary review artifact does not establish public release.
+- **Project:** Host Agent V1.
+- **Repository:** <https://github.com/Mina1399-web/PC-Agent>.
+- **Public unsigned release:** <https://github.com/Mina1399-web/PC-Agent/releases/tag/v1.2.8-preview.1>.
+- **Functionality and downloads:** <https://github.com/Mina1399-web/PC-Agent/blob/codex/signpath-submission-prep/docs/operations/download.md>.
+- **Privacy disclosure:** <https://github.com/Mina1399-web/PC-Agent/blob/codex/signpath-submission-prep/docs/operations/privacy.md>.
+- **Code signing policy:** <https://github.com/Mina1399-web/PC-Agent/blob/codex/signpath-submission-prep/docs/operations/code-signing-policy.md>.
+- **License:** [MIT](../../LICENSE) for first-party source; retain each
+  third-party license and notice in the [component mapping](../legal/distribution-components-2026-10-25.md).
+- **Immutable candidate:** `82465b48d6137b4f81a57f33900f3da69c194658`,
+  preserved by source branch `codex/signpath-candidate-1.2.8-r2` and
+  release tag `v1.2.8-preview.1`. Documentation advances separately on
+  the default branch `codex/signpath-submission-prep`.
+- **Release state:** publicly published **pre-release**, unsigned, approved
+  DEV VM testing only; no production approval, SignPath signature or sponsorship.
 
-## Current blockers before the form is ready
+## Project description
 
-1. Publish a reviewed, user-facing release in the exact format intended for
-   signing, with a download page that describes the functionality. Do not use
-   the machine-guarded DEV MSI as that release.
-2. Promote a complete licensed source branch to GitHub's project landing page
-   without rewriting either existing history. The public default `main` is
-   stale; the histories do not share a merge base.
-3. Keep the hosted candidate evidence attached to the reviewed source commit.
-   The hosted filter leaves exact-identity, installer, non-admin ACL, and
-   Windows 11 service-inventory tests in the complete DEV VM suite; these
-   exclusions alone are not evidence that those suites passed. The separate
-   complete VM642/642PASS at82465 is now recorded in the current continuation.
-4. Verify the generated candidate inventory and included immutable WiX source
-   against the [dated component mapping](../legal/distribution-components-2026-10-25.md).
-   Do not sign upstream files as Host Agent; the composite action's treatment
-   requires the provider's decision.
-5. Present the [prepared provider questions](signpath-provider-questions.md),
-   including DTF composition and conditional privacy-display expectations.
-   Absence of a native privacy wizard alone is not a proven violation: the
-   documented condition concerns transfer to systems not specified by the
-   user. Fresh outbound defaults are off and operator opt-in is explicit.
-6. Perform owner-run native installation acceptance of the exact new preview
-   and publish it only with truthful scope/limits and final hashes.
-7. Verify MFA, assign actual author/reviewer/approver roles, and review the
-   final provider artifact configuration. These account-specific items are
-   deliberately not guessed or stored in source.
+Host Agent V1 is a Windows local monitoring and incident-assistance application
+with a Czech desktop dashboard. It gathers bounded system, CPU/memory, disk,
+process/service, network and Event Log metadata, stores history locally, and
+presents evidence-based diagnoses and recommendations. Shadow/read-only is
+the default. Optional connectivity probes, Pushover notifications and heartbeat
+are disabled unless the operator configures and enables them. A separate local
+helper supports typed allowlisted administrative actions behind policy checks
+and operation-specific approval. There is no public listener, cloud command
+channel, vulnerability scanner, arbitrary shell or security-policy bypass.
 
-## Owner-only fields to complete in the authenticated form
+## Build, artifact and installed evidence
 
-- First and last name and contact email.
-- Account discovery/source answer.
-- Verify GitHub and SignPath MFA and confirm the real project-team roles.
-- Review and personally accept any Code of Conduct, privacy, or personal-data
-  consent presented by SignPath.
-- Complete CAPTCHA if requested.
+- Successful [GitHub-hosted candidate run 40243225067](https://github.com/Mina1399-web/PC-Agent/actions/runs/40243225067)
+  at the exact candidate source. Actions use pinned revisions.
+  Setup requests SDK 10.0.401; `global.json` allows `latestFeature`, so the
+  successful hosted run selected SDK 10.0.402 / host runtime 10.0.14.
+  Self-contained payload remains pinned to 10.0.12.
+- The prior complete DEV Release build used SDK 10.0.401 / runtime 10.0.12,
+  with 0 warnings/errors and 642/642 tests passed. Hosted tests have a narrower
+  documented scope. No bit-for-bit reproducibility or exact 401 hosted
+  execution is claimed. See [scoped build evidence](../verification/signpath-submission-2026-10-25.md).
+- Prior local artifact-only validation covered 1,234 files and 17 owned signing
+  entries. Publication separately verified all four public asset hashes and
+  lengths by anonymous download. The generated dependency inventory and
+  immutable WiX source archive match candidate-manifest entries.
+  See [publication evidence](../verification/signpath-publication-2026-10-26.md).
+- The owner-supplied installed probe confirmed preserved configuration,
+  matching installed critical hashes and both services Running. It returned
+  **INSTALL_ACCEPTANCE_INCOMPLETE** with partial CPU/process metrics due to
+  access denied. Offline-copy SQLite checks passed for two named databases;
+  the absent helper journal remains `NOTRUN`. Later owner-run recovery
+  returned both services to Running. Full application acceptance is not claimed.
+- The public ZIP, MSI and manifest are the approved bytes. No substitute
+  package, new build or test run was produced during publication/documentation.
 
-No credentials, API tokens, private keys, VM configuration exports, operational logs,
-database contents, or secrets belong in this draft or repository. Stop before
-the final application submission action.
-The live authenticated form was not rendered/filled by this preparation;
-the owner must check its actual fields and consent text rather than assume
-this draft is a complete form-schema inventory.
+## Proposed signing scope and provider questions
+
+Request signing only for exact Host Agent-owned executable paths, with enforced
+product name/version metadata, and the MSI only if SignPath accepts its
+composition. Do not sign upstream .NET, SQLite or WiX binaries as Host Agent.
+The MSI's WiX DTF composite contains upstream code; its treatment remains a
+provider decision. See [prepared questions](signpath-provider-questions.md)
+and [inactive post-admission design](../signing/after-admission.md).
+
+This is a new project with no established adoption, independent reputation,
+endorsement or previous signed release to claim. The public preview is evidence
+of release, not proof of eligibility. SignPath must assess reputation,
+DTF composition and the conditional privacy-installation requirement.
+
+## Remaining owner/provider requirements
+
+- Verify GitHub and SignPath MFA and actual SignPath membership. The current
+  GitHub API session confirms owner/admin access but omits the MFA field:
+  MFA remains **NEOVĚŘENO**, not disabled or enabled by inference.
+- The proposed maintainer/author/reviewer/approver is `@Mina1399-web`.
+  Confirm actual provider roles and manual approval; no other team member is asserted.
+- The owner must supply their personal name/contact email directly and review
+  the live form, applicable legal/privacy consent and any identity challenge.
+  This draft is not a complete verified inventory of authenticated form fields.
+- Only the provider can accept the project and decide unresolved signing/privacy
+  questions. No provider decision or account setup was fabricated.
+
+**The application must not be filled, submitted or legally accepted by this
+preparation.** No application or provider message has been sent.
+No credential, API token, private key, VM export, operational log or database
+belongs in the public repository or application attachment.
 
 ## References
 
-- [SignPath Foundation conditions](https://signpath.org/terms.html)
-- [SignPath GitHub trusted-build requirements](https://docs.signpath.io/trusted-build-systems/github)
-- [Project privacy disclosure](privacy.md)
-- [Code signing policy](code-signing-policy.md)
-- [Earlier readiness checkpoint](../verification/signpath-readiness-2026-10-25.md)
-- [Current exact r2 candidate](signpath-candidate-1.2.8-r2.md)
-- [Current continuation and remaining gates](../verification/signpath-submission-2026-10-25.md)
-- [All owner steps with exact artifact links/checksums](signpath-owner-steps.md)
+- [Foundation conditions](https://signpath.org/terms.html)
+- [Trusted GitHub build requirements](https://docs.signpath.io/trusted-build-systems/github)
+- [Publication verification](../verification/signpath-publication-2026-10-26.md)
+- [Remaining owner steps](signpath-owner-steps.md)
