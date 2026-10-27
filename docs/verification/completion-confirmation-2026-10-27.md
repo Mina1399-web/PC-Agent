@@ -340,3 +340,86 @@ file write. It still observed the stopped monitor and running helper.
 - No production host, security policy, released tag/assets, signing workflow
   or host-project synchronization was changed. No universal readiness claim
   follows from the source suite or operator-preparation PASS results.
+
+## Owner-run installation result and cancelled mode prompt
+
+The owner supplied the native result from
+`installed-1.2.9-confirmation-33d11594237e42a8879d73d1fd93e36d/result.json`;
+the actual local receipt was also read and matched those fields. Installation
+of the pinned 1.2.9 candidate completed with no restart required, configuration
+hash preservation PASS_at_installer_return, baselineServiceRestorationAttempted
+true, and 1139 old critical files verified. The wrapper reached its interactive
+configuration phase after installed checks, but the CLI returned
+`configuration_cancelled`. Therefore modeOnlyAcceptance, actionAcceptance
+and journalIntegrity remain NOTRUN; the overall receipt remains incomplete.
+It is not reclassified as an end-to-end PASS.
+
+Fresh read-only VM/SCM checks confirmed the approved identity and both services
+Running: HostAgent PID1908, Helper PID9856. Installed Service ProductVersion
+was 1.2.9; installed Cli DLL SHA-256 matched the candidate
+`B9BD1389AB5B1249ED4F10E1387ED26D838C46E43249F9B5147E6816376C9DBA`.
+All three handoff files still matched the reviewed manifest. Initial observed
+resources were 1438.3 MiB free RAM and 12.533 GiB free disk.
+
+The supplied console output shows APPLY being entered only after the CLI had
+returned to the PowerShell prompt. The exact reason its earlier input was
+not the literal APPLY is not established. Source inspection confirms a
+declined confirmation returns before any configuration stop/apply/start call.
+No approval is automated or piped into the CLI. Reinvoking the same reviewed
+wrapper selects its already-installed 1.2.9 branch and skips MSI installation;
+it repeats guarded mode preflight and the interactive prompt. No elevated
+operation or mode change was executed by this follow-up investigation.
+
+## Owner-confirmed writable mode acceptance
+
+The subsequent owner-run receipt
+`installed-1.2.9-confirmation-80c9a39196034e08b3ec158a9830c180/result.json`
+was read from the actual VM evidence directory and matched the supplied JSON.
+SHA-256: `0C45F862EA66E84C177D29571B65A1DE1FA1778A1ECC4FD2D246A0553D5F8357`.
+The operator entered the literal APPLY while the CLI was awaiting it;
+the CLI reported configuration_saved.
+
+| Check | Fresh result |
+| --- | --- |
+| Status | DEV_INSTALLED_CONFIRMATION_MODE_PASS_ACTIONS_NOT_RUN |
+| Installed candidate | 1.2.9, source 842378c5e2caa31b0a40c9502dbf7e990cb899b5, packageVerified=true |
+| Mode acceptance | PASS; Confirmation; readOnly=false |
+| Runtime health snapshot | degraded=false at this status readback |
+| Services | HostAgent Running PID7460; Helper Running PID9052 |
+| Preserved settings | targetsAndSelectedSafetySettingsPreserved=true |
+| Approver | current operator added by the explicit configure workflow |
+| Installation in this second run | not repeated; no restart required; installer preservation NOTRUN_no_install_in_this_run |
+| Actual remediation / journal integrity | NOTRUN / NOTRUN |
+
+The prior run's successful MSI/configuration-preservation evidence remains
+separate; it is not relabeled as a repeated installation. Fresh read-only
+VM and SCM checks independently confirmed the approved VirtualBox identity
+and these Running PIDs. This is actual installed mode acceptance, not just
+source/unit-test evidence. It does not remove exact per-operation approval,
+allowlist, confidence, replay, cooldown, or kill-switch guards; no action
+approval or registered target was manufactured by the mode-only workflow.
+
+A fresh installed View probe was performed with the existing Release probe:
+
+```powershell
+dotnet tests/HostAgent.PipeProbe/bin/Release/net10.0-windows/HostAgent.PipeProbe.dll view 3
+```
+
+Receipt `installed-1-2-9-confirmation-view-83240781d2e840c98111499a4a399b45`:
+exit 0, monitorFailure null, minimum RAM1495.9 MiB, minimum C:12.527 GiB.
+The first request returned ok=true/code=overview in8604ms without a reported
+client failure. The argument3 is the maximum attempts; only **one** was
+required. This proves a successful bounded View request after configuration,
+not a latency/endurance guarantee or visual WPF/language acceptance. No
+response payload, secret or database content was saved.
+
+The observed degraded=false does not identify which formerly inaccessible
+processes changed and does not prove all protected-process metrics can always
+be read. Historical partial-reason findings are not rewritten as universally
+fixed. Current remaining acceptance is live desktop/language behavior,
+reviewed disposable-target action flow, and fresh database/journal integrity.
+The helper journal remains lazy in the source: construction stores connection
+settings; the database is opened/initialized by the first normal audit or
+approval operation. Merely changing mode does not prove its presence or health.
+No further configuration, service, permission or remediation operation was
+performed by this follow-up.
