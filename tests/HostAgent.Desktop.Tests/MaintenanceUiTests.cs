@@ -14,6 +14,38 @@ namespace HostAgent.Desktop.Tests;
 public sealed class MaintenanceUiTests
 {
     [Fact]
+    public async Task Switching_a_loaded_preview_preserves_exact_approval_and_does_not_repeat_the_preview()
+    {
+        using var fixture=new Fixture();
+        fixture.File("synthetic-language.tmp","synthetic payload");
+        await RunSta(()=>
+        {
+            var language=TestLocalization.Czech();
+            var window=new MaintenanceWindow(Controller(Snapshot("Shadow")),fixture.Service("Shadow"),language);
+            try
+            {
+                window.Show();Click(window,"MaintenancePreviewButton");
+                PumpUntil(()=>window.CurrentPreview is {Items.Count:1});
+                var preview=window.CurrentPreview!;
+                var approval=(TextBox)window.FindName("MaintenanceApproval");approval.Text=preview.Id;
+                language.SelectLanguage("de");LocalizationSwitchTests.Drain();
+                Assert.Same(preview,window.CurrentPreview);Assert.Equal(preview.Id,approval.Text);
+                Assert.Contains(preview.Id,((TextBlock)window.FindName("MaintenancePreviewInfo")).Text);
+                Assert.Equal(language.Text("HostAgentSafeMaintenance"),window.Title);
+                Assert.Equal(language.Text("CreateSafePreview"),((Button)window.FindName("MaintenancePreviewButton")).Content);
+                Assert.Equal("Liste aktualisieren",((Button)window.FindName("MaintenanceListButton")).Content);
+                var catalog=DesktopLocalization.Catalog.GetResourceSet(System.Globalization.CultureInfo.GetCultureInfo("de"),true,false)!;
+                var translations=catalog.Cast<System.Collections.DictionaryEntry>().Select(x=>(string)x.Value!).ToHashSet(StringComparer.Ordinal);
+                foreach(var name in new[]{"MaintenancePreviewButton","MaintenanceQuarantineButton","MaintenanceListButton","MaintenanceRestoreButton"})
+                    Assert.Contains(Assert.IsType<string>(((Button)window.FindName(name)).Content),translations);
+                Assert.Equal(language.Text("Name"),((DataGrid)window.FindName("MaintenancePreviewGrid")).Columns[0].Header);
+                LocalizationSwitchTests.Capture(window,"de-maintenance");
+            }
+            finally{window.Close();}
+        });
+    }
+
+    [Fact]
     public async Task Confirmation_screen_quarantines_and_restores_only_after_exact_ids_are_typed()
     {
         using var fixture = new Fixture();
@@ -21,7 +53,7 @@ public sealed class MaintenanceUiTests
         await RunSta(() =>
         {
             var view = Snapshot("Confirmation");
-            var window = new MaintenanceWindow(Controller(view), fixture.Service("Confirmation"));
+            var window = new MaintenanceWindow(Controller(view), fixture.Service("Confirmation"),TestLocalization.Czech());
             window.Show();
             try
             {
@@ -62,7 +94,7 @@ public sealed class MaintenanceUiTests
         var original = fixture.File("synthetic-old.tmp", "synthetic payload");
         await RunSta(() =>
         {
-            var window = new MaintenanceWindow(Controller(Snapshot("Shadow")), fixture.Service("Shadow"));
+            var window = new MaintenanceWindow(Controller(Snapshot("Shadow")), fixture.Service("Shadow"),TestLocalization.Czech());
             window.Show();
             try
             {
