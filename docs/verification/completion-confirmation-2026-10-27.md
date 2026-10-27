@@ -423,3 +423,11 @@ settings; the database is opened/initialized by the first normal audit or
 approval operation. Merely changing mode does not prove its presence or health.
 No further configuration, service, permission or remediation operation was
 performed by this follow-up.
+
+After this report, the owner replied “Funguje” to the request to open the
+installed desktop application and check language switching. This records
+the owner's interactive confirmation that the requested UI check worked.
+No screenshot or locale-by-locale transcript was supplied, so the exact
+languages and persistence across restart remain owner-reported rather than
+independently reproduced. Live approval/action and journal checks remain
+separate and NOTRUN.
