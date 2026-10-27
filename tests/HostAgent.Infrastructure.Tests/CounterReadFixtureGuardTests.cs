@@ -285,19 +285,59 @@ public sealed class CounterReadFixtureGuardTests_ReleaseToolingTests
         Assert.Equal(JsonValueKind.Null, samples[4].GetProperty("abort").ValueKind);
     }
 
+    [Fact]
+    public async Task Actual_controller_disk_floor_accepts_exactly_ten_gib_and_rejects_less()
+    {
+        using var fixture = new ReleaseToolingTests.PackageFixture();
+        var sourceRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
+        var targets = Path.Combine(fixture.Path, "DiskTargets.cs");
+        File.WriteAllText(targets, "internal static class FixtureTargets { public const string RunId=null, GroupName=null, GroupSid=null, MemberSid=null, RegistryRoot=null, MsiPath=null, MsiSha256=null; }");
+        var probe = Path.Combine(fixture.Path, "DiskProbe.cs");
+        File.WriteAllText(probe, """
+            using System;
+            internal static class DiskProbe
+            {
+                static int Main()
+                {
+                    const ulong gib=1024UL*1024*1024;
+                    var below=CounterReadFixturePolicy.DiskFailure(10UL*gib-1);
+                    var exact=CounterReadFixturePolicy.DiskFailure(10UL*gib);
+                    var above=CounterReadFixturePolicy.DiskFailure(10UL*gib+1);
+                    Console.WriteLine("{\"below\":"+(below=="disk_floor_10_gib"?"true":"false")
+                        +",\"exact\":"+(exact==null?"true":"false")
+                        +",\"above\":"+(above==null?"true":"false")+"}");
+                    return 0;
+                }
+            }
+            """);
+        var executable = Path.Combine(fixture.Path, "DiskProbe.exe");
+        var compiler = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe");
+        var compile = await RunChild(compiler, "/nologo", "/langversion:5", "/target:exe", "/platform:x64", "/main:DiskProbe",
+            "/out:" + executable, Path.Combine(sourceRoot, "scripts", "diagnostics", "CounterReadMsiFixtureController.cs"), targets, probe);
+        Assert.True(compile.Exit == 0, compile.Error + compile.Out);
+        var run = await RunChild(executable);
+        Assert.Equal(0, run.Exit);
+        using var receipt = JsonDocument.Parse(run.Out);
+        Assert.True(receipt.RootElement.GetProperty("below").GetBoolean());
+        Assert.True(receipt.RootElement.GetProperty("exact").GetBoolean());
+        Assert.True(receipt.RootElement.GetProperty("above").GetBoolean());
+    }
+
     [Theory]
-    [InlineData(768d, false, false)]
-    [InlineData(768.1d, false, true)]
-    [InlineData(700d, true, true)]
-    [InlineData(512d, true, false)]
+    [InlineData(768d, false, false, 10d, false)]
+    [InlineData(768.1d, false, true, 10d, true)]
+    [InlineData(700d, true, true, 10d, true)]
+    [InlineData(512d, true, false, 10d, false)]
+    [InlineData(1024d, false, true, 9.999d, false)]
+    [InlineData(1024d, false, true, 10d, true)]
     public async Task Actual_resource_guard_distinguishes_initial_headroom_from_runtime_emergency(
-        double freeMiB, bool duringRun, bool expectedAccepted)
+        double freeMiB, bool duringRun, bool memoryAccepted, double freeDiskGiB, bool expectedAccepted)
     {
         using var fixture = new ReleaseToolingTests.PackageFixture();
         var sourceRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
         var script = Path.Combine(fixture.Path, "resource-policy-regression.ps1");
         File.WriteAllText(script, """
-            param([string]$Preparation,[double]$FreeMiB,[switch]$DuringRun)
+            param([string]$Preparation,[double]$FreeMiB,[double]$FreeDiskGiB,[switch]$DuringRun)
             $ErrorActionPreference='Stop';$WarningPreference='SilentlyContinue'
             $tokens=$null;$errors=$null
             $ast=[System.Management.Automation.Language.Parser]::ParseFile($Preparation,[ref]$tokens,[ref]$errors)
@@ -318,7 +358,7 @@ public sealed class CounterReadFixtureGuardTests_ReleaseToolingTests
                 param([string]$Name)
                 if($Name-cne'C'){throw 'unexpected_drive_query'}
                 $script:diskReads++
-                [pscustomobject]@{Free=15GB}
+                [pscustomobject]@{Free=$FreeDiskGiB*1GB}
             }
             $accepted=$false
             try {
@@ -327,18 +367,19 @@ public sealed class CounterReadFixtureGuardTests_ReleaseToolingTests
                 $accepted=$true
             }catch{}
             [pscustomobject]@{accepted=$accepted;cimReads=$script:cimReads;diskReads=$script:diskReads;
-                fakeDiskGiB=15;nativeOperationsPerformed=$false}|ConvertTo-Json
+                fakeDiskGiB=$FreeDiskGiB;nativeOperationsPerformed=$false}|ConvertTo-Json
             """);
         var arguments = new List<string> { "-NoProfile", "-NonInteractive", "-File", script, "-Preparation",
             Path.Combine(sourceRoot, "scripts", "diagnostics", "Prepare-CounterReadMsiFixture.ps1"),
-            "-FreeMiB", freeMiB.ToString(System.Globalization.CultureInfo.InvariantCulture) };
+            "-FreeMiB", freeMiB.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            "-FreeDiskGiB", freeDiskGiB.ToString(System.Globalization.CultureInfo.InvariantCulture) };
         if (duringRun) arguments.Add("-DuringRun");
         var result = await RunChild("pwsh.exe", arguments.ToArray());
         Assert.True(result.Exit == 0, result.Error + result.Out);
         using var receipt = JsonDocument.Parse(result.Out);
         Assert.Equal(expectedAccepted, receipt.RootElement.GetProperty("accepted").GetBoolean());
         Assert.Equal(1, receipt.RootElement.GetProperty("cimReads").GetInt32());
-        if (expectedAccepted) Assert.Equal(1, receipt.RootElement.GetProperty("diskReads").GetInt32());
+        Assert.Equal(memoryAccepted ? 1 : 0, receipt.RootElement.GetProperty("diskReads").GetInt32());
         Assert.False(receipt.RootElement.GetProperty("nativeOperationsPerformed").GetBoolean());
     }
 
@@ -513,7 +554,7 @@ public sealed class CounterReadFixtureGuardTests_ReleaseToolingTests
         var script = Path.Combine(fixture.Path, "build-private-fixture.ps1");
         File.WriteAllText(script, """
             param([string]$PackagePath,[string]$PreparationScript,[string]$RunId)
-            $ErrorActionPreference='Stop'
+            $ErrorActionPreference='Stop';$WarningPreference='SilentlyContinue'
             . $PreparationScript
             # Test-only override: no native adapter is instantiated. The real
             # compiler and WiX build only disposable Temp files under this root.

@@ -14,6 +14,10 @@ using System.IO;
 // and learn.microsoft.com/windows/win32/msi/-msiexecute-mutex.
 public static class CounterReadFixturePolicy
 {
+    public static string DiskFailure(ulong availableBytes)
+    {
+        return availableBytes < 10UL * 1024 * 1024 * 1024 ? "disk_floor_10_gib" : null;
+    }
     public static string Evaluate(double freeMiB, double seconds, bool cancelled)
     {
         if(Double.IsNaN(freeMiB)||Double.IsInfinity(freeMiB)||freeMiB<=512) return "hard_memory_floor_512";
@@ -165,8 +169,12 @@ public static class CounterReadMsiFixtureController
                     var freeMiB=GlobalMemoryStatusEx(ref m)?m.AvailablePhysical/1048576d:Double.NaN;
                     if(CounterReadFixturePolicy.Warning(freeMiB)!=null)Interlocked.Exchange(ref lowMemoryWarning,1);
                     var reason=CounterReadFixturePolicy.Evaluate(freeMiB,started.Elapsed.TotalSeconds,cancel);
-                    ulong available,total,space;
-                    if(reason==null&&(!GetDiskFreeSpaceEx("C:\\",out available,out total,out space)||available<15UL*1024*1024*1024))reason="disk_floor_15_gib";
+                    if(reason==null)
+                    {
+                        ulong available,total,space;
+                        if(!GetDiskFreeSpaceEx("C:\\",out available,out total,out space))reason="disk_probe_failed";
+                        else reason=CounterReadFixturePolicy.DiskFailure(available);
+                    }
                     if(reason!=null)Interlocked.CompareExchange(ref failure,reason,null);
                 }while(!done.WaitOne(250));
             });

@@ -46,7 +46,7 @@ function Assert-CounterFixtureResources {
         if($freeMiB -le 768){throw 'initial_ram_not_above_768_mib'}
         $script:FixtureInitialFreeMiB=$freeMiB
     }
-    if((Get-PSDrive C).Free -lt 15GB){throw 'initial_disk_below_15_gib'}
+    if((Get-PSDrive C).Free -lt 10GB){throw 'initial_disk_below_10_gib'}
 }
 function Get-CounterFixtureInputs {
     $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
@@ -211,7 +211,7 @@ try{
         requiredInstalledRelativePaths=@('Service/HostAgent.Service.exe','Service/HostAgent.Service.dll','Service/HostAgent.Core.dll','Service/HostAgent.Infrastructure.dll','Helper/HostAgent.Helper.exe','Helper/HostAgent.Helper.dll');
         note='Owner must populate six expected installed hashes from the reviewed installed release and pin the completed external manifest before elevation.'}|ConvertTo-Json -Depth 6
 }catch{
-    $known=@('fixture_run_id_invalid','fixture_root_invalid','fixture_reparse_path_rejected','elevated_operator_required','approved_dev_vm_required','powershell7_x64_required','initial_ram_not_above_768_mib','hard_memory_floor_512','initial_disk_below_15_gib','fixture_build_requires_guarded_operator_entry')
+    $known=@('fixture_run_id_invalid','fixture_root_invalid','fixture_reparse_path_rejected','elevated_operator_required','approved_dev_vm_required','powershell7_x64_required','initial_ram_not_above_768_mib','hard_memory_floor_512','initial_disk_below_10_gib','fixture_build_requires_guarded_operator_entry')
     $reason=if($_.Exception.Message -in $known){$_.Exception.Message}else{'fixture_preparation_dependency_unavailable'}
     [pscustomobject]@{status='NOTRUN';reason=$reason;changesPerformed=$false;nativeMatrixRun=$false;planPrepared=$false}|ConvertTo-Json;exit 1
 }

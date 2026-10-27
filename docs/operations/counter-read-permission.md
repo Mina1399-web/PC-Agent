@@ -81,7 +81,7 @@ the late commit failure is after the checked commit action.
 
 Owner-authorized limits for this gate are now: initial free RAM strictly above
 768MiB; runtime below768MiB is warning-only; at/below512MiB is an emergency abort.
-Disk15GiB,250ms monitoring,90s cooperative MSI deadline and120s client deadline
+Disk10GiB,250ms monitoring,90s cooperative MSI deadline and120s client deadline
 remain. The script records start/minimum/end memory and verifies post-run
 recovery above768MiB within30s. The MSI client can be cancelled cooperatively;
 on hard timeout only that owned client can be terminated. It never kills the

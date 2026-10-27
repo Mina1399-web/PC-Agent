@@ -188,7 +188,7 @@ public sealed class CounterReadFixtureParentMonitor:IDisposable {
    if(m.Free<=512UL*1048576)code="hard_memory_floor_512";
    else if(m.Free<768UL*1048576)Interlocked.Exchange(ref warning,1);
   }
-  ulong a,t,f;if(code==null&&(!GetDiskFreeSpaceEx("C:\\",out a,out t,out f)||a<15UL*1024*1024*1024))code="disk_floor_15_gib";
+  ulong a,t,f;if(code==null&&(!GetDiskFreeSpaceEx("C:\\",out a,out t,out f)||a<10UL*1024*1024*1024))code="disk_floor_10_gib";
   if(code!=null)Interlocked.CompareExchange(ref failure,code,null);
  }while(!done.WaitOne(250));}catch{Interlocked.CompareExchange(ref failure,"monitor_failed",null);}}
  public void Dispose(){done.Set();if(!thread.Join(3000))throw new InvalidOperationException("monitor_shutdown_unconfirmed");done.Dispose();}
@@ -250,7 +250,7 @@ public sealed class CounterReadFixtureParentMonitor:IDisposable {
     Assert-FixtureStillSafe
 }catch{
     $known=@('elevated_operator_required','reviewed_manifest_pin_required','reviewed_manifest_mismatch','reviewed_manifest_invalid','reviewed_input_pin_mismatch',
-        'approved_dev_vm_required','initial_ram_not_above_768_mib','hard_memory_floor_512','initial_disk_below_15_gib','protected_identity_mismatch','protected_installed_pin_mismatch','protected_identity_changed',
+        'approved_dev_vm_required','initial_ram_not_above_768_mib','hard_memory_floor_512','initial_disk_below_10_gib','protected_identity_mismatch','protected_installed_pin_mismatch','protected_identity_changed',
         'fixture_scope_already_exists_preserve','fixture_reparse_path_rejected','fixture_native_target_marker_mismatch','fixture_resource_abort','fixture_sid_derivation_failed',
         'fixture_client_hard_deadline_quiescence_unconfirmed','fixture_client_output_limit','fixture_client_failed_preserve','fixture_msi_not_quiescent_or_resource_abort','fixture_unexpected_msi_exit','fixture_proof_mismatch','fixture_fault_not_proved',
         'fixture_build_resource_or_deadline','fixture_build_tool_failed','fixture_service_identity_or_state_changed','fixture_group_identity_changed')
