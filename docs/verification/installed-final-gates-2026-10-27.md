@@ -11,10 +11,11 @@ preparation. Production, immutable release tags/assets and SignPath are outside
 this change. The pre-existing edit to final-acceptance-2026-10-25.md is preserved
 and excluded from this change.
 
-The owner's preceding mode receipt proves Confirmation/readOnly=false only.
-Actual installed remediation, exact linked journal and fresh integrity of all
-three installed databases remain **NOT RUN** until the operator gate returns
-new runtime evidence. Historical integrity results are not reused as fresh
+The owner's preceding mode receipt proved Confirmation/readOnly=false only.
+At the preparation cutoff, actual installed remediation, exact linked journal
+and fresh integrity of all three installed databases were **NOT RUN**. They
+are closed by the later actual operator run documented below. Historical
+integrity results are not reused as fresh
 acceptance. The owner's “Funguje” remains owner-reported UI acceptance; this
 preparation does not independently prove every installed language/persistence
 combination.
@@ -183,7 +184,9 @@ and are not relabeled as product defects or successful native runs.
 ## Remaining gates / limitations
 
 1. Operator-only installed target action plus linked journal and three-DB
-   integrity: NOT RUN. Our current token is not elevated; do not bypass UAC.
+   integrity: **closed by the native run below**. The preparation above retains
+   its historical NOT RUN labels; they are not source-test claims of native
+   success. Current runtime degraded=true still requires a fresh reason review.
 2. The gate has bounded read probes and target lifetime, but an operator may
    leave an interactive CLI prompt waiting. Do not close/kill it during APPLY;
    finish or cancel its prompt and preserve the receipt.
@@ -193,5 +196,68 @@ and are not relabeled as product defects or successful native runs.
 4. A fresh quick_check proves structural SQLite integrity, not semantic truth
    of every historical incident or all future crash/power-loss outcomes.
 5. No new installation is justified by these test-tool-only changes. The
-   existing pinned 1.2.9 product must pass the native gate before final
-   installation/readiness is considered complete. Signing is separate.
+   existing pinned 1.2.9 product passed the native gate below. This does not
+   establish unrestricted automation, every remediation operation, production
+   deployment readiness or signing. Signing is separate.
+
+## Actual operator-run installed acceptance — 2026-10-27
+
+The owner supplied the complete JSON for run
+`c85991b5883e4fc1b24988a80e03e38a`. The primary independently read the saved
+`final-installed-acceptance-c85991b5883e4fc1b24988a80e03e38a/result.json`
+under the current account's DEV evidence directory. SHA-256:
+`18F2F8214DCADB3414E379FC933B3ECB76BEF372B28D132BA4F16F9208F1C49E`.
+It agrees with the supplied result. The operator, not the primary's
+non-elevated process, executed the native steps and exact approval.
+
+| Gate | Fresh native result |
+| --- | --- |
+| Overall receipt | INSTALLED_DEV_ACTION_AND_INTEGRITY_PASS; failureCode/failureStage null |
+| Installed identity | packageVerified=true; 1141 critical files verified; pinned 1.2.9 |
+| Real evidence | target Running observed 07:31:26.2917756+01:00, Stopped observed 07:32:19.2039768+01:00; collection interval60s; confidence88 |
+| Exact action | StartService for devaccept-c85991b5883e4fc1b24988a80e03e38a; target PID5404 before stop, PID7604 after approved helper start |
+| Request binding | request e7815c14-c699-4f70-b3d3-fd12f73a1d6f; incident508786e8404c4c36a780f90f9056e0dd; digestEC9761D197521E68270800D1A8D060D85244457DAA19593B6A599DD211C44BED |
+| Journal | PASS; approval/claim/approvalAudit/proposed/started/ended/succeeded/endedAnyCode each1; sequenceValid=true |
+| Cleanup | PASS_target_stopped_disabled_alias_removed_all_evidence_preserved; cleanupFailures empty |
+| Mode | preserved Confirmation, readOnly=false; configuration changes not requested by DB stage |
+| Service recovery | both originally Running, both stop requested, both restored Running; HostAgent2360, Helper6780 |
+| Resources | no low-memory warning; main minimum1289.1MiB; ending2088.6MiB; floors unchanged start>768/warn768/emergency512/disk10GiB |
+
+The helper-journal SQL link to this request was explicitly tested. The
+host-agent/notifications JournalLinkage=NOTRUN fields are expected: they are
+not the helper approval journal and their structural/schema checks passed.
+
+| Database copy | Source bytes recorded | Copy hash verified | quick_check | Schema |
+| --- | --- | --- | --- | --- |
+| host-agent | 822276096 | true | ok | valid |
+| notifications | 135168 | true | ok | valid |
+| helper-journal | 65536 | true | ok | valid |
+
+Snapshot evidence remains at
+`installed-db-snapshot-b1e0f35eead947c8922606f36be49e27`. The result reports
+DatabaseSourceOpenedBySqlite=false, ConfigurationPerformed=false and
+ModePreserved=true. SQLite read only preserved copies; the ordinary graceful
+shutdown is allowed to checkpoint source databases. No extra database check,
+source SQL write or repair was performed by the primary after receipt review.
+
+A fresh primary read-only CIM check confirmed HostAgent Running/Auto/PID2360,
+Helper Running/Auto/PID6780, and exactly this test target Stopped/Disabled/PID0.
+The approved VM UUID/model/account/VBoxService were freshly reverified. The
+pre-existing historical documentation edit remains unmodified.
+
+The preceding run `badc469d343b4671b0a9e060a04471dc` is separately preserved
+as FAIL_OR_INCOMPLETE: the operator entered Start at the exact-GUID prompt,
+approval_cancelled was reported, and the harness eventually timed out waiting
+for the unapproved start. Its cleanup passed; it is not relabeled as a
+successful action. The successful run above used a new request and GUID.
+
+The successful receipt still reports initialDegraded=true and final
+degraded=true. That flag is **not resolved by the database PASS**. A fresh
+primary read-only CLI `status --verbose` attempt returned administrator_required
+(exit1; no mutation), evidence
+`installed-final-native-pass-health-129fe3b014944a95beafc261e19a1ab6`.
+Further limited health reason evidence must be obtained through the supported
+read-only View path or the operator's elevated CLI; permissions/configuration
+must not be silently changed to hide this limitation. No build/test rerun was
+needed for this documentation-only receipt update; the earlier recorded
+690/690 source suite is not misrepresented as a new run.
