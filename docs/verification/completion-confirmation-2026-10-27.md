@@ -201,3 +201,142 @@ Neither is by itself a complete validated MSI release. Reusing the verified
 PowerShell7.6.5 execution shell also removes one redundant PowerShell parent;
 resource thresholds were not lowered. Final packaging/installation results
 must be added only after those separate checks finish.
+
+## Completed candidate and artifact-only acceptance
+
+The clean detached build checkout was advanced to
+`842378c5e2caa31b0a40c9502dbf7e990cb899b5`. No C# application or compiled-test
+source changed after the 681/681 Release suite above; this commit adds the
+read-only operator-plan script/tests and documentation. A second package
+attempt (`c64bd7c1ce564dca98aa5b82bba67c38`) was interrupted at the unchanged
+512 MiB emergency floor: child exit -1, minimum 484.6 MiB, elapsed 9.9s.
+That failed attempt/evidence was preserved and was not installed. Sampling
+can observe below the threshold before cancellation completes; the watchdog
+is not a guarantee that available RAM never crosses 512 MiB.
+
+After fresh VM verification showed approximately 2.7 GiB available RAM,
+`tools/Build-Release.ps1 -DevVm -Version 1.2.9` completed into a new path:
+
+`C:\Users\AgentPCdevtest\Documents\ChatGPT\DevTest VM PC\HostAgent-DEV-releases\HostAgent-1.2.9-dev-842378c-r3`
+
+Receipt `completion-package-1-2-9-r3-dc90c09826c6448c86d01af145186f8d`:
+exit 0, 129.5s, minimum RAM 2231.8 MiB, minimum C: 13.024 GiB,
+monitorFailure null. No previous candidate was overwritten.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| manifest.psd1 | E2103A77A181A13D8D07178FA349A2E92ADA40A7460687FBE3C6B80A3466FC21 |
+| HostAgent.msi | 2F7B2F4E87AE537F0E4BBBD2DBB64121311D57F876591565122AAF4A66D95E27 |
+| sibling release ZIP | C50C67364743B6A9A3AD0D5F48880378524C6EC54E117D7EC2431FA3A3ED9ECA |
+
+`completion-20261027/candidate-validation.json` records PASS for all 1239
+manifest entries and all 1240 ZIP entries (including the manifest), comparing
+lengths and SHA-256 of the actual archive bytes. `Test-Release.ps1 -DevVm`,
+installer table inspection and `Install-HostAgent.ps1 -PlanOnly -DevVm` passed;
+PlanOnly reported changesPerformed=false. The MSI remains unsigned DEV-only.
+The verifier initially rejected the documented enclosing archive directory;
+after correcting that verifier assumption it required the exact expected
+root prefix and every normalized payload byte. The archive was not changed.
+Final artifact check receipt `368d0e90bdb24341bc4fd8a86e1ee7cc`: exit 0,
+25s, minimum 2443 MiB, no intervention. This is artifact validation, not MSI
+execution or installed acceptance.
+
+The packaged self-contained `Cli/HostAgent.Cli.exe --help` also ran successfully:
+receipt `cf1f34b84bc142b69337e89c2cfc2ac5`, exit 0, 3.2s, minimum 2596.6 MiB.
+No privileged CLI command, MSI or service operation was performed by this run.
+
+## Fresh installed state and operator preparation
+
+A later SCM read showed **HostAgent Stopped, PID 0**, Auto,
+`NT SERVICE\HostAgent`, expected fixed image path and exit codes 0.
+**HostAgent.Helper remained Running, PID 10776**, Auto, LocalSystem, expected
+path and exit codes 0. This work did not issue a stop/start. Bounded SCM-event
+metadata did not establish a fresh cause; the cause of the stopped monitor
+is **unresolved**, not attributed to user action or a product crash.
+
+Host Agent Support independently compared the installed 1.2.8 critical
+EXE/DLL/deps/runtimeconfig payload against the original pinned manifest
+`5DCF79DC3284B4937EBA64D4F50A7831A1FFE4F0891AE4D4B190A500B136B25A`:
+1139/1139 lengths and hashes matched, zero mismatched critical paths.
+This establishes the checked critical-component baseline, not a full
+installed-file inventory. It does not prove service health or DB integrity.
+
+The external, version-pinned operator handoff is:
+
+`C:\Users\AgentPCdevtest\Documents\ChatGPT\DevTest VM PC\HostAgent-DEV-releases\HostAgent-1.2.9-DEV-handoff`
+
+It contains `Complete-HostAgent-1.2.9-DEV.ps1`, the exact read-only loader
+copy, `README.md`, and `handoff-manifest.json`. Handoff manifest SHA-256:
+`ADC78440559389AE8C44AFFD0E3DD16300A5FBB820847A029B06C236B1DC9E91`;
+its three entries were checked against lengths and hashes. Wrapper SHA-256:
+`02F55B2ED4C14715AA39A4BE53AEC3C528FB29BD285645E6090F131F2E8452A3`.
+Loader SHA-256 remains
+`4BB381E09F7782AF0F3BE6024008D0AC0E1DFB8F41C0A58257BCE0BBF82D6097`.
+Both scripts parsed with zero errors.
+
+The reviewed operator path validates the VM, interactive elevated account,
+package pins, old critical payload and protected configuration gates before
+requesting recovery of either fixed service. Only a Stopped service is
+started, with immediate metadata and EXE/DLL hash guards, helper first; no
+retry or arbitrary target is allowed. Running services are not restarted by
+this baseline step. MSI configuration hashes are compared even at restart
+code 3010; that path explicitly leaves mode/post-reboot acceptance NOTRUN.
+Only after installed checks does the existing CLI request the operator's
+literal APPLY for `configure Confirmation off off`. Readback must prove the
+monitor and helper flags, current approver and actual runtime status. Target
+allowlists, selected safety flags and outbound-off settings must be preserved.
+The CLI deliberately adds the approving operator, so the wrapper does not
+claim byte-for-byte configuration preservation across that mode change.
+
+A newly reproduced **operator harness defect** was fixed before any native
+execution: dot-sourcing the loader bound its optional Execute=false into the
+wrapper scope, silently losing the operator's Execute switch. The wrapper
+now captures a uniquely named original boolean before loading shared code.
+The regression evaluates the actual wrapper prologue, dot-source statement
+and branch conditions with default and Execute requests; it performs no
+privileged operation. Behavioral RED `e5eb5032ad864e60ad69ae309040e34c`
+failed `operator_execute_switch_lost_after_loader`; GREEN
+`bf9d51ea2dd74e41afb347a89714e287` passed both cases, exit 0, minimum
+2322 MiB. An earlier fixture attempt failed its own absent PSScriptRoot
+setup and is not counted as behavioral RED.
+
+The fixed-service fixture additionally passed seven cases: restoring only
+the stopped monitor, no repeat for Running, metadata drift rejection, image
+drift rejection, helper-first order when both are stopped, first-start failure
+without retry, and rejection of ambiguous pending state. Receipt
+`completion-operator-recovery-final-70f1a5a6195848aea3940a20b3af60ba`:
+exit 0, minimum 2350.9 MiB, no native service operations. These fakes do not
+prove native SCM recovery or native start timeout behavior. The wrapper's
+45s Running wait starts after synchronous Start-Service returns; it is not
+a deadline for that underlying call. MSI/configuration children are not
+force-killed by a parent watchdog during service recovery.
+
+Both existing support threads independently reviewed the final scope and
+found no further blocking issue after the switch fix, while retaining the
+critical-inventory and native-timeout limitations. Final default invocation
+(no Execute) passed under the memory watchdog:
+`completion-operator-final-readonly-f2059aa6e4584a98920e31ec66e8db9f`,
+exit 0, 31.4s, minimum RAM 1897.2 MiB, minimum disk 12.601 GiB,
+monitorFailure null. It returned PACKAGE_VERIFIED_ADMIN_EXECUTION_PENDING,
+configurationAttempted=false, no service-restoration attempt and no result
+file write. It still observed the stopped monitor and running helper.
+
+### Explicit remaining gates
+
+- Native installation/recovery of 1.2.9 and mode transition: **NOTRUN**;
+  current agent token is not elevated. The owner has a single prepared
+  interactive PowerShell7 command; no further authorization is requested.
+- Installed 1.2.9 live dashboard/language switching and persistence:
+  **NOTRUN**. Existing source localization tests are not installed acceptance.
+- Live registered-target action/approval/journal acceptance: **NOTRUN**.
+  The mode-only step neither registers a target nor executes remediation.
+- Exact inaccessible processes/protection mechanism: **unresolved**;
+  bounded access-denied/path-unavailable reasons stay visible. No permissions
+  were broadened and partial telemetry is not relabeled healthy.
+- No new installed database integrity run occurred here. Prior owner-supplied
+  host-agent/notifications quick_check results and absent lazy helper journal
+  remain historical, not fresh 1.2.9 proof. The historical version-pinned
+  offline script must not be run unchanged against a new installed payload.
+- No production host, security policy, released tag/assets, signing workflow
+  or host-project synchronization was changed. No universal readiness claim
+  follows from the source suite or operator-preparation PASS results.
