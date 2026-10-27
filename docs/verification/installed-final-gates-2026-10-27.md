@@ -186,7 +186,9 @@ and are not relabeled as product defects or successful native runs.
 1. Operator-only installed target action plus linked journal and three-DB
    integrity: **closed by the native run below**. The preparation above retains
    its historical NOT RUN labels; they are not source-test claims of native
-   success. Current runtime degraded=true still requires a fresh reason review.
+   success. Current runtime degraded=true is explained at limited reason-code
+   level by the authenticated View read below; per-process visibility remains
+   partial and is not reported as repaired.
 2. The gate has bounded read probes and target lifetime, but an operator may
    leave an interactive CLI prompt waiting. Do not close/kill it during APPLY;
    finish or cancel its prompt and preserve the receipt.
@@ -261,3 +263,44 @@ read-only View path or the operator's elevated CLI; permissions/configuration
 must not be silently changed to hide this limitation. No build/test rerun was
 needed for this documentation-only receipt update; the earlier recorded
 690/690 source suite is not misrepresented as a new run.
+
+### Follow-up read-only View health reasons
+
+Support used the existing Release ViewPipeClient with authenticated server
+identity on HostAgent.View.v1 and filtered the received overview in memory.
+The successful call returned Confirmation/readOnly=false/degraded=true and
+only bounded component codes/reasons were saved; no raw overview, process list,
+database payload or secrets were stored. No elevation, configuration, service,
+ACL or direct database operation was performed.
+
+| Component | Code | Limited reasons | Degraded |
+| --- | --- | --- | --- |
+| collectors | collectors_partial | collectors_partial | true |
+| cpu-memory | collector_partial | some_process_metrics_access_denied, process_cpu_time_access_denied | true |
+| process-services | collector_partial | some_process_metrics_access_denied, process_cpu_time_access_denied, some_executable_paths_unavailable | true |
+| disk | optional_smart_unavailable | smart_health_unavailable | false |
+
+Administration, collection_worker, diagnostics, event-log, network, publication
+and system were healthy/nondegraded in this response. Aggregate degraded is
+therefore associated with limited process telemetry/access/path visibility in
+the received health state; optional SMART is not its cause. This does not
+identify the affected PIDs or prove that all unavailable paths have the same
+cause. No permission escalation or suppression of partial status was attempted.
+Per-process CPU/path visibility remains an explicit operational limitation;
+these values must remain unavailable rather than zero or fabricated.
+
+Filtered artifact:
+`bounded-view-health-c85991b5883e4fc1b24988a80e03e38a/filtered-health.json`,
+SHA-256 `6AAC3CC97AAE62B428D2055792FB2E815F14D48B5EA5071827E923C52EEED073`.
+Guard receipt `view-health-filtered-read-r4-dbc25e82c83b42418a1211fc3c713cab`:
+exit0, monitorFailure null, minimum987.8MiB/C:11.475GiB. The primary read the
+saved bounded artifact and independently verified its SHA-256.
+
+The filtered generatedAtUtc is null: ConvertFrom-Json materialized the timestamp
+as DateTime while the external filter accepted only a string. This is a
+diagnostic-filter limitation; no claim of timestamp freshness is made from
+that field, and no additional request was issued to fill it. Earlier filter
+attempts failed locally on ValueTask/byte parsing, not proof of a failed
+product View transport. The successful authenticated read supplies reasons
+without needing another elevated CLI request from the operator. Full product
+or production readiness is not inferred from this single health read.
