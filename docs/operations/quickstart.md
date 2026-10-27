@@ -58,6 +58,9 @@ Configuration arguments are mode, Pushover on/off, heartbeat on/off. Type APPLY 
 
 ## Permit and approve an operation
 
+For the installed-mode acceptance and its separate live checks, see
+[writable Confirmation in the DEV VM](confirmation-mode.md).
+
 Register only an explicitly chosen local target and required operation. Registration does not execute that operation. The current administrator SID is added to the protected approver list. For example, substitute a service you own:
 
 ```powershell

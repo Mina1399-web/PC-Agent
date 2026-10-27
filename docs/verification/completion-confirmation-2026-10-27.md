@@ -131,3 +131,73 @@ not a claimed fix for the installed warning.
   not repeated here and do not imply days-long or final installed endurance.
 - External notification delivery remains disabled/unverified. Signing is
   excluded from this increment. No production-host deployment is performed.
+
+## Source publication and package attempt
+
+Recovery source/tests and these dated diagnostic records were committed as
+`6e02d3e5f92135fa43ca730efef32ea4c7274c33`. The GitHub specialist pushed only
+`codex/desktop-localization` by a normal new-branch push, then verified its
+remote SHA matches that exact commit. The public preview tag, release assets,
+default branch and main were not changed. This publishes source; it does not
+publish a new installer or claim installed acceptance.
+
+A separate clean detached checkout at that commit was created under
+`HostAgent-DEV-builds/1.2.9-6e02d3e-c630070d`; the original dirty working tree
+was preserved. The app's managed worktree tool could not resolve the nested
+repository's local ref, so native `git worktree add --detach` was used with
+the explicit repository and a new absent target. No existing checkout was
+reset or overwritten.
+
+`tools/Build-Release.ps1 -DevVm -Version1.2.9` was attempted from that clean
+source with the pinned local SDK/WiX. The independent parent watchdog stopped
+its own child tree at509.7MiB available RAM (`ae87aa3a0afa4c6082f89e6fd7b337a5`,
+elapsed40.6s, min C:14.389GiB, child exit-1, outer command exit1). The partial
+output `HostAgent-DEV-releases/HostAgent-1.2.9-dev-6e02d3e-r1` is preserved.
+It has no completed/validated release manifest and **must not be installed**.
+This is a resource-blocked package attempt, not a failed application test or
+a completed release. No MSI, service/configuration change or mode transition
+was performed. A later attempt must use a new output path and sufficient
+memory headroom; the512MiB emergency limit remains unchanged.
+
+## Read-only mode plan and bounded publication follow-up
+
+The support thread prepared the new operator plan, now named
+`scripts/diagnostics/Read-InstalledDevConfirmationPlan.ps1` so its purpose is
+unambiguous. It validates a pinned standard `manifest.psd1`, the candidate's
+payloads, installed EXE/DLL sizes and hashes, VM/account/admin identity,
+service identities/state, protected config JSON/ACL and the mode/marker/
+allowlist/outbound gates. The config checks reject duplicate fields and
+wrong numeric types; ordinary PowerShell7 Int64 JSON integers are accepted
+within the product's supported ranges. SYSTEM as both helper service SID
+and owner is correctly deduplicated in the ACL check. It does not open DBs,
+read secret files, execute CLI, start/stop services or write protected data.
+
+Its default result is a plan. `-Execute` deliberately returns a manual-step
+result/exit2 rather than automating a configuration child whose interruption
+could strand services. The exact interactive existing CLI command is emitted
+only after a valid plan. This does not add another approval mechanism or
+prove live mode acceptance. In particular, the source plan cannot itself
+establish runtime readback: it leaves ModeOnlyAcceptance, ActionAcceptance
+and JournalIntegrity NOTRUN. Initial resource checks are768/512MiB and10GiB;
+this read-only tool is not a fault/pressure runner.
+
+During source integration, a real-fixture regression additionally reproduced
+pipeline pollution from an ACL assertion's `$true` output. The wrapper now
+suppresses that helper result, preserving the single facts object. RED
+`d86e923dd9e840ecb5d76b8c9b56cdd3` failed the exact pipeline assertion; GREEN
+`243f2c12564044fe88c4dabe5ce68af5` passed25 assertions. After the read-only
+filename change, final standalone PS validation `a519226706f046839d86218da60a9844`
+passed25/25, exit0, min805.2MiB/13.882GiB, no intervention. The test exercises
+real JSON/ACL parsing only on its private temporary fixtures; it does not
+exercise the installed protected configs. The independent final source review
+found no blocking P1/P2 in that scoped plan and explicitly retained these
+live-acceptance limits.
+
+With the failed partial output preserved, publication was split into the
+remaining CLI and Desktop projects in the clean source checkout. CLI warm
+publish `5461e8d2742c4fec9ceda4e9dc6d9a28` passed (13.4s,min692.0MiB);
+Desktop `a9a3efd192c14889ab39bd815c44e62f` passed (18.9s,min765.1MiB).
+Neither is by itself a complete validated MSI release. Reusing the verified
+PowerShell7.6.5 execution shell also removes one redundant PowerShell parent;
+resource thresholds were not lowered. Final packaging/installation results
+must be added only after those separate checks finish.

@@ -40,7 +40,16 @@ Secrets have closed names PushoverToken, PushoverUser and HeartbeatUrl. Protecte
 
 Production uses %ProgramData%/HostAgent/secrets-production; the standard Development hosting environment selects the separate secrets-development directory. Each contains only the fixed *.dpapi filenames. Development must use a separate service identity/VM and synthetic values; do not copy production ciphertext into DEV. Environment selection does not change Shadow/read-only policy.
 
-Provisioning is through ProtectedSecretStore.WriteAsync in a trusted local process running as the actual NT SERVICE/HostAgent identity with its profile loaded. An interactive administrator's CurrentUser ciphertext will not decrypt as the service. The API accepts secrets in memory; never put values in source, scripts, arguments, logs or transcripts. A production provisioning UI/CLI was not implemented or exercised. Until identity-correct provisioning is performed, keep both adapters disabled and use durable local history.
+The elevated CLI provides `secret-set PushoverToken`, `secret-set PushoverUser`
+and `secret-set HeartbeatUrl` through masked interactive input and the
+authenticated local administration pipe. The monitor performs the protected
+write as its own service identity, using ProtectedSecretStore.WriteAsync with
+its profile loaded. An interactive administrator's CurrentUser ciphertext
+will not decrypt as the service. The API accepts secrets in memory; never put
+values in source, scripts, arguments, logs or transcripts. Source/in-process
+tests do not establish live production service-identity provisioning or
+external delivery. Until that separate acceptance is performed, keep both
+adapters disabled and use durable local history.
 
 Recovery/rotation uses the same trusted identity API, which writes a temporary protected ciphertext file, flushes and atomically replaces the destination. Back up DPAPI profile/key material through an approved OS recovery process; a DB/source backup alone does not restore the identity's keys. On identity/profile/machine changes, reprovision from the trusted credential source; do not weaken ACLs or switch to machine-wide/plaintext storage.
 
