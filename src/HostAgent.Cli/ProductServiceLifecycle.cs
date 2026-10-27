@@ -23,14 +23,26 @@ public sealed class ProductServiceLifecycle(Func<string,IProductServiceHandle> o
                 if(service.RunningDependents.Any(x=>!ProductNames.Contains(x,StringComparer.OrdinalIgnoreCase)))
                     throw new InvalidOperationException("unrelated_dependent_service");
             }
+        var failures=new List<Exception>();
         foreach(var name in start?ProductNames.Reverse():ProductNames)
         {
-            token.ThrowIfCancellationRequested();using var service=open(name);
-            var desired=start?ServiceControllerStatus.Running:ServiceControllerStatus.Stopped;
-            if(service.Status==desired)continue;
-            if(start)service.Start();else service.Stop(false);
-            await service.WaitAsync(desired,TimeSpan.FromSeconds(30),token);
+            token.ThrowIfCancellationRequested();
+            try
+            {
+                using var service=open(name);
+                var desired=start?ServiceControllerStatus.Running:ServiceControllerStatus.Stopped;
+                if(service.Status==desired)continue;
+                if(start)service.Start();else service.Stop(false);
+                await service.WaitAsync(desired,TimeSpan.FromSeconds(30),token);
+            }
+            catch(Exception error) when(start&&!token.IsCancellationRequested)
+            {
+                // Monitoring can recover even if the independent helper cannot start.
+                // Preserve every failure and report it after trying both fixed services.
+                failures.Add(error);
+            }
         }
+        if(failures.Count>0)throw new AggregateException("product_service_recovery_failed",failures);
     }
     private sealed class NativeHandle(string name):IProductServiceHandle
     {
