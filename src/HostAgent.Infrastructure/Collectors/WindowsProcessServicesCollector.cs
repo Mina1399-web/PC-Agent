@@ -12,6 +12,16 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
     private readonly object _sync = new();
     private readonly Dictionary<int, ProcessObservation> _previousProcesses = [];
     private readonly Dictionary<string, HostServiceStatus> _previousServices = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Func<IWindowsProcessSample[]>? _readProcesses;
+    private readonly Func<ServiceController[]> _readServices = ServiceController.GetServices;
+
+    public WindowsProcessServicesCollector() { }
+
+    internal WindowsProcessServicesCollector(Func<IWindowsProcessSample[]> readProcesses, Func<ServiceController[]>? readServices = null)
+    {
+        _readProcesses = readProcesses;
+        _readServices = readServices ?? ServiceController.GetServices;
+    }
 
     public string CollectorId => "process-services";
 
@@ -34,10 +44,10 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
         ICollection<string> warnings,
         CancellationToken cancellationToken)
     {
-        Process[] runningProcesses;
+        IWindowsProcessSample[] runningProcesses;
         try
         {
-            runningProcesses = Process.GetProcesses();
+            runningProcesses = _readProcesses is null ? WindowsProcessSample.ReadAll(cancellationToken) : _readProcesses();
         }
         catch (Win32Exception)
         {
@@ -65,16 +75,38 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
                     var id = process.Id;
                     knownProcessId = id;
                     stage=ProcessMetricReadStage.CpuTime;
-                    var cpuTime = process.TotalProcessorTime;
-                    var cpuPercent = UpdateProcessCpu(id, cpuTime, now);
-                    DateTimeOffset? startedAt = null;
+                    double? cpuPercent = null;
+                    var cpuRead = false;
                     try
+                    {
+                        var cpuTime = process.TotalProcessorTime;
+                        stage=ProcessMetricReadStage.StartTime;
+                        cpuPercent = UpdateProcessCpu(id, cpuTime, process.CpuCapturedAtUtc ?? now, process.CpuGeneration);
+                        cpuRead = true;
+                    }
+                    catch (Exception exception) when (
+                        exception is Win32Exception or InvalidOperationException or NotSupportedException)
+                    {
+                        if (process.HasExited) continue;
+                        var warning = ProcessMetricFailure.Classify(exception, id);
+                        if (warning is null) continue; // exact known Idle limitation only
+                        warnings.Add(warning);
+                        if (ProcessMetricFailure.ClassifyStage(exception, id, stage) is { } detail)
+                            warnings.Add(detail);
+                    }
+                    DateTimeOffset? startedAt = null;
+                    if (process.CounterCpuRecovered)
+                    {
+                        warnings.Add("process_identity_unavailable");
+                    }
+                    else try
                     {
                         startedAt = new DateTimeOffset(process.StartTime.ToUniversalTime(), TimeSpan.Zero);
                     }
                     catch (Exception exception) when (
                         exception is Win32Exception or InvalidOperationException or NotSupportedException)
                     {
+                        if (process.HasExited) continue;
                         warnings.Add("some_process_start_times_unavailable");
                         if(ProcessMetricFailure.ClassifyStage(exception,knownProcessId,ProcessMetricReadStage.StartTime) is { } detail)
                             warnings.Add(detail);
@@ -91,11 +123,12 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
                         cpuPercent,
                         memoryBytes,
                         startedAt));
-                    seen.Add(id);
+                    if (cpuRead) seen.Add(id);
                 }
                 catch (Exception exception) when (
                     exception is Win32Exception or InvalidOperationException or NotSupportedException)
                 {
+                    if (process.HasExited) continue;
                     if (ProcessMetricFailure.Classify(exception, knownProcessId) is { } warning)
                         warnings.Add(warning);
                     if (ProcessMetricFailure.ClassifyStage(exception,knownProcessId,stage) is { } detail)
@@ -129,7 +162,7 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
         ServiceController[] controllers;
         try
         {
-            controllers = ServiceController.GetServices();
+            controllers = _readServices();
         }
         catch (Exception exception) when (
             exception is Win32Exception or InvalidOperationException or UnauthorizedAccessException)
@@ -204,12 +237,12 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
         return services.AsReadOnly();
     }
 
-    private double? UpdateProcessCpu(int processId, TimeSpan cpuTime, DateTimeOffset now)
+    private double? UpdateProcessCpu(int processId, TimeSpan cpuTime, DateTimeOffset now, ProcessCpuGeneration generation)
     {
         lock (_sync)
         {
             double? cpuPercent = null;
-            if (_previousProcesses.TryGetValue(processId, out var previous))
+            if (_previousProcesses.TryGetValue(processId, out var previous) && previous.Generation == generation)
             {
                 var elapsed = now - previous.CapturedAtUtc;
                 var cpuDelta = cpuTime - previous.CpuTime;
@@ -222,16 +255,19 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
                 }
             }
 
-            _previousProcesses[processId] = new ProcessObservation(cpuTime, now);
+            _previousProcesses[processId] = new ProcessObservation(cpuTime, now, generation);
             return cpuPercent;
         }
     }
 
-    private static string? TryGetExecutablePath(Process process, ICollection<string> warnings)
+    private static string? TryGetExecutablePath(IWindowsProcessSample process, ICollection<string> warnings)
     {
         try
         {
-            return process.MainModule?.FileName;
+            var path = process.ExecutablePath;
+            if (path is null && process.CounterCpuRecovered)
+                warnings.Add("some_executable_paths_unavailable");
+            return path;
         }
         catch (Exception exception) when (
             exception is Win32Exception or InvalidOperationException or NotSupportedException)
@@ -270,5 +306,5 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
         return value;
     }
 
-    private sealed record ProcessObservation(TimeSpan CpuTime, DateTimeOffset CapturedAtUtc);
+    private sealed record ProcessObservation(TimeSpan CpuTime, DateTimeOffset CapturedAtUtc, ProcessCpuGeneration Generation);
 }

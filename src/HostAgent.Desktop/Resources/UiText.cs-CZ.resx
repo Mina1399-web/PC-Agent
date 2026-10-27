@@ -1378,4 +1378,10 @@ Graf se zobrazí po získání uložených měření.</comment>
     <value>Obnovit seznam</value>
     <comment>Source (cs-CZ): Obnovit seznam</comment>
   </data>
+  <data xml:space="preserve" name="OptionalProcessIdentityUnavailable">
+    <value>Omezená identita některých procesů</value>
+  </data>
+  <data xml:space="preserve" name="ExactProcessIdentityUnavailable">
+    <value>Přesná identita některých procesů není dostupná; před zásahem je nutné ji samostatně ověřit.</value>
+  </data>
 </root>

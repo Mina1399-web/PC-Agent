@@ -59,6 +59,28 @@ Every collector receives a cancellation token and has a configured timeout. A co
 
 Expected SMART unavailability remains a partial disk capability result but does not by itself degrade overall agent health. Likewise, a process-services Partial result caused exclusively by unavailable optional executable paths preserves its capability reason without degrading overall health. The known .NET Idle pseudo-process (PID 0) CPU-metric limitation, identified only by exact PID 0 and native access-denied code 5, is not an operational collector failure. Access denial for any other or unknown PID, other native codes and non-native failures remain visible. Other missing disk data, process metrics, mixed/unknown warnings and required-collector failures remain degrading. The elevated local CLI `status --verbose` exposes only a bounded component list with stable health codes; ordinary `status` preserves its response shape.
 
+Process CPU access denial may be recovered through the fixed read-only Windows
+11 Process V2 performance counters, using validated counter types/statuses and
+a single PID/lifetime/CPU/working-set row. A recovered row supplies its own
+instance label and memory; it is not merged with another enumeration's process
+fields. CPU baselines bind PID, clock source and lifetime marker; missing data
+or a changed generation starts a new baseline. Unrecovered resource failures
+retain the degrading warnings above. A performance lifetime marker is never
+converted into an exact UTC process creation timestamp. For a counter-only
+row, StartedAtUtc and executable path remain unavailable and process actions
+requiring exact identity remain blocked. The explicit
+`process_identity_unavailable` capability warning is informational only when
+it is the sole process-services Partial reason apart from optional paths;
+`optional_process_identity_unavailable` and its explanation stay visible in
+the desktop. Any additional resource/service/unknown warning, failed/unavailable
+collector or system CPU/memory failure still degrades agent health. No extra
+privilege, debug right or change to process security is part of this recovery.
+If a process disappears during the read and its OS process state positively
+confirms exit, omit that ended process instead of declaring a collector fault.
+An access-denied or otherwise unknown exit state is not proof of exit and
+retains the failure warning. Per-process CPU rates use the metric observation
+time and reset across clock-source or process-generation changes.
+
 ## Local storage
 
 SQLite is local-only. Schema changes use ordered migrations recorded in a schema-version table. Raw telemetry rows are time-stamped independently of the sampling period. Store telemetry snapshots, baseline samples/statistics, incidents, incident snapshots, diagnostic evidence, append-oriented audit records, remediation attempts, and service health. Keep detailed metrics for at least 30 days, then preserve hourly and daily aggregates. Retention never removes audit rows. All SQL values use parameters. Database unavailability degrades health and disables remediation while read-only monitoring continues when possible.
