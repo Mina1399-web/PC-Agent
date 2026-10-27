@@ -150,6 +150,15 @@ monitor failure, minimum795.6 MiB/C:12.261 GiB, elapsed162.3s. Planned GUID
 d1d204c4fcaa4cc1bb1aca90cc522b27 was not created. This default plan does not
 claim protected configuration or database access available only with elevation.
 
+The GitHub specialist independently verified all 529 entries, no extra files,
+four byte-identical repository script copies, the exact product pin and the
+reviewed cleanup/linkage contracts. No artifact/source blocker was reported;
+this independent review did not execute the native gate. Preparation source,
+tests and this evidence were committed as
+54526de62e47b211fbf348406e3a6893f418e6d4. The bundle's recorded working-tree
+base and per-file hashes remain unchanged; no product binary was rebuilt after
+the installed pin was selected.
+
 Support additionally created a journal through the actual ApprovalIssuer,
 SqliteHelperJournal and HelperDispatcher on private temporary data, replacing
 only IOperationExecutor with a no-op boundary. One execution returned Succeeded;
