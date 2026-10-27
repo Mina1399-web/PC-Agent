@@ -140,3 +140,87 @@ Primary API references: [Process V2 and CPU normalization](https://learn.microso
 [raw array contract](https://learn.microsoft.com/en-us/windows/win32/api/pdh/nf-pdh-pdhgetrawcounterarrayw),
 [raw status/type handling](https://learn.microsoft.com/en-us/windows/win32/perfctrs/displaying-performance-data),
 [elapsed counter semantics](https://learn.microsoft.com/en-us/previous-versions/ms938598%28v%3Dmsdn.10%29).
+
+## DEV package and operator handoff — fresh follow-up
+
+Source fix commit: `584020ff7e184a276886aad757f7a9d9eb53190e`, pushed by
+fast-forward to `codex/desktop-localization`. The original working tree still
+contains only the preserved historical final-acceptance-2026-10-25.md edit.
+The package was built from a separate clean local DEV clone at exactly that
+commit, without resetting or including the preserved edit.
+
+Guarded `tools/Build-Release.ps1 -DevVm -Version 1.2.10` with the verified
+10.0.401 SDK and WiX5.0.2 succeeded. The normal build includes artifact-only
+MSI table validation and complete release file validation; no MSI execution.
+Receipt `degraded-1-2-10-dev-package-build-da0e0a78c91c4f25aaed9ab7c22d9d90`:
+exit0, no monitor failure, 164.3s, min1042.3MiB RAM and10.118GiB disk.
+
+Private DEV package:
+`HostAgent-DEV-releases/HostAgent-1.2.10-dev-584020f-r1`.
+
+- Manifest1241 files, total543415513 bytes,
+  SHA256 `0E3B9CC4BC61A1F18B5787891D669528B5A5CBE7533484AC3E9E3A09C6AC0748`.
+- MSI103195628 bytes,
+  SHA256 `81B454E84009136858D1CE4A0B244D03C28B867DAFC49465CBB02CF89B556477`.
+- ZIP SHA256
+  `F828353376B870200CBB9F29057550AF45163812FDEF970BC0E5D774CD2AB96B`.
+
+Only standard NTFS compression was used to obtain installation headroom:
+3067 older DEV binary files, 533 new candidate binary files and1256 binary
+files in private ZIP-extraction fixtures. Every affected file's SHA256,
+logical length and ACL was compared before/after and preserved. No file was
+deleted, no database/SDK/installed product/source was compressed, and no WOF
+or reparse compression was used. Guard receipts respectively:
+`degraded-preserve-dev-artifact-headroom-2e76be2661ba428d9db3688226a8778d`,
+`degraded-preserve-candidate-headroom-ed38888083684f7a96ab5bca457359b9`,
+`degraded-preserve-extraction-fixtures-headroom-f0a054cb80384a558939da4facd573b8`.
+All exit0, no monitor failure; free disk increased from10.118 to11.370GiB.
+Individual preservation inventories are private evidence, not release assets.
+
+The external handoff `HostAgent-DEV-releases/HostAgent-1.2.10-DEV-handoff`
+contains a read-only-by-default entry point, filtered authenticated View
+reader and unchanged protected configuration loader. Its manifest SHA256 is
+`0B70E77814390B271CD8A7DB88FC7D57B6D894E8F609AD127F96FBD30C89053E`.
+The entry point verifies exact old/new package identities, installed payload,
+VM, account, resources and fixed service accounts/paths. Only explicit
+operator `-Execute` invokes the existing standard DEV MSI installer. It never
+configures a new mode, changes permissions, retries MSI, initiates a reboot,
+or kills the MSI on a watchdog deadline. Configuration bytes and protected
+configuration ACLs are checked before/after; settings/targets are preserved.
+Only its own read-only View child can be cancelled by its bounded monitor.
+
+Acceptance requires two distinct actual `Cpu.AtUtc` samples strictly newer
+than the post-install anchor, fresh valid CPU/memory, required health
+components and no degrading health. It keeps optional identity/SMART reasons
+visible and does not suppress genuine failures. The wait limit is derived
+from the unchanged collection interval: max180s or2*interval+120s (at the
+supported3600s interval,7320s), not a600s cap that makes that interval fail.
+Normal60s interval gives240s. No raw overview/process payload or database is
+stored/opened by this handoff.
+
+Fresh handoff verification:
+
+- Guarded live read-only filtered View reader:
+  `degraded-handoff-readonly-health-filter-f3bafd7b57084b1fa4f175348ca3c5fe`:
+  exit0, actual ISO metric timestamps, existing1.2.9 degraded reasons preserved.
+- Pure handoff syntax/parsing/acceptance validation20/20, no native actions:
+  `degraded-handoff-final-pure-validation-65b2bfd0f47042dea3b462e904d62e1b`.
+  Includes missing/stale/future/pre-update/nonfinite metrics, missing/duplicate
+  components, mode/degrading errors and long interval bounds.
+- Final read-only preflight:
+  `degraded-final-dev-update-readonly-preflight-7990069dc86d45899f3e9c530fd66e7d`:
+  `READ_ONLY_PACKAGE_AND_BASELINE_PASS_ADMIN_UPDATE_PENDING`, exit0,
+  71.6s, min1164.0MiB RAM,11.370GiB disk against11.012GiB conservative
+  installation reserve,1141 current1.2.9 critical files verified. HostAgent
+  PID2360 and helperPID6780 remained Running; Confirmation/readOnly=false,
+  kill switch=false, installed degraded=true with the known access reasons.
+- Independent specialist static review verified all3 handoff lengths/hashes,
+  corrected long-interval deadline and post-MSI protected ACL checks. No
+  remaining static blocker reported. This is not an installed runtime PASS.
+
+**Installed1.2.10 update and two-new-sample service-token health acceptance:
+NOT RUN, operator elevation required.** The agent did not elevate, execute an
+MSI, control services, change configuration or open the installed databases.
+The successful source build746/746 suite and package checks do not relabel
+the still-installed1.2.9 degradation. Published1.2.8 tag/assets, SignPath and
+production host remain outside this change.
