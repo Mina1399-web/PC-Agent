@@ -49,10 +49,10 @@ public sealed class DashboardUiTests
                         _=>AdminProtocol.Reply(false,"view_unavailable")
                     });
                 });
-                window=new MainWindow(controller);window.Show();
+                window=new MainWindow(controller,TestLocalization.Czech());window.Show();
                 PumpUntil(()=>((TextBlock)window.FindName("CpuText")).Text.Contains("42"));
                 Assert.Contains("64",((TextBlock)window.FindName("MemoryText")).Text);
-                Assert.Equal("2 h 00 m",((TextBlock)window.FindName("UptimeText")).Text);
+                Assert.Equal("2 h 00 min",((TextBlock)window.FindName("UptimeText")).Text);
                 Assert.Equal(Color.FromRgb(0x14,0x24,0x3B),((SolidColorBrush)((TextBlock)window.FindName("CpuText")).Foreground).Color);
                 Assert.False(((Button)window.FindName("OperationButton")).IsEnabled);
                 Assert.Contains("Shadow",((TextBlock)window.FindName("OperationHintText")).Text);

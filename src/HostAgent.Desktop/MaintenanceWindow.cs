@@ -23,27 +23,33 @@ internal sealed class MaintenanceWindow : Window
     private readonly TextBlock _status = new() { Name = "MaintenanceStatus", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 10) };
     private readonly TextBlock _previewInfo = new() { Name = "MaintenancePreviewInfo", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 8) };
     private MaintenancePreview? _preview;
+    private readonly DesktopLocalization _language;
+    private readonly System.Collections.Generic.List<(DataGridColumn Column,string Source)> _columns=[];
+    private Func<string>? _statusText, _previewText;
+    private string T(string source,params object?[] args)=>_language.Text(source,args);
+    private void SetStatus(Func<string> text){_statusText=text;_status.Text=text();}
     internal MaintenancePreview? CurrentPreview => _preview;
 
     internal MaintenanceWindow(DashboardController controller) : this(controller, null) { }
 
-    internal MaintenanceWindow(DashboardController controller, UserMaintenance? maintenance)
+    internal MaintenanceWindow(DashboardController controller, UserMaintenance? maintenance, DesktopLocalization? language=null)
     {
+        _language=language??DesktopLocalization.ForCurrentUser();
         NameScope.SetNameScope(this, new NameScope());
         _controller = controller;
         _maintenance = maintenance ?? UserMaintenance.CreateForCurrentUser(ReadFreshStateAsync);
-        Title = "Host Agent • Bezpečná údržba";
+        Title = "HostAgentSafeMaintenance";
         Width = 960; Height = 800; MinWidth = 760; MinHeight = 640;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
-        AddTextColumn(_previewGrid, "Název", nameof(MaintenanceItem.Name), 290);
-        AddTextColumn(_previewGrid, "Velikost", nameof(MaintenanceItem.Bytes), 110);
-        AddTextColumn(_previewGrid, "Změněno", nameof(MaintenanceItem.ModifiedAtUtc), 220);
+        AddTextColumn(_previewGrid, "Name", nameof(MaintenanceItem.Name), 290);
+        AddTextColumn(_previewGrid, "Size", nameof(MaintenanceItem.Bytes), 110);
+        AddTextColumn(_previewGrid, "Modified", nameof(MaintenanceItem.ModifiedAtUtc), 220);
         AddTextColumn(_previewGrid, "SHA-256", nameof(MaintenanceItem.Sha256), 270);
-        AddTextColumn(_entriesGrid, "Název", nameof(QuarantineItem.Name), 260);
-        AddTextColumn(_entriesGrid, "Velikost", nameof(QuarantineItem.Bytes), 110);
-        AddTextColumn(_entriesGrid, "Stav", nameof(QuarantineItem.State), 150);
-        AddTextColumn(_entriesGrid, "ID obnovení", nameof(QuarantineItem.Id), 310);
+        AddTextColumn(_entriesGrid, "Name", nameof(QuarantineItem.Name), 260);
+        AddTextColumn(_entriesGrid, "Size", nameof(QuarantineItem.Bytes), 110);
+        AddTextColumn(_entriesGrid, "Status", nameof(QuarantineItem.State), 150);
+        AddTextColumn(_entriesGrid, "RestoreID", nameof(QuarantineItem.Id), 310);
         RegisterName("MaintenancePreviewGrid", _previewGrid);
         RegisterName("MaintenanceEntriesGrid", _entriesGrid);
         RegisterName("MaintenanceApproval", _confirmation);
@@ -52,35 +58,35 @@ internal sealed class MaintenanceWindow : Window
         RegisterName("MaintenancePreviewInfo", _previewInfo);
 
         var content = new StackPanel { Margin = new Thickness(22) };
-        content.Children.Add(new TextBlock { Text = "Dočasné soubory", FontSize = 24, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 10) });
+        content.Children.Add(new TextBlock { Text = "TemporaryFiles", FontSize = 24, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 10) });
         content.Children.Add(new TextBlock
         {
-            Text = "Náhled prohledá pouze soubory přímo v dočasné složce tohoto účtu. Zahrne běžné soubory starší 7 dnů do 16 MiB; maximálně 100 souborů. Přesun do karantény neuvolní místo. Soubory se nemažou automaticky a lze je ručně obnovit, pokud původní cesta zůstala volná.",
+            Text = "ThePreviewScansOnlyFilesDirectlyInThisAccountSTemporaryFolderItInclu",
             TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 12)
         });
-        var previewButton = new Button { Name = "MaintenancePreviewButton", Content = "Vytvořit bezpečný náhled", HorizontalAlignment = HorizontalAlignment.Left };
+        var previewButton = new Button { Name = "MaintenancePreviewButton", Content = "CreateSafePreview", HorizontalAlignment = HorizontalAlignment.Left };
         RegisterName("MaintenancePreviewButton", previewButton);
         previewButton.Click += async (_, _) => await PreviewAsync();
         content.Children.Add(previewButton);
         content.Children.Add(_previewInfo);
         content.Children.Add(_previewGrid);
-        content.Children.Add(new TextBlock { Text = "Schválení přesně pro tento náhled", FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 12, 0, 4) });
-        content.Children.Add(new TextBlock { Text = "Zkopírujte ID náhledu uvedené výše. Každá dávka vyžaduje nový náhled a přesné ID.", TextWrapping = TextWrapping.Wrap });
+        content.Children.Add(new TextBlock { Text = "ApprovalForThisExactPreview", FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 12, 0, 4) });
+        content.Children.Add(new TextBlock { Text = "CopyThePreviewIDShownAboveEachBatchRequiresANewPreviewAndItsExactID", TextWrapping = TextWrapping.Wrap });
         content.Children.Add(_confirmation);
-        var quarantineButton = new Button { Name = "MaintenanceQuarantineButton", Content = "Přesunout všechny soubory z náhledu do karantény", HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 8, 0, 4) };
+        var quarantineButton = new Button { Name = "MaintenanceQuarantineButton", Content = "MoveAllPreviewedFilesToQuarantine", HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 8, 0, 4) };
         RegisterName("MaintenanceQuarantineButton", quarantineButton);
         quarantineButton.Click += async (_, _) => await QuarantineAsync();
         content.Children.Add(quarantineButton);
 
-        content.Children.Add(new TextBlock { Text = "Karanténa a obnovení", FontSize = 19, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 20, 0, 8) });
-        var listButton = new Button { Name = "MaintenanceListButton", Content = "Obnovit seznam", HorizontalAlignment = HorizontalAlignment.Left };
+        content.Children.Add(new TextBlock { Text = "QuarantineAndRestore", FontSize = 19, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 20, 0, 8) });
+        var listButton = new Button { Name = "MaintenanceListButton", Content = "RefreshList", HorizontalAlignment = HorizontalAlignment.Left };
         RegisterName("MaintenanceListButton", listButton);
         listButton.Click += async (_, _) => await RefreshListAsync();
         content.Children.Add(listButton);
         content.Children.Add(_entriesGrid);
-        content.Children.Add(new TextBlock { Text = "Zadejte přesné ID obnovení vybraného záznamu", FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 8, 0, 4) });
+        content.Children.Add(new TextBlock { Text = "EnterTheExactRestoreIDOfTheSelectedRecord", FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 8, 0, 4) });
         content.Children.Add(_restoreConfirmation);
-        var restoreButton = new Button { Name = "MaintenanceRestoreButton", Content = "Obnovit bez přepsání existujícího souboru", HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 8, 0, 4) };
+        var restoreButton = new Button { Name = "MaintenanceRestoreButton", Content = "RestoreWithoutOverwritingAnExistingFile", HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 8, 0, 4) };
         RegisterName("MaintenanceRestoreButton", restoreButton);
         restoreButton.Click += async (_, _) => await RestoreAsync();
         content.Children.Add(restoreButton);
@@ -89,8 +95,22 @@ internal sealed class MaintenanceWindow : Window
         var scroll = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Content = content };
         Content = scroll;
         _entriesGrid.SelectionChanged += (_, _) => _restoreConfirmation.Clear();
-        Closed += (_, _) => _closing.Cancel();
+        _language.Apply(this);_language.BindStaticText(this);
+        System.Windows.Automation.AutomationProperties.SetName(_confirmation,T("ApprovalForThisExactPreview"));
+        System.Windows.Automation.AutomationProperties.SetName(_restoreConfirmation,T("EnterTheExactRestoreIDOfTheSelectedRecord"));
+        _language.Changed+=LanguageChanged;
+        Closed += (_, _) => {_language.Changed-=LanguageChanged;_closing.Cancel();};
         Loaded += async (_, _) => await RefreshListAsync();
+    }
+    private void LanguageChanged(object? sender,EventArgs e)
+    {
+        _language.Apply(this);
+        foreach(var (column,source) in _columns)column.Header=source=="SHA-256"?source:T(source);
+        if(_statusText is not null)_status.Text=_statusText();
+        if(_previewText is not null)_previewInfo.Text=_previewText();
+        System.Windows.Automation.AutomationProperties.SetName(_confirmation,T("ApprovalForThisExactPreview"));
+        System.Windows.Automation.AutomationProperties.SetName(_restoreConfirmation,T("EnterTheExactRestoreIDOfTheSelectedRecord"));
+        _previewGrid.Items.Refresh();_entriesGrid.Items.Refresh();
     }
 
     private async ValueTask<DashboardSnapshot?> ReadFreshStateAsync(CancellationToken token)
@@ -106,50 +126,60 @@ internal sealed class MaintenanceWindow : Window
             _preview = await _maintenance.PreviewAsync(_closing.Token);
             _previewGrid.ItemsSource = _preview.Items;
             _confirmation.Clear();
-            _previewInfo.Text = $"Stav: {_preview.Code}. Vybráno {_preview.Items.Count}, přeskočeno {_preview.Skipped}{(_preview.Truncated ? ", dosažen limit náhledu" : "")}. ID náhledu: {_preview.Id}. Platnost do: {_preview.ExpiresAtUtc.ToLocalTime():g}.";
-            _status.Text = _preview.Items.Count == 0 ? "Nebyly nalezeny vhodné soubory. Náhled nic nemění." : "Náhled nic nezměnil. Před přesunem zkontrolujte každý uvedený soubor.";
+            var preview=_preview;
+            _previewText=()=>T("StatusSelectedSkippedPreviewIDValidUntil",TechnicalText.Format(preview.Code,_language.Culture,true),preview.Items.Count,preview.Skipped,(preview.Truncated ? T("PreviewLimitReached") : ""),preview.Id,preview.ExpiresAtUtc.ToLocalTime());
+            _previewInfo.Text=_previewText();
+            SetStatus(() => preview.Items.Count == 0 ? T("NoEligibleFilesWereFoundThePreviewMakesNoChanges") : T("ThePreviewMadeNoChangesReviewEveryListedFileBeforeMovingIt"));
         }
         catch (OperationCanceledException) when (_closing.IsCancellationRequested) { }
-        catch { _status.Text = "Náhled se nepodařilo vytvořit. Soubory nebyly změněny."; }
+        catch { SetStatus(() => T("CouldNotCreateThePreviewFilesWereNotChanged")); }
     }
 
     private async Task QuarantineAsync()
     {
-        if (_preview is null) { _status.Text = "Nejprve vytvořte aktuální náhled."; return; }
+        if (_preview is null) { SetStatus(() => T("FirstCreateACurrentPreview")); return; }
         try
         {
             var result = await _maintenance.QuarantineAsync(_preview.Id, _confirmation.Text, _closing.Token);
-            _status.Text = $"Výsledek: {result.Code}. Přesunuto {result.Moved}, přeskočeno {result.Skipped}, celkem {result.Bytes} bajtů. Záznamy vyžadující obnovu: {result.JournalWarnings}. Karanténa neuvolňuje místo.";
+            SetStatus(() => T("ResultMovedSkippedTotalBytesRecordsRequiringRecoveryQuarantineDoesNo",TechnicalText.Format(result.Code,_language.Culture,true),result.Moved,result.Skipped,result.Bytes,result.JournalWarnings));
             _preview = null;
             _confirmation.Clear();
             await RefreshListAsync();
         }
         catch (OperationCanceledException) when (_closing.IsCancellationRequested) { }
-        catch { _status.Text = "Požadovaný přesun se nepodařilo dokončit. Znovu načtěte náhled a stav služby."; }
+        catch { SetStatus(() => T("CouldNotCompleteTheRequestedMoveReloadThePreviewAndServiceStatus")); }
     }
 
     private async Task RefreshListAsync()
     {
         try { _entriesGrid.ItemsSource = await _maintenance.ListAsync(_closing.Token); }
         catch (OperationCanceledException) when (_closing.IsCancellationRequested) { }
-        catch { _status.Text = "Seznam karantény není dostupný nebo jeho záznamy vyžadují kontrolu."; }
+        catch { SetStatus(() => T("TheQuarantineListIsUnavailableOrItsRecordsRequireReview")); }
     }
 
     private async Task RestoreAsync()
     {
-        if (_entriesGrid.SelectedItem is not QuarantineItem item) { _status.Text = "Vyberte položku z karantény."; return; }
+        if (_entriesGrid.SelectedItem is not QuarantineItem item) { SetStatus(() => T("SelectAnItemInQuarantine")); return; }
         try
         {
             var result = await _maintenance.RestoreAsync(item.Id, _restoreConfirmation.Text, _closing.Token);
-            _status.Text = $"Výsledek obnovení: {result.Code}. Obnoveno {result.Moved}, velikost {result.Bytes} bajtů. Existující soubor se nepřepisuje.";
+            SetStatus(() => T("RestoreResultRestoredSizeBytesExistingFilesAreNotOverwritten",TechnicalText.Format(result.Code,_language.Culture,true),result.Moved,result.Bytes));
             await RefreshListAsync();
         }
         catch (OperationCanceledException) when (_closing.IsCancellationRequested) { }
-        catch { _status.Text = "Obnovení se nepodařilo. Znovu načtěte seznam a ověřte cílovou cestu."; }
+        catch { SetStatus(() => T("CouldNotRestoreTheFileReloadTheListAndCheckTheDestinationPath")); }
     }
 
-    private static void AddTextColumn(DataGrid grid, string title, string property, double width)
-        => grid.Columns.Add(new DataGridTextColumn { Header = title, Binding = new Binding(property), Width = new DataGridLength(width) });
+    private void AddTextColumn(DataGrid grid, string title, string property, double width)
+    {
+        var binding=new Binding(property);
+        if(property==nameof(MaintenanceItem.ModifiedAtUtc))binding.StringFormat="g";
+        if(property==nameof(MaintenanceItem.Bytes))binding.Converter=new ByteSizeConverter();
+        if(property==nameof(QuarantineItem.State))binding.Converter=new TechnicalTextConverter();
+        if(grid==_entriesGrid&&property==nameof(QuarantineItem.Name)){binding=new Binding{Converter=new MaintenanceNameConverter()};}
+        var column=new DataGridTextColumn{Header=title=="SHA-256"?title:T(title),Binding=binding,Width=new DataGridLength(width)};
+        _columns.Add((column,title));grid.Columns.Add(column);
+    }
 
     private void RegisterName(string name, FrameworkElement element) => RegisterName(name, (object)element);
 }

@@ -11,6 +11,31 @@ namespace HostAgent.Desktop.Tests;
 
 public sealed class DashboardInteractionTests
 {
+    [Fact]
+    public Task Language_switch_during_an_inflight_refresh_preserves_selection_and_operation_identity()=>WithWindow((window,view)=>
+    {
+        var grid=(DataGrid)window.FindName("ProcessGrid");grid.SelectedIndex=0;
+        view.PendingOverview=new TaskCompletionSource<byte[]>();
+        try
+        {
+            Refresh(window);PumpUntil(()=>view.OverviewDelayed);
+            window.Localization.SelectLanguage("de");Drain();
+            Assert.IsType<ViewProcess>(grid.SelectedItem);
+            Assert.Equal("42",((TextBox)window.FindName("PidInput")).Text);
+            Assert.Equal("100",((TextBox)window.FindName("TicksInput")).Text);
+        }
+        finally{view.PendingOverview.SetResult(AdminProtocol.Reply(true,"overview",view.Snapshot));Drain();}
+    });
+
+    [Fact]
+    public Task Language_choice_is_available_to_keyboard_and_accessibility_clients() => WithWindow((window, _) =>
+    {
+        var choice = Assert.IsType<ComboBox>(window.FindName("LanguageChoice"));
+        Assert.True(choice.Focusable);
+        Assert.False(string.IsNullOrWhiteSpace(System.Windows.Automation.AutomationProperties.GetName(choice)));
+        Assert.Equal(3, choice.Items.Count);
+    });
+
     [Theory]
     [InlineData(-31, -14, 4)]
     [InlineData(-29, -1, 2)]
@@ -108,7 +133,7 @@ public sealed class DashboardInteractionTests
         try
         {
             var view = new FakeView();
-            window = new MainWindow(new DashboardController(view.Send));
+            window = new MainWindow(new DashboardController(view.Send),TestLocalization.Czech());
             window.Show();
             PumpUntil(() => ((TextBlock)window.FindName("CpuText")).Text.Contains("42"));
             check(window, view);
@@ -143,6 +168,8 @@ public sealed class DashboardInteractionTests
         public bool DelayDetails { get; set; }
         public ViewMetric[] History { get; set; } = [];
         public List<TaskCompletionSource<byte[]>> Details { get; } = [];
+        public TaskCompletionSource<byte[]>? PendingOverview {get;set;}
+        public bool OverviewDelayed {get;private set;}
 
         public FakeView()
         {
@@ -154,6 +181,7 @@ public sealed class DashboardInteractionTests
         public ValueTask<byte[]> Send(byte[] bytes, CancellationToken token)
         {
             var request = ViewProtocol.Parse(bytes);
+            if(request.Command=="overview"&&PendingOverview is not null){OverviewDelayed=true;return new(PendingOverview.Task);}
             if (request.Command == "incident" && DelayDetails)
             {
                 var pending = new TaskCompletionSource<byte[]>();
