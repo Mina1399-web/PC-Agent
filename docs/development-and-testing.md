@@ -59,6 +59,14 @@ dotnet test HostAgent.sln --configuration Release
 
 Task-specific work should also run its focused filters first, recording the exact command, exit code, test count, and failures. A successful build establishes compilation only; it does not establish runtime or behavioral verification. Use an approved Windows test runner that actually loads and executes the built assemblies.
 
+The installed-database schema integration test creates only disposable databases
+through the three actual product stores and invokes the diagnostic's read-only
+SQLite probe on those fixtures. It needs Python with SQLite support. The DEV
+operator's pinned Python is used when available; a private test process can
+resolve `python.exe` from PATH on another approved Windows developer/CI machine.
+This test-only fallback does not alter the installed operator tool's path/hash
+pin or authorize SQLite access to installed source databases.
+
 ### Explicit live-network test opt-in
 
 The Windows network collector integration test inspects real adapter metadata

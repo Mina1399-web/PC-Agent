@@ -3,6 +3,9 @@ using HostAgent.Infrastructure.Administration;
 using HostAgent.Infrastructure.Dashboard;
 using System.Text.Json;
 
+if (args.Length > 0 && args[0] == "installed-acceptance-view")
+    return await InstalledActionViewProbe.RunAsync(args);
+
 if (args.Length > 0 && args[0] == "isolated-complete-storage")
     return await CompleteStorageProbe.RunAsync(args);
 if (args.Length > 0 && args[0] == "isolated-complete-soak")
