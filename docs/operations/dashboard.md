@@ -12,6 +12,14 @@ rozhraním `HostAgent.View.v1`; starší služba zobrazí nedostupnost, nikoli
 vymyšlené hodnoty. X ukončí přehled; tlačítko Skrýt do lišty jej nechá běžet.
 Ukončení přehledu nezastaví monitorovací služby.
 
+V nové vývojové verzi lze tlačítkem **Vybrat složku pro údržbu** otevřít také
+vlastní místní složku. V tomto výslovně vybraném rozsahu není podmínka stáří,
+limit jednoho souboru je 1 GiB a limit karantény 10 GiB. Kontrolují se pouze
+soubory přímo ve složce; systémové cesty, odkazy, nepovolená oprávnění a
+zamčené soubory zůstávají vyloučené. Výchozí náhled Temp má původní limity.
+Podmínky a nevratné mazání popisuje [rozšířená údržba](expanded-maintenance.md).
+Tato funkce vyžaduje nově sestavený dashboard; změna režimu služby ji sama
+nepřidá do staršího MSI.
 Přehled obnovuje data po 15 sekundách. Aktuální metriky starší než tři minuty
 nejsou aktuální stav. Diskové kapacity, deset největších spotřebitelů RAM,
 počet aktivních adaptérů a health kódy neodvozují úspěšné připojení k internetu
@@ -49,7 +57,7 @@ identifikátor a nikdy nepřepisuje soubor, který mezitím vznikl na původním
 místě. Nedostupné, změněné, zamčené nebo nepodporované položky se přeskočí.
 
 Karanténa soubory **nesmaže a neuvolní místo**; data zůstávají obnovitelná.
-Není nastavena automatická ani trvalá likvidace. Ručně kontrolujte obsah a
+Automatická likvidace není zapnutá. Nová ruční funkce dovoluje trvale smazat jeden vybraný soubor z karantény po zadání DELETE, mezery a přesného ID. Tuto operaci nelze vrátit. Ručně kontrolujte obsah a
 obnovujte jen položky, kterým rozumíte. Přehled ani nástroj nemaže jiné
 soubory, neprochází podadresáře a nepřijímá zadané cesty. Režim Shadow,
 read-only, kill switch, zastaralý nebo nedostupný stav a zvýšený token vždy

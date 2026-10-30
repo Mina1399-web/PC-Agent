@@ -1401,4 +1401,17 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data xml:space="preserve" name="SomeServiceStartModesUnavailable"><value>Způsob spouštění některých služeb není dostupný.</value></data>
   <data xml:space="preserve" name="SomeServiceStatesUnavailable"><value>Aktuální stav některých služeb není dostupný.</value></data>
   <data xml:space="preserve" name="AdditionalReportedReason"><value>Další hlášený důvod: {0}</value></data>
+  <data xml:space="preserve" name="DeleteSelectedQuarantineFile"><value>Trvale smazat vybraný soubor z karantény</value></data>
+  <data xml:space="preserve" name="ChooseMaintenanceFolder"><value>Vybrat složku pro údržbu</value></data>
+  <data xml:space="preserve" name="PermanentDeleteResult"><value>Výsledek mazání: {0}; smazáno: {1}; bajtů: {2}.</value></data>
+  <data xml:space="preserve" name="PermanentQuarantineDeletion"><value>Trvalé smazání nelze vrátit. Vyberte jeden soubor v karanténě, ověřte jeho název a velikost a napište DELETE, mezeru a jeho přesné ID obnovy.</value></data>
+  <data xml:space="preserve" name="QuarantineDeleteFailed"><value>Mazání selhalo. Před dalším pokusem obnovte seznam karantény a zkontrolujte jeho stav.</value></data>
+  <data xml:space="preserve" name="SelectedFolderMaintenanceScope"><value>Vybraná složka: pouze soubory přímo v ní, bez omezení stáří, do 1 GiB na soubor a 10 GiB v karanténě. Zkontrolujte každý soubor. Obnova je možná, dokud soubor zůstává v karanténě.</value></data>
+  <data xml:space="preserve" name="SelectedFolderUnavailable"><value>Složka je nedostupná nebo chráněná. Vyberte vlastní místní složku na stejném svazku jako uživatelský profil.</value></data>
+  <data xml:space="preserve" name="ReadSmartPrediction"><value>Přečíst SMART predikci selhání</value></data>
+  <data xml:space="preserve" name="SmartDeviceUnavailable"><value>{0}: SMART predikce není dostupná.</value></data>
+  <data xml:space="preserve" name="SmartFailurePredicted"><value>{0}: disk předpovídá selhání. Zálohujte důležitá data a prověřte fyzický disk.</value></data>
+  <data xml:space="preserve" name="SmartNoFailurePredicted"><value>{0}: toto rozhraní nepředpovídá selhání. Nejde o úplnou kontrolu zdraví hardwaru.</value></data>
+  <data xml:space="preserve" name="SmartNotRead"><value>SMART zatím nebyl v tomto okně dotázán.</value></data>
+  <data xml:space="preserve" name="SmartPredictionUnavailable"><value>SMART predikce není pro tento disk, ovladač nebo účet dostupná. Zdraví disku tím není ověřené.</value></data>
 </root>

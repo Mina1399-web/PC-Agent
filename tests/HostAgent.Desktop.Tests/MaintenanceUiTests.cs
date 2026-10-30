@@ -14,6 +14,39 @@ namespace HostAgent.Desktop.Tests;
 public sealed class MaintenanceUiTests
 {
     [Fact]
+    public async Task Permanent_delete_screen_requires_DELETE_and_exact_selected_entry()
+    {
+        using var fixture = new Fixture();
+        var original = fixture.File("synthetic-delete.tmp", "disposable UI fixture");
+        await RunSta(() =>
+        {
+            var window = new MaintenanceWindow(Controller(Snapshot("Confirmation")), fixture.Service("Confirmation"), TestLocalization.Czech());
+            try
+            {
+                window.Show(); Click(window, "MaintenancePreviewButton");
+                PumpUntil(() => window.CurrentPreview is { Items.Count: 1 });
+                ((TextBox)window.FindName("MaintenanceApproval")).Text = window.CurrentPreview!.Id;
+                Click(window, "MaintenanceQuarantineButton");
+                var grid = (DataGrid)window.FindName("MaintenanceEntriesGrid");
+                PumpUntil(() => grid.Items.Count == 1);
+                grid.SelectedIndex = 0;
+                var entry = (QuarantineItem)grid.SelectedItem;
+                var approval = (TextBox)window.FindName("MaintenanceDeleteApproval");
+                approval.Text = entry.Id;
+                Click(window, "MaintenanceDeleteButton");
+                PumpUntil(() => ((TextBlock)window.FindName("MaintenanceStatus")).Text.Contains("maintenance_confirmation_required"));
+                Assert.Equal("Quarantined", ((QuarantineItem)grid.Items[0]).State);
+                approval.Text = "DELETE " + entry.Id;
+                Click(window, "MaintenanceDeleteButton");
+                PumpUntil(() => grid.Items.Count == 1 && ((QuarantineItem)grid.Items[0]).State == "Deleted");
+                Assert.False(File.Exists(original));
+                Assert.Contains("delete_complete", ((TextBlock)window.FindName("MaintenanceStatus")).Text);
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    [Fact]
     public async Task Switching_a_loaded_preview_preserves_exact_approval_and_does_not_repeat_the_preview()
     {
         using var fixture=new Fixture();
@@ -122,7 +155,12 @@ public sealed class MaintenanceUiTests
         null, null, null, [], [], [], null, [], [], [], []);
 
     private static void Click(Window window, string name)
-        => ((Button)window.FindName(name)).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+    {
+        var button = (Button)window.FindName(name);
+        PumpUntil(() => button.IsEnabled);
+        button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        PumpUntil(() => button.IsEnabled);
+    }
 
     private static Task RunSta(Action action) => StaTest.RunAsync(action);
 

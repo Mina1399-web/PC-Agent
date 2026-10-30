@@ -8,6 +8,63 @@ namespace HostAgent.Infrastructure.Tests;
 
 public sealed class UserMaintenanceTests
 {
+    [Fact]
+    public async Task Selected_directory_preview_includes_recent_large_files_without_changing_them()
+    {
+        using var fixture = new Fixture();
+        var path = fixture.SizedFile("selected.tmp", 17 * 1024 * 1024);
+        System.IO.File.SetLastWriteTimeUtc(path, DateTime.UtcNow);
+        var service = new UserMaintenance(fixture.Source, fixture.Quarantine, TimeProvider.System,
+            _ => ValueTask.FromResult<DashboardSnapshot?>(null), selectedDirectory: true);
+        Assert.Single((await service.PreviewAsync()).Items);
+        Assert.True(System.IO.File.Exists(path));
+        Assert.False(Directory.Exists(fixture.Quarantine));
+    }
+
+    [Fact]
+    public async Task Permanent_delete_requires_separate_confirmation_and_retains_audit()
+    {
+        using var fixture = new Fixture();
+        var path = fixture.File("old.tmp", "disposable fixture", 9);
+        var preview = await fixture.Service.PreviewAsync();
+        Assert.Equal(1, (await fixture.Service.QuarantineAsync(preview.Id, preview.Id)).Moved);
+        var entry = Assert.Single(await fixture.Service.ListAsync());
+        Assert.Equal("maintenance_confirmation_required", (await fixture.Service.DeleteQuarantinedAsync(entry.Id, entry.Id)).Code);
+        Assert.Equal("Quarantined", Assert.Single(await fixture.Service.ListAsync()).State);
+        Assert.Equal("delete_complete", (await fixture.Service.DeleteQuarantinedAsync(entry.Id, "DELETE " + entry.Id)).Code);
+        Assert.False(System.IO.File.Exists(path));
+        Assert.False(System.IO.File.Exists(Path.Combine(fixture.Quarantine, entry.Id + ".payload")));
+        Assert.Equal("Deleted", Assert.Single(await fixture.Service.ListAsync()).State);
+        Assert.Equal("maintenance_entry_unavailable", (await fixture.Service.RestoreAsync(entry.Id, entry.Id)).Code);
+    }
+
+    [Fact]
+    public async Task Permanent_delete_refuses_shadow_and_changed_payload()
+    {
+        using var fixture = new Fixture();
+        fixture.File("old.tmp", "original", 9);
+        var preview = await fixture.Service.PreviewAsync();
+        await fixture.Service.QuarantineAsync(preview.Id, preview.Id);
+        var entry = Assert.Single(await fixture.Service.ListAsync());
+        Assert.Equal("maintenance_not_approved", (await fixture.NewService("Shadow").DeleteQuarantinedAsync(entry.Id, "DELETE " + entry.Id)).Code);
+        System.IO.File.WriteAllText(Path.Combine(fixture.Quarantine, entry.Id + ".payload"), "tampered");
+        Assert.Equal("maintenance_payload_changed", (await fixture.Service.DeleteQuarantinedAsync(entry.Id, "DELETE " + entry.Id)).Code);
+        Assert.True(System.IO.File.Exists(Path.Combine(fixture.Quarantine, entry.Id + ".payload")));
+    }
+
+    [Fact]
+    public async Task Permanent_delete_stops_before_native_boundary_when_journal_cannot_be_written()
+    {
+        using var fixture = new Fixture();
+        fixture.File("old.tmp", "original", 9);
+        var preview = await fixture.Service.PreviewAsync();
+        await fixture.Service.QuarantineAsync(preview.Id, preview.Id);
+        var entry = Assert.Single(await fixture.Service.ListAsync());
+        var service = fixture.NewService("Confirmation", rejectJournalState: state => state == "DeleteIntent");
+        await Assert.ThrowsAsync<IOException>(async () => await service.DeleteQuarantinedAsync(entry.Id, "DELETE " + entry.Id));
+        Assert.True(System.IO.File.Exists(Path.Combine(fixture.Quarantine, entry.Id + ".payload")));
+    }
+
     // A preview that scans recursively or accepts recent files proposes unrelated active data.
     [Fact]
     public async Task Preview_selects_only_old_top_level_files_and_does_not_move_them()
