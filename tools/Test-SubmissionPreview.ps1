@@ -26,7 +26,7 @@ try{
  if((Get-FileHash -LiteralPath $wixSource).Hash -cne $pins.WixSourceSha256){throw 'submission_wix_source_mismatch'}
  $inventory=Get-Content -LiteralPath (Join-Path $root 'docs/legal/dependency-inventory-2026-10-25.json') -Raw | ConvertFrom-Json
  if($inventory.sourceCommit -cne $ExpectedSourceCommit -or -not $inventory.publishedGraphAvailable -or $inventory.runtimePacks.Count -lt 2){throw 'submission_inventory_origin_invalid'}
- $owned=@($actual | Where-Object {$_.Name -match '^HostAgent\..*\.(exe|dll)$' -or $_.FullName -eq (Join-Path $root 'signing-input/Preflight.dll')})
+ $owned=@($actual | Where-Object {$_.Name -match '^HostAgent\..*\.(exe|dll)$' -and $_.Name -cnotlike '*.resources.dll' -or $_.FullName -eq (Join-Path $root 'signing-input/Preflight.dll')})
  $ownedNames=[Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
  foreach($file in $owned){
   if($file.Name -cnotmatch '^(HostAgent\.(Core|Infrastructure|Service|Helper|Cli|Desktop)\.(exe|dll)|Preflight\.dll)$'){throw 'submission_unknown_owned_binary'}
