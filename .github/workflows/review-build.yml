@@ -1,6 +1,9 @@
 name: Public review build
 on:
   push:
+    branches: ['codex/**']
+    paths-ignore: ['docs/**', '**.md', 'LICENSE']
+  pull_request:
     branches: ['codex/signpath-submission-prep']
     paths-ignore: ['docs/**', '**.md', 'LICENSE']
   workflow_dispatch:
