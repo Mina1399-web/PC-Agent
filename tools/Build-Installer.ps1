@@ -2,7 +2,7 @@ param([Parameter(Mandatory)][string]$PackagePath,[Parameter(Mandatory)][string]$
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 if ($env:COMPUTERNAME -ne 'AgentPC' -or (Get-CimInstance Win32_ComputerSystem).Model -ne 'VirtualBox' -or
-    (Get-CimInstance Win32_ComputerSystemProduct).UUID -ne '46543236-8C5E-49DA-953C-DB17F9B1E402' -or
+    (Get-CimInstance Win32_ComputerSystemProduct).UUID -ne '0bb543d1-7bb0-43ed-9c94-596d63ef3310' -or
     (Get-Service VBoxService).Status -ne 'Running') { throw 'release_dev_vm_required' }
 if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw 'release_version_invalid' }
 if (-not $DevVm -and ($null -eq $SigningCertificate -or -not $SigningCertificate.HasPrivateKey)) { throw 'publisher_signature_required' }

@@ -2,13 +2,13 @@ param([Parameter(Mandatory=$true)][ValidateSet('storage','collector','remediatio
       [Parameter(Mandatory=$true)][string]$Bundle,[Parameter(Mandatory=$true)][string]$LogDirectory)
 $ErrorActionPreference='Stop'
 if($env:COMPUTERNAME -ne 'AGENTPC' -or (Get-CimInstance Win32_ComputerSystem -OperationTimeoutSec 5).Model -ne 'VirtualBox' -or
-   (Get-CimInstance Win32_ComputerSystemProduct -OperationTimeoutSec 5).UUID -ne '46543236-8C5E-49DA-953C-DB17F9B1E402'){throw 'fixture_vm_mismatch'}
+   (Get-CimInstance Win32_ComputerSystemProduct -OperationTimeoutSec 5).UUID -ne '0bb543d1-7bb0-43ed-9c94-596d63ef3310'){throw 'fixture_vm_mismatch'}
 $scratch=Join-Path $LogDirectory 'scratch'
 if(Test-Path -LiteralPath $scratch){throw 'scratch_must_be_new'}
 New-Item -ItemType Directory -Path $scratch | Out-Null
 $env:TEMP=$scratch;$env:TMP=$scratch
 $env:HOSTAGENT_DEV_FIXTURE_ROOT=$scratch
-$env:DOTNET_ROOT='C:\Users\AgentPCdevtest\AppData\Local\HostAgent-dev-sdk\10.0.401'
+$env:DOTNET_ROOT='C:\Users\vmdev\AppData\Local\HostAgent-dev-sdk\10.0.401'
 $env:DOTNET_CLI_HOME=$scratch
 $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE='1';$env:DOTNET_NOLOGO='1'
 $filters=@{

@@ -1,6 +1,6 @@
 # DEV-only read-only validation of the actual operator artifact's guards.
 $ErrorActionPreference='Stop'
-if((Get-CimInstance Win32_ComputerSystemProduct).UUID -ne '46543236-8C5E-49DA-953C-DB17F9B1E402'){throw 'approved_dev_vm_required'}
+if((Get-CimInstance Win32_ComputerSystemProduct).UUID -ne '0bb543d1-7bb0-43ed-9c94-596d63ef3310'){throw 'approved_dev_vm_required'}
 $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $path=Join-Path $repo 'scripts\diagnostics\Read-ServiceDiskCounters.ps1'
 $tokens=$null;$parseErrors=$null

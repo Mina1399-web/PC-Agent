@@ -38,7 +38,7 @@ $taskPlanPath=Join-Path $temp 'prepared.json'
 function Get-FileHash([string]$LiteralPath,[string]$Algorithm){[pscustomobject]@{Hash='fixture-runner'}}
 function Get-CimInstance([string]$ClassName,[string]$Filter,[int]$OperationTimeoutSec){
  if($ClassName-ceq'Win32_ComputerSystem'){return [pscustomobject]@{Model='VirtualBox'}}
- if($ClassName-ceq'Win32_ComputerSystemProduct'){return [pscustomobject]@{UUID='46543236-8C5E-49DA-953C-DB17F9B1E402'}}
+ if($ClassName-ceq'Win32_ComputerSystemProduct'){return [pscustomobject]@{UUID='0bb543d1-7bb0-43ed-9c94-596d63ef3310'}}
  return [pscustomobject]@{Name='HostAgentDevScm_'+$taskId;StartName='NT SERVICE\HostAgentDevScm_'+$taskId;StartMode='Auto';PathName='"'+$taskServiceExe+'" isolated-scm-service '+$taskId+' '+[Security.Principal.WindowsIdentity]::GetCurrent().User.Value+' poweroff-proof'}
 }
 function Get-Service{[pscustomobject]@{Status='Running'}}
@@ -57,7 +57,7 @@ if($seen-cne'reboot_service_identity_mismatch'){throw 'cleanup_did_not_reject_pr
 Import-Module (Join-Path $repo 'scripts\chaos\IsolatedScmSafety.psm1') -Force
 . ([scriptblock]::Create((Definition 'Invoke-RebootChild')))
 function Assert-RebootSafety{}
-$python='C:\Users\AgentPCdevtest\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
+$python='C:\Users\vmdev\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
 $clock=[Diagnostics.Stopwatch]::StartNew();$seen=$null
 try{Invoke-RebootChild $python @('-I','-B','-') 1 "import time`ntime.sleep(30)`n"|Out-Null}catch{$seen=$_.Exception.Message}
 if($seen-cne'reboot_child_deadline'-or$clock.Elapsed.TotalSeconds-gt8){throw 'bounded_child_timeout_failed'};$checks++

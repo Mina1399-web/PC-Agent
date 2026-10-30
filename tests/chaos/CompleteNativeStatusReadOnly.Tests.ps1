@@ -1,7 +1,7 @@
 $ErrorActionPreference='Stop'
 $repo=Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 if($env:COMPUTERNAME-ne'AGENTPC' -or (Get-CimInstance Win32_ComputerSystem).Model-ne'VirtualBox' -or
- (Get-CimInstance Win32_ComputerSystemProduct).UUID-ne'46543236-8C5E-49DA-953C-DB17F9B1E402'){throw 'approved_dev_vm_required'}
+ (Get-CimInstance Win32_ComputerSystemProduct).UUID-ne'0bb543d1-7bb0-43ed-9c94-596d63ef3310'){throw 'approved_dev_vm_required'}
 Add-Type -Path (Join-Path $repo 'scripts/chaos/CompleteProtectedServiceGuard.cs')
 $before=Get-CimInstance Win32_Service -Filter "Name='HostAgent'" -ErrorAction Stop
 for($i=0;$i-lt100;$i++) {

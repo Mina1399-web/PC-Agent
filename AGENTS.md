@@ -2,6 +2,12 @@
 
 This repository contains Host Agent V1, a Windows-first C#/.NET 10 project.
 
+Current approved DEV environment (rebuilt 2026-10-29): computer `AGENTPC`,
+VirtualBox UUID `0bb543d1-7bb0-43ed-9c94-596d63ef3310`, account `AgentPC\vmdev`.
+Verify actual guest identity before builds/tests. Historical UUID/account
+values in dated evidence describe the previous deleted-snapshot environment.
+See `docs/operations/dev-vm-snapshots.md` for current rollback verification.
+
 On 2026-10-12 the owner explicitly authorized a local desktop dashboard,
 evidence-based maintenance recommendations and manual administration from
 the application. This supersedes historical dashboard exclusions below.

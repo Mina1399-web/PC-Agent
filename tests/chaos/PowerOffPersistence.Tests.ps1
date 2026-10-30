@@ -29,5 +29,5 @@ Reject {Assert-PowerOffRollback $true '2026-10-18T03:55:00' $now} 'poweroff_fres
 Reject {Assert-PowerOffRollback $true '2026-10-18T03:00:00Z' $now} 'poweroff_host_rollback_confirmation_expired'
 Reject {Assert-PowerOffRollback $true '2026-10-18T04:05:00Z' $now} 'poweroff_host_rollback_confirmation_expired'
 $proof=Assert-PowerOffRollback $true '2026-10-18T03:55:00Z' $now
-if($proof.snapshotUuid-cne'84c78c1b-61b9-4e41-a8ef-30db3a655ddf'){throw 'wrong_snapshot_bound'};$checks++
+if($proof.snapshotUuid-cne'3b3a6a0e-d861-4d25-9997-b39c407058a5'){throw 'wrong_snapshot_bound'};$checks++
 Write-Output ('PASS '+$checks+' total poweroff transition and rollback guards. No service control.')

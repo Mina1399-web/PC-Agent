@@ -53,7 +53,7 @@ function Invoke-TaskControlledCrash {
     }
     Assert-TaskSafetyFloor
     Assert-TaskProtectedService $script:ProtectedBaseline
-    $python='C:\Users\AgentPCdevtest\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
+    $python='C:\Users\vmdev\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
     $check=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'check-isolated-scm-crash.py') -Raw
     # No -c; no compiler/cache/output artifacts in data or source folders.
     $readLocks=@()

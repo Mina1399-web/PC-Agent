@@ -1,6 +1,7 @@
 param(
     [ValidateSet('Preflight','Prepare','Verify')][string]$Stage = 'Preflight',
     [switch]$Execute,
+    [string]$SnapshotReceiptPath = '',
     [ValidatePattern('^[a-f0-9]{32}$')][string]$RunId = 'c60759c492a840f7b993afc807e7339a'
 )
 $ErrorActionPreference = 'Stop'
@@ -29,7 +30,7 @@ $taskExpectedProtectedAssemblyHashes = @{
     'HostAgent.Infrastructure.dll'='B86C9673CBDE1EDC755B1AD8FFA498373517EF1E3A2CD673261970931594A8AE'
     'HostAgent.Service.dll'='19772D28E83DB3704419F2C6EB1450F3FF51BD1FCD8ED2B9D63A8A32695CA840'
 }
-$taskPython = 'C:\Users\AgentPCdevtest\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
+$taskPython = 'C:\Users\vmdev\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
 $taskRuntime = 'C:\Program Files\dotnet'
 $taskPlanPath = Join-Path $taskEvidenceDirectory 'prepared.json'
 $taskRunResult = [ordered]@{scenario='manual-normal-vm-reboot-persistence';stage=$Stage;runId=$taskId;outcome='NOT RUN';candidateManifestSha256=$taskExpectedManifestSha256;scmOperations=@();viewStages=@();databaseChecks=@();cleanup='not_needed';failureCode=$null}
@@ -59,9 +60,9 @@ function Assert-RebootEnvironment {
     # Establish identity/owned cleanup eligibility before a resource rejection.
     # A 900MiB reading must not strand an already prepared Auto service.
     if ($env:COMPUTERNAME -cne 'AGENTPC' -or (Get-CimInstance Win32_ComputerSystem -OperationTimeoutSec 5).Model -cne 'VirtualBox' -or
-        (Get-Service VBoxService).Status -ne 'Running' -or [Security.Principal.WindowsIdentity]::GetCurrent().Name -ine 'AgentPC\AgentPCdevtest' -or
-        (Get-CimInstance Win32_ComputerSystemProduct -OperationTimeoutSec 5).UUID -ine '46543236-8C5E-49DA-953C-DB17F9B1E402' -or
-        [IO.Path]::GetFullPath($env:ProgramData) -ine 'C:\ProgramData' -or [IO.Path]::GetFullPath($env:LOCALAPPDATA) -ine 'C:\Users\AgentPCdevtest\AppData\Local') { throw 'reboot_vm_or_account_mismatch' }
+        (Get-Service VBoxService).Status -ne 'Running' -or [Security.Principal.WindowsIdentity]::GetCurrent().Name -ine 'AgentPC\vmdev' -or
+        (Get-CimInstance Win32_ComputerSystemProduct -OperationTimeoutSec 5).UUID -ine '0bb543d1-7bb0-43ed-9c94-596d63ef3310' -or
+        [IO.Path]::GetFullPath($env:ProgramData) -ine 'C:\ProgramData' -or [IO.Path]::GetFullPath($env:LOCALAPPDATA) -ine 'C:\Users\vmdev\AppData\Local') { throw 'reboot_vm_or_account_mismatch' }
     if($Execute-and$Stage-ceq'Verify'){
         Assert-RebootPlainPath $taskPlanPath
         if(-not(Test-Path -LiteralPath $taskPlanPath -PathType Leaf)-or(Get-Item -LiteralPath $taskPlanPath).Length-gt65536){throw 'reboot_preparation_record_missing_or_large'}
@@ -230,7 +231,7 @@ $taskIdentity=[Security.Principal.WindowsIdentity]::GetCurrent();$taskOperatorSi
 $taskExpectedImage='"'+$taskServiceExe+'" isolated-scm-service '+$taskId+' '+$taskOperatorSid.Value+' reboot-proof'
 $script:ProtectedBaseline=Get-TaskProtectedService; $taskHelperBaseline=Get-RebootHelper
 $taskBoot=(Get-CimInstance Win32_OperatingSystem -OperationTimeoutSec 5).LastBootUpTime.ToUniversalTime()
-$taskPreflight=[ordered]@{mode='read_only';stage=$Stage;runId=$taskId;vm=$env:COMPUTERNAME;uuid='46543236-8C5E-49DA-953C-DB17F9B1E402';account=$taskIdentity.Name;freeMemoryMiB=Get-TaskFreeMiB;cFreeGiB=[math]::Round((Get-TaskCFreeBytes)/1GB,2);candidatePath=$taskCandidatePath;candidateManifestSha256=$taskExpectedManifestSha256;protectedService=$ProtectedBaseline;protectedHelper=$taskHelperBaseline;plannedService=$taskServiceName;plannedPipe=$taskPipeName;dataDirectory=$taskDataDirectory;operatorVerifiedSnapshot='pre reboot save / 84c78c1b-61b9-4e41-a8ef-30db3a655ddf';guestPowerOperations=0;softFloorMiB=768;hardFloorMiB=512;serviceLeaseSeconds=900;pollMilliseconds=250}
+$taskPreflight=[ordered]@{mode='read_only';stage=$Stage;runId=$taskId;vm=$env:COMPUTERNAME;uuid='0bb543d1-7bb0-43ed-9c94-596d63ef3310';account=$taskIdentity.Name;freeMemoryMiB=Get-TaskFreeMiB;cFreeGiB=[math]::Round((Get-TaskCFreeBytes)/1GB,2);candidatePath=$taskCandidatePath;candidateManifestSha256=$taskExpectedManifestSha256;protectedService=$ProtectedBaseline;protectedHelper=$taskHelperBaseline;plannedService=$taskServiceName;plannedPipe=$taskPipeName;dataDirectory=$taskDataDirectory;operatorVerifiedSnapshot=$null;snapshotVerification='not_verified';guestPowerOperations=0;softFloorMiB=768;hardFloorMiB=512;serviceLeaseSeconds=900;pollMilliseconds=250}
 if($Stage-ceq'Verify'){
     Assert-RebootPlainPath $taskPlanPath
     if(-not(Test-Path -LiteralPath $taskPlanPath -PathType Leaf)){throw 'reboot_preparation_record_missing'}
@@ -246,6 +247,10 @@ if($Stage-ceq'Verify'){
 $taskPreflight|ConvertTo-Json -Depth 6
 if(-not$Execute-or$Stage-ceq'Preflight'){Write-Output 'READ-ONLY PREFLIGHT. No service, file, ACL or database was changed.';return}
 if(-not[Security.Principal.WindowsPrincipal]::new($taskIdentity).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){throw 'administrator_token_required'}
+Import-Module (Join-Path $PSScriptRoot 'DevSnapshotReceipt.psm1') -Force
+$snapshotReceipt=Read-DevSnapshotReceipt -Path $SnapshotReceiptPath
+$taskPreflight.operatorVerifiedSnapshot=$snapshotReceipt.snapshotUuid
+$taskPreflight.snapshotVerification=$snapshotReceipt.scope
 $env:DOTNET_ROOT=$taskRuntime;$env:DOTNET_ROOT_X64=$taskRuntime
 Add-Type -Path (Join-Path $PSScriptRoot 'CompleteCampaignMonitor.cs')
 Add-Type -Path (Join-Path $PSScriptRoot 'IsolatedScmRecovery.cs')

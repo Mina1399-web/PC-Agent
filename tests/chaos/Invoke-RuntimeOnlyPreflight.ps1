@@ -5,7 +5,7 @@ Import-Module Microsoft.PowerShell.Utility
 # runtime, protected-service and resource checks execute against real state.
 function Get-FileHash {
  param([string]$LiteralPath,[string]$Algorithm='SHA256')
- if($LiteralPath -like 'C:\Users\AgentPCdevtest\AppData\Local\HostAgent-dev-sdk\*'){
+ if($LiteralPath -like 'C:\Users\vmdev\AppData\Local\HostAgent-dev-sdk\*'){
   throw [IO.FileNotFoundException]::new('simulated_build_sdk_unavailable')
  }
  if($WrongRuntimeHash -and $LiteralPath -ceq 'C:\Program Files\dotnet\dotnet.exe'){

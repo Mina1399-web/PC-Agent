@@ -14,7 +14,7 @@ $safetyPath = Join-Path $repo 'scripts\chaos\IsolatedScmSafety.psm1'
 $computer = Get-CimInstance Win32_ComputerSystem
 $machine = Get-CimInstance Win32_ComputerSystemProduct
 if ($env:COMPUTERNAME -cne 'AGENTPC' -or $computer.Model -cne 'VirtualBox' -or
-    $machine.UUID -ine '46543236-8C5E-49DA-953C-DB17F9B1E402' -or
+    $machine.UUID -ine '0bb543d1-7bb0-43ed-9c94-596d63ef3310' -or
     (Get-Service VBoxService).Status -ne 'Running') { throw 'approved_dev_vm_required' }
 
 function Read-TaskFunctions {

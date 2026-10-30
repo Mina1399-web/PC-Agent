@@ -43,10 +43,10 @@ try {
         throw 'elevated_operator_required'
     }
     if ([IntPtr]::Size -ne 8) { throw 'x64_required' }
-    if ($taskIdentity.Name -ne 'AgentPC\AgentPCdevtest' -or
+    if ($taskIdentity.Name -ne 'AgentPC\vmdev' -or
         $env:COMPUTERNAME -ne 'AGENTPC' -or
         (Get-CimInstance Win32_ComputerSystem).Model -ne 'VirtualBox' -or
-        (Get-CimInstance Win32_ComputerSystemProduct).UUID -ne '46543236-8C5E-49DA-953C-DB17F9B1E402' -or
+        (Get-CimInstance Win32_ComputerSystemProduct).UUID -ne '0bb543d1-7bb0-43ed-9c94-596d63ef3310' -or
         (Get-Service VBoxService).Status -ne 'Running') {
         throw 'approved_vm_and_account_required'
     }
@@ -55,7 +55,7 @@ try {
         throw 'initial_memory_guard'
     }
     if ((Get-PSDrive C).Free -lt 20GB) { throw 'initial_disk_guard' }
-    $taskPython = 'C:\Users\AgentPCdevtest\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
+    $taskPython = 'C:\Users\vmdev\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
     $taskExpectedHash = 'B07B03B9BA866A341A3C13EE69710FBC8D43D4CE2523DEE13F6DF5C25378D15B'
     $taskAncestor = Get-Item -LiteralPath $taskPython
     while ($null -ne $taskAncestor) {

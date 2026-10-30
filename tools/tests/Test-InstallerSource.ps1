@@ -132,7 +132,7 @@ try{
     $builder=[IO.File]::ReadAllText($legacyBuilder)
     $vmGuard=$builder.IndexOf("if (`$env:COMPUTERNAME -ne 'AgentPC'")
     $compile=$builder.IndexOf('Build-HostAgentInstallerAction')
-    Assert-Source ($vmGuard -ge 0 -and $compile -gt $vmGuard -and $builder.Contains('46543236-8C5E-49DA-953C-DB17F9B1E402') -and $builder.Contains("(Get-Service VBoxService).Status -ne 'Running'")) 'build_installer_preserves_vm_guard_before_compile'
+    Assert-Source ($vmGuard -ge 0 -and $compile -gt $vmGuard -and $builder.Contains('0bb543d1-7bb0-43ed-9c94-596d63ef3310') -and $builder.Contains("(Get-Service VBoxService).Status -ne 'Running'")) 'build_installer_preserves_vm_guard_before_compile'
     Assert-Source ($builder.IndexOf('publisher_signature_required') -lt $compile) 'build_installer_preserves_certificate_guard'
     Pass 'Existing builder retains VM/certificate guards before action compilation'
 

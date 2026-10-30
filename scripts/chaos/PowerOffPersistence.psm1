@@ -77,7 +77,7 @@ function Assert-PowerOffRollback([bool]$Confirmed, [string]$VerifiedAtUtc, [date
     if (-not $Confirmed -or $VerifiedAtUtc -notmatch '(Z|\+00:00)$' -or
         -not [datetimeoffset]::TryParse($VerifiedAtUtc, [ref]$verified)) { throw 'poweroff_fresh_host_rollback_confirmation_required' }
     if (($Now - $verified).TotalMinutes -gt 30 -or ($verified - $Now).TotalMinutes -gt 2) { throw 'poweroff_host_rollback_confirmation_expired' }
-    return [pscustomobject]@{snapshotName='pre reboot save';snapshotUuid='84c78c1b-61b9-4e41-a8ef-30db3a655ddf';verifiedAtUtc=$verified.ToUniversalTime().ToString('O');verificationSource='operator_host_VBoxManage_not_guest_inference'}
+    return [pscustomobject]@{snapshotName='clean-win-base';snapshotUuid='3b3a6a0e-d861-4d25-9997-b39c407058a5';verifiedAtUtc=$verified.ToUniversalTime().ToString('O');verificationSource='operator_host_VBoxManage_not_guest_inference'}
 }
 
 Export-ModuleMember -Function Assert-RebootPlainPath,Assert-RebootManifest,Assert-RebootServiceIdentity,Assert-RebootProtectedContinuity,Assert-RebootTransition,Assert-PowerOffRollback

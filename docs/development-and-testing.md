@@ -1,5 +1,13 @@
 # Windows Development and Testing Environment
 
+Current rebuilt DEV VM (2026-10-30): `HostAgent-DEV-Rebuild`, computer
+`AGENTPC`, UUID `0bb543d1-7bb0-43ed-9c94-596d63ef3310`, user `AgentPC\vmdev`.
+SDK, PowerShell and Git are under `C:\Users\vmdev\Tools`; WiX/DTF are in
+`C:\Users\vmdev\source\HostAgent-DEV-tools`. Build/test with a non-elevated
+token after checking actual VM identity. Current checkpoint/receipt rules
+are in [DEV snapshots](operations/dev-vm-snapshots.md). Dated historical
+records below retain their original environment identities.
+
 Current resilience and source/package preparation: [2026-10-18 predeployment checkpoint](verification/predeployment-2026-10-18.md), [scoped final resilience assessment](verification/resilience-final-2026-10-18.md). Historical totals below remain dated checkpoints. An unsigned DEV candidate is not production acceptance.
 
 SignPath preparation update, 2026-10-11: the owner explicitly authorized

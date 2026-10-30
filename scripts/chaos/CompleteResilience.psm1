@@ -18,7 +18,7 @@ function Invoke-CompleteBoundedProcess {
         $info.UseShellExecute=$false; $info.CreateNoWindow=$true
         $info.RedirectStandardOutput=$true; $info.RedirectStandardError=$true
                 if($File -like '*\WindowsPowerShell\v1.0\powershell.exe') {
-            $info.EnvironmentVariables['PSModulePath']='C:\Windows\System32\WindowsPowerShell\v1.0\Modules;C:\Program Files\WindowsPowerShell\Modules;C:\Users\AgentPCdevtest\Documents\WindowsPowerShell\Modules'
+            $info.EnvironmentVariables['PSModulePath']='C:\Windows\System32\WindowsPowerShell\v1.0\Modules;C:\Program Files\WindowsPowerShell\Modules;C:\Users\vmdev\Documents\WindowsPowerShell\Modules'
         }
         $child=[Diagnostics.Process]::Start($info)
         [IO.File]::WriteAllText((Join-Path $LogDirectory 'child.json'),([ordered]@{processId=$child.Id;image=$File;activeDeadlineSeconds=$TimeoutSeconds;cleanupGraceSeconds=12;terminationWaitSeconds=5} | ConvertTo-Json),[Text.UTF8Encoding]::new($false))

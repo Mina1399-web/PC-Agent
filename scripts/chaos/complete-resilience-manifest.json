@@ -64,7 +64,7 @@
     }
   ],
   "pythonExecutable": {
-    "path": "C:\\Users\\AgentPCdevtest\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "path": "C:\\Users\\vmdev\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
     "sha256": "B07B03B9BA866A341A3C13EE69710FBC8D43D4CE2523DEE13F6DF5C25378D15B"
   }
 }
