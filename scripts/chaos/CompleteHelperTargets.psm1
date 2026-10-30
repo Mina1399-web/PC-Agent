@@ -51,13 +51,13 @@ function Assert-CompleteHelperEnvironment {
     $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
     try {
         if($env:COMPUTERNAME-cne'AGENTPC'-or$env:ProgramData-ine'C:\ProgramData'-or$env:WINDIR-ine'C:\Windows'-or
-            $identity.Name-ine'AgentPC\AgentPCdevtest'-or$identity.User.Value-cne$OperatorSid-or
+            $identity.Name-ine'AgentPC\vmdev'-or$identity.User.Value-cne$OperatorSid-or
             -not[Security.Principal.WindowsPrincipal]::new($identity).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){
             throw 'approved_elevated_vm_operator_required'
         }
     }finally{$identity.Dispose()}
     if((Get-CimInstance Win32_ComputerSystem -OperationTimeoutSec 5 -ErrorAction Stop).Model-cne'VirtualBox'-or
-        (Get-CimInstance Win32_ComputerSystemProduct -OperationTimeoutSec 5 -ErrorAction Stop).UUID-ine'46543236-8C5E-49DA-953C-DB17F9B1E402'-or
+        (Get-CimInstance Win32_ComputerSystemProduct -OperationTimeoutSec 5 -ErrorAction Stop).UUID-ine'0bb543d1-7bb0-43ed-9c94-596d63ef3310'-or
         (Get-Service VBoxService -ErrorAction Stop).Status-ne'Running'){throw 'approved_vm_identity_required'}
 }
 

@@ -49,7 +49,7 @@ public static class CompleteProbeGuard
                     properties=((dynamic)product).Properties_;
                     uuidProperty=((dynamic)properties).Item("UUID");
                     var uuid=(string?)((dynamic)uuidProperty).Value;
-                    uuidOk |= string.Equals(uuid,"46543236-8C5E-49DA-953C-DB17F9B1E402",StringComparison.OrdinalIgnoreCase);
+                    uuidOk |= string.Equals(uuid,"0bb543d1-7bb0-43ed-9c94-596d63ef3310",StringComparison.OrdinalIgnoreCase);
                 }
                 finally
                 {
@@ -60,7 +60,7 @@ public static class CompleteProbeGuard
         }
         finally { foreach(var item in new[]{products,services,locator})if(item is not null&&Marshal.IsComObject(item))Marshal.FinalReleaseComObject(item); }
         if(!uuidOk)throw new InvalidOperationException("approved_machine_uuid_required");
-        var operatorAccount=identity.Name.Equals(@"AgentPC\AgentPCdevtest",StringComparison.OrdinalIgnoreCase);
+        var operatorAccount=identity.Name.Equals(@"AgentPC\vmdev",StringComparison.OrdinalIgnoreCase);
         var testService=identity.Name.StartsWith(@"NT SERVICE\HostAgentDevScm_",StringComparison.OrdinalIgnoreCase)
             && Guid.TryParseExact(identity.Name["NT SERVICE\\HostAgentDevScm_".Length..],"N",out _);
         if(!operatorAccount && !testService)throw new InvalidOperationException("approved_test_identity_required");

@@ -411,7 +411,7 @@ foreach($taskName in @('IsolatedScmCrashSafety.psm1','Invoke-IsolatedScmAutoCras
     if(-not (Test-Path -LiteralPath $taskHelper -PathType Leaf)){throw 'crash_helper_missing'}
     $taskCrashHelperHashes[$taskName]=(Get-FileHash -LiteralPath $taskHelper -Algorithm SHA256).Hash
 }
-if(-not (Test-Path -LiteralPath 'C:\Users\AgentPCdevtest\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' -PathType Leaf)){throw 'verified_python_missing'}
+if(-not (Test-Path -LiteralPath 'C:\Users\vmdev\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' -PathType Leaf)){throw 'verified_python_missing'}
 $taskPressureSources = $null
 if ($WatchdogStopProbe) {
     $taskPressureSources = [ordered]@{}

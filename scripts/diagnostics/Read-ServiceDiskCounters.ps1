@@ -9,9 +9,9 @@ Set-StrictMode -Version Latest
 $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
 if(-not ([Security.Principal.WindowsPrincipal]::new($identity)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){throw 'elevated_operator_required'}
 if($PSVersionTable.PSVersion.Major -lt 7){throw 'powershell7_required'}
-if([IntPtr]::Size -ne 8 -or $identity.Name -ne 'AgentPC\AgentPCdevtest' -or $env:COMPUTERNAME -ne 'AGENTPC' -or
+if([IntPtr]::Size -ne 8 -or $identity.Name -ne 'AgentPC\vmdev' -or $env:COMPUTERNAME -ne 'AGENTPC' -or
  (Get-CimInstance Win32_ComputerSystem).Model -ne 'VirtualBox' -or
- (Get-CimInstance Win32_ComputerSystemProduct).UUID -ne '46543236-8C5E-49DA-953C-DB17F9B1E402' -or
+ (Get-CimInstance Win32_ComputerSystemProduct).UUID -ne '0bb543d1-7bb0-43ed-9c94-596d63ef3310' -or
  (Get-Service VBoxService).Status -ne 'Running'){throw 'approved_dev_vm_required'}
 if((Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory/1024 -lt 1024){throw 'initial_ram_below_1024_mib'}
 if((Get-PSDrive C).Free -lt 20GB){throw 'initial_disk_below_20_gib'}

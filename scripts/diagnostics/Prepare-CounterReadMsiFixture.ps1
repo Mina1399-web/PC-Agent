@@ -27,9 +27,9 @@ function Get-CounterFixtureScope([string]$Id,[string]$Root) {
 }
 function Assert-CounterFixtureVm {
     if($PSVersionTable.PSVersion.Major -lt 7 -or [IntPtr]::Size -ne 8){throw 'powershell7_x64_required'}
-    if($env:WINDIR -ine 'C:\Windows' -or $env:COMPUTERNAME -ne 'AGENTPC' -or [Security.Principal.WindowsIdentity]::GetCurrent().Name -ne 'AgentPC\AgentPCdevtest' -or
+    if($env:WINDIR -ine 'C:\Windows' -or $env:COMPUTERNAME -ne 'AGENTPC' -or [Security.Principal.WindowsIdentity]::GetCurrent().Name -ne 'AgentPC\vmdev' -or
         (Get-CimInstance Win32_ComputerSystem).Model -ne 'VirtualBox' -or
-        (Get-CimInstance Win32_ComputerSystemProduct).UUID -ne '46543236-8C5E-49DA-953C-DB17F9B1E402' -or
+        (Get-CimInstance Win32_ComputerSystemProduct).UUID -ne '0bb543d1-7bb0-43ed-9c94-596d63ef3310' -or
         (Get-Service VBoxService).Status -ne 'Running'){throw 'approved_dev_vm_required'}
 }
 function Assert-CounterFixtureAdmin {

@@ -13,9 +13,9 @@ function Assert-CampaignPlainPath([string]$Path) {
 }
 function Assert-CampaignVm {
     if($env:COMPUTERNAME -ne 'AGENTPC' -or (Get-CimInstance Win32_ComputerSystem -OperationTimeoutSec 5).Model -ne 'VirtualBox' -or
-        (Get-CimInstance Win32_ComputerSystemProduct -OperationTimeoutSec 5).UUID -ne '46543236-8C5E-49DA-953C-DB17F9B1E402' -or
+        (Get-CimInstance Win32_ComputerSystemProduct -OperationTimeoutSec 5).UUID -ne '0bb543d1-7bb0-43ed-9c94-596d63ef3310' -or
         (Get-Service VBoxService).Status -ne 'Running' -or
-        [Security.Principal.WindowsIdentity]::GetCurrent().Name -ine 'AgentPC\AgentPCdevtest') {throw 'approved_vm_or_account_mismatch'}
+        [Security.Principal.WindowsIdentity]::GetCurrent().Name -ine 'AgentPC\vmdev') {throw 'approved_vm_or_account_mismatch'}
     if([IO.Path]::GetFullPath($env:ProgramData) -ine 'C:\ProgramData' -or [IO.Path]::GetFullPath($env:WINDIR) -ine 'C:\Windows'){throw 'unexpected_vm_system_paths'}
 }
 $script:campaignCandidate=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..\HostAgent-DEV-SCM-candidates\scm-release-candidate-20261017-r5'))
@@ -47,7 +47,7 @@ function Assert-CampaignArtifacts {
     if((Get-FileHash -LiteralPath $script:campaignCatalogPath -Algorithm SHA256).Hash -ne $script:campaignCatalogHash){throw 'campaign_catalog_hash_mismatch'}
     $catalog=Get-Content -LiteralPath $script:campaignCatalogPath -Raw | ConvertFrom-Json
     if($catalog.pythonExecutable) {
-        $pythonPath='C:\Users\AgentPCdevtest\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
+        $pythonPath='C:\Users\vmdev\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
         if($catalog.pythonExecutable.path -cne $pythonPath -or (Get-FileHash -LiteralPath $pythonPath -Algorithm SHA256).Hash -ne $catalog.pythonExecutable.sha256){throw 'verified_python_identity_mismatch'}
     }
     foreach($entry in $catalog.helpers) {
@@ -109,7 +109,7 @@ if((Get-CimInstance Win32_OperatingSystem -OperationTimeoutSec 5).FreePhysicalMe
 if((Get-PSDrive C).Free -lt 20GB){throw 'initial_disk_free_below_20_gib'}
 $id=[guid]::NewGuid().ToString('N')
 $evidenceRoot=Join-Path $env:LOCALAPPDATA 'HostAgent-DEV-evidence'
-if([IO.Path]::GetFullPath($env:LOCALAPPDATA) -ine 'C:\Users\AgentPCdevtest\AppData\Local'){throw 'unexpected_local_evidence_root'}
+if([IO.Path]::GetFullPath($env:LOCALAPPDATA) -ine 'C:\Users\vmdev\AppData\Local'){throw 'unexpected_local_evidence_root'}
 $logRoot=Join-Path $evidenceRoot ('campaign-'+$id)
 Assert-CampaignPlainPath $logRoot
 if(Test-Path -LiteralPath $logRoot){throw 'campaign_path_already_exists'}

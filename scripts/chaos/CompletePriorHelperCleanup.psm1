@@ -9,7 +9,7 @@ function Get-CompletePriorHelperCleanupPlan {
  param($Candidate,[string]$OperatorSid)
  $expectedCandidate=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..\HostAgent-DEV-SCM-candidates\scm-release-candidate-20261017-complete-r6'))
  if(-not$Candidate-or[string]$Candidate.Path-cne$expectedCandidate-or[string]$Candidate.ManifestSha256-cne$script:priorHelperManifest){throw 'prior_cleanup_candidate_identity_mismatch'}
- if([IO.Path]::GetFullPath($env:LOCALAPPDATA)-ine'C:\Users\AgentPCdevtest\AppData\Local'){throw 'prior_cleanup_evidence_root_mismatch'}
+ if([IO.Path]::GetFullPath($env:LOCALAPPDATA)-ine'C:\Users\vmdev\AppData\Local'){throw 'prior_cleanup_evidence_root_mismatch'}
  $root=Join-Path $env:LOCALAPPDATA ('HostAgent-DEV-evidence\complete-campaign-'+$script:priorHelperRun)
  $summaryPath=Join-Path $root 'summary.json'
  $targetsPath=Join-Path $root 'S2-real-helper-remediation\targets.json'

@@ -53,6 +53,7 @@ public partial class MainWindow:Window
         {
             await _controller.RefreshAsync(_closing.Token);
             var view=_controller.Snapshot;
+            HealthSummaryText.Text=HealthSummary.Describe(view);
             if(view is null)
             {
                 StatusText.Text=_controller.State=="stale"?"Data služby jsou zastaralá. Čerstvý stav není dostupný. Zkuste Obnovit.":"Místní služba není dostupná. Ověřte, že běží verze Host Agent podporující přehled, a zkuste Obnovit.";
@@ -90,7 +91,7 @@ public partial class MainWindow:Window
             DrawChart();
         }
         catch(OperationCanceledException) when(_closing.IsCancellationRequested){}
-        catch {StatusText.Text="Obnovení dat se nepodařilo. Další pokus proběhne automaticky.";OperationButton.IsEnabled=false;OperationHintText.Text="Zásahy jsou zablokované, dokud se nepodaří obnovit stav.";}
+        catch {HealthSummaryText.Text=HealthSummary.Describe(null);StatusText.Text="Obnovení dat se nepodařilo. Další pokus proběhne automaticky.";OperationButton.IsEnabled=false;OperationHintText.Text="Zásahy jsou zablokované, dokud se nepodaří obnovit stav.";}
         finally {_reading.Release();}
     }
     private void MaintenanceClick(object sender,RoutedEventArgs e)

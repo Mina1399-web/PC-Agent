@@ -1,7 +1,7 @@
 {
     "format":  1,
     "scope":  "manual_normal_reboot_only_GUID_fixture",
-    "operatorVerifiedSnapshot":  "84c78c1b-61b9-4e41-a8ef-30db3a655ddf",
+    "rollbackSnapshotCandidate":  "3b3a6a0e-d861-4d25-9997-b39c407058a5",
     "files":  [
                   {
                       "path":  "RebootPersistence.psm1",

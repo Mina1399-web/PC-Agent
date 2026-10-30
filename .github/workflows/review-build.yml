@@ -1,6 +1,9 @@
 name: Public review build
 on:
   push:
+    branches: ['codex/**']
+    paths-ignore: ['docs/**', '**.md', 'LICENSE']
+  pull_request:
     branches: ['codex/signpath-submission-prep']
     paths-ignore: ['docs/**', '**.md', 'LICENSE']
   workflow_dispatch:
@@ -56,14 +59,17 @@ jobs:
           dotnet test tests/HostAgent.Desktop.Tests/HostAgent.Desktop.Tests.csproj --configuration Release --no-build --filter 'FullyQualifiedName!~MaintenanceUiTests' --logger trx --results-directory "$env:RUNNER_TEMP/test-results"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Restore pinned submission build inputs
+        if: github.event_name != 'pull_request'
         shell: pwsh
         run: ./tools/Restore-SubmissionTools.ps1 -OutputPath "$env:RUNNER_TEMP/submission-tools"
       - name: Unsigned MSI submission candidate and artifact checks
+        if: github.event_name != 'pull_request'
         shell: pwsh
         run: |
           $tools = "$env:RUNNER_TEMP/submission-tools"
           ./tools/Build-SubmissionPreview.ps1 -PackagePath "$env:RUNNER_TEMP/HostAgent-1.2.8-submission-preview" -Version 1.2.8 -WixPath "$tools/wix/wix.exe" -DtfRoot $tools -WixSourceArchive "$tools/wix-source-aa65968c419420d32e3e1b647aea0082f5ca5b78.zip"
       - name: Preserve unsigned submission candidate
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           path: ${{ runner.temp }}/HostAgent-1.2.8-submission-preview.zip

@@ -65,9 +65,9 @@ function Get-CompleteWpfGateProof {
 }
 function Assert-CampaignVm {
     if($env:COMPUTERNAME -ne 'AGENTPC' -or (Get-CimInstance Win32_ComputerSystem -OperationTimeoutSec 5).Model -ne 'VirtualBox' -or
-        (Get-CimInstance Win32_ComputerSystemProduct -OperationTimeoutSec 5).UUID -ne '46543236-8C5E-49DA-953C-DB17F9B1E402' -or
+        (Get-CimInstance Win32_ComputerSystemProduct -OperationTimeoutSec 5).UUID -ne '0bb543d1-7bb0-43ed-9c94-596d63ef3310' -or
         (Get-Service VBoxService).Status -ne 'Running' -or
-        [Security.Principal.WindowsIdentity]::GetCurrent().Name -ine 'AgentPC\AgentPCdevtest') {throw 'approved_vm_or_account_mismatch'}
+        [Security.Principal.WindowsIdentity]::GetCurrent().Name -ine 'AgentPC\vmdev') {throw 'approved_vm_or_account_mismatch'}
     if([IO.Path]::GetFullPath($env:ProgramData) -ine 'C:\ProgramData' -or [IO.Path]::GetFullPath($env:WINDIR) -ine 'C:\Windows'){throw 'unexpected_vm_system_paths'}
 }
 $script:campaignCandidate=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..\HostAgent-DEV-SCM-candidates\scm-release-candidate-20261017-complete-r6'))
@@ -120,7 +120,7 @@ function Assert-CampaignArtifacts {
     if((Get-FileHash -LiteralPath $script:campaignCatalogPath -Algorithm SHA256).Hash -ne $script:campaignCatalogHash){throw 'campaign_catalog_hash_mismatch'}
     $catalog=Get-Content -LiteralPath $script:campaignCatalogPath -Raw | ConvertFrom-Json
     if($catalog.pythonExecutable) {
-        $pythonPath='C:\Users\AgentPCdevtest\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
+        $pythonPath='C:\Users\vmdev\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
         if($catalog.pythonExecutable.path -cne $pythonPath -or (Get-FileHash -LiteralPath $pythonPath -Algorithm SHA256).Hash -ne $catalog.pythonExecutable.sha256){throw 'verified_python_identity_mismatch'}
     }
     foreach($entry in $catalog.helpers) {
@@ -292,7 +292,7 @@ function Invoke-CompleteCollector {
   $ok=$child.exitCode -eq 0 -and $last.finished -eq $true -and $last.failures -eq 0 -and $last.helperCalls -eq 0 -and
      $last.injectedCollectorFailures -eq 2 -and $last.collectorRecoveries -eq 2 -and $last.views -ge 10 -and $last.cpuSamples -ge $last.collectorRecoveries
   $checks=Join-Path $logs 'readonly-database-check';New-Item -ItemType Directory -Path $checks | Out-Null
-  $python='C:\Users\AgentPCdevtest\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
+  $python='C:\Users\vmdev\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
   $locks=@()
   try {
    foreach($name in @('fixture.db','notices.db')){$locks += [IO.File]::Open((Join-Path $script:completeFootprint $name),[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)}
@@ -365,7 +365,7 @@ function Get-CompletePreviousHelperState {
  $journal=Join-Path $fixture 'helper-journal.db'
  Assert-CampaignPlainPath $fixture
  if(-not(Test-Path -LiteralPath $journal -PathType Leaf)){throw 'prior_helper_journal_missing'}
- $python='C:\Users\AgentPCdevtest\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
+ $python='C:\Users\vmdev\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
  $journalLock=[IO.File]::Open($journal,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
  try{
   $check=@'
@@ -479,7 +479,7 @@ Assert-CampaignVm;Assert-CampaignArtifacts
 $script:campaignBaseline=Get-CampaignProtected
 if((Get-CimInstance Win32_OperatingSystem -OperationTimeoutSec 5).FreePhysicalMemory/1024 -lt 1024){throw 'initial_free_memory_below_1024_mib'}
 if(([IO.DriveInfo]::new('C:\')).AvailableFreeSpace -lt 20GB){throw 'initial_disk_free_below_20_gib'}
-if([IO.Path]::GetFullPath($env:LOCALAPPDATA) -ine 'C:\Users\AgentPCdevtest\AppData\Local'){throw 'unexpected_local_evidence_root'}
+if([IO.Path]::GetFullPath($env:LOCALAPPDATA) -ine 'C:\Users\vmdev\AppData\Local'){throw 'unexpected_local_evidence_root'}
 $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
 $id=[guid]::NewGuid().ToString('N');$autoId=[guid]::NewGuid().ToString('N');$helperIds=@(1..3|ForEach-Object {[guid]::NewGuid().ToString('N')})
 $evidenceRoot=Join-Path $env:LOCALAPPDATA 'HostAgent-DEV-evidence';$logRoot=Join-Path $evidenceRoot ('complete-campaign-'+$id)

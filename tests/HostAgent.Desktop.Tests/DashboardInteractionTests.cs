@@ -11,6 +11,63 @@ namespace HostAgent.Desktop.Tests;
 
 public sealed class DashboardInteractionTests
 {
+    [Fact]
+    public Task Summary_reports_missing_measurements_and_clears_previous_health_on_disconnect() => WithWindow((window, view) =>
+    {
+        view.Snapshot = view.Snapshot with { Degraded = true, Cpu = null,
+            Health = [new("cpu-memory", "collector_partial", true, ["process_cpu_time_access_denied"])] };
+        Refresh(window);
+        var text = (TextBlock)window.FindName("HealthSummaryText");
+        Assert.Contains("1 z 1", text.Text);
+        Assert.Contains("Chybí aktuální celkové měření CPU", text.Text);
+        view.Snapshot = view.Snapshot with { GeneratedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-4) };
+        Refresh(window);
+        Assert.Contains("Aktuální souhrn není dostupný", text.Text);
+        Assert.DoesNotContain("1 z 1", text.Text);
+    });
+
+    [Fact]
+    public Task Empty_health_list_is_reported_as_missing_data() => WithWindow((window, view) =>
+    {
+        Assert.Contains("Stav komponent zatím nebyl předán", ((TextBlock)window.FindName("HealthSummaryText")).Text);
+        view.Snapshot = view.Snapshot with { Degraded = true };
+        Refresh(window);
+        Assert.Contains("bez podrobných důvodů", ((TextBlock)window.FindName("HealthSummaryText")).Text);
+    });
+
+    [Fact]
+    public Task Fresh_overview_does_not_hide_stale_or_future_metric_timestamps() => WithWindow((window, view) =>
+    {
+        view.Snapshot = view.Snapshot with { Cpu = new(DateTimeOffset.UtcNow.AddMinutes(-4), 12),
+            Memory = new(DateTimeOffset.UtcNow.AddMinutes(2), 30) };
+        Refresh(window);
+        var text = ((TextBlock)window.FindName("HealthSummaryText")).Text;
+        Assert.Contains("Chybí aktuální celkové měření CPU", text);
+        Assert.Contains("Chybí aktuální celkové měření paměti", text);
+    });
+
+    [Fact]
+    public Task Health_table_explains_partial_process_metrics_and_keeps_raw_diagnostics() => WithWindow((window, view) =>
+    {
+        view.Snapshot = view.Snapshot with
+        {
+            Degraded = true,
+            Health = [new("cpu-memory", "collector_partial", true,
+                ["process_cpu_time_access_denied", "future_collector_reason"])]
+        };
+        Refresh(window);
+        ((TabControl)window.FindName("DashboardTabs")).SelectedIndex = 3;
+        var grid = (DataGrid)window.FindName("HealthGrid");
+        grid.UpdateLayout();
+        var row = grid.Items[0];
+        var explanation = Assert.IsType<TextBlock>(grid.Columns[2].GetCellContent(row));
+        Assert.Contains("Čas CPU některých procesů", explanation.Text);
+        Assert.Contains("future_collector_reason", explanation.Text);
+        Assert.Equal("process_cpu_time_access_denied, future_collector_reason", explanation.ToolTip);
+        Assert.Equal("collector_partial", Assert.IsType<TextBlock>(grid.Columns[1].GetCellContent(row)).Text);
+        Assert.True(Assert.IsType<ViewHealth>(row).Degraded);
+    });
+
     [Theory]
     [InlineData(-31, -14, 4)]
     [InlineData(-29, -1, 2)]

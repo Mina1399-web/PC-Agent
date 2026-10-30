@@ -13,9 +13,9 @@ function Assert-CampaignPlainPath([string]$Path) {
 }
 function Assert-CampaignVm {
     if($env:COMPUTERNAME -ne 'AGENTPC' -or (Get-CimInstance Win32_ComputerSystem -OperationTimeoutSec 5).Model -ne 'VirtualBox' -or
-        (Get-CimInstance Win32_ComputerSystemProduct -OperationTimeoutSec 5).UUID -ne '46543236-8C5E-49DA-953C-DB17F9B1E402' -or
+        (Get-CimInstance Win32_ComputerSystemProduct -OperationTimeoutSec 5).UUID -ne '0bb543d1-7bb0-43ed-9c94-596d63ef3310' -or
         (Get-Service VBoxService).Status -ne 'Running' -or
-        [Security.Principal.WindowsIdentity]::GetCurrent().Name -ine 'AgentPC\AgentPCdevtest') {throw 'approved_vm_or_account_mismatch'}
+        [Security.Principal.WindowsIdentity]::GetCurrent().Name -ine 'AgentPC\vmdev') {throw 'approved_vm_or_account_mismatch'}
     if([IO.Path]::GetFullPath($env:ProgramData) -ine 'C:\ProgramData' -or [IO.Path]::GetFullPath($env:WINDIR) -ine 'C:\Windows'){throw 'unexpected_vm_system_paths'}
 }
 $script:campaignCandidate=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..\HostAgent-DEV-SCM-candidates\scm-release-candidate-20261017-r5'))
@@ -47,7 +47,7 @@ function Assert-CampaignArtifacts {
     if((Get-FileHash -LiteralPath $script:campaignCatalogPath -Algorithm SHA256).Hash -ne $script:campaignCatalogHash){throw 'campaign_catalog_hash_mismatch'}
     $catalog=Get-Content -LiteralPath $script:campaignCatalogPath -Raw | ConvertFrom-Json
     if($catalog.pythonExecutable) {
-        $pythonPath='C:\Users\AgentPCdevtest\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
+        $pythonPath='C:\Users\vmdev\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
         if($catalog.pythonExecutable.path -cne $pythonPath -or (Get-FileHash -LiteralPath $pythonPath -Algorithm SHA256).Hash -ne $catalog.pythonExecutable.sha256){throw 'verified_python_identity_mismatch'}
     }
     foreach($entry in $catalog.helpers) {
@@ -104,7 +104,7 @@ function Assert-CampaignPhase {
 
 $bundle=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..\HostAgent-DEV-SCM-candidates\resilience-test-fixtures-20261017-r2'))
 $bundleManifestHash='ECC5B168850D7B10A1F6A0156508D38DDE467D71CA0411C27B92D221D3B43514'
-$sdk='C:\Users\AgentPCdevtest\AppData\Local\HostAgent-dev-sdk\10.0.401\dotnet.exe'
+$sdk='C:\Users\vmdev\AppData\Local\HostAgent-dev-sdk\10.0.401\dotnet.exe'
 function Assert-RemainingBundle {
     Assert-CampaignPlainPath $bundle
     $manifestPath=Join-Path $bundle 'fixture-manifest.json'
@@ -216,7 +216,7 @@ function Invoke-RemainingRuntime {
         $healthy=($last.finished -eq $true -and $last.aborted -eq $false -and $last.failures -eq 0 -and $last.helperCalls -eq 0 -and
             $last.injectedCollectorFailures -eq 2 -and $last.collectorRecoveries -eq 2 -and $last.views -ge 10 -and $last.cpuSamples -ge 3)
         $checks=Join-Path $logs 'readonly-database-check';New-Item -ItemType Directory $checks | Out-Null
-        $python='C:\Users\AgentPCdevtest\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
+        $python='C:\Users\vmdev\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
         $readLocks=@()
         try{
             foreach($name in @('fixture.db','notices.db')){$readLocks += [IO.File]::Open((Join-Path $script:remainingFootprint $name),[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)}
@@ -231,7 +231,7 @@ Assert-CampaignVm;Assert-CampaignArtifacts;Assert-RemainingBundle
 $script:campaignBaseline=Get-CampaignProtected
 if((Get-CimInstance Win32_OperatingSystem -OperationTimeoutSec 5).FreePhysicalMemory/1024 -lt 1024){throw 'initial_free_memory_below_1024_mib'}
 if(([IO.DriveInfo]::new('C:\')).AvailableFreeSpace -lt 20GB){throw 'initial_disk_free_below_20_gib'}
-if([IO.Path]::GetFullPath($env:LOCALAPPDATA) -ine 'C:\Users\AgentPCdevtest\AppData\Local'){throw 'unexpected_local_evidence_root'}
+if([IO.Path]::GetFullPath($env:LOCALAPPDATA) -ine 'C:\Users\vmdev\AppData\Local'){throw 'unexpected_local_evidence_root'}
 $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
 $id=[guid]::NewGuid().ToString('N');$autoId=[guid]::NewGuid().ToString('N');$runtimeId=[guid]::NewGuid().ToString('N')
 $evidenceRoot=Join-Path $env:LOCALAPPDATA 'HostAgent-DEV-evidence'

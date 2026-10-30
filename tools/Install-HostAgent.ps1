@@ -101,7 +101,7 @@ function Test-StagedInstaller([string]$Stage,[bool]$Development,[string]$Publish
     Assert-InstallerPlainPath $manifest;Assert-InstallerPlainPath $msi
     if($Development){
         if($env:COMPUTERNAME -ne 'AgentPC' -or (Get-CimInstance Win32_ComputerSystem).Model -ne 'VirtualBox' -or
-            (Get-CimInstance Win32_ComputerSystemProduct).UUID -ne '46543236-8C5E-49DA-953C-DB17F9B1E402' -or (Get-Service VBoxService).Status -ne 'Running'){throw 'release_dev_vm_required'}
+            (Get-CimInstance Win32_ComputerSystemProduct).UUID -ne '0bb543d1-7bb0-43ed-9c94-596d63ef3310' -or (Get-Service VBoxService).Status -ne 'Running'){throw 'release_dev_vm_required'}
     }else{
         if($Publisher -notmatch '^[A-Fa-f0-9]{40}$'){throw 'publisher_signature_required'}
         foreach($path in @($manifest,$msi)){
