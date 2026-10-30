@@ -84,3 +84,10 @@ Export detailu vytváří lokální JSON s kódy, confidence, časy a číselný
 důkazy. Neobsahuje celé snapshots, raw text událostí, cesty ani tajemství.
 Před sdílením jej přesto zkontrolujte. Dashboard nemá veřejný port a
 neprovádí žádné automatické externí doručení.
+## Jazyk rozhraní
+
+Vývojová verze následující po `v1.2.8-preview.1` nabízí v záhlaví češtinu,
+angličtinu a němčinu. Volba se projeví ihned a ukládá se pro příští spuštění.
+Podrobnosti a odlišení od již vydaného balíčku uvádí
+[výběr jazyka desktopu](desktop-languages.md). Nastavení mění pouze rozhraní;
+monitorování a pravidla schvalování zůstávají stejné.

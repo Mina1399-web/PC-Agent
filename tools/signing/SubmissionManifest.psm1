@@ -127,4 +127,15 @@ function Read-SubmissionManifest {
         throw 'submission_manifest_read_failed'
     } finally { if ($null -ne $document) { $document.Dispose() } }
 }
-Export-ModuleMember -Function Read-SubmissionManifest
+
+function Get-SubmissionOwnedSigningCandidates {
+    param([Parameter(Mandatory)][string]$PackageRoot)
+    $root = [IO.Path]::GetFullPath($PackageRoot).TrimEnd('\', '/')
+    $preflight = [IO.Path]::GetFullPath((Join-Path $root 'signing-input/Preflight.dll'))
+    return @(Get-ChildItem -LiteralPath $root -File -Recurse | Where-Object {
+        (($_.Name -match '^HostAgent\..*\.(exe|dll)$') -and ($_.Name -notmatch '\.resources\.dll$')) -or
+        [string]::Equals([IO.Path]::GetFullPath($_.FullName), $preflight, [StringComparison]::OrdinalIgnoreCase)
+    })
+}
+
+Export-ModuleMember -Function Read-SubmissionManifest, Get-SubmissionOwnedSigningCandidates

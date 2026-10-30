@@ -29,7 +29,7 @@ jobs:
       - name: Submission preparation regression checks
         shell: pwsh
         run: |
-          foreach ($test in @('Test-SigningDependencyInventory.ps1','Test-SubmissionManifest.ps1','Test-InstallerSource.ps1','Test-HostedSubmissionGuards.ps1')) {
+          foreach ($test in @('Test-SigningDependencyInventory.ps1','Test-SubmissionManifest.ps1','Test-SubmissionSigningScope.ps1','Test-InstallerSource.ps1','Test-HostedSubmissionGuards.ps1')) {
             & (Join-Path $PSHOME 'pwsh.exe') -NoProfile -NonInteractive -File (Join-Path './tools/tests' $test)
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
