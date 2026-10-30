@@ -1,5 +1,10 @@
 # Místní přehled Host Agent
 
+Na úvodním přehledu je souhrn hlášených omezení komponent a chybějících
+aktuálních měření CPU a paměti. Prázdný seznam komponent není potvrzení
+zdravého stavu. Zastaralý přehled nebo ztráta spojení zneplatní předchozí
+souhrn; technické podrobnosti jsou v části **Komponenty**.
+
 Spusťte **Host Agent** z nabídky Start, případně
 `C:\Program Files\HostAgent\Desktop\HostAgent.Desktop.exe`. Přehled běží pod
 běžným přihlášeným účtem, bez požadavku na správce. Vyžaduje monitor s novým
@@ -13,6 +18,12 @@ počet aktivních adaptérů a health kódy neodvozují úspěšné připojení 
 ani dostupnost SMART. Historie je 24 hodin s průměry po 15 minutách; mezery se
 nespojují. Incidenty obsahují dvacet posledních záznamů, detail nejvýše šestnáct
 omezených důkazů. Confidence u bugchecku klasifikuje stop kód, nikoli viníka.
+
+V části **Komponenty agenta** se vedle technického health kódu zobrazují
+česká vysvětlení omezení měření procesů, CPU, paměti a služeb. Původní důvody
+jsou dostupné po najetí na vysvětlení. Neznámé důvody zůstávají zobrazené
+svým kódem. Chybějící důvody nejsou potvrzením zdravého stavu; chybějící
+údaj o CPU procesu také sám o sobě neznamená chybějící celkové využití CPU.
 
 **Prověřit problém** čte posledních nejvýše 256 uložených Event Log vzorků
 za 24 hodin a ukáže nejvýše šestnáct WER 1001 / 41 / 6008 událostí. Nejde o
