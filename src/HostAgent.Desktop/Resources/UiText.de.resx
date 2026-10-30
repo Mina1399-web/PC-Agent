@@ -1388,22 +1388,17 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data xml:space="preserve" name="HealthSummaryDetails"><value> Details und technische Codes finden Sie unter Komponenten.</value></data>
   <data xml:space="preserve" name="NoDetailedReasonsProvided"><value>Detaillierte Gründe wurden nicht angegeben.</value></data>
   <data xml:space="preserve" name="SomeProcessMetricsAccessDenied"><value>Windows hat den Zugriff auf einige Prozessdaten verweigert.</value></data>
-  <data xml:space="preserve" name="SomeProcessMetricsUnavailable"><value>Einige Prozessdaten sind nicht verfügbar.</value></data>
   <data xml:space="preserve" name="ProcessCpuTimeAccessDenied"><value>Die CPU-Zeit einiger Prozesse kann aufgrund fehlender Berechtigungen nicht gelesen werden.</value></data>
   <data xml:space="preserve" name="ProcessIdentityAccessDenied"><value>Die Identität einiger Prozesse kann aufgrund fehlender Berechtigungen nicht gelesen werden.</value></data>
   <data xml:space="preserve" name="ProcessNameAccessDenied"><value>Die Namen einiger Prozesse können aufgrund fehlender Berechtigungen nicht gelesen werden.</value></data>
   <data xml:space="preserve" name="ProcessStartTimeAccessDenied"><value>Die Startzeit einiger Prozesse kann aufgrund fehlender Berechtigungen nicht gelesen werden.</value></data>
   <data xml:space="preserve" name="ProcessWorkingSetAccessDenied"><value>Die Speichernutzung einiger Prozesse kann aufgrund fehlender Berechtigungen nicht gelesen werden.</value></data>
-  <data xml:space="preserve" name="SomeExecutablePathsUnavailable"><value>Die Programmpfade einiger Prozesse sind nicht verfügbar.</value></data>
-  <data xml:space="preserve" name="SomeProcessStartTimesUnavailable"><value>Die Startzeit einiger Prozesse ist nicht verfügbar.</value></data>
   <data xml:space="preserve" name="ProcessListTruncated"><value>Die Prozessliste wurde begrenzt und enthält nicht alle Prozesse.</value></data>
-  <data xml:space="preserve" name="ProcessListUnavailable"><value>Die Prozessliste konnte nicht geladen werden.</value></data>
   <data xml:space="preserve" name="CpuBaselineNotReady"><value>Zur Berechnung der CPU-Auslastung fehlt noch eine vorherige Messung.</value></data>
   <data xml:space="preserve" name="SystemCpuCounterUnavailable"><value>Die gesamte CPU-Auslastung konnte nicht gemessen werden.</value></data>
   <data xml:space="preserve" name="GlobalMemoryStatusUnavailable"><value>Die gesamte Speichernutzung konnte nicht gemessen werden.</value></data>
   <data xml:space="preserve" name="ServiceCatalogUnavailable"><value>Die Windows-Dienstliste konnte nicht geladen werden.</value></data>
   <data xml:space="preserve" name="SomeServiceStartModesUnavailable"><value>Der Starttyp einiger Dienste ist nicht verfügbar.</value></data>
   <data xml:space="preserve" name="SomeServiceStatesUnavailable"><value>Der aktuelle Status einiger Dienste ist nicht verfügbar.</value></data>
-  <data xml:space="preserve" name="SomeServiceTriggersUnavailable"><value>Die Auslösebedingungen einiger Dienste sind nicht verfügbar.</value></data>
   <data xml:space="preserve" name="AdditionalReportedReason"><value>Zusätzlicher gemeldeter Grund: {0}</value></data>
 </root>

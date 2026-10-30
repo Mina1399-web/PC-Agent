@@ -3,6 +3,7 @@ param([Parameter(Mandatory)][string]$PackagePath,[Parameter(Mandatory)][string]$
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'signing/HostedSubmission.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'signing/SubmissionManifest.psm1') -Force
 $stage='host'
 try{
  $source=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -46,7 +47,7 @@ try{
  Copy-Item -LiteralPath $action.ManagedPath -Destination (Join-Path $output 'signing-input/Preflight.dll')
  [IO.File]::WriteAllText((Join-Path $output 'README-FIRST.txt'),"Host Agent V1 $Version - unsigned submission preview. This package has not been signed or approved by SignPath. First verify the archive hash against its trusted build receipt, then read docs/operations/submission-preview.md, docs/operations/privacy.md and tools/Read-SubmissionPlan.ps1. Install only in an authorized test environment; Windows protections and Shadow/read-only must remain enabled. Native installation acceptance and owner approval are required before public release. Source: $commit",[Text.UTF8Encoding]::new($false))
  $stage='owned_signing_configuration'
- $owned=@(Get-ChildItem -LiteralPath $output -File -Recurse | Where-Object {$_.Name -match '^HostAgent\..*\.(exe|dll)$' -or $_.FullName -eq (Join-Path $output 'signing-input/Preflight.dll')})
+ $owned=Get-SubmissionOwnedSigningCandidates -PackageRoot $output
  $configuration=[xml]'<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1"><parameters><parameter name="version" required="true" /></parameters><zip-file /></artifact-configuration>'
  $zipElement=$configuration.DocumentElement.LastChild
  foreach($file in $owned | Sort-Object FullName){

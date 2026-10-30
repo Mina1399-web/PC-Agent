@@ -1388,22 +1388,17 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data xml:space="preserve" name="HealthSummaryDetails"><value> See Components for details and technical codes.</value></data>
   <data xml:space="preserve" name="NoDetailedReasonsProvided"><value>Detailed reasons were not provided.</value></data>
   <data xml:space="preserve" name="SomeProcessMetricsAccessDenied"><value>Windows denied access to some process data.</value></data>
-  <data xml:space="preserve" name="SomeProcessMetricsUnavailable"><value>Some process data is unavailable.</value></data>
   <data xml:space="preserve" name="ProcessCpuTimeAccessDenied"><value>CPU time for some processes cannot be read because of permissions.</value></data>
   <data xml:space="preserve" name="ProcessIdentityAccessDenied"><value>The identity of some processes cannot be read because of permissions.</value></data>
   <data xml:space="preserve" name="ProcessNameAccessDenied"><value>The names of some processes cannot be read because of permissions.</value></data>
   <data xml:space="preserve" name="ProcessStartTimeAccessDenied"><value>The start time of some processes cannot be read because of permissions.</value></data>
   <data xml:space="preserve" name="ProcessWorkingSetAccessDenied"><value>Memory usage of some processes cannot be read because of permissions.</value></data>
-  <data xml:space="preserve" name="SomeExecutablePathsUnavailable"><value>Executable paths for some processes are unavailable.</value></data>
-  <data xml:space="preserve" name="SomeProcessStartTimesUnavailable"><value>The start time of some processes is unavailable.</value></data>
   <data xml:space="preserve" name="ProcessListTruncated"><value>The process list was limited and does not include all processes.</value></data>
-  <data xml:space="preserve" name="ProcessListUnavailable"><value>The process list could not be loaded.</value></data>
   <data xml:space="preserve" name="CpuBaselineNotReady"><value>A previous sample is not available yet to calculate CPU usage.</value></data>
   <data xml:space="preserve" name="SystemCpuCounterUnavailable"><value>Total CPU usage could not be measured.</value></data>
   <data xml:space="preserve" name="GlobalMemoryStatusUnavailable"><value>Total memory usage could not be measured.</value></data>
   <data xml:space="preserve" name="ServiceCatalogUnavailable"><value>The Windows service list could not be loaded.</value></data>
   <data xml:space="preserve" name="SomeServiceStartModesUnavailable"><value>The startup mode of some services is unavailable.</value></data>
   <data xml:space="preserve" name="SomeServiceStatesUnavailable"><value>The current state of some services is unavailable.</value></data>
-  <data xml:space="preserve" name="SomeServiceTriggersUnavailable"><value>The trigger conditions of some services are unavailable.</value></data>
   <data xml:space="preserve" name="AdditionalReportedReason"><value>Additional reported reason: {0}</value></data>
 </root>

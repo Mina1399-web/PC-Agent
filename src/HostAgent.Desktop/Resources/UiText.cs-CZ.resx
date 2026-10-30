@@ -1388,22 +1388,17 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data xml:space="preserve" name="HealthSummaryDetails"><value> Podrobnosti a technické kódy najdete v části Komponenty.</value></data>
   <data xml:space="preserve" name="NoDetailedReasonsProvided"><value>Podrobné důvody nebyly předány.</value></data>
   <data xml:space="preserve" name="SomeProcessMetricsAccessDenied"><value>Windows odmítl přístup k některým údajům o procesech.</value></data>
-  <data xml:space="preserve" name="SomeProcessMetricsUnavailable"><value>Některé údaje o procesech nejsou dostupné.</value></data>
   <data xml:space="preserve" name="ProcessCpuTimeAccessDenied"><value>Čas CPU některých procesů nelze přečíst kvůli oprávněním.</value></data>
   <data xml:space="preserve" name="ProcessIdentityAccessDenied"><value>Identitu některých procesů nelze přečíst kvůli oprávněním.</value></data>
   <data xml:space="preserve" name="ProcessNameAccessDenied"><value>Názvy některých procesů nelze přečíst kvůli oprávněním.</value></data>
   <data xml:space="preserve" name="ProcessStartTimeAccessDenied"><value>Čas spuštění některých procesů nelze přečíst kvůli oprávněním.</value></data>
   <data xml:space="preserve" name="ProcessWorkingSetAccessDenied"><value>Využití paměti některých procesů nelze přečíst kvůli oprávněním.</value></data>
-  <data xml:space="preserve" name="SomeExecutablePathsUnavailable"><value>Cesty k programům některých procesů nejsou dostupné.</value></data>
-  <data xml:space="preserve" name="SomeProcessStartTimesUnavailable"><value>Čas spuštění některých procesů není dostupný.</value></data>
   <data xml:space="preserve" name="ProcessListTruncated"><value>Seznam procesů byl omezen; nezahrnuje všechny procesy.</value></data>
-  <data xml:space="preserve" name="ProcessListUnavailable"><value>Seznam procesů se nepodařilo načíst.</value></data>
   <data xml:space="preserve" name="CpuBaselineNotReady"><value>Pro výpočet využití CPU zatím chybí předchozí vzorek.</value></data>
   <data xml:space="preserve" name="SystemCpuCounterUnavailable"><value>Celkové využití CPU se nepodařilo změřit.</value></data>
   <data xml:space="preserve" name="GlobalMemoryStatusUnavailable"><value>Celkové využití paměti se nepodařilo změřit.</value></data>
   <data xml:space="preserve" name="ServiceCatalogUnavailable"><value>Seznam služeb Windows se nepodařilo načíst.</value></data>
   <data xml:space="preserve" name="SomeServiceStartModesUnavailable"><value>Způsob spouštění některých služeb není dostupný.</value></data>
   <data xml:space="preserve" name="SomeServiceStatesUnavailable"><value>Aktuální stav některých služeb není dostupný.</value></data>
-  <data xml:space="preserve" name="SomeServiceTriggersUnavailable"><value>Spouštěcí podmínky některých služeb nejsou dostupné.</value></data>
   <data xml:space="preserve" name="AdditionalReportedReason"><value>Další hlášený důvod: {0}</value></data>
 </root>
