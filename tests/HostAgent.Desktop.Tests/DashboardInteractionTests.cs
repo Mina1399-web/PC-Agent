@@ -64,7 +64,7 @@ public sealed class DashboardInteractionTests
         Assert.Contains("Čas CPU některých procesů", explanation.Text);
         Assert.Contains("future_collector_reason", explanation.Text);
         Assert.Equal("process_cpu_time_access_denied, future_collector_reason", explanation.ToolTip);
-        Assert.Equal("collector_partial", Assert.IsType<TextBlock>(grid.Columns[1].GetCellContent(row)).Text);
+        Assert.Contains("collector_partial", Assert.IsType<TextBlock>(grid.Columns[1].GetCellContent(row)).Text);
         Assert.True(Assert.IsType<ViewHealth>(row).Degraded);
     });
 

@@ -32,4 +32,15 @@ public sealed class TelemetryExplanationTests
         Assert.Contains("Celkové využití CPU", Explain(new[] { "system_cpu_counter_unavailable" }));
         Assert.DoesNotContain("Celkové využití CPU", Explain(new[] { "process_cpu_time_access_denied" }));
     }
+
+    [Theory]
+    [InlineData("en", "CPU time for some processes")]
+    [InlineData("de", "CPU-Zeit einiger Prozesse")]
+    public void Explanations_follow_the_selected_interface_language(string language, string expected)
+    {
+        var text = (string)new TelemetryExplanationConverter().Convert(
+            new[] { "process_cpu_time_access_denied" }, typeof(string), null!, CultureInfo.GetCultureInfo(language));
+        Assert.Contains(expected, text);
+        Assert.DoesNotContain("Čas CPU některých procesů", text);
+    }
 }
