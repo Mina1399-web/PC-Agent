@@ -13,9 +13,10 @@ neznamená připravenost pro běžné nasazení ani podpis produktu.
   Vydaná větev neobsahuje říjnové změny údržby, SMART ani aktuální nastavení
   Pushover/Healthchecks z DEV VM.
 - Kód 1.2.9 a ověřovací reporty jsou commitnuté a pushnuté v otevřeném PR #4
-  proti `codex/signpath-submission-prep`. Windows CI #21 prošlo pro hlavu
-  `8b5abca`; PR ještě není sloučený. Instalační balíček 1.2.9 zůstává místním
-  DEV artefaktem.
+  proti `codex/signpath-submission-prep`. Windows CI #21 prošlo pro commit
+  `8b5abca`; následný commit `c681544` upravil jen tento stavový report.
+  Produktový zdroj se od běhu CI nezměnil. PR ještě není sloučený; instalační
+  balíček 1.2.9 zůstává místním DEV artefaktem.
 - Ověřovací záznam upozornění i tento report jsou součástí PR #4; pracovní
   strom je čistý.
 - Chybí řízený test zotavení heartbeat po výpadku a ověření SMART na skutečném
@@ -62,8 +63,9 @@ GitHub API při kontrole uvádělo výchozí větev
 - **PR #4 — otevřený, CI zelené:** [Expand confirmed file maintenance and
   disk failure prediction](https://github.com/Mina1399-web/PC-Agent/pull/4)
   posílá zachované lokální commity 1.2.9 a reporty proti aktuální větvi
-  `codex/signpath-submission-prep`; aktuální hlava `8b5abca` má úspěšný
-  Windows review workflow #21 a GitHub hlásí `mergeable: true`. PR nebyl
+  `codex/signpath-submission-prep`; Windows review workflow #21 úspěšně
+  ověřilo produktový commit `8b5abca`. Aktuální hlava `c681544` obsahuje pouze
+  následný stavový dokumentační záznam; GitHub hlásí `mergeable: true`. PR nebyl
   sloučen.
 - **Poslední release:** [1.2.8 unsigned preview](https://github.com/Mina1399-web/PC-Agent/releases/tag/v1.2.8-preview.1),
   označený jako prerelease. Obsahuje MSI, ZIP, manifest a SHA256SUMS.
@@ -89,11 +91,12 @@ Místní checkout je větev `codex/expanded-local-maintenance`, remote
 | `ab12a5b` — důkaz automatického upozornění a stavový report | Commitnuté ověřovací dokumenty | Součást PR #4; nesloučeno |
 | `d39cbd8` — prodloužení čekání v časově citlivém CI testu | Commitnutá testovací stabilizace | Součást hlavy PR #4; Windows CI prošlo |
 | `8b5abca` — výkonové měření DEV VM | Report, 187 raw vzorků a aktualizovaný stav | Pushnuto do PR #4; Windows CI #21 prošlo |
+| `c681544` — záznam výsledku Windows workflow #21 | Pouze aktualizace stavu projektu | Pushnuto do PR #4; produktový zdroj beze změny, nové CI nebylo spuštěno |
 
 Po zachování původních SHA jsem vytvořil merge commit `e096117`, který
 připojuje aktuální vzdálenou větev `b5226143` k místním commitům. Graf
-zachovává `1515ec1`, `dc32681` a `ab12a5b`; následují `d39cbd8` a
-`8b5abca`.
+zachovává `1515ec1`, `dc32681` a `ab12a5b`; následují `d39cbd8`, `8b5abca`
+a `c681544`.
 Větev `codex/expanded-local-maintenance` je pushnutá a otevřená jako PR #4
 proti `codex/signpath-submission-prep`, nikoli proti `main`.
 
