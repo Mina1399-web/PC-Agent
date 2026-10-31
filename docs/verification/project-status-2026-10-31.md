@@ -18,8 +18,9 @@ neznamená připravenost pro běžné nasazení ani podpis produktu.
   DEV artefaktem.
 - Ověřovací záznam upozornění i tento report jsou součástí PR #4; pracovní
   strom je čistý.
-- Chybí ověřený běh zotavení po výpadku heartbeat, měření dlouhodobé spotřeby
-  RAM/CPU a ověření SMART na skutečném fyzickém disku.
+- Chybí řízený test zotavení heartbeat po výpadku a ověření SMART na skutečném
+  podporovaném fyzickém disku. Výkon Host Agentu už má srovnávací měření v DEV
+  VM; podrobnosti a limity jsou v [samostatném reportu](performance-2026-10-31.md).
 
 ## Stav funkcí produktu
 
@@ -37,7 +38,7 @@ neznamená připravenost pro běžné nasazení ani podpis produktu.
 | Trvalé smazání z karantény | Implementováno, testováno na syntetickém souboru | Vyžaduje přesné `DELETE <ID>`, kontroluje identitu/hash a zapisuje trvalý audit. Neexistuje automatické promazávání. Smazaný obsah aplikace neobnoví. |
 | Automatické Pushover upozornění | Ověřeno end-to-end v DEV VM | Nainstalovaná služba sama zpracovala syntetický varovný incident: `push_sent`, jeden pokus, bez opakování během dalšího intervalu. Uživatel doložil doručení do telefonu. Jde o testovací incident, ne o simulaci detekce reálné poruchy. |
 | Healthchecks heartbeat | Zapnutý; základní odeslání prošlo | Při nastavování služba úspěšně zavolala uživatelův endpoint. Chování při výpadku a následném zotavení ještě otestováno není. Stav může být červený kvůli částečným procesním metrikám. |
-| Spotřeba paměti a výkon | Nedostatečně změřeno | Jeden starší okamžitý vzorek služeb: Service 195,3 MiB working set / 166,6 MiB private; Helper 41,5 / 9,4 MiB. Bez desktopu a bez srovnávacího či dlouhodobého měření. Nelze z něj vyvodit běžnou celkovou spotřebu PC. |
+| Spotřeba paměti a výkon | Změřeno v DEV VM | Čtyři srovnávací fáze: nečinnost bez UI, běžné sběrné cykly, otevřený dashboard a 31minutový běh. Průměrný working set Service/Helper: 213,38/43,40 MiB při nečinnosti; 239,42/43,33 MiB s dashboardem. Celková VM RAM se vykazuje zvlášť. Raw data, CPU metodika a omezení jsou v [reportu výkonu](performance-2026-10-31.md). Nejde o měření celého hlavního PC ani o důkaz absence paměťového úniku. |
 | Podpis a běžné produkční nasazení | Nedokončeno | Balíček 1.2.9 je nepodepsaný DEV build. Není potvrzená důvěryhodná podpisová cesta, instalace na hlavní počítač ani produkční přijetí. |
 
 ## Co je na GitHubu
@@ -104,9 +105,9 @@ spuštěny na hlavním PC.
    Balíček 1.2.9 nevydávat jako hotový produkční release.
 2. **Provozní testy:** provést řízený test selhání a zotavení heartbeat a
    ověřit doručení i stav v Healthchecks.
-3. **Výkon:** zaznamenat reprezentativní RAM/CPU při nečinnosti, sběru,
-   otevřeném dashboardu a delším běhu; odlišit working set jednotlivých
-   procesů od celkové fyzické RAM.
+3. **Výkon — dokončeno v DEV VM:** proběhly srovnávací fáze nečinnosti, běžného
+   sběru, otevřeného dashboardu a 31minutového běhu. [Naměřené výsledky,
+   surové vzorky a validační kontroly](performance-2026-10-31.md).
 4. **SMART:** vyzkoušet čtecí předpověď na skutečném podporovaném fyzickém
    disku; pokud hardware/API údaj neposkytne, zobrazit tuto schopnost jako
    nepodporovanou, nikoli jako potvrzené zdraví.
