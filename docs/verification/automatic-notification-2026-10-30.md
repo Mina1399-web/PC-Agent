@@ -55,3 +55,6 @@ real fault, future delivery under outages, emergency acknowledgement,
 phone display, heartbeat outage/recovery, or production acceptance.
 Phone receipt of the earlier direct test was already confirmed by the
 operator's screenshot; that is separate from this automatic-incident test.
+The setup-time Healthchecks acceptance is recorded separately in
+[Heartbeat setup result](heartbeat-setup-2026-10-30.md); it does not establish
+outage/recovery behavior.

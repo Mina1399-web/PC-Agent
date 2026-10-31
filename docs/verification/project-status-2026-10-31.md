@@ -13,15 +13,16 @@ neznamená připravenost pro běžné nasazení ani podpis produktu.
   Vydaná větev neobsahuje říjnové změny údržby, SMART ani aktuální nastavení
   Pushover/Healthchecks z DEV VM.
 - Kód 1.2.9 a ověřovací reporty jsou commitnuté a pushnuté v otevřeném PR #4
-  proti `codex/signpath-submission-prep`. Windows CI #21 prošlo pro commit
-  `8b5abca`; následný commit `c681544` upravil jen tento stavový report.
-  Produktový zdroj se od běhu CI nezměnil. PR ještě není sloučený; instalační
-  balíček 1.2.9 zůstává místním DEV artefaktem.
+  proti `codex/signpath-submission-prep`. Windows CI #23 prošlo pro commit
+  `ccfc25a`; následná práce v tomto kroku doplňuje jen dokumentaci. PR ještě
+  není sloučený; instalační balíček 1.2.9 zůstává místním DEV artefaktem.
 - Ověřovací záznam upozornění i tento report jsou součástí PR #4; pracovní
   strom je čistý.
-- Chybí řízený test zotavení heartbeat po výpadku a ověření SMART na skutečném
-  podporovaném fyzickém disku. Výkon Host Agentu už má srovnávací měření v DEV
-  VM; podrobnosti a limity jsou v [samostatném reportu](performance-2026-10-31.md).
+- Počáteční přijetí Healthchecks heartbeat je doložené v
+  [samostatném záznamu](heartbeat-setup-2026-10-30.md); řízený test výpadku a
+  zotavení ještě chybí. SMART ověříme později na hlavním PC, jak určil majitel.
+  Výkon Host Agentu je změřen v DEV VM; podrobnosti jsou v
+  [samostatném reportu](performance-2026-10-31.md).
 
 ## Stav funkcí produktu
 
@@ -38,7 +39,7 @@ neznamená připravenost pro běžné nasazení ani podpis produktu.
 | Ručně vybraná složka | Implementováno, instalováno v 1.2.9 | Prohledává přímé soubory ve vybrané uživatelské složce; není to rekurzivní úklid systému. Zachovává kontrolu náhledu, identity, vlastníka, karantény a omezení rozsahu. |
 | Trvalé smazání z karantény | Implementováno, testováno na syntetickém souboru | Vyžaduje přesné `DELETE <ID>`, kontroluje identitu/hash a zapisuje trvalý audit. Neexistuje automatické promazávání. Smazaný obsah aplikace neobnoví. |
 | Automatické Pushover upozornění | Ověřeno end-to-end v DEV VM | Nainstalovaná služba sama zpracovala syntetický varovný incident: `push_sent`, jeden pokus, bez opakování během dalšího intervalu. Uživatel doložil doručení do telefonu. Jde o testovací incident, ne o simulaci detekce reálné poruchy. |
-| Healthchecks heartbeat | Zapnutý; základní odeslání prošlo | Při nastavování služba úspěšně zavolala uživatelův endpoint. Chování při výpadku a následném zotavení ještě otestováno není. Stav může být červený kvůli částečným procesním metrikám. |
+| Healthchecks heartbeat | Počáteční přijetí doloženo | Konfigurační účtenka uvádí `heartbeatAccepted=true`, `heartbeatSignal=success` a `heartbeatEnabled=true`; viz [záznam nastavení](heartbeat-setup-2026-10-30.md). Neověřuje aktuální endpoint ani chování při výpadku a zotavení. Stav může být červený kvůli částečným procesním metrikám. |
 | Spotřeba paměti a výkon | Změřeno v DEV VM | Čtyři srovnávací fáze: nečinnost bez UI, běžné sběrné cykly, otevřený dashboard a 31minutový běh. Průměrný working set Service/Helper: 213,38/43,40 MiB při nečinnosti; 239,42/43,33 MiB s dashboardem. Celková VM RAM se vykazuje zvlášť. Raw data, CPU metodika a omezení jsou v [reportu výkonu](performance-2026-10-31.md). Nejde o měření celého hlavního PC ani o důkaz absence paměťového úniku. |
 | Podpis a běžné produkční nasazení | Nedokončeno | Balíček 1.2.9 je nepodepsaný DEV build. Není potvrzená důvěryhodná podpisová cesta, instalace na hlavní počítač ani produkční přijetí. |
 
@@ -71,11 +72,12 @@ GitHub API při kontrole uvádělo výchozí větev
   označený jako prerelease. Obsahuje MSI, ZIP, manifest a SHA256SUMS.
   Je výslovně nepodepsaný a určený pouze pro DEV VM; nejde o produkční
   vydání.
-- Windows review workflow #21 pro PR #4, commit
-  `8b5abcac2f916d336f138e2f82c9d94d6eebae14`, skončilo úspěšně 31. 10. 2026:
+- Windows review workflow #23 pro PR #4, commit
+  `ccfc25a3bf33f085942515192da1f0421db29fee`, skončilo úspěšně 31. 10. 2026:
   submission preparation regression checks, Release build a Core/Windows
   integration/desktop test step prošly. Balicí kroky určené jen pro push byly
-  v PR běhu přeskočeny. PR #3 zůstává zavřený bez merge.
+  v PR běhu přeskočeny. PR #3 zůstává zavřený bez merge. V tomto potvrzení
+  GitHub uváděl otevřený, mergeable PR #4; SMART test se neprováděl.
 - GitHub tag/release 1.2.9 ani publikovaný balíček nových funkcí nebyly
   nalezeny.
 
@@ -92,6 +94,7 @@ Místní checkout je větev `codex/expanded-local-maintenance`, remote
 | `d39cbd8` — prodloužení čekání v časově citlivém CI testu | Commitnutá testovací stabilizace | Součást hlavy PR #4; Windows CI prošlo |
 | `8b5abca` — výkonové měření DEV VM | Report, 187 raw vzorků a aktualizovaný stav | Pushnuto do PR #4; Windows CI #21 prošlo |
 | `c681544` — záznam výsledku Windows workflow #21 | Pouze aktualizace stavu projektu | Pushnuto do PR #4; produktový zdroj beze změny, nové CI nebylo spuštěno |
+| `ccfc25a` — upřesnění CI stavu PR | Pouze dokumentace | Pushnuto do PR #4; Windows CI #23 prošlo |
 
 Po zachování původních SHA jsem vytvořil merge commit `e096117`, který
 připojuje aktuální vzdálenou větev `b5226143` k místním commitům. Graf
@@ -110,7 +113,8 @@ spuštěny na hlavním PC.
    případné sloučení do cílové vývojové větve. PR zatím nebyl sloučen.
    Balíček 1.2.9 nevydávat jako hotový produkční release.
 2. **Provozní testy:** provést řízený test selhání a zotavení heartbeat a
-   ověřit doručení i stav v Healthchecks.
+   ověřit doručení i stav v Healthchecks; dosavadní [záznam heartbeat](heartbeat-setup-2026-10-30.md)
+   dokládá jen počáteční přijetí.
 3. **Výkon — dokončeno v DEV VM:** proběhly srovnávací fáze nečinnosti, běžného
    sběru, otevřeného dashboardu a 31minutového běhu. [Naměřené výsledky,
    surové vzorky a validační kontroly](performance-2026-10-31.md).
@@ -128,6 +132,8 @@ spuštěny na hlavním PC.
 - [Automatické incidentní upozornění](automatic-notification-2026-10-30.md)
   zaznamenává jeden automatický pokus, žádné opakování v dalším cyklu,
   uzavřený syntetický incident a doložené doručení do telefonu.
+- [Počáteční Healthchecks heartbeat](heartbeat-setup-2026-10-30.md) odděluje
+  doložené přijetí při nastavení od stále neprovedeného testu výpadku a zotavení.
 - [Rozšířená údržba](../operations/expanded-maintenance.md) popisuje
   přesné limity karantény, mazání a SMART rozhraní.
 - README nyní zaznamenává majitelem nahlášené podání SignPath 27. 10. a čekání
