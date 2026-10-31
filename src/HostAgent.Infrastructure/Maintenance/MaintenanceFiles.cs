@@ -151,6 +151,18 @@ internal static partial class MaintenanceNative
     }
     [LibraryImport("kernel32.dll", EntryPoint = "CreateFileW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
     internal static partial SafeFileHandle CreateFile(string path, uint access, uint sharing, IntPtr security, uint creation, uint flags, IntPtr template);
+    internal static void Delete(SafeFileHandle handle)
+    {
+        var buffer = Marshal.AllocHGlobal(4);
+        try
+        {
+            Marshal.WriteInt32(buffer, 1);
+            if (!SetFileInformationByHandle(handle, 4, buffer, 4))
+                throw new Win32Exception(Marshal.GetLastPInvokeError());
+        }
+        finally { Marshal.FreeHGlobal(buffer); }
+    }
+
     [LibraryImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetFileInformationByHandle(SafeFileHandle handle, out FileInfo info);

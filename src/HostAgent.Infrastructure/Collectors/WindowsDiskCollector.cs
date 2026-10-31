@@ -7,10 +7,12 @@ namespace HostAgent.Infrastructure.Collectors;
 public sealed class WindowsDiskCollector : ITelemetryCollector<DiskTelemetry>
 {
     private readonly IDiskIoCounterReader _ioCounterReader;
+    private readonly IDiskHealthReader _healthReader;
 
-    public WindowsDiskCollector(IDiskIoCounterReader? ioCounterReader = null)
+    public WindowsDiskCollector(IDiskIoCounterReader? ioCounterReader = null, IDiskHealthReader? healthReader = null)
     {
         _ioCounterReader = ioCounterReader ?? new WindowsDiskIoCounterReader();
+        _healthReader = healthReader ?? new WindowsDiskHealthReader();
     }
 
     public string CollectorId => "disk";
@@ -83,9 +85,10 @@ public sealed class WindowsDiskCollector : ITelemetryCollector<DiskTelemetry>
             warnings.Add("some_disk_io_counters_unavailable");
         }
 
-        // V1 does not issue vendor-specific SMART commands; they are not required for safe volume monitoring.
-        warnings.Add("smart_health_unavailable");
-        var telemetry = new DiskTelemetry(volumes.AsReadOnly(), ioCounters, Array.Empty<DiskHealthTelemetry>());
+        var health = await _healthReader.ReadAsync(cancellationToken);
+        if (health.Count == 0) warnings.Add("smart_health_unavailable");
+        if (health.Any(item => item.FailureCode == "smart_failure_predicted")) warnings.Add("smart_failure_predicted");
+        var telemetry = new DiskTelemetry(volumes.AsReadOnly(), ioCounters, health);
         return warnings.Count == 0
             ? CollectorResult<DiskTelemetry>.Success(CollectorId, now, telemetry)
             : CollectorResult<DiskTelemetry>.Partial(CollectorId, now, telemetry, warnings);

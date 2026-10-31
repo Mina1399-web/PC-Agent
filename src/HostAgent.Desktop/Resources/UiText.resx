@@ -1401,4 +1401,17 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data xml:space="preserve" name="SomeServiceStartModesUnavailable"><value>The startup mode of some services is unavailable.</value></data>
   <data xml:space="preserve" name="SomeServiceStatesUnavailable"><value>The current state of some services is unavailable.</value></data>
   <data xml:space="preserve" name="AdditionalReportedReason"><value>Additional reported reason: {0}</value></data>
+  <data xml:space="preserve" name="DeleteSelectedQuarantineFile"><value>Permanently delete selected quarantined file</value></data>
+  <data xml:space="preserve" name="ChooseMaintenanceFolder"><value>Choose a folder for maintenance</value></data>
+  <data xml:space="preserve" name="PermanentDeleteResult"><value>Deletion result: {0}; deleted: {1}; bytes: {2}.</value></data>
+  <data xml:space="preserve" name="PermanentQuarantineDeletion"><value>Permanent deletion cannot be undone. Select one quarantined file, review its name and size, then type DELETE followed by a space and its exact Restore ID.</value></data>
+  <data xml:space="preserve" name="QuarantineDeleteFailed"><value>Deletion failed. Reload the quarantine list and review its state before retrying.</value></data>
+  <data xml:space="preserve" name="SelectedFolderMaintenanceScope"><value>Selected folder: direct files only, no minimum age, up to 1 GiB per file and 10 GiB in quarantine. Review every file. Restore works while the file remains in quarantine.</value></data>
+  <data xml:space="preserve" name="SelectedFolderUnavailable"><value>This folder is unavailable or protected. Choose a local folder you own, on the same volume as your user profile.</value></data>
+  <data xml:space="preserve" name="ReadSmartPrediction"><value>Read SMART failure prediction</value></data>
+  <data xml:space="preserve" name="SmartDeviceUnavailable"><value>{0}: SMART prediction is unavailable.</value></data>
+  <data xml:space="preserve" name="SmartFailurePredicted"><value>{0}: the device predicts failure. Back up important data and check the physical disk.</value></data>
+  <data xml:space="preserve" name="SmartNoFailurePredicted"><value>{0}: no failure predicted by this interface. This is not a full hardware health check.</value></data>
+  <data xml:space="preserve" name="SmartNotRead"><value>SMART has not been queried in this session.</value></data>
+  <data xml:space="preserve" name="SmartPredictionUnavailable"><value>SMART prediction is unavailable with this device, driver or account. This does not establish disk health.</value></data>
 </root>
