@@ -12,10 +12,12 @@ neznamená připravenost pro běžné nasazení ani podpis produktu.
 - Poslední GitHub release je **nepodepsaný předběžný Host Agent 1.2.8**.
   Vydaná větev neobsahuje říjnové změny údržby, SMART ani aktuální nastavení
   Pushover/Healthchecks z DEV VM.
-- Nový kód 1.2.9 je lokálně commitnutý v pracovní větvi. **Na GitHub pushnutý
-  není.** Instalační balíček 1.2.9 zůstává místním DEV artefaktem.
-- Pracovní strom obsahuje necommitnutý ověřovací záznam upozornění a tento
-  report. Nic z toho zatím nebylo odesláno na GitHub.
+- Kód 1.2.9 a ověřovací reporty jsou commitnuté a pushnuté v otevřeném PR #4
+  proti `codex/signpath-submission-prep`. Windows CI pro hlavu `d39cbd8`
+  prošlo; PR ještě není sloučený. Instalační balíček 1.2.9 zůstává místním
+  DEV artefaktem.
+- Ověřovací záznam upozornění i tento report jsou součástí PR #4; pracovní
+  strom je čistý.
 - Chybí ověřený běh zotavení po výpadku heartbeat, měření dlouhodobé spotřeby
   RAM/CPU a ověření SMART na skutečném fyzickém disku.
 
@@ -56,13 +58,20 @@ GitHub API při kontrole uvádělo výchozí větev
   v balíčku. PR #3 zkoušel vložit duplicitní starší filtr do dvou skriptů;
   GitHub u něj vracel `mergeable: false` a nebyl k dispozici Windows check.
   Přidal jsem vysvětlující komentář a PR zavřel bez mergování.
+- **PR #4 — otevřený, CI zelené:** [Expand confirmed file maintenance and
+  disk failure prediction](https://github.com/Mina1399-web/PC-Agent/pull/4)
+  posílá zachované lokální commity 1.2.9 a reporty proti aktuální větvi
+  `codex/signpath-submission-prep`; GitHub hlásí `mergeable: true`. PR nebyl
+  sloučen.
 - **Poslední release:** [1.2.8 unsigned preview](https://github.com/Mina1399-web/PC-Agent/releases/tag/v1.2.8-preview.1),
   označený jako prerelease. Obsahuje MSI, ZIP, manifest a SHA256SUMS.
   Je výslovně nepodepsaný a určený pouze pro DEV VM; nejde o produkční
   vydání.
-- Poslední načtený hlavní review workflow na `b5226143` byl zelený. Historie
-  obsahuje také starší neúspěšné běhy; neznamenají, že selhal poslední běh.
-  Pro PR #3 zde úspěšný běh potvrzen nebyl.
+- Windows review workflow #19 pro PR #4, commit
+  `d39cbd8215c349e3035dadff397097832af56743`, skončil úspěšně 31. 10. 2026:
+  release build 0 warningů/chyb; Core 62/62, Infrastructure 455/455,
+  Desktop 47/47 (564 testů); také submission regression checks prošly.
+  Úspěch tohoto workflow se týká PR #4; PR #3 zůstává zavřený bez merge.
 - GitHub tag/release 1.2.9 ani publikovaný balíček nových funkcí nebyly
   nalezeny.
 
@@ -73,15 +82,16 @@ Místní checkout je větev `codex/expanded-local-maintenance`, remote
 
 | Commit / změna | Místní stav | GitHub stav |
 |---|---|---|
-| `1515ec1` — rozšířená potvrzovaná údržba a predikce selhání disku | Commitnutý; zdroj 1.2.9, instalován v DEV VM | Na GitHub neposlaný |
-| `dc32681` — záznam instalace a readbacku 1.2.9 | Commitnutý; lokální důkazy a dokumentace | Na GitHub neposlaný |
-| `ab12a5b` — důkaz automatického upozornění a tento stavový report | Commitnuté ověřovací dokumenty | Na GitHub zatím neposlané |
+| `1515ec1` — rozšířená potvrzovaná údržba a predikce selhání disku | Commitnutý; zdroj 1.2.9, instalován v DEV VM | Součást PR #4; nesloučeno |
+| `dc32681` — záznam instalace a readbacku 1.2.9 | Commitnutý; lokální důkazy a dokumentace | Součást PR #4; nesloučeno |
+| `ab12a5b` — důkaz automatického upozornění a stavový report | Commitnuté ověřovací dokumenty | Součást PR #4; nesloučeno |
+| `d39cbd8` — prodloužení čekání v časově citlivém CI testu | Commitnutá testovací stabilizace | Součást hlavy PR #4; Windows CI prošlo |
 
 Po zachování původních SHA jsem vytvořil merge commit `e096117`, který
 připojuje aktuální vzdálenou větev `b5226143` k místním commitům. Graf
-zachovává `1515ec1`, `dc32681` a `ab12a5b`. Větev
-`codex/expanded-local-maintenance` zatím nebyla pushnuta; PR pro 1.2.9
-má cílit na `codex/signpath-submission-prep`, nikoli na `main`.
+zachovává `1515ec1`, `dc32681` a `ab12a5b`; následuje commit `d39cbd8`.
+Větev `codex/expanded-local-maintenance` je pushnutá a otevřená jako PR #4
+proti `codex/signpath-submission-prep`, nikoli proti `main`.
 
 Build 1.2.9, MSI, manifest a ZIP existují jako ověřené místní DEV artefakty
 v evidenční složce pracovní kopie. Nejsou GitHub release assety a nebyly
@@ -89,8 +99,8 @@ spuštěny na hlavním PC.
 
 ## Co zbývá a doporučené pořadí
 
-1. **GitHub PR:** pushnout zachovanou větev a otevřít PR proti
-   `codex/signpath-submission-prep`; Windows CI pro tento rozsah zatím neběží.
+1. **GitHub PR:** PR #4 a Windows CI jsou dokončené; zbývá lidská revize a
+   případné sloučení do cílové vývojové větve. PR zatím nebyl sloučen.
    Balíček 1.2.9 nevydávat jako hotový produkční release.
 2. **Provozní testy:** provést řízený test selhání a zotavení heartbeat a
    ověřit doručení i stav v Healthchecks.
@@ -113,11 +123,10 @@ spuštěny na hlavním PC.
   uzavřený syntetický incident a doložené doručení do telefonu.
 - [Rozšířená údržba](../operations/expanded-maintenance.md) popisuje
   přesné limity karantény, mazání a SMART rozhraní.
-- README ještě chybně uvádí, že žádost SignPath nebyla podána. Majitel
-  uvedl, že ji odeslal 27. 10. a čeká na odpověď. To nepotvrzuje přijetí
-  do programu ani podpis; veřejný text je potřeba opravit v tomto PR.
+- README nyní zaznamenává majitelem nahlášené podání SignPath 27. 10. a čekání
+  na odpověď. To nepotvrzuje přijetí do programu ani podpis.
 
 Testy, hardware a CI se zde nepovažují za ověřené nad rámec uvedených
-podkladů. Tento report je lokální pracovní dokument, nikoli GitHub commit,
-release, podpis ani produkční schválení. GitHub byl naposledy načten
-31. 10. 2026 před otevřením PR pro tyto změny.
+podkladů. Tento report je součástí otevřeného PR #4; není to release, podpis
+ani produkční schválení. GitHub byl ověřen 31. 10. 2026 po úspěšném Windows
+review workflow #19.
