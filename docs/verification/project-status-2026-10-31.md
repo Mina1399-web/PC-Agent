@@ -13,9 +13,10 @@ neznamená připravenost pro běžné nasazení ani podpis produktu.
   Vydaná větev neobsahuje říjnové změny údržby, SMART ani aktuální nastavení
   Pushover/Healthchecks z DEV VM.
 - Kód 1.2.9 a ověřovací reporty jsou commitnuté a pushnuté v otevřeném PR #4
-  proti `codex/signpath-submission-prep`. Windows CI #23 prošlo pro commit
-  `ccfc25a`; následná práce v tomto kroku doplňuje jen dokumentaci. PR ještě
-  není sloučený; instalační balíček 1.2.9 zůstává místním DEV artefaktem.
+  proti `codex/signpath-submission-prep`. Windows CI #24 prošlo pro commit
+  `f68b14c`, který přidal heartbeat záznam a odkazy; následující úprava tohoto
+  stavového reportu je pouze dokumentační. PR není sloučený; instalační balíček
+  1.2.9 zůstává místním DEV artefaktem.
 - Ověřovací záznam upozornění i tento report jsou součástí PR #4; pracovní
   strom je čistý.
 - Počáteční přijetí Healthchecks heartbeat je doložené v
@@ -64,16 +65,15 @@ GitHub API při kontrole uvádělo výchozí větev
 - **PR #4 — otevřený, CI zelené:** [Expand confirmed file maintenance and
   disk failure prediction](https://github.com/Mina1399-web/PC-Agent/pull/4)
   posílá zachované lokální commity 1.2.9 a reporty proti aktuální větvi
-  `codex/signpath-submission-prep`; Windows review workflow #21 úspěšně
-  ověřilo produktový commit `8b5abca`. Aktuální hlava `c681544` obsahuje pouze
-  následný stavový dokumentační záznam; GitHub hlásí `mergeable: true`. PR nebyl
-  sloučen.
+  `codex/signpath-submission-prep`; Windows review workflow #24 úspěšně
+  ověřilo commit `f68b14c`. Při kontrole byl PR otevřený a
+  `mergeable: true`; nebyl sloučen.
 - **Poslední release:** [1.2.8 unsigned preview](https://github.com/Mina1399-web/PC-Agent/releases/tag/v1.2.8-preview.1),
   označený jako prerelease. Obsahuje MSI, ZIP, manifest a SHA256SUMS.
   Je výslovně nepodepsaný a určený pouze pro DEV VM; nejde o produkční
   vydání.
-- Windows review workflow #23 pro PR #4, commit
-  `ccfc25a3bf33f085942515192da1f0421db29fee`, skončilo úspěšně 31. 10. 2026:
+- Windows review workflow #24 pro PR #4, commit
+  `f68b14c4431b5ef7aaee5d0f895494b1c9d10838`, skončilo úspěšně 31. 10. 2026:
   submission preparation regression checks, Release build a Core/Windows
   integration/desktop test step prošly. Balicí kroky určené jen pro push byly
   v PR běhu přeskočeny. PR #3 zůstává zavřený bez merge. V tomto potvrzení
@@ -95,11 +95,12 @@ Místní checkout je větev `codex/expanded-local-maintenance`, remote
 | `8b5abca` — výkonové měření DEV VM | Report, 187 raw vzorků a aktualizovaný stav | Pushnuto do PR #4; Windows CI #21 prošlo |
 | `c681544` — záznam výsledku Windows workflow #21 | Pouze aktualizace stavu projektu | Pushnuto do PR #4; produktový zdroj beze změny, nové CI nebylo spuštěno |
 | `ccfc25a` — upřesnění CI stavu PR | Pouze dokumentace | Pushnuto do PR #4; Windows CI #23 prošlo |
+| `f68b14c` — počáteční Healthchecks heartbeat report | Bezpečně vybraný výsledek nastavení a opravené odkazy | Pushnuto do PR #4; Windows CI #24 prošlo |
 
 Po zachování původních SHA jsem vytvořil merge commit `e096117`, který
 připojuje aktuální vzdálenou větev `b5226143` k místním commitům. Graf
-zachovává `1515ec1`, `dc32681` a `ab12a5b`; následují `d39cbd8`, `8b5abca`
-a `c681544`.
+zachovává `1515ec1`, `dc32681` a `ab12a5b`; následují `d39cbd8`, `8b5abca`,
+`c681544`, `ccfc25a` a `f68b14c`.
 Větev `codex/expanded-local-maintenance` je pushnutá a otevřená jako PR #4
 proti `codex/signpath-submission-prep`, nikoli proti `main`.
 
