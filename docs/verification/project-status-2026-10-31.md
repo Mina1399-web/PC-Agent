@@ -50,11 +50,12 @@ GitHub API při kontrole uvádělo výchozí větev
 - **PR #2 — sloučen:** trvalý výběr jazyka čeština/angličtina/němčina.
   Windows review build na výsledném commitu `b5226143` skončil úspěšně
   30. 10. 2026.
-- **PR #3 — stále otevřený a nesloučený:** změna kontroly satelitních
-  `.resources.dll` v podpisovém preview. GitHub v načtených metadatech vracel
-  `mergeable: false`; pro head commitu nebyl dostupný úspěšný check-run.
-  PR body říká, že lokálně Windows test neproběhl. Před sloučením je třeba
-  znovu ověřit jeho slučitelnost a CI.
+- **PR #3 — uzavřený jako zastaralý, nesloučený:** cílová větev už obsahuje
+  společnou funkci `Get-SubmissionOwnedSigningCandidates`, která ze seznamu
+  pro podpis vynechává `*.resources.dll` a satelitní soubory ponechává
+  v balíčku. PR #3 zkoušel vložit duplicitní starší filtr do dvou skriptů;
+  GitHub u něj vracel `mergeable: false` a nebyl k dispozici Windows check.
+  Přidal jsem vysvětlující komentář a PR zavřel bez mergování.
 - **Poslední release:** [1.2.8 unsigned preview](https://github.com/Mina1399-web/PC-Agent/releases/tag/v1.2.8-preview.1),
   označený jako prerelease. Obsahuje MSI, ZIP, manifest a SHA256SUMS.
   Je výslovně nepodepsaný a určený pouze pro DEV VM; nejde o produkční
@@ -74,14 +75,13 @@ Místní checkout je větev `codex/expanded-local-maintenance`, remote
 |---|---|---|
 | `1515ec1` — rozšířená potvrzovaná údržba a predikce selhání disku | Commitnutý; zdroj 1.2.9, instalován v DEV VM | Na GitHub neposlaný |
 | `dc32681` — záznam instalace a readbacku 1.2.9 | Commitnutý; lokální důkazy a dokumentace | Na GitHub neposlaný |
-| `docs/verification/automatic-notification-2026-10-30.md` | Necommitnutý nový důkaz automatického upozornění | Na GitHub neposlaný |
-| Tento stavový report | Necommitnutý | Na GitHub neposlaný |
+| `ab12a5b` — důkaz automatického upozornění a tento stavový report | Commitnuté ověřovací dokumenty | Na GitHub zatím neposlané |
 
-Místní pracovní strom je tedy nečistý kvůli dvěma uvedeným dokumentům.
-Místní větev obsahuje sloučenou lokalizaci z PR #2 jako předka, ale její nové
-commity `1515ec1` a `dc32681` zatím na vzdálené větvi nejsou. GitHub větev
-obsahuje sloučené PR #1 a #2; to samo o sobě neznamená, že obsahuje místní
-nové funkce.
+Po zachování původních SHA jsem vytvořil merge commit `e096117`, který
+připojuje aktuální vzdálenou větev `b5226143` k místním commitům. Graf
+zachovává `1515ec1`, `dc32681` a `ab12a5b`. Větev
+`codex/expanded-local-maintenance` zatím nebyla pushnuta; PR pro 1.2.9
+má cílit na `codex/signpath-submission-prep`, nikoli na `main`.
 
 Build 1.2.9, MSI, manifest a ZIP existují jako ověřené místní DEV artefakty
 v evidenční složce pracovní kopie. Nejsou GitHub release assety a nebyly
@@ -89,21 +89,18 @@ spuštěny na hlavním PC.
 
 ## Co zbývá a doporučené pořadí
 
-1. **GitHub:** vyřešit stav PR #3, ověřit jeho Windows CI a sloučit jej,
-   pokud je změna stále potřebná.
-2. **Před publikací:** sladit místní commity s aktuálním GitHub `b5226143`,
-   zkontrolovat přesné diffy, aktualizovat zastaralé stavové texty a
-   připravit PR pro `1515ec1`, `dc32681` a ověřovací reporty. Balíček 1.2.9
-   zatím nevydávat jako hotový produkční release.
-3. **Provozní testy:** provést řízený test selhání a zotavení heartbeat a
+1. **GitHub PR:** pushnout zachovanou větev a otevřít PR proti
+   `codex/signpath-submission-prep`; Windows CI pro tento rozsah zatím neběží.
+   Balíček 1.2.9 nevydávat jako hotový produkční release.
+2. **Provozní testy:** provést řízený test selhání a zotavení heartbeat a
    ověřit doručení i stav v Healthchecks.
-4. **Výkon:** zaznamenat reprezentativní RAM/CPU při nečinnosti, sběru,
+3. **Výkon:** zaznamenat reprezentativní RAM/CPU při nečinnosti, sběru,
    otevřeném dashboardu a delším běhu; odlišit working set jednotlivých
    procesů od celkové fyzické RAM.
-5. **SMART:** vyzkoušet čtecí předpověď na skutečném podporovaném fyzickém
+4. **SMART:** vyzkoušet čtecí předpověď na skutečném podporovaném fyzickém
    disku; pokud hardware/API údaj neposkytne, zobrazit tuto schopnost jako
    nepodporovanou, nikoli jako potvrzené zdraví.
-6. **Podpis/nasazení:** počkat na odpověď SignPath podle dosavadní informace
+5. **Podpis/nasazení:** počkat na odpověď SignPath podle dosavadní informace
    majitele, dokončit podpisovou cestu a až potom posuzovat přesun na hlavní
    počítač.
 
@@ -116,11 +113,11 @@ spuštěny na hlavním PC.
   uzavřený syntetický incident a doložené doručení do telefonu.
 - [Rozšířená údržba](../operations/expanded-maintenance.md) popisuje
   přesné limity karantény, mazání a SMART rozhraní.
-- [README](../../README.md) ještě obsahuje starší stav před konfigurací
-  Pushover/Healthchecks a před vydáním 1.2.9. Je potřeba jej při sladění
-  další změny aktualizovat; tato historická informace není aktuální
-  provozní readback.
+- README ještě chybně uvádí, že žádost SignPath nebyla podána. Majitel
+  uvedl, že ji odeslal 27. 10. a čeká na odpověď. To nepotvrzuje přijetí
+  do programu ani podpis; veřejný text je potřeba opravit v tomto PR.
 
 Testy, hardware a CI se zde nepovažují za ověřené nad rámec uvedených
 podkladů. Tento report je lokální pracovní dokument, nikoli GitHub commit,
-release, podpis ani produkční schválení.
+release, podpis ani produkční schválení. GitHub byl naposledy načten
+31. 10. 2026 před otevřením PR pro tyto změny.
