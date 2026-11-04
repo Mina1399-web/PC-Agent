@@ -23,6 +23,7 @@ public sealed class UserMaintenance
     private readonly Func<string, bool>? _rejectJournalState;
     private readonly SemaphoreSlim _gate = new(1, 1);
     private Plan? _plan;
+    private readonly bool _selectedDirectory;
     private sealed record Candidate(MaintenanceItem Item, FileProof Proof);
     private sealed record Plan(MaintenancePreview Preview, DateTimeOffset CreatedAtUtc, Candidate[] Candidates);
     private sealed record Journal(string Id, string Name, long Bytes, DateTimeOffset ModifiedAtUtc,
@@ -32,7 +33,7 @@ public sealed class UserMaintenance
     internal UserMaintenance(string source, string quarantine, TimeProvider clock,
         Func<CancellationToken, ValueTask<DashboardSnapshot?>> stateReader, Action<string>? afterDirectoryCreate = null,
         Func<string, bool>? rejectJournalState = null, Action<string>? afterPrivateAcl = null, Action? beforeJournalHash = null,
-        Action? beforeCandidateHash = null)
+        Action? beforeCandidateHash = null, bool selectedDirectory = false)
     {
         _source = Path.GetFullPath(source).TrimEnd(Path.DirectorySeparatorChar);
         _quarantine = Path.GetFullPath(quarantine).TrimEnd(Path.DirectorySeparatorChar);
@@ -41,7 +42,8 @@ public sealed class UserMaintenance
         _beforeCandidateHash = beforeCandidateHash;
         var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         var temp = Path.Combine(local, "Temp");
-        if (!MaintenanceSecurity.NormalUser || !Within(_source, temp) || !Within(_quarantine, local)
+        _selectedDirectory = selectedDirectory;
+        if (!MaintenanceSecurity.NormalUser || !(selectedDirectory ? SafeSelectedDirectory(_source) : Within(_source, temp)) || !Within(_quarantine, local)
             || Within(_quarantine, _source) || Within(_source, _quarantine)) throw new UnauthorizedAccessException("maintenance_scope");
     }
 
@@ -49,6 +51,26 @@ public sealed class UserMaintenance
     {
         var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         return new UserMaintenance(Path.Combine(local, "Temp"), Path.Combine(local, "HostAgent", "Quarantine"), TimeProvider.System, stateReader);
+    }
+
+    public static UserMaintenance CreateForSelectedDirectory(string directory, Func<CancellationToken, ValueTask<DashboardSnapshot?>> stateReader)
+    {
+        var source = Path.GetFullPath(directory).TrimEnd(Path.DirectorySeparatorChar);
+        var key = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(source.ToUpperInvariant())));
+        var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        return new UserMaintenance(source, Path.Combine(local, "HostAgent", "SelectedQuarantine", key), TimeProvider.System, stateReader, selectedDirectory: true);
+    }
+
+    private static bool SafeSelectedDirectory(string path)
+    {
+        if (!Path.IsPathFullyQualified(path) || path.StartsWith(@"\\", StringComparison.Ordinal) || path.Length <= 3) return false;
+        foreach (var folder in new[] { Environment.SpecialFolder.Windows, Environment.SpecialFolder.ProgramFiles,
+            Environment.SpecialFolder.ProgramFilesX86, Environment.SpecialFolder.CommonApplicationData })
+        {
+            var protectedPath = Environment.GetFolderPath(folder);
+            if (!string.IsNullOrEmpty(protectedPath) && (Within(path, protectedPath) || Within(protectedPath, path))) return false;
+        }
+        return true;
     }
 
     private static bool Within(string path, string root) => path.Equals(root, StringComparison.OrdinalIgnoreCase) || path.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
@@ -74,7 +96,7 @@ public sealed class UserMaintenance
                     {
                         if (!MaintenanceSecurity.SafeName(name)) { skipped++; continue; }
                         using var file = PinnedFile.Open(path);
-                        if (now - file.Info.ModifiedAtUtc < TimeSpan.FromDays(7) || file.Info.Bytes > 16 * 1024 * 1024 || bytes + file.Info.Bytes > 128 * 1024 * 1024) { skipped++; continue; }
+                        if ((!_selectedDirectory && now - file.Info.ModifiedAtUtc < TimeSpan.FromDays(7)) || file.Info.Bytes > MaximumFileBytes || bytes + file.Info.Bytes > MaximumTotalBytes) { skipped++; continue; }
                         var proof = await file.ProofAsync(deadline.Token);
                         var item = new MaintenanceItem(Guid.NewGuid().ToString("N"), name, proof.Bytes, proof.ModifiedAtUtc, proof.Sha256);
                         candidates.Add(new Candidate(item, proof)); bytes += proof.Bytes;
@@ -117,8 +139,8 @@ public sealed class UserMaintenance
             var inventory = ReadJournals();
             if (inventory.HasInvalidEntries) return Result("maintenance_journal_integrity");
             var existing = inventory.Entries;
-            if (existing.Length >= 256 || inventory.PayloadBytes > 128L * 1024 * 1024
-                || existing.Sum(item => item.State is "Quarantined" or "Intent" or "RestoreIntent" ? item.Bytes : 0) > 128L * 1024 * 1024)
+            if (existing.Length >= 256 || inventory.PayloadBytes > MaximumTotalBytes
+                || existing.Sum(item => item.State is "Quarantined" or "Intent" or "RestoreIntent" ? item.Bytes : 0) > MaximumTotalBytes)
                 return Result("maintenance_quota_reached");
 
             var moved = 0; var skipped = 0; var journalWarnings = 0; long bytes = 0;
@@ -142,7 +164,7 @@ public sealed class UserMaintenance
                     var proof = await file.ProofAsync(token);
                     if (!Same(proof, candidate.Proof)) { skipped++; continue; }
                     if (System.IO.File.Exists(payloadPath) || System.IO.File.Exists(JournalPath(journal.Id))) { skipped++; continue; }
-                    if (reservedJournals >= 256 || journal.Bytes > 128L * 1024 * 1024 - reservedBytes) { skipped++; continue; }
+                    if (reservedJournals >= 256 || journal.Bytes > MaximumTotalBytes - reservedBytes) { skipped++; continue; }
                     WriteJournal(journal); // Durable intent precedes the same-volume handle rename.
                     reservedJournals++; reservedBytes += journal.Bytes;
                     MaintenanceNative.Rename(file.Handle, payloadPath);
@@ -177,6 +199,7 @@ public sealed class UserMaintenance
                 var state = journal.State;
                 var payload = System.IO.File.Exists(PayloadPath(journal.Id));
                 var original = System.IO.File.Exists(Path.Combine(_source, journal.Name));
+                if (state == "DeleteIntent" || state == "Deleted" && payload) state = "NeedsReview";
                 if (state is "Intent" or "RestoreIntent" or "Quarantined")
                 {
                     if (payload && !original)
@@ -232,6 +255,37 @@ public sealed class UserMaintenance
             { return new("restore_recovery_required", 1, 0, journal.Bytes, 1); }
             return new("restore_complete", 1, 0, journal.Bytes);
             }
+        }
+        finally { _gate.Release(); }
+    }
+
+    public async ValueTask<MaintenanceResult> DeleteQuarantinedAsync(string entryId, string confirmation, CancellationToken token = default)
+    {
+        await _gate.WaitAsync(token);
+        try
+        {
+            if (!Guid.TryParseExact(entryId, "N", out _) || confirmation != "DELETE " + entryId)
+                return Result("maintenance_confirmation_required");
+            if (!await ApprovedAsync(token)) return Result("maintenance_not_approved");
+            using var root = PinnedDirectory.Open(_quarantine, true);
+            using var mutationLock = MaintenanceMutationLock.TryAcquire(_quarantine);
+            if (mutationLock is null) return Result("maintenance_busy");
+            var inventory = ReadJournals();
+            if (inventory.HasInvalidEntries) return Result("maintenance_journal_integrity");
+            var journal = inventory.Entries.FirstOrDefault(item => item.Id == entryId && item.State == "Quarantined");
+            if (journal is null) return Result("maintenance_entry_unavailable");
+            using (var payload = PinnedFile.Open(PayloadPath(entryId), true))
+            {
+                if (!await MatchesJournalAsync(payload, journal, token)) return Result("maintenance_payload_changed");
+                if (!await ApprovedAsync(token)) return Result("maintenance_not_approved");
+                WriteJournal(journal with { State = "DeleteIntent" });
+                // Delete the validated opened object, without reopening a replaceable path.
+                MaintenanceNative.Delete(payload.Handle);
+            }
+            try { WriteJournal(journal with { State = "Deleted" }); }
+            catch (Exception error) when (MaintenanceSecurity.Expected(error))
+            { return new("delete_recovery_required", 1, 0, journal.Bytes, 1); }
+            return new("delete_complete", 1, 0, journal.Bytes);
         }
         finally { _gate.Release(); }
     }
@@ -347,8 +401,8 @@ public sealed class UserMaintenance
                     payloadCount++;
                     if (payloadCount > 256) invalid = true;
                     payloadIds.Add(name[..^".payload".Length]);
-                    payloadBytes = file.Info.Bytes > 128L * 1024 * 1024 - payloadBytes
-                        ? 128L * 1024 * 1024 + 1 : payloadBytes + file.Info.Bytes;
+                    payloadBytes = file.Info.Bytes > MaximumTotalBytes - payloadBytes
+                        ? MaximumTotalBytes + 1 : payloadBytes + file.Info.Bytes;
                     continue;
                 }
                 journal = ParseJournal(file.ReadSmall(32768));
@@ -381,13 +435,16 @@ public sealed class UserMaintenance
         return new(journals.Values.ToArray(), invalid, payloadBytes);
     }
 
-    private static bool ValidJournal(Journal? journal) => journal is not null && !string.IsNullOrEmpty(journal.Id)
+    private long MaximumFileBytes => _selectedDirectory ? 1024L * 1024 * 1024 : 16L * 1024 * 1024;
+    private long MaximumTotalBytes => _selectedDirectory ? 10L * 1024 * 1024 * 1024 : 128L * 1024 * 1024;
+
+    private bool ValidJournal(Journal? journal) => journal is not null && !string.IsNullOrEmpty(journal.Id)
         && !string.IsNullOrEmpty(journal.Name) && !string.IsNullOrEmpty(journal.Sha256) && !string.IsNullOrEmpty(journal.Identity)
         && !string.IsNullOrEmpty(journal.State) && Guid.TryParseExact(journal.Id, "N", out _) && MaintenanceSecurity.SafeName(journal.Name)
-        && journal.Bytes is >= 0 and <= 16 * 1024 * 1024 && journal.Sha256.Length == 64 && journal.Sha256.All(Uri.IsHexDigit)
+        && journal.Bytes >= 0 && journal.Bytes <= MaximumFileBytes && journal.Sha256.Length == 64 && journal.Sha256.All(Uri.IsHexDigit)
         && journal.Identity.Length == 25 && journal.Identity[8] == ':'
         && journal.Identity.Where((_, index) => index != 8).All(Uri.IsHexDigit)
-        && journal.State is "Intent" or "Quarantined" or "RestoreIntent" or "Restored";
+        && journal.State is "Intent" or "Quarantined" or "RestoreIntent" or "Restored" or "DeleteIntent" or "Deleted";
 
     private static bool SameJournalPayload(Journal left, Journal right) => left.Id == right.Id && left.Name == right.Name
         && left.Bytes == right.Bytes && left.ModifiedAtUtc == right.ModifiedAtUtc && left.Sha256 == right.Sha256

@@ -12,12 +12,15 @@ using System.Windows.Threading;
 using HostAgent.Core.Dashboard;
 using HostAgent.Core.Models.Remediation;
 using HostAgent.Infrastructure.Dashboard;
+using HostAgent.Infrastructure.Collectors;
 
 namespace HostAgent.Desktop;
 
 public partial class MainWindow:Window
 {
     private readonly DashboardController _controller;
+    private readonly IDiskHealthReader _diskHealthReader;
+    private Func<string>? _smartText;
     private readonly CancellationTokenSource _closing=new();
     private readonly SemaphoreSlim _reading=new(1,1);
     private readonly DispatcherTimer _timer=new(){Interval=TimeSpan.FromSeconds(15)};
@@ -35,9 +38,11 @@ public partial class MainWindow:Window
     private LocalizedMessages Messages => new(Localization);
 
     public MainWindow(DashboardController controller) : this(controller, DesktopLocalization.ForCurrentUser()) { }
-    public MainWindow(DashboardController controller, DesktopLocalization localization)
+    public MainWindow(DashboardController controller, DesktopLocalization localization) : this(controller, localization, null) { }
+    public MainWindow(DashboardController controller, DesktopLocalization localization, IDiskHealthReader? diskHealthReader)
     {
         Localization=localization;
+        _diskHealthReader = diskHealthReader ?? new WindowsDiskHealthReader();
         InitializeComponent();_controller=controller;
         Localization.Apply(this);
         LanguageChoice.ItemsSource=DesktopLocalization.Languages;
@@ -77,6 +82,7 @@ public partial class MainWindow:Window
         _tray.ContextMenuStrip.Items[1].Text=T("ExitDashboard");
         if(_hasRefreshed)RenderSnapshot(_renderedView,false);
         if(_comparisonText is not null)ComparisonText.Text=_comparisonText();
+        if(_smartText is not null)SmartResultText.Text=_smartText();
         RenderDetail();
         foreach(var grid in new[]{DisksGrid,ProcessGrid,HealthGrid,ServicesGrid,IncidentsGrid})grid.Items.Refresh();
     }
@@ -143,6 +149,23 @@ public partial class MainWindow:Window
             DrawChart();
             if(_refreshFailed){StatusText.Text=T("CouldNotRefreshTheDataAnotherAttemptWillRunAutomatically");OperationButton.IsEnabled=false;OperationHintText.Text=T("ActionsAreBlockedUntilTheStatusCanBeRefreshed");}
     }
+    private async void SmartClick(object sender, RoutedEventArgs e)
+    {
+        if (!SmartReadButton.IsEnabled) return;
+        SmartReadButton.IsEnabled = false;
+        try
+        {
+            var result = await _diskHealthReader.ReadAsync(_closing.Token);
+            _smartText = () => result.Count == 0 ? T("SmartPredictionUnavailable") : string.Join(Environment.NewLine,
+                result.Select(item => T(item.Status == "FailurePredicted" ? "SmartFailurePredicted" :
+                    item.Status == "NoFailurePredicted" ? "SmartNoFailurePredicted" : "SmartDeviceUnavailable", item.DeviceId)));
+            SmartResultText.Text = _smartText();
+        }
+        catch (OperationCanceledException) when (_closing.IsCancellationRequested) { }
+        catch { _smartText = () => T("SmartPredictionUnavailable"); SmartResultText.Text = _smartText(); }
+        finally { SmartReadButton.IsEnabled = true; }
+    }
+
     private void MaintenanceClick(object sender,RoutedEventArgs e)
     {
         var window=new MaintenanceWindow(_controller,null,Localization){Owner=this};

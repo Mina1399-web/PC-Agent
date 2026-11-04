@@ -1401,4 +1401,17 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data xml:space="preserve" name="SomeServiceStartModesUnavailable"><value>Der Starttyp einiger Dienste ist nicht verfügbar.</value></data>
   <data xml:space="preserve" name="SomeServiceStatesUnavailable"><value>Der aktuelle Status einiger Dienste ist nicht verfügbar.</value></data>
   <data xml:space="preserve" name="AdditionalReportedReason"><value>Zusätzlicher gemeldeter Grund: {0}</value></data>
+  <data xml:space="preserve" name="DeleteSelectedQuarantineFile"><value>Ausgewählte Quarantänedatei endgültig löschen</value></data>
+  <data xml:space="preserve" name="ChooseMaintenanceFolder"><value>Ordner zur Wartung auswählen</value></data>
+  <data xml:space="preserve" name="PermanentDeleteResult"><value>Löschergebnis: {0}; gelöscht: {1}; Bytes: {2}.</value></data>
+  <data xml:space="preserve" name="PermanentQuarantineDeletion"><value>Endgültiges Löschen kann nicht rückgängig gemacht werden. Eine Datei in Quarantäne auswählen, Name und Größe prüfen, dann DELETE, ein Leerzeichen und die genaue Wiederherstellungs-ID eingeben.</value></data>
+  <data xml:space="preserve" name="QuarantineDeleteFailed"><value>Löschen fehlgeschlagen. Vor einem erneuten Versuch Quarantäneliste aktualisieren und Zustand prüfen.</value></data>
+  <data xml:space="preserve" name="SelectedFolderMaintenanceScope"><value>Ausgewählter Ordner: nur direkte Dateien, kein Mindestalter, bis 1 GiB pro Datei und 10 GiB in Quarantäne. Jede Datei prüfen. Wiederherstellung ist möglich, solange die Datei in Quarantäne bleibt.</value></data>
+  <data xml:space="preserve" name="SelectedFolderUnavailable"><value>Dieser Ordner ist nicht verfügbar oder geschützt. Wählen Sie einen eigenen lokalen Ordner auf demselben Volume wie Ihr Benutzerprofil.</value></data>
+  <data xml:space="preserve" name="ReadSmartPrediction"><value>SMART-Ausfallprognose lesen</value></data>
+  <data xml:space="preserve" name="SmartDeviceUnavailable"><value>{0}: SMART-Prognose ist nicht verfügbar.</value></data>
+  <data xml:space="preserve" name="SmartFailurePredicted"><value>{0}: Das Gerät meldet einen erwarteten Ausfall. Wichtige Daten sichern und den physischen Datenträger prüfen.</value></data>
+  <data xml:space="preserve" name="SmartNoFailurePredicted"><value>{0}: Diese Schnittstelle meldet keinen erwarteten Ausfall. Dies ist keine vollständige Hardwareprüfung.</value></data>
+  <data xml:space="preserve" name="SmartNotRead"><value>SMART wurde in dieser Sitzung noch nicht abgefragt.</value></data>
+  <data xml:space="preserve" name="SmartPredictionUnavailable"><value>SMART-Prognose ist für dieses Gerät, diesen Treiber oder dieses Konto nicht verfügbar. Der Zustand des Datenträgers ist damit nicht bestätigt.</value></data>
 </root>

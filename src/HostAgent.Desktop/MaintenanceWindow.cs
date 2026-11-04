@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -14,7 +15,10 @@ namespace HostAgent.Desktop;
 internal sealed class MaintenanceWindow : Window
 {
     private readonly DashboardController _controller;
-    private readonly UserMaintenance _maintenance;
+    private UserMaintenance _maintenance;
+    private readonly TextBox _deleteConfirmation = new() { MinWidth = 320 };
+    private readonly TextBlock _selectedFolder = new() { TextWrapping = TextWrapping.Wrap };
+    private readonly TextBlock _defaultScope = new() { Text = "ThePreviewScansOnlyFilesDirectlyInThisAccountSTemporaryFolderItInclu", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 12) };
     private readonly CancellationTokenSource _closing = new();
     private readonly DataGrid _previewGrid = new() { IsReadOnly = true, AutoGenerateColumns = false, Height = 210 };
     private readonly DataGrid _entriesGrid = new() { IsReadOnly = true, AutoGenerateColumns = false, Height = 180 };
@@ -26,6 +30,7 @@ internal sealed class MaintenanceWindow : Window
     private readonly DesktopLocalization _language;
     private readonly System.Collections.Generic.List<(DataGridColumn Column,string Source)> _columns=[];
     private Func<string>? _statusText, _previewText;
+    private bool _actionInProgress;
     private string T(string source,params object?[] args)=>_language.Text(source,args);
     private void SetStatus(Func<string> text){_statusText=text;_status.Text=text();}
     internal MaintenancePreview? CurrentPreview => _preview;
@@ -58,15 +63,31 @@ internal sealed class MaintenanceWindow : Window
         RegisterName("MaintenancePreviewInfo", _previewInfo);
 
         var content = new StackPanel { Margin = new Thickness(22) };
-        content.Children.Add(new TextBlock { Text = "TemporaryFiles", FontSize = 24, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 10) });
-        content.Children.Add(new TextBlock
+        var chooseFolder = new Button { Content = "ChooseMaintenanceFolder", HorizontalAlignment = HorizontalAlignment.Left };
+        RegisterName("MaintenanceFolderButton", chooseFolder);
+        chooseFolder.Click += async (_, _) => await RunActionAsync(async () =>
         {
-            Text = "ThePreviewScansOnlyFilesDirectlyInThisAccountSTemporaryFolderItInclu",
-            TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 12)
+            var dialog = new Microsoft.Win32.OpenFolderDialog { Multiselect = false };
+            if (dialog.ShowDialog(this) != true) return;
+            try
+            {
+                _maintenance = UserMaintenance.CreateForSelectedDirectory(dialog.FolderName, ReadFreshStateAsync);
+                _selectedFolder.Text = dialog.FolderName;
+                _defaultScope.Visibility = Visibility.Collapsed;
+                _preview = null; _previewGrid.ItemsSource = null; _previewInfo.Text = ""; _previewText = null;
+                _confirmation.Clear(); _restoreConfirmation.Clear(); _deleteConfirmation.Clear();
+                SetStatus(() => T("SelectedFolderMaintenanceScope"));
+                await RefreshListAsync();
+            }
+            catch { SetStatus(() => T("SelectedFolderUnavailable")); }
         });
+        content.Children.Add(chooseFolder);
+        content.Children.Add(_selectedFolder);
+        content.Children.Add(new TextBlock { Text = "TemporaryFiles", FontSize = 24, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 10) });
+        content.Children.Add(_defaultScope);
         var previewButton = new Button { Name = "MaintenancePreviewButton", Content = "CreateSafePreview", HorizontalAlignment = HorizontalAlignment.Left };
         RegisterName("MaintenancePreviewButton", previewButton);
-        previewButton.Click += async (_, _) => await PreviewAsync();
+        previewButton.Click += async (_, _) => await RunActionAsync(PreviewAsync);
         content.Children.Add(previewButton);
         content.Children.Add(_previewInfo);
         content.Children.Add(_previewGrid);
@@ -75,33 +96,62 @@ internal sealed class MaintenanceWindow : Window
         content.Children.Add(_confirmation);
         var quarantineButton = new Button { Name = "MaintenanceQuarantineButton", Content = "MoveAllPreviewedFilesToQuarantine", HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 8, 0, 4) };
         RegisterName("MaintenanceQuarantineButton", quarantineButton);
-        quarantineButton.Click += async (_, _) => await QuarantineAsync();
+        quarantineButton.Click += async (_, _) => await RunActionAsync(QuarantineAsync);
         content.Children.Add(quarantineButton);
 
         content.Children.Add(new TextBlock { Text = "QuarantineAndRestore", FontSize = 19, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 20, 0, 8) });
         var listButton = new Button { Name = "MaintenanceListButton", Content = "RefreshList", HorizontalAlignment = HorizontalAlignment.Left };
         RegisterName("MaintenanceListButton", listButton);
-        listButton.Click += async (_, _) => await RefreshListAsync();
+        listButton.Click += async (_, _) => await RunActionAsync(RefreshListAsync);
         content.Children.Add(listButton);
         content.Children.Add(_entriesGrid);
         content.Children.Add(new TextBlock { Text = "EnterTheExactRestoreIDOfTheSelectedRecord", FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 8, 0, 4) });
         content.Children.Add(_restoreConfirmation);
         var restoreButton = new Button { Name = "MaintenanceRestoreButton", Content = "RestoreWithoutOverwritingAnExistingFile", HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 8, 0, 4) };
         RegisterName("MaintenanceRestoreButton", restoreButton);
-        restoreButton.Click += async (_, _) => await RestoreAsync();
+        restoreButton.Click += async (_, _) => await RunActionAsync(RestoreAsync);
         content.Children.Add(restoreButton);
+        content.Children.Add(new TextBlock { Text = "PermanentQuarantineDeletion", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 12, 0, 4) });
+        content.Children.Add(_deleteConfirmation);
+        RegisterName("MaintenanceDeleteApproval", _deleteConfirmation);
+        var deleteButton = new Button { Content = "DeleteSelectedQuarantineFile", HorizontalAlignment = HorizontalAlignment.Left };
+        RegisterName("MaintenanceDeleteButton", deleteButton);
+        deleteButton.Click += async (_, _) => await RunActionAsync(async () =>
+        {
+            if (_entriesGrid.SelectedItem is not QuarantineItem item) { SetStatus(() => T("SelectAnItemInQuarantine")); return; }
+            try
+            {
+                var result = await _maintenance.DeleteQuarantinedAsync(item.Id, _deleteConfirmation.Text, _closing.Token);
+                _deleteConfirmation.Clear();
+                SetStatus(() => T("PermanentDeleteResult", result.Code, result.Moved, result.Bytes));
+                await RefreshListAsync();
+            }
+            catch (OperationCanceledException) when (_closing.IsCancellationRequested) { }
+            catch { SetStatus(() => T("QuarantineDeleteFailed")); }
+        });
+        content.Children.Add(deleteButton);
         content.Children.Add(_status);
 
         var scroll = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Content = content };
         Content = scroll;
-        _entriesGrid.SelectionChanged += (_, _) => _restoreConfirmation.Clear();
+        _entriesGrid.SelectionChanged += (_, _) => { _restoreConfirmation.Clear(); _deleteConfirmation.Clear(); };
         _language.Apply(this);_language.BindStaticText(this);
         System.Windows.Automation.AutomationProperties.SetName(_confirmation,T("ApprovalForThisExactPreview"));
         System.Windows.Automation.AutomationProperties.SetName(_restoreConfirmation,T("EnterTheExactRestoreIDOfTheSelectedRecord"));
         _language.Changed+=LanguageChanged;
         Closed += (_, _) => {_language.Changed-=LanguageChanged;_closing.Cancel();};
-        Loaded += async (_, _) => await RefreshListAsync();
+        Loaded += async (_, _) => await RunActionAsync(RefreshListAsync);
     }
+    private async Task RunActionAsync(Func<Task> action)
+    {
+        if (_actionInProgress) return;
+        _actionInProgress = true;
+        var content = Content as UIElement;
+        if (content is not null) content.IsEnabled = false;
+        try { await action(); }
+        finally { _actionInProgress = false; if (content is not null) content.IsEnabled = true; }
+    }
+
     private void LanguageChanged(object? sender,EventArgs e)
     {
         _language.Apply(this);
@@ -152,7 +202,13 @@ internal sealed class MaintenanceWindow : Window
 
     private async Task RefreshListAsync()
     {
-        try { _entriesGrid.ItemsSource = await _maintenance.ListAsync(_closing.Token); }
+        try
+        {
+            var selected = (_entriesGrid.SelectedItem as QuarantineItem)?.Id;
+            var entries = await _maintenance.ListAsync(_closing.Token);
+            _entriesGrid.ItemsSource = entries;
+            if (selected is not null) _entriesGrid.SelectedItem = entries.FirstOrDefault(item => item.Id == selected);
+        }
         catch (OperationCanceledException) when (_closing.IsCancellationRequested) { }
         catch { SetStatus(() => T("TheQuarantineListIsUnavailableOrItsRecordsRequireReview")); }
     }

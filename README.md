@@ -21,9 +21,11 @@ Read the [download/functionality page](docs/operations/download.md),
 [announced installation changes](docs/operations/submission-preview.md).
 The [publication verification](docs/verification/signpath-publication-2026-10-26.md)
 records the immutable source, four independently downloaded assets and remaining
-account/provider checks. The
+account/provider checks. The owner reports that the SignPath Foundation
+application was submitted on 27 October 2026 and a response is pending. This
+does not mean the project has been accepted, sponsored or signed. The
 [application preparation](docs/operations/signpath-submission-draft-2026-10-25.md)
-has not been submitted.
+documents the submitted materials.
 
 ## Project status
 
