@@ -4,6 +4,12 @@
 GitHub, vydání a ověřovací záznamy z běžící DEV VM. Funkčnost v DEV VM
 neznamená připravenost pro běžné nasazení ani podpis produktu.
 
+> **Aktualizace 4. 11. 2026:** V DEV VM proběhl řízený výpadek a obnovení
+> virtuálního síťového adaptéru. Služby zůstaly spuštěné a síť se obnovila;
+> přijetí následného pingu službou Healthchecks zatím potvrzené není. Viz
+> [záznam pokusu](heartbeat-outage-attempt-2026-11-04.md), který upřesňuje
+> heartbeat řádky a otevřený krok níže.
+
 ## Rychlý přehled
 
 - V DEV VM běží **HostAgent 1.2.9**. Instalace, základní dashboard/IPC,

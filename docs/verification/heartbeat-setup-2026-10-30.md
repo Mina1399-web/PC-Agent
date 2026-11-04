@@ -23,6 +23,9 @@ SHA-256 je `17DE35B97BE410ACED617BFBD17CE2A5942A4310B44A68B826C66C335F44D198`.
 `heartbeatSignal=success` je výsledek zaznamenaný při nastavení, nikoli čerstvý
 stav endpointu. Záznam nedokládá pravidelnost pozdějších pingů, řízené selhání,
 čas upozornění ani následné zotavení. Tyto provozní scénáře zůstávají otevřené;
+pozdější částečný pokus o síťový výpadek a obnovení VM je popsán v
+[samostatném záznamu](heartbeat-outage-attempt-2026-11-04.md). Ani tento pokus
+nepotvrzuje přijetí pingů endpointem;
 samostatný test automatických Pushover incidentů je popsán v
 [reportu oznámení](automatic-notification-2026-10-30.md).
 
