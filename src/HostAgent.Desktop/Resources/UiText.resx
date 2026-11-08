@@ -1415,41 +1415,25 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data xml:space="preserve" name="SmartNotRead"><value>SMART has not been queried in this session.</value></data>
   <data xml:space="preserve" name="SmartPredictionUnavailable"><value>SMART prediction is unavailable with this device, driver or account. This does not establish disk health.</value></data>
   <data name="WinAdminTitle" xml:space="preserve"><value>Windows administration</value></data>
-  <data name="WinAdminIntro" xml:space="preserve"><value>Open a Windows tool to manage this PC. Windows handles permissions and any changes you make there.</value></data>
-  <data name="WinAdminElevation" xml:space="preserve"><value>Windows may ask for administrator approval.</value></data>
-  <data name="WinAdminRequested" xml:space="preserve"><value>Sent to Windows: {0}.</value></data>
-  <data name="WinAdminCancelled" xml:space="preserve"><value>Opening was cancelled: {0}.</value></data>
-  <data name="WinAdminUnavailable" xml:space="preserve"><value>Could not open {0}. The tool may be unavailable or your account may lack permission.</value></data>
-  <data name="WinGroupSystem" xml:space="preserve"><value>System and diagnostics</value></data>
-  <data name="WinGroupHardware" xml:space="preserve"><value>Files, disks and devices</value></data>
+  <data name="WinAdminIntro" xml:space="preserve"><value>Inspect processes, services, disks, network adapters and recent system errors here. File maintenance opens in Host Agent.</value></data>
   <data name="WinGroupNetwork" xml:space="preserve"><value>Network</value></data>
-  <data name="WinGroupAppsAndAccounts" xml:space="preserve"><value>Apps and accounts</value></data>
-  <data name="WinGroupUpdatesAndRecovery" xml:space="preserve"><value>Updates, security and recovery</value></data>
-  <data name="WinToolComputerManagement" xml:space="preserve"><value>Computer Management</value></data>
-  <data name="WinToolTaskManager" xml:space="preserve"><value>Task Manager</value></data>
   <data name="WinToolServices" xml:space="preserve"><value>Services</value></data>
-  <data name="WinToolTaskScheduler" xml:space="preserve"><value>Task Scheduler</value></data>
   <data name="WinToolEventViewer" xml:space="preserve"><value>Event Viewer</value></data>
-  <data name="WinToolPerformanceMonitor" xml:space="preserve"><value>Performance Monitor</value></data>
-  <data name="WinToolResourceMonitor" xml:space="preserve"><value>Resource Monitor</value></data>
-  <data name="WinToolSystemInformation" xml:space="preserve"><value>System Information</value></data>
-  <data name="WinToolSettings" xml:space="preserve"><value>All settings</value></data>
-  <data name="WinToolExplorer" xml:space="preserve"><value>File Explorer</value></data>
-  <data name="WinToolDiskManagement" xml:space="preserve"><value>Disk Management</value></data>
-  <data name="WinToolStorage" xml:space="preserve"><value>Storage</value></data>
-  <data name="WinToolDeviceManager" xml:space="preserve"><value>Device Manager</value></data>
-  <data name="WinToolPower" xml:space="preserve"><value>Power settings</value></data>
-  <data name="WinToolNetwork" xml:space="preserve"><value>Network and internet</value></data>
-  <data name="WinToolAdvancedNetwork" xml:space="preserve"><value>Advanced network settings</value></data>
-  <data name="WinToolVpn" xml:space="preserve"><value>VPN</value></data>
-  <data name="WinToolInstalledApps" xml:space="preserve"><value>Installed apps</value></data>
-  <data name="WinToolStartupApps" xml:space="preserve"><value>Startup apps</value></data>
-  <data name="WinToolOptionalFeatures" xml:space="preserve"><value>Optional Windows features</value></data>
-  <data name="WinToolAccounts" xml:space="preserve"><value>Manage other users</value></data>
-  <data name="WinToolSignIn" xml:space="preserve"><value>Sign-in options</value></data>
-  <data name="WinToolWindowsUpdate" xml:space="preserve"><value>Windows Update</value></data>
-  <data name="WinToolUpdateHistory" xml:space="preserve"><value>Update history</value></data>
-  <data name="WinToolWindowsSecurity" xml:space="preserve"><value>Windows Security</value></data>
-  <data name="WinToolRecovery" xml:space="preserve"><value>Recovery</value></data>
-  <data name="WinToolTroubleshoot" xml:space="preserve"><value>Troubleshoot</value></data>
+  <data name="WinInventoryArea" xml:space="preserve"><value>Windows area</value></data>
+  <data name="WinInventoryProcesses" xml:space="preserve"><value>Processes</value></data>
+  <data name="WinInventoryFilter" xml:space="preserve"><value>Filter this list</value></data>
+  <data name="WinInventoryDetail" xml:space="preserve"><value>Details</value></data>
+  <data name="WinInventoryValue" xml:space="preserve"><value>Measurement / time</value></data>
+  <data name="WinInventoryLoading" xml:space="preserve"><value>Reading live data from this PC…</value></data>
+  <data name="WinInventoryUnavailable" xml:space="preserve"><value>Data is unavailable.</value></data>
+  <data name="WinInventoryPartial" xml:space="preserve"><value>Some data could not be read.</value></data>
+  <data name="WinInventoryEmpty" xml:space="preserve"><value>No matching records.</value></data>
+  <data name="WinInventoryLoaded" xml:space="preserve"><value>Data read from this PC. Refresh to read it again.</value></data>
+  <data name="WinInventoryCritical" xml:space="preserve"><value>Critical</value></data>
+  <data name="WinInventoryError" xml:space="preserve"><value>Error</value></data>
+  <data name="WinInventoryWarning" xml:space="preserve"><value>Warning</value></data>
+  <data name="WinDiagnosisTitle" xml:space="preserve"><value>Findings and recommended steps</value></data>
+  <data name="WinDiagnosisUnavailable" xml:space="preserve"><value>The monitor has not provided current evidence for recommendations.</value></data>
+  <data name="WinDiagnosisNone" xml:space="preserve"><value>Current evidence does not trigger a recommendation. This does not prove that Windows has no problems.</value></data>
+  <data name="WinDiagnosisCrashes" xml:space="preserve"><value>Investigate Windows crashes</value></data>
 </root>

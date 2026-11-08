@@ -21,8 +21,10 @@ public partial class MainWindow:Window
 {
     private readonly DashboardController _controller;
     private readonly IDiskHealthReader _diskHealthReader;
-    private readonly Action<WindowsTool> _openWindowsTool;
-    private (string MessageKey, string ToolKey)? _windowsToolStatus;
+    private readonly Func<WindowsArea, WindowsInventory> _readWindowsInventory;
+    private readonly SemaphoreSlim _windowsInventoryGate=new(1,1);
+    private int _windowsInventoryRequest;
+    private WindowsInventory? _windowsInventory;
     private Func<string>? _smartText;
     private readonly CancellationTokenSource _closing=new();
     private readonly SemaphoreSlim _reading=new(1,1);
@@ -43,15 +45,14 @@ public partial class MainWindow:Window
     public MainWindow(DashboardController controller) : this(controller, DesktopLocalization.ForCurrentUser()) { }
     public MainWindow(DashboardController controller, DesktopLocalization localization) : this(controller, localization, null) { }
     public MainWindow(DashboardController controller, DesktopLocalization localization, IDiskHealthReader? diskHealthReader)
-        : this(controller, localization, diskHealthReader, WindowsAdministration.Open) { }
-    internal MainWindow(DashboardController controller, DesktopLocalization localization, IDiskHealthReader? diskHealthReader, Action<WindowsTool> openWindowsTool)
+        : this(controller, localization, diskHealthReader, WindowsAdministration.Read) { }
+    internal MainWindow(DashboardController controller, DesktopLocalization localization, IDiskHealthReader? diskHealthReader, Func<WindowsArea, WindowsInventory> readWindowsInventory)
     {
         Localization=localization;
         _diskHealthReader = diskHealthReader ?? new WindowsDiskHealthReader();
-        _openWindowsTool=openWindowsTool;
+        _readWindowsInventory=readWindowsInventory;
         InitializeComponent();_controller=controller;
         Localization.Apply(this);
-        BuildWindowsTools();
         LanguageChoice.ItemsSource=DesktopLocalization.Languages;
         LanguageChoice.SelectedValue=Localization.LanguageCode;
         LanguageChoice.SelectionChanged+=LanguageSelected;
@@ -90,7 +91,7 @@ public partial class MainWindow:Window
         if(_hasRefreshed)RenderSnapshot(_renderedView,false);
         if(_comparisonText is not null)ComparisonText.Text=_comparisonText();
         if(_smartText is not null)SmartResultText.Text=_smartText();
-        RenderWindowsToolStatus();
+        RenderWindowsInventory();
         RenderDetail();
         foreach(var grid in new[]{DisksGrid,ProcessGrid,HealthGrid,ServicesGrid,IncidentsGrid})grid.Items.Refresh();
     }
@@ -117,6 +118,7 @@ public partial class MainWindow:Window
     }
     private void RenderSnapshot(DashboardSnapshot? view,bool replaceRows)
     {
+            RenderWindowsDiagnosis(view);
             HealthSummaryText.Text=HealthSummary.Describe(view,Localization.Culture);
             if(view is null)
             {
@@ -360,57 +362,71 @@ public partial class MainWindow:Window
         WindowsAdministrationTab.Focus();
     }
 
-    private void BuildWindowsTools()
+    private async void WindowsAreaChanged(object sender,RoutedEventArgs e)
     {
-        foreach(var group in WindowsAdministration.Entries.GroupBy(entry=>entry.Group))
-        {
-            var panel=new StackPanel();
-            var title=new TextBlock {Style=(Style)FindResource("SectionTitle")};
-            title.SetResourceReference(TextBlock.TextProperty,"Loc.WinGroup"+group.Key);
-            panel.Children.Add(title);
-            var buttons=new WrapPanel();
-            panel.Children.Add(buttons);
-            foreach(var entry in group)
-            {
-                var button=new Button {Tag=entry.Tool};
-                button.SetResourceReference(ContentControl.ContentProperty,"Loc."+entry.LabelKey);
-                if(WindowsAdministration.RequestsElevation(entry.Tool))
-                {
-                    button.SetResourceReference(ToolTipProperty,"Loc.WinAdminElevation");
-                    button.SetResourceReference(System.Windows.Automation.AutomationProperties.HelpTextProperty,"Loc.WinAdminElevation");
-                }
-                button.Click+=(_,_)=>OpenWindowsTool(entry);
-                buttons.Children.Add(button);
-            }
-            WindowsToolsPanel.Children.Add(new Border
-            {
-                Style=(Style)FindResource("Card"),Child=panel,Margin=new Thickness(0,0,0,12)
-            });
-        }
+        if(WindowsAdministrationTab?.IsSelected==true)await ReadWindowsInventory();
     }
 
-    private void OpenWindowsTool(WindowsToolEntry entry)
+    private async void WindowsInventoryRefresh(object sender,RoutedEventArgs e)=>await ReadWindowsInventory();
+
+    private async Task ReadWindowsInventory()
     {
+        if(WindowsInventoryArea.SelectedItem is not ComboBoxItem {Tag:string name} ||
+            !Enum.TryParse<WindowsArea>(name,out var area))return;
+        var request=++_windowsInventoryRequest;
+        _windowsInventory=null;
+        WindowsInventoryGrid.ItemsSource=null;
+        SetInventoryStatus("WinInventoryLoading");
         try
         {
-            _openWindowsTool(entry.Tool);
-            _windowsToolStatus=("WinAdminRequested",entry.LabelKey);
+            await _windowsInventoryGate.WaitAsync(_closing.Token);
+            try
+            {
+                if(request!=_windowsInventoryRequest)return;
+                var result=await Task.Run(()=>_readWindowsInventory(area),_closing.Token);
+                if(request!=_windowsInventoryRequest||_closing.IsCancellationRequested)return;
+                _windowsInventory=result;
+                RenderWindowsInventory();
+            }
+            finally{_windowsInventoryGate.Release();}
         }
-        catch(Win32Exception error) when(error.NativeErrorCode==1223)
+        catch(OperationCanceledException) when(_closing.IsCancellationRequested){}
+        catch(Exception error) when(error is Win32Exception or IOException or InvalidOperationException or UnauthorizedAccessException
+            or System.Diagnostics.Eventing.Reader.EventLogException or System.Net.NetworkInformation.NetworkInformationException)
         {
-            _windowsToolStatus=("WinAdminCancelled",entry.LabelKey);
+            if(request==_windowsInventoryRequest&&!_closing.IsCancellationRequested)SetInventoryStatus("WinInventoryUnavailable");
         }
-        catch(Exception error) when(error is Win32Exception or IOException or InvalidOperationException or UnauthorizedAccessException)
-        {
-            _windowsToolStatus=("WinAdminUnavailable",entry.LabelKey);
-        }
-        RenderWindowsToolStatus();
     }
 
-    private void RenderWindowsToolStatus()
+    private void WindowsInventorySearchChanged(object sender,TextChangedEventArgs e)=>RenderWindowsInventory();
+
+    private void RenderWindowsInventory()
     {
-        if(_windowsToolStatus is not {} status)return;
-        WindowsToolStatus.Text=T(status.MessageKey,T(status.ToolKey));
-        WindowsToolStatus.Visibility=Visibility.Visible;
+        if(_windowsInventory is not {} inventory)return;
+        var search=WindowsInventorySearch.Text.Trim();
+        var rows=inventory.Rows.Select(row=>row with
+        {
+            State=row.StateKey is {} key?T(key):TechnicalText.Format(row.State,Localization.Culture)
+        }).Where(row=>search.Length==0||new[]{row.Name,row.Detail,row.State,row.Value}.Any(
+            field=>field.Contains(search,StringComparison.CurrentCultureIgnoreCase))).ToArray();
+        WindowsInventoryGrid.ItemsSource=rows;
+        SetInventoryStatus(inventory.Partial?"WinInventoryPartial":rows.Length==0?"WinInventoryEmpty":"WinInventoryLoaded");
+    }
+
+    private void SetInventoryStatus(string key)=>WindowsToolStatus.SetResourceReference(TextBlock.TextProperty,"Loc."+key);
+
+    private void RenderWindowsDiagnosis(DashboardSnapshot? view)
+    {
+        if(view is null)
+        {
+            WindowsDiagnosis.Text=T("WinDiagnosisUnavailable");
+            return;
+        }
+        var recommendations=new RecommendationEngine().Evaluate(view,DateTimeOffset.UtcNow);
+        WindowsDiagnosis.Text=recommendations.Count==0?T("WinDiagnosisNone"):string.Join("\n\n",recommendations.Select(card=>
+        {
+            var localized=RecommendationText.Localize(card,view,Localization);
+            return $"{localized.Title}\n{localized.Evidence}\n{localized.Benefit}";
+        }));
     }
 }

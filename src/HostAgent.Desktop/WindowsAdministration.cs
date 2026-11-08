@@ -1,99 +1,106 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
+using System.ServiceProcess;
 
 namespace HostAgent.Desktop;
 
-internal enum WindowsTool
-{
-    ComputerManagement, TaskManager, Services, TaskScheduler, EventViewer, PerformanceMonitor,
-    ResourceMonitor, SystemInformation, Settings, Explorer, DiskManagement, Storage, DeviceManager,
-    Power, Network, AdvancedNetwork, Vpn, InstalledApps, StartupApps, OptionalFeatures, Accounts,
-    SignIn, WindowsUpdate, UpdateHistory, WindowsSecurity, Recovery, Troubleshoot
-}
-
-internal enum WindowsToolGroup { System, Hardware, Network, AppsAndAccounts, UpdatesAndRecovery }
-
-internal sealed record WindowsToolEntry(WindowsTool Tool, WindowsToolGroup Group)
-{
-    public string LabelKey => "WinTool" + Tool;
-}
+internal enum WindowsArea { Processes, Services, Disks, Network, Events }
+internal sealed record WindowsInventoryRow(string Name, string Detail, string State, string Value, string? StateKey = null);
+internal sealed record WindowsInventory(IReadOnlyList<WindowsInventoryRow> Rows, bool Partial = false);
 
 internal static class WindowsAdministration
 {
-    private enum Destination { Settings, SystemExecutable, WindowsExecutable, Console }
-    private sealed record Target(WindowsToolEntry Entry, Destination Destination, string Name, bool Elevate = false);
-    private static Target Settings(WindowsTool tool, WindowsToolGroup group, string page) => new(new(tool, group), Destination.Settings, page);
-    private static Target SystemExe(WindowsTool tool, WindowsToolGroup group, string name) => new(new(tool, group), Destination.SystemExecutable, name);
-    private static Target Console(WindowsTool tool, WindowsToolGroup group, string name, bool elevate) => new(new(tool, group), Destination.Console, name, elevate);
-
-    private static readonly Target[] Targets =
-    [
-        Console(WindowsTool.ComputerManagement, WindowsToolGroup.System, "compmgmt.msc", true),
-        SystemExe(WindowsTool.TaskManager, WindowsToolGroup.System, "Taskmgr.exe"),
-        Console(WindowsTool.Services, WindowsToolGroup.System, "services.msc", true),
-        Console(WindowsTool.TaskScheduler, WindowsToolGroup.System, "taskschd.msc", true),
-        Console(WindowsTool.EventViewer, WindowsToolGroup.System, "eventvwr.msc", false),
-        Console(WindowsTool.PerformanceMonitor, WindowsToolGroup.System, "perfmon.msc", false),
-        SystemExe(WindowsTool.ResourceMonitor, WindowsToolGroup.System, "resmon.exe"),
-        SystemExe(WindowsTool.SystemInformation, WindowsToolGroup.System, "msinfo32.exe"),
-        Settings(WindowsTool.Settings, WindowsToolGroup.System, ""),
-        new(new(WindowsTool.Explorer, WindowsToolGroup.Hardware), Destination.WindowsExecutable, "explorer.exe"),
-        Console(WindowsTool.DiskManagement, WindowsToolGroup.Hardware, "diskmgmt.msc", true),
-        Settings(WindowsTool.Storage, WindowsToolGroup.Hardware, "storagesense"),
-        Console(WindowsTool.DeviceManager, WindowsToolGroup.Hardware, "devmgmt.msc", true),
-        Settings(WindowsTool.Power, WindowsToolGroup.Hardware, "powersleep"),
-        Settings(WindowsTool.Network, WindowsToolGroup.Network, "network-status"),
-        Settings(WindowsTool.AdvancedNetwork, WindowsToolGroup.Network, "network-advancedsettings"),
-        Settings(WindowsTool.Vpn, WindowsToolGroup.Network, "network-vpn"),
-        Settings(WindowsTool.InstalledApps, WindowsToolGroup.AppsAndAccounts, "appsfeatures"),
-        Settings(WindowsTool.StartupApps, WindowsToolGroup.AppsAndAccounts, "startupapps"),
-        Settings(WindowsTool.OptionalFeatures, WindowsToolGroup.AppsAndAccounts, "optionalfeatures"),
-        Settings(WindowsTool.Accounts, WindowsToolGroup.AppsAndAccounts, "otherusers"),
-        Settings(WindowsTool.SignIn, WindowsToolGroup.AppsAndAccounts, "signinoptions"),
-        Settings(WindowsTool.WindowsUpdate, WindowsToolGroup.UpdatesAndRecovery, "windowsupdate"),
-        Settings(WindowsTool.UpdateHistory, WindowsToolGroup.UpdatesAndRecovery, "windowsupdate-history"),
-        Settings(WindowsTool.WindowsSecurity, WindowsToolGroup.UpdatesAndRecovery, "windowsdefender"),
-        Settings(WindowsTool.Recovery, WindowsToolGroup.UpdatesAndRecovery, "recovery"),
-        Settings(WindowsTool.Troubleshoot, WindowsToolGroup.UpdatesAndRecovery, "troubleshoot")
-    ];
-
-    internal static IReadOnlyList<WindowsToolEntry> Entries { get; } = Array.AsReadOnly(Targets.Select(x => x.Entry).ToArray());
-    private static readonly Dictionary<WindowsTool, Target> ByTool = Targets.ToDictionary(x => x.Entry.Tool);
-
-    internal static bool RequestsElevation(WindowsTool tool) => ByTool[tool].Elevate;
-
-    internal static ProcessStartInfo CreateStartInfo(WindowsTool tool)
+    internal static WindowsInventory Read(WindowsArea area) => area switch
     {
-        if (!ByTool.TryGetValue(tool, out var target))
-            throw new ArgumentOutOfRangeException(nameof(tool));
+        WindowsArea.Processes => ReadProcesses(),
+        WindowsArea.Services => ReadServices(),
+        WindowsArea.Disks => ReadDisks(),
+        WindowsArea.Network => new(NetworkInterface.GetAllNetworkInterfaces().Where(n => n.NetworkInterfaceType != NetworkInterfaceType.Loopback)
+            .OrderBy(n => n.Name).Select(n => new WindowsInventoryRow(n.Name, n.Description, n.OperationalStatus.ToString(), n.NetworkInterfaceType.ToString())).ToArray()),
+        WindowsArea.Events => ReadEvents(),
+        _ => throw new ArgumentOutOfRangeException(nameof(area))
+    };
 
-        if (target.Destination == Destination.Settings)
-            return new("ms-settings:" + target.Name) { UseShellExecute = true };
-
-        var directory = target.Destination == Destination.WindowsExecutable
-            ? Environment.GetFolderPath(Environment.SpecialFolder.Windows) : Environment.SystemDirectory;
-        var path = Path.Combine(directory, target.Destination == Destination.Console ? "mmc.exe" : target.Name);
-        var start = new ProcessStartInfo(path) { UseShellExecute = true, WorkingDirectory = directory };
-        if (target.Destination == Destination.Console)
-            start.ArgumentList.Add(Path.Combine(directory, target.Name));
-        if (target.Elevate)
-            start.Verb = "runas";
-        return start;
-    }
-
-    internal static void Open(WindowsTool tool)
+    private static WindowsInventory ReadProcesses()
     {
-        var start = CreateStartInfo(tool);
-        if (!start.FileName.StartsWith("ms-settings:", StringComparison.Ordinal))
+        var rows = new List<WindowsInventoryRow>();
+        var partial = false;
+        foreach (var process in Process.GetProcesses())
         {
-            if (!File.Exists(start.FileName) || start.ArgumentList.Any(path => !File.Exists(path)))
-                throw new FileNotFoundException();
+            using (process)
+            {
+                var id = process.Id.ToString(CultureInfo.InvariantCulture);
+                string name;
+                try { name = process.ProcessName; }
+                catch (Exception e) when (e is InvalidOperationException or Win32Exception) { partial = true; continue; }
+                string ram;
+                try { ram = FormatMiB(process.WorkingSet64); }
+                catch (Exception e) when (e is InvalidOperationException or Win32Exception) { partial = true; ram = "—"; }
+                rows.Add(new(name, id, "", ram));
+            }
         }
-
-        // Existing Settings/Explorer windows can handle the request without creating a process.
-        using var process = Process.Start(start);
+        return new(rows.OrderBy(r => r.Name, StringComparer.CurrentCultureIgnoreCase).ToArray(), partial);
     }
+
+    private static WindowsInventory ReadServices()
+    {
+        var rows = new List<WindowsInventoryRow>();
+        var partial = false;
+        foreach (var service in ServiceController.GetServices())
+        {
+            using (service)
+            {
+                try { rows.Add(new(service.ServiceName, service.DisplayName, service.Status.ToString(), "")); }
+                catch (Exception e) when (e is InvalidOperationException or Win32Exception) { partial = true; }
+            }
+        }
+        return new(rows.OrderBy(r => r.Name, StringComparer.CurrentCultureIgnoreCase).ToArray(), partial);
+    }
+
+    private static WindowsInventory ReadDisks()
+    {
+        var rows = new List<WindowsInventoryRow>();
+        var partial = false;
+        // Local fixed volumes only; reading mapped volumes can block on a remote host.
+        foreach (var drive in DriveInfo.GetDrives().Where(d => d.DriveType == DriveType.Fixed))
+        {
+            try
+            {
+                if (drive.IsReady)
+                    rows.Add(new(drive.Name, drive.DriveFormat, "", $"{FormatMiB(drive.AvailableFreeSpace)} / {FormatMiB(drive.TotalSize)}"));
+                else
+                    rows.Add(new(drive.Name, "", "", "—", "WinInventoryUnavailable"));
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            { partial = true; rows.Add(new(drive.Name, "", "", "—", "WinInventoryUnavailable")); }
+        }
+        return new(rows, partial);
+    }
+
+    private static WindowsInventory ReadEvents()
+    {
+        var query = new EventLogQuery("System", PathType.LogName,
+            "*[System[(Level=1 or Level=2 or Level=3) and TimeCreated[timediff(@SystemTime) <= 86400000]]]")
+        { ReverseDirection = true };
+        using var reader = new EventLogReader(query);
+        var rows = new List<WindowsInventoryRow>();
+        while (rows.Count < 50)
+        {
+            using var entry = reader.ReadEvent();
+            if (entry is null) break;
+            rows.Add(new(entry.ProviderName ?? "—", entry.Id.ToString(CultureInfo.InvariantCulture), "",
+                entry.TimeCreated?.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) ?? "—",
+                entry.Level switch { 1 => "WinInventoryCritical", 2 => "WinInventoryError", 3 => "WinInventoryWarning", _ => null }));
+        }
+        return new(rows);
+    }
+
+    private static string FormatMiB(long bytes) => (bytes / 1048576d).ToString("0.0", CultureInfo.CurrentCulture) + " MiB";
 }

@@ -1,7 +1,6 @@
-using System.ComponentModel;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using HostAgent.Desktop;
 using HostAgent.Infrastructure.Administration;
 using HostAgent.Infrastructure.Dashboard;
@@ -12,68 +11,44 @@ namespace HostAgent.Desktop.Tests;
 public sealed class WindowsAdministrationTests
 {
     [Fact]
-    public void Privileged_consoles_use_the_system_mmc_with_a_fixed_local_snap_in()
-    {
-        var info = WindowsAdministration.CreateStartInfo(WindowsTool.Services);
-        Assert.Equal(Path.Combine(Environment.SystemDirectory, "mmc.exe"), info.FileName);
-        Assert.Equal(Path.Combine(Environment.SystemDirectory, "services.msc"), Assert.Single(info.ArgumentList));
-        Assert.True(info.UseShellExecute);
-        Assert.Equal("runas", info.Verb);
-        Assert.Empty(info.Arguments);
-
-        var eventViewer = WindowsAdministration.CreateStartInfo(WindowsTool.EventViewer);
-        Assert.Empty(eventViewer.Verb);
-        Assert.Equal(Path.Combine(Environment.SystemDirectory, "eventvwr.msc"), Assert.Single(eventViewer.ArgumentList));
-    }
-
-    [Fact]
-    public void Settings_pages_do_not_request_elevation_and_unknown_tools_are_rejected()
-    {
-        var info = WindowsAdministration.CreateStartInfo(WindowsTool.UpdateHistory);
-        Assert.Equal("ms-settings:windowsupdate-history", info.FileName);
-        Assert.Empty(info.ArgumentList);
-        Assert.Empty(info.Verb);
-        Assert.Throws<ArgumentOutOfRangeException>(() => WindowsAdministration.CreateStartInfo((WindowsTool)999));
-    }
-
-    [Fact]
-    public Task Management_stays_available_when_monitor_is_offline_and_reports_launch_outcomes() => StaTest.RunAsync(() =>
+    public Task Inventory_is_visible_and_filterable_inside_the_dashboard_when_monitor_is_offline() => StaTest.RunAsync(() =>
     {
         var dashboard = new DashboardController((_, _) => ValueTask.FromResult(AdminProtocol.Reply(false, "unavailable")));
         var language = TestLocalization.Czech();
-        var opened = new List<WindowsTool>();
-        var window = new MainWindow(dashboard, language, null, tool =>
+        var window = new MainWindow(dashboard, language, null, area => area switch
         {
-            opened.Add(tool);
-            if (tool == WindowsTool.Services) throw new Win32Exception(1223);
-            if (tool == WindowsTool.DeviceManager) throw new Win32Exception(2);
+            WindowsArea.Processes => new([new("Example", "42", "", "30 MiB"), new("Other", "57", "", "50 MiB")]),
+            WindowsArea.Services => new([new("HostAgent", "Monitor", "Running", "")]),
+            _ => new([])
         });
         try
         {
             window.Show();
             ((TabItem)window.FindName("WindowsAdministrationTab")).IsSelected = true;
-            window.UpdateLayout();
-            var panel = (StackPanel)window.FindName("WindowsToolsPanel");
-            var buttons = panel.Children.OfType<Border>().SelectMany(card =>
-                ((StackPanel)card.Child).Children.OfType<WrapPanel>().Single().Children.OfType<Button>()).ToArray();
-            Assert.Equal(WindowsAdministration.Entries.Count, buttons.Length);
-            Assert.Empty(opened);
+            var grid = (DataGrid)window.FindName("WindowsInventoryGrid");
+            PumpUntil(() => grid.Items.Count == 2);
             Assert.Null(dashboard.Snapshot);
-            var status = (TextBlock)window.FindName("WindowsToolStatus");
-            Button ButtonFor(WindowsTool tool) => buttons.Single(button => Equals(button.Tag, tool));
-            void Click(WindowsTool tool) => ButtonFor(tool).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-            Assert.Equal("Správce úloh", ButtonFor(WindowsTool.TaskManager).Content);
-            Click(WindowsTool.TaskManager);
-            Assert.Contains("Předáno systému Windows", status.Text);
-            Click(WindowsTool.Services);
-            Assert.Contains("zrušeno", status.Text);
-            Click(WindowsTool.DeviceManager);
-            Assert.Contains("nepodařilo otevřít", status.Text);
+            Assert.Contains("Monitor", ((TextBlock)window.FindName("WindowsDiagnosis")).Text);
+            var search = (TextBox)window.FindName("WindowsInventorySearch");
+            search.Text = "57";
+            Assert.Equal("Other", Assert.IsType<WindowsInventoryRow>(Assert.Single(grid.Items)).Name);
+            search.Clear();
+            ((ComboBox)window.FindName("WindowsInventoryArea")).SelectedIndex = 1;
+            PumpUntil(() => grid.Items.Count == 1 && grid.Items[0] is WindowsInventoryRow { Name: "HostAgent" });
             language.SelectLanguage("de");
-            Assert.Equal("Task-Manager", ButtonFor(WindowsTool.TaskManager).Content);
-            Assert.Contains("Geräte-Manager", status.Text);
-            Assert.Equal(new[] { WindowsTool.TaskManager, WindowsTool.Services, WindowsTool.DeviceManager }, opened);
+            Assert.Equal("Gestartet", Assert.IsType<WindowsInventoryRow>(Assert.Single(grid.Items)).State);
         }
         finally { window.Close(); }
     });
+
+    private static void PumpUntil(Func<bool> condition)
+    {
+        var until = DateTime.UtcNow.AddSeconds(8);
+        while (!condition() && DateTime.UtcNow < until)
+        {
+            Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.Background);
+            Thread.Sleep(20);
+        }
+        Assert.True(condition());
+    }
 }

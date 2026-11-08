@@ -44,21 +44,17 @@ se používají konzervativní minutová minima; krátká špička nestačí. Ka
 uvádí přínos, dopad a limity návratu. Instalace náhodného „optimalizátoru“,
 automatická změna ovladačů ani mazání osobních dat se nenavrhují.
 
-**Správa Windows** sdružuje nástroje pro místní správu: Správce úloh, služby,
-Plánovač úloh, protokoly událostí, výkon, disky, zařízení, síť, účty,
-aplikace, aktualizace, zabezpečení a obnovení. Tuto kartu lze použít i bez
-spojení s monitorem. Tlačítka pouze otevřou konkrétní nástroj nebo stránku
-Nastavení. Případné zvýšení oprávnění potvrzuje operátor ve Windows a změny
-provádí přímo v daném nástroji. Dostupnost závisí na verzi Windows, edici
-a oprávnění účtu. Zpráva o předání požadavku nepotvrzuje otevření okna ani
-provedení změny. Tuto kartu obsahují až sestavy s touto funkcí.
+**Správa Windows** zobrazuje přímo v Host Agentu místní procesy (PID a
+working set), služby, pevné svazky, síťové adaptéry a až 50 nejnovějších
+systémových varování a chyb za posledních 24 hodin. Seznam lze filtrovat a
+obnovit. Čtení probíhá s právy přihlášeného uživatele a funguje i bez
+spojení s monitorem. Chybějící údaje se nevydávají za nulu.
 
-Vývojové ověření 2026-11-08: v DEV VM prošlo všech 54 testů dashboardu
-(`dotnet test tests/HostAgent.Desktop.Tests/HostAgent.Desktop.Tests.csproj -c Release -m:1`).
-Ze sestaveného dashboardu se v interaktivní relaci otevřela skutečná okna
-Správce úloh a Prohlížeče událostí i stránky Síť a internet a Historie
-aktualizací. Zrušení výzvy je pokryto simulovaným testem. Změny v nativních
-nástrojích ani jiné edice Windows nebyly součástí ověření.
+Pod seznamem jsou doporučení z aktuálních měření monitoru. **Prověřit pády
+Windows** zobrazí uložené diagnostické podklady. **Údržba souborů** otevře
+vestavěný náhled a karanténu s existujícím potvrzením. Samotné seznamy
+nemění nastavení Windows, neukončují procesy ani nezastavují služby.
+Ruční servisní zásahy dál používají schvalovací postup v části Údržba.
 
 Údržba otevře konkrétní nastavení Windows: úložiště, aplikace nebo programy
 po spuštění. Samostatné **Dočasné soubory** nabízí read-only náhled a po

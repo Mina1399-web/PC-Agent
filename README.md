@@ -29,7 +29,7 @@ documents the submitted materials.
 
 ## Project status
 
-The current application includes the local Windows dashboard, evidence-based recommendations, bounded reversible maintenance, and a Windows administration tab that opens built-in tools for this PC. See the [dashboard guide](docs/operations/dashboard.md) and [predeployment checkpoint](docs/verification/predeployment-2026-10-18.md). The resilience records distinguish each tested candidate and its limits; an unsigned DEV package is not a production release.
+The current application includes the local Windows dashboard, evidence-based recommendations, bounded reversible maintenance, and a Windows administration tab that displays live system inventories inside the app. See the [dashboard guide](docs/operations/dashboard.md) and [predeployment checkpoint](docs/verification/predeployment-2026-10-18.md). The resilience records distinguish each tested candidate and its limits; an unsigned DEV package is not a production release.
 
 V1 product completion adds an elevated local CLI, authenticated administrator IPC, service-identity secret provisioning, safe configuration commands, and a self-contained Windows x64 MSI/release pipeline. Shadow/read-only remains the default. Start with the [operator guide](docs/operations/quickstart.md); the [current verification record](docs/verification/v1-release.md) distinguishes executed checks from live deployment prerequisites.
 
