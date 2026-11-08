@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.IO;
@@ -20,6 +21,8 @@ public partial class MainWindow:Window
 {
     private readonly DashboardController _controller;
     private readonly IDiskHealthReader _diskHealthReader;
+    private readonly Action<WindowsTool> _openWindowsTool;
+    private (string MessageKey, string ToolKey)? _windowsToolStatus;
     private Func<string>? _smartText;
     private readonly CancellationTokenSource _closing=new();
     private readonly SemaphoreSlim _reading=new(1,1);
@@ -40,11 +43,15 @@ public partial class MainWindow:Window
     public MainWindow(DashboardController controller) : this(controller, DesktopLocalization.ForCurrentUser()) { }
     public MainWindow(DashboardController controller, DesktopLocalization localization) : this(controller, localization, null) { }
     public MainWindow(DashboardController controller, DesktopLocalization localization, IDiskHealthReader? diskHealthReader)
+        : this(controller, localization, diskHealthReader, WindowsAdministration.Open) { }
+    internal MainWindow(DashboardController controller, DesktopLocalization localization, IDiskHealthReader? diskHealthReader, Action<WindowsTool> openWindowsTool)
     {
         Localization=localization;
         _diskHealthReader = diskHealthReader ?? new WindowsDiskHealthReader();
+        _openWindowsTool=openWindowsTool;
         InitializeComponent();_controller=controller;
         Localization.Apply(this);
+        BuildWindowsTools();
         LanguageChoice.ItemsSource=DesktopLocalization.Languages;
         LanguageChoice.SelectedValue=Localization.LanguageCode;
         LanguageChoice.SelectionChanged+=LanguageSelected;
@@ -83,6 +90,7 @@ public partial class MainWindow:Window
         if(_hasRefreshed)RenderSnapshot(_renderedView,false);
         if(_comparisonText is not null)ComparisonText.Text=_comparisonText();
         if(_smartText is not null)SmartResultText.Text=_smartText();
+        RenderWindowsToolStatus();
         RenderDetail();
         foreach(var grid in new[]{DisksGrid,ProcessGrid,HealthGrid,ServicesGrid,IncidentsGrid})grid.Items.Refresh();
     }
@@ -345,4 +353,64 @@ public partial class MainWindow:Window
     private void StorageClick(object sender,RoutedEventArgs e)=>OpenSettings(GuidedAction.StorageSettings);
     private void AppsClick(object sender,RoutedEventArgs e)=>OpenSettings(GuidedAction.AppsSettings);
     private void StartupClick(object sender,RoutedEventArgs e)=>OpenSettings(GuidedAction.StartupSettings);
+
+    private void WindowsAdministrationClick(object sender,RoutedEventArgs e)
+    {
+        WindowsAdministrationTab.IsSelected=true;
+        WindowsAdministrationTab.Focus();
+    }
+
+    private void BuildWindowsTools()
+    {
+        foreach(var group in WindowsAdministration.Entries.GroupBy(entry=>entry.Group))
+        {
+            var panel=new StackPanel();
+            var title=new TextBlock {Style=(Style)FindResource("SectionTitle")};
+            title.SetResourceReference(TextBlock.TextProperty,"Loc.WinGroup"+group.Key);
+            panel.Children.Add(title);
+            var buttons=new WrapPanel();
+            panel.Children.Add(buttons);
+            foreach(var entry in group)
+            {
+                var button=new Button {Tag=entry.Tool};
+                button.SetResourceReference(ContentControl.ContentProperty,"Loc."+entry.LabelKey);
+                if(WindowsAdministration.RequestsElevation(entry.Tool))
+                {
+                    button.SetResourceReference(ToolTipProperty,"Loc.WinAdminElevation");
+                    button.SetResourceReference(System.Windows.Automation.AutomationProperties.HelpTextProperty,"Loc.WinAdminElevation");
+                }
+                button.Click+=(_,_)=>OpenWindowsTool(entry);
+                buttons.Children.Add(button);
+            }
+            WindowsToolsPanel.Children.Add(new Border
+            {
+                Style=(Style)FindResource("Card"),Child=panel,Margin=new Thickness(0,0,0,12)
+            });
+        }
+    }
+
+    private void OpenWindowsTool(WindowsToolEntry entry)
+    {
+        try
+        {
+            _openWindowsTool(entry.Tool);
+            _windowsToolStatus=("WinAdminRequested",entry.LabelKey);
+        }
+        catch(Win32Exception error) when(error.NativeErrorCode==1223)
+        {
+            _windowsToolStatus=("WinAdminCancelled",entry.LabelKey);
+        }
+        catch(Exception error) when(error is Win32Exception or IOException or InvalidOperationException or UnauthorizedAccessException)
+        {
+            _windowsToolStatus=("WinAdminUnavailable",entry.LabelKey);
+        }
+        RenderWindowsToolStatus();
+    }
+
+    private void RenderWindowsToolStatus()
+    {
+        if(_windowsToolStatus is not {} status)return;
+        WindowsToolStatus.Text=T(status.MessageKey,T(status.ToolKey));
+        WindowsToolStatus.Visibility=Visibility.Visible;
+    }
 }

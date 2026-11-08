@@ -92,7 +92,8 @@ public sealed class DashboardUiTests
                     }
                     Capture(window,$"section-{index}-synthetic");
                 }
-                window.Width=850;window.Height=620;Capture(window,"maintenance-850-synthetic");
+                window.Width=850;window.Height=620;Capture(window,"windows-administration-850-synthetic");
+                tabs.SelectedIndex=tabs.Items.Count-2;Capture(window,"maintenance-850-synthetic");
                 window.Width=1280;window.Height=880;
                 tabs.SelectedIndex=0;
                 online=false;

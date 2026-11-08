@@ -82,7 +82,7 @@
   <TabControl x:Name="DashboardTabs" Grid.Row="1" Grid.ColumnSpan="2" Background="Transparent" BorderThickness="0" TabStripPlacement="Left">
    <TabControl.Template><ControlTemplate TargetType="TabControl"><Grid>
     <Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-    <DockPanel><Border DockPanel.Dock="Bottom" Margin="20,20,20,24" BorderBrush="#3E536F" BorderThickness="0,1,0,0" Padding="8,20,8,0"><StackPanel><TextBlock Text="{DynamicResource Loc.UnderYourControl}" Foreground="White" FontWeight="SemiBold" FontSize="13"/><TextBlock Text="{DynamicResource Loc.ActionsRequireApprovalTheDashboardDoesNotStopServices}" Foreground="{StaticResource RailTextBrush}" TextWrapping="Wrap" FontSize="12" LineHeight="19" Margin="0,8,0,0"/></StackPanel></Border><StackPanel IsItemsHost="True" KeyboardNavigation.TabIndex="1" VerticalAlignment="Top"/></DockPanel>
+    <DockPanel><Border DockPanel.Dock="Bottom" Margin="20,20,20,24" BorderBrush="#3E536F" BorderThickness="0,1,0,0" Padding="8,20,8,0"><StackPanel><TextBlock Text="{DynamicResource Loc.UnderYourControl}" Foreground="White" FontWeight="SemiBold" FontSize="13"/><TextBlock Text="{DynamicResource Loc.ActionsRequireApprovalTheDashboardDoesNotStopServices}" Foreground="{StaticResource RailTextBrush}" TextWrapping="Wrap" FontSize="12" LineHeight="19" Margin="0,8,0,0"/></StackPanel></Border><ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False"><StackPanel IsItemsHost="True" KeyboardNavigation.TabIndex="1" VerticalAlignment="Top"/></ScrollViewer></DockPanel>
     <ContentPresenter Grid.Column="1" x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" Margin="28,12,28,0"/>
    </Grid></ControlTemplate></TabControl.Template>
    <TabItem AutomationProperties.Name="{DynamicResource Loc.Dashboard}">
@@ -149,8 +149,21 @@
       <WrapPanel><Button x:Name="OperationButton" Style="{StaticResource PrimaryButton}" Content="{DynamicResource Loc.ReviewAction}" Click="OperationClick" IsEnabled="False"/><Button Content="{DynamicResource Loc.BlockAllRepairs}" Click="KillSwitchClick"/></WrapPanel>
       <Button Content="{DynamicResource Loc.CompareStatusAfterAction}" Click="CompareClick" HorizontalAlignment="Left" Margin="0,8,0,8"/><TextBlock x:Name="ComparisonText" Style="{StaticResource Caption}" AutomationProperties.LiveSetting="Polite"/>
      </StackPanel></Border>
-     <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="{DynamicResource Loc.WindowsSettings}" Style="{StaticResource SectionTitle}"/><TextBlock Text="{DynamicResource Loc.ChooseWhatToManageConfirmYourFileAndApplicationSelectionsDirectlyInW}" Style="{StaticResource Caption}" Margin="0,0,0,16"/><WrapPanel><Button Content="{DynamicResource Loc.StorageAndCleanup}" Click="StorageClick"/><Button Content="{DynamicResource Loc.AppsAndUninstall}" Click="AppsClick"/><Button Content="{DynamicResource Loc.StartupApps}" Click="StartupClick"/></WrapPanel></StackPanel></Border>
+     <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="{DynamicResource Loc.WindowsSettings}" Style="{StaticResource SectionTitle}"/><TextBlock Text="{DynamicResource Loc.ChooseWhatToManageConfirmYourFileAndApplicationSelectionsDirectlyInW}" Style="{StaticResource Caption}" Margin="0,0,0,16"/><WrapPanel><Button Content="{DynamicResource Loc.StorageAndCleanup}" Click="StorageClick"/><Button Content="{DynamicResource Loc.AppsAndUninstall}" Click="AppsClick"/><Button Content="{DynamicResource Loc.StartupApps}" Click="StartupClick"/><Button Content="{DynamicResource Loc.WinAdminTitle}" Click="WindowsAdministrationClick"/></WrapPanel></StackPanel></Border>
     </StackPanel></ScrollViewer>
+   </TabItem>
+   <TabItem x:Name="WindowsAdministrationTab" AutomationProperties.Name="{DynamicResource Loc.WinAdminTitle}">
+    <TabItem.Header><TextBlock Text="{DynamicResource Loc.WinAdminTitle}" Foreground="{StaticResource RailTextBrush}"/></TabItem.Header>
+    <DockPanel Margin="0,0,0,16">
+     <StackPanel DockPanel.Dock="Top" Margin="0,0,12,12">
+      <TextBlock Text="{DynamicResource Loc.WinAdminTitle}" FontSize="28" FontWeight="SemiBold"/>
+      <TextBlock Text="{DynamicResource Loc.WinAdminIntro}" Style="{StaticResource Caption}" Margin="0,6,0,0"/>
+      <TextBlock x:Name="WindowsToolStatus" Style="{StaticResource Caption}" Margin="0,6,0,0" Visibility="Collapsed" AutomationProperties.LiveSetting="Polite"/>
+     </StackPanel>
+     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel x:Name="WindowsToolsPanel" Margin="0,0,12,8"/>
+     </ScrollViewer>
+    </DockPanel>
    </TabItem>
   </TabControl>
  </Grid>
