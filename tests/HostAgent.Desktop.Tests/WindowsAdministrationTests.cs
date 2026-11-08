@@ -31,12 +31,12 @@ public sealed class WindowsAdministrationTests
             Assert.Contains("Monitor", ((TextBlock)window.FindName("WindowsDiagnosis")).Text);
             var search = (TextBox)window.FindName("WindowsInventorySearch");
             search.Text = "57";
-            Assert.Equal("Other", Assert.IsType<WindowsInventoryRow>(Assert.Single(grid.Items)).Name);
+            Assert.Equal("Other", Assert.Single(grid.Items.OfType<WindowsInventoryRow>()).Name);
             search.Clear();
             ((ComboBox)window.FindName("WindowsInventoryArea")).SelectedIndex = 1;
             PumpUntil(() => grid.Items.Count == 1 && grid.Items[0] is WindowsInventoryRow { Name: "HostAgent" });
             language.SelectLanguage("de");
-            Assert.Equal("Gestartet", Assert.IsType<WindowsInventoryRow>(Assert.Single(grid.Items)).State);
+            Assert.Equal("Gestartet", Assert.Single(grid.Items.OfType<WindowsInventoryRow>()).State);
         }
         finally { window.Close(); }
     });

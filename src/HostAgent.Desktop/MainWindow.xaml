@@ -79,7 +79,7 @@
    <WrapPanel Margin="0,8,0,0"><Button x:Name="RefreshButton" Content="{DynamicResource Loc.Refresh}" Click="RefreshClick"/><Button Content="{DynamicResource Loc.InvestigateProblem}" Click="InvestigateClick"/><Button Content="{DynamicResource Loc.TemporaryFileMaintenance}" Click="MaintenanceClick"/><Button Content="{DynamicResource Loc.Hide}" ToolTip="{DynamicResource Loc.HideToSystemTray}" AutomationProperties.Name="{DynamicResource Loc.HideToSystemTray}" Click="TrayClick" Margin="0,0,0,8"/></WrapPanel>
    <Border x:Name="StatusBanner" Background="#E8F0FF" CornerRadius="6" Padding="12,10" Margin="0,8,0,0"><TextBlock x:Name="StatusText" Text="{DynamicResource Loc.ConnectingToTheLocalService}" TextWrapping="Wrap" FontSize="12" AutomationProperties.LiveSetting="Polite"/></Border>
   </StackPanel>
-  <TabControl x:Name="DashboardTabs" Grid.Row="1" Grid.ColumnSpan="2" Background="Transparent" BorderThickness="0" TabStripPlacement="Left">
+  <TabControl x:Name="DashboardTabs" SelectionChanged="WindowsDashboardTabChanged" Grid.Row="1" Grid.ColumnSpan="2" Background="Transparent" BorderThickness="0" TabStripPlacement="Left">
    <TabControl.Template><ControlTemplate TargetType="TabControl"><Grid>
     <Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
     <DockPanel><Border DockPanel.Dock="Bottom" Margin="20,20,20,24" BorderBrush="#3E536F" BorderThickness="0,1,0,0" Padding="8,20,8,0"><StackPanel><TextBlock Text="{DynamicResource Loc.UnderYourControl}" Foreground="White" FontWeight="SemiBold" FontSize="13"/><TextBlock Text="{DynamicResource Loc.ActionsRequireApprovalTheDashboardDoesNotStopServices}" Foreground="{StaticResource RailTextBrush}" TextWrapping="Wrap" FontSize="12" LineHeight="19" Margin="0,8,0,0"/></StackPanel></Border><ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False"><StackPanel IsItemsHost="True" KeyboardNavigation.TabIndex="1" VerticalAlignment="Top"/></ScrollViewer></DockPanel>
@@ -152,7 +152,7 @@
      <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="{DynamicResource Loc.WindowsSettings}" Style="{StaticResource SectionTitle}"/><TextBlock Text="{DynamicResource Loc.ChooseWhatToManageConfirmYourFileAndApplicationSelectionsDirectlyInW}" Style="{StaticResource Caption}" Margin="0,0,0,16"/><WrapPanel><Button Content="{DynamicResource Loc.StorageAndCleanup}" Click="StorageClick"/><Button Content="{DynamicResource Loc.AppsAndUninstall}" Click="AppsClick"/><Button Content="{DynamicResource Loc.StartupApps}" Click="StartupClick"/><Button Content="{DynamicResource Loc.WinAdminTitle}" Click="WindowsAdministrationClick"/></WrapPanel></StackPanel></Border>
     </StackPanel></ScrollViewer>
    </TabItem>
-   <TabItem x:Name="WindowsAdministrationTab" AutomationProperties.Name="{DynamicResource Loc.WinAdminTitle}" Selected="WindowsAreaChanged">
+   <TabItem x:Name="WindowsAdministrationTab" AutomationProperties.Name="{DynamicResource Loc.WinAdminTitle}">
     <TabItem.Header><TextBlock Text="{DynamicResource Loc.WinAdminTitle}" Foreground="{StaticResource RailTextBrush}"/></TabItem.Header>
     <DockPanel Margin="0,0,0,16">
      <StackPanel DockPanel.Dock="Top" Margin="0,0,12,12">

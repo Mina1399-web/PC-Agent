@@ -362,7 +362,13 @@ public partial class MainWindow:Window
         WindowsAdministrationTab.Focus();
     }
 
-    private async void WindowsAreaChanged(object sender,RoutedEventArgs e)
+    private async void WindowsDashboardTabChanged(object sender,SelectionChangedEventArgs e)
+    {
+        if(ReferenceEquals(e.Source,DashboardTabs)&&WindowsAdministrationTab?.IsSelected==true)
+            await ReadWindowsInventory();
+    }
+
+    private async void WindowsAreaChanged(object sender,SelectionChangedEventArgs e)
     {
         if(WindowsAdministrationTab?.IsSelected==true)await ReadWindowsInventory();
     }
@@ -392,7 +398,7 @@ public partial class MainWindow:Window
         }
         catch(OperationCanceledException) when(_closing.IsCancellationRequested){}
         catch(Exception error) when(error is Win32Exception or IOException or InvalidOperationException or UnauthorizedAccessException
-            or System.Diagnostics.Eventing.Reader.EventLogException or System.Net.NetworkInformation.NetworkInformationException)
+            or System.Diagnostics.Eventing.Reader.EventLogException)
         {
             if(request==_windowsInventoryRequest&&!_closing.IsCancellationRequested)SetInventoryStatus("WinInventoryUnavailable");
         }
