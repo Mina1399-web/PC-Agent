@@ -40,7 +40,6 @@ internal static class RecommendationText
         string T(string source,params object?[] args)=>language.Text(source,args);
         return card with{Title=T("CheckSpaceOnDisk",disk.Drive),Evidence=T("FreeSpaceB",100d*disk.FreeBytes/disk.CapacityBytes,disk.FreeBytes),
             Benefit=T("FreeingUpSpaceMayHelpAppsAndUpdatesAnEstimateOfTheSpeedImprovementIs"),
-            Impact=T("StorageSettingsWillShowCandidatesReviewEverySelectionForDeletionPers"),
-            Rollback=T("SomeDeletionsAreIrreversibleBackUpPersonalFilesFirst")};
+            Impact=T("DiskMaintenanceImpact"),Rollback=T("DiskMaintenanceRestore")};
     }
 }

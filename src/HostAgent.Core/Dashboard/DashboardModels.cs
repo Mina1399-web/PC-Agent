@@ -16,6 +16,8 @@ public sealed record ViewInvestigation(DateTimeOffset AtUtc, IReadOnlyList<ViewE
 // Availability describes diagnostic metadata, never the health of the disk.
 public sealed record ViewDiskIoDiagnostic(string Stage, string Counter, uint Status, uint? DataStatus, bool? ValueFinite);
 public sealed record ViewDiskIoDiagnostics(DateTimeOffset? AtUtc, string Status, IReadOnlyList<ViewDiskIoDiagnostic> Records);
+public sealed record ViewNetworkProbe(string Kind, string Status);
+public sealed record ViewNetworkChecks(DateTimeOffset AtUtc, bool Enabled, IReadOnlyList<ViewNetworkProbe> Probes);
 public sealed record DashboardSnapshot(DateTimeOffset GeneratedAtUtc, string Mode, bool ReadOnly, bool Degraded,
     ViewMetric? Cpu, ViewMetric? Memory, ViewMetric? Uptime, IReadOnlyList<ViewDisk> Disks,
     IReadOnlyList<ViewProcess> Processes, IReadOnlyList<ViewService> Services, int? ConnectedAdapters,
@@ -24,6 +26,7 @@ public sealed record DashboardSnapshot(DateTimeOffset GeneratedAtUtc, string Mod
 {
     public bool KillSwitch {get;init;}
     public ViewDiskIoDiagnostics? DiskIoDiagnostics {get;init;}
+    public ViewNetworkChecks? NetworkChecks {get;init;}
 }
 public enum GuidedAction { None, StorageSettings, AppsSettings, StartupSettings, Investigate }
 public sealed record Recommendation(string Code, string Title, string Evidence, string Benefit, string Impact,

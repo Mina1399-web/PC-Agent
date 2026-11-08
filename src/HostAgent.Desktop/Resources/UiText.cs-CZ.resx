@@ -1436,4 +1436,32 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="WinDiagnosisUnavailable" xml:space="preserve"><value>Monitor nedodal aktuální podklady pro doporučení.</value></data>
   <data name="WinDiagnosisNone" xml:space="preserve"><value>Dostupné údaje teď nevedou k žádnému doporučení. To nevylučuje problém ve Windows.</value></data>
   <data name="WinDiagnosisCrashes" xml:space="preserve"><value>Prověřit pády Windows</value></data>
+  <data name="DiskMaintenancePreview" xml:space="preserve"><value>Náhled úklidu</value></data>
+  <data name="DiskMaintenanceBefore" xml:space="preserve"><value>Disk {0} · Volné místo před zásahem: {1}. Přesunuté soubory zůstávají v karanténě na tomto disku.</value></data>
+  <data name="DiskMaintenanceMeasured" xml:space="preserve"><value>Disk {0} · Před zásahem: {1} · Po zásahu: {2}. Volné místo mohou měnit i jiné činnosti.</value></data>
+  <data name="DiskMaintenanceImpact" xml:space="preserve"><value>Zkontrolujte vhodné dočasné soubory na disku uživatelského adresáře Temp. Karanténa je ponechá na stejném disku.</value></data>
+  <data name="DiskMaintenanceRestore" xml:space="preserve"><value>Soubory můžete obnovit z karantény nebo zvlášť potvrdit smazání konkrétního souboru.</value></data>
+  <data name="ServiceCrashFinding" xml:space="preserve"><value>Windows zaznamenal neočekávané ukončení služby {0}. Prověřte čerstvé důkazy a aktuální stav služby.</value></data>
+  <data name="ServiceStopFinding" xml:space="preserve"><value>Služba {0} se zastavila. Samotné zastavení neprokazuje pád.</value></data>
+  <data name="ServiceRecoveryReview" xml:space="preserve"><value>Prověřit spuštění postižené služby</value></data>
+  <data name="ServiceRecoveryRunning" xml:space="preserve"><value>Služba {0} běžela při všech kontrolách během 10 sekund.</value></data>
+  <data name="ServiceRecoveryUnverified" xml:space="preserve"><value>Spuštění služby se nepodařilo ověřit. Zkontrolujte její stav a výsledek schválení.</value></data>
+  <data name="NetworkEnableChecks" xml:space="preserve"><value>Zapnout kontroly sítě</value></data>
+  <data name="NetworkDisableChecks" xml:space="preserve"><value>Vypnout kontroly sítě</value></data>
+  <data name="NetworkChecksDisabled" xml:space="preserve"><value>Aktivní kontroly sítě jsou vypnuté. Seznam adaptérů ukazuje jejich místní stav.</value></data>
+  <data name="NetworkChecksConfirm" xml:space="preserve"><value>{0}. Po schválení správcem se restartují služby Host Agentu. Aktivní kontroly oslovují bránu, 1.1.1.1 a nastavený DNS server.</value></data>
+  <data name="NetworkSettingVerified" xml:space="preserve"><value>Monitor potvrdil požadované nastavení kontrol sítě.</value></data>
+  <data name="NetworkSettingUnverified" xml:space="preserve"><value>Změnu nastavení se nepodařilo ověřit. Obnovte přehled a zkontrolujte hlášený stav.</value></data>
+  <data name="WinActionUnverified" xml:space="preserve"><value>Výsledek zásahu se nepodařilo ověřit.</value></data>
+  <data name="NetworkProbeSummary" xml:space="preserve"><value>Brána: {0} · Vnější IP: {1} · DNS: {2}</value></data>
+  <data name="NetworkProbePassed" xml:space="preserve"><value>odpověď</value></data>
+  <data name="NetworkProbeFailed" xml:space="preserve"><value>selhání</value></data>
+  <data name="NetworkProbeTimeout" xml:space="preserve"><value>bez odpovědi v limitu</value></data>
+  <data name="NetworkProbeMissing" xml:space="preserve"><value>nedostupné</value></data>
+  <data name="NetworkFindingAdapter" xml:space="preserve"><value>Monitor nevidí aktivní adaptér. Zkontrolujte Wi-Fi nebo kabelové připojení.</value></data>
+  <data name="NetworkFindingGateway" xml:space="preserve"><value>Kontrola brány neprošla. Prověřte místní připojení a router. Odpovědi ICMP mohou být blokované.</value></data>
+  <data name="NetworkFindingDns" xml:space="preserve"><value>Brána i vnější IP odpovídají, ale překlad názvů selhal. Prověřte nastavený DNS server.</value></data>
+  <data name="NetworkFindingExternal" xml:space="preserve"><value>Brána odpovídá, ale kontrola vnější IP selhala. Prověřte připojení routeru k internetu a případné blokování ICMP.</value></data>
+  <data name="NetworkFindingHealthy" xml:space="preserve"><value>Všechny tři kontroly v době měření prošly.</value></data>
+  <data name="NetworkFindingUnknown" xml:space="preserve"><value>Dostupné výsledky neurčují místo závady. Zkontrolujte adaptér a zopakujte měření.</value></data>
 </root>

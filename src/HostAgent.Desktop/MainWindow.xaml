@@ -174,9 +174,17 @@
       <TextBlock x:Name="WindowsToolStatus" Style="{StaticResource Caption}" Margin="0,6,0,0" AutomationProperties.LiveSetting="Polite"/>
      </StackPanel>
      <Expander DockPanel.Dock="Bottom" Header="{DynamicResource Loc.WinDiagnosisTitle}" IsExpanded="True" Margin="0,8,0,0">
-      <ScrollViewer MaxHeight="115" VerticalScrollBarVisibility="Auto">
-       <TextBlock x:Name="WindowsDiagnosis" Style="{StaticResource Caption}" Text="{DynamicResource Loc.WinDiagnosisUnavailable}" Margin="4,6,8,2"/>
-      </ScrollViewer>
+      <StackPanel>
+       <ScrollViewer MaxHeight="110" VerticalScrollBarVisibility="Auto">
+        <TextBlock x:Name="WindowsDiagnosis" Style="{StaticResource Caption}" Text="{DynamicResource Loc.WinDiagnosisUnavailable}" Margin="4,6,8,2"/>
+       </ScrollViewer>
+       <WrapPanel Margin="0,5,0,0">
+        <Button x:Name="DiskCleanupAction" Content="{DynamicResource Loc.DiskMaintenancePreview}" Click="DiskCleanupClick" Visibility="Collapsed"/>
+        <Button x:Name="ServiceRecoveryAction" Content="{DynamicResource Loc.ServiceRecoveryReview}" Click="ServiceRecoveryClick" Visibility="Collapsed"/>
+        <Button x:Name="NetworkProbesAction" Click="NetworkProbesClick" Visibility="Collapsed"/>
+       </WrapPanel>
+       <TextBlock x:Name="WindowsActionStatus" Style="{StaticResource Caption}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
+      </StackPanel>
      </Expander>
      <DataGrid x:Name="WindowsInventoryGrid" EnableRowVirtualization="True" AutomationProperties.Name="{DynamicResource Loc.WinInventoryArea}">
       <DataGrid.Columns>

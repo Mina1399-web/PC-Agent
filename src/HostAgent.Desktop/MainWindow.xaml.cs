@@ -25,6 +25,10 @@ public partial class MainWindow:Window
     private readonly SemaphoreSlim _windowsInventoryGate=new(1,1);
     private int _windowsInventoryRequest;
     private WindowsInventory? _windowsInventory;
+    private string? _cleanupDrive;
+    private ViewIncident? _recoveryIncident;
+    private bool _guidedActionRunning;
+    private Func<string>? _windowsActionText;
     private Func<string>? _smartText;
     private readonly CancellationTokenSource _closing=new();
     private readonly SemaphoreSlim _reading=new(1,1);
@@ -92,6 +96,7 @@ public partial class MainWindow:Window
         if(_comparisonText is not null)ComparisonText.Text=_comparisonText();
         if(_smartText is not null)SmartResultText.Text=_smartText();
         RenderWindowsInventory();
+        if(_windowsActionText is not null)WindowsActionStatus.Text=_windowsActionText();
         RenderDetail();
         foreach(var grid in new[]{DisksGrid,ProcessGrid,HealthGrid,ServicesGrid,IncidentsGrid})grid.Items.Refresh();
     }
@@ -207,8 +212,10 @@ public partial class MainWindow:Window
             panel.Children.Add(new TextBlock{Text=textCard.Title,FontSize=20,FontWeight=FontWeights.SemiBold,Margin=new Thickness(0,0,0,12)});
             foreach(var text in new[]{T("Evidence")+textCard.Evidence,T("Benefit")+textCard.Benefit,T("Impact")+textCard.Impact,T("Recovery")+textCard.Rollback})
                 panel.Children.Add(new TextBlock{Text=text,Style=(Style)FindResource("Caption"),Margin=new Thickness(0,0,0,8)});
-            var button=new Button{Content=card.Action==GuidedAction.Investigate?T("ReviewSavedEvidence"):T("OpenRelevantSettings"),HorizontalAlignment=HorizontalAlignment.Left,Margin=new Thickness(0,10,0,0)};
-            button.Click+=async(_,_)=>{if(card.Action==GuidedAction.Investigate)await Investigate();else OpenSettings(card.Action);};
+            var disk=card.Code.StartsWith("disk_space:",StringComparison.Ordinal)?card.Code["disk_space:".Length..]:null;
+            var button=new Button{Content=disk is not null?T("DiskMaintenancePreview"):card.Action==GuidedAction.Investigate?T("ReviewSavedEvidence"):T("OpenRelevantSettings"),HorizontalAlignment=HorizontalAlignment.Left,Margin=new Thickness(0,10,0,0)};
+            if(disk is not null)button.IsEnabled=MaintenanceWindow.MatchesDefaultVolume(disk);
+            button.Click+=async(_,_)=>{if(disk is not null)await OpenDiskCleanup(disk);else if(card.Action==GuidedAction.Investigate)await Investigate();else OpenSettings(card.Action);};
             panel.Children.Add(button);RecommendationsPanel.Children.Add(new Border{Child=panel,Style=(Style)FindResource("Card"),Margin=new Thickness(0,0,0,16)});
         }
     }
@@ -423,16 +430,130 @@ public partial class MainWindow:Window
 
     private void RenderWindowsDiagnosis(DashboardSnapshot? view)
     {
+        var now=DateTimeOffset.UtcNow;
+        var recommendations=view is null?Array.Empty<Recommendation>():new RecommendationEngine().Evaluate(view,now);
+        _cleanupDrive=view?.Disks.FirstOrDefault(disk=>MaintenanceWindow.MatchesDefaultVolume(disk.Drive)
+            &&recommendations.Any(card=>card.Code=="disk_space:"+disk.Drive))?.Drive;
+        _recoveryIncident=view is null?null:view.Incidents.FirstOrDefault(incident=>DashboardCommands.CanReviewServiceRecovery(view,incident,now));
+        DiskCleanupAction.Visibility=_cleanupDrive is null?Visibility.Collapsed:Visibility.Visible;
+        ServiceRecoveryAction.Visibility=_recoveryIncident is null?Visibility.Collapsed:Visibility.Visible;
+        NetworkProbesAction.Visibility=view?.NetworkChecks is null?Visibility.Collapsed:Visibility.Visible;
+        NetworkProbesAction.Content=T(view?.NetworkChecks?.Enabled==true?"NetworkDisableChecks":"NetworkEnableChecks");
+        ServiceRecoveryAction.IsEnabled=NetworkProbesAction.IsEnabled=!_guidedActionRunning;
         if(view is null)
         {
             WindowsDiagnosis.Text=T("WinDiagnosisUnavailable");
             return;
         }
-        var recommendations=new RecommendationEngine().Evaluate(view,DateTimeOffset.UtcNow);
-        WindowsDiagnosis.Text=recommendations.Count==0?T("WinDiagnosisNone"):string.Join("\n\n",recommendations.Select(card=>
+        var findings=recommendations.Select(card=>
         {
             var localized=RecommendationText.Localize(card,view,Localization);
             return $"{localized.Title}\n{localized.Evidence}\n{localized.Benefit}";
-        }));
+        }).ToList();
+        var service=view.Incidents.FirstOrDefault(i=>i.Code is ("service_crash" or "service_stopped")
+            &&i.State is ("Detected" or "Active" or "Acknowledged")&&ViewFreshness.IsFresh(i.AtUtc,now));
+        if(service is not null) findings.Add(T(service.Code=="service_crash"?"ServiceCrashFinding":"ServiceStopFinding",service.AffectedService??"—"));
+        if(view.NetworkChecks is {} checks && ViewFreshness.IsFresh(checks.AtUtc,now))
+            findings.Add(DescribeNetwork(checks,view.ConnectedAdapters));
+        WindowsDiagnosis.Text=findings.Count==0?T("WinDiagnosisNone"):string.Join("\n\n",findings);
+    }
+
+    private string DescribeNetwork(ViewNetworkChecks checks,int? adapters)
+    {
+        if(!checks.Enabled)return T("NetworkChecksDisabled");
+        string Status(string kind)=>checks.Probes.FirstOrDefault(p=>p.Kind==kind)?.Status??"Unavailable";
+        string Display(string status)=>T(status switch
+        {
+            "Succeeded"=>"NetworkProbePassed",
+            "Failed"=>"NetworkProbeFailed",
+            "TimedOut"=>"NetworkProbeTimeout",
+            _=>"NetworkProbeMissing"
+        });
+        static bool Failed(string status)=>status is "Failed" or "TimedOut";
+        var gateway=Status("Gateway");
+        var external=Status("InternetIp");
+        var dns=Status("DnsResolution");
+        var finding=adapters==0?"NetworkFindingAdapter":Failed(gateway)?"NetworkFindingGateway":
+            gateway=="Succeeded"&&external=="Succeeded"&&Failed(dns)?"NetworkFindingDns":
+            gateway=="Succeeded"&&Failed(external)?"NetworkFindingExternal":
+            gateway=="Succeeded"&&external=="Succeeded"&&dns=="Succeeded"?"NetworkFindingHealthy":"NetworkFindingUnknown";
+        return T("NetworkProbeSummary",Display(gateway),Display(external),Display(dns))+"\n"+T(finding);
+    }
+
+    private async void DiskCleanupClick(object sender,RoutedEventArgs e)
+    {
+        if(_cleanupDrive is {} drive)await OpenDiskCleanup(drive);
+    }
+
+    private async Task OpenDiskCleanup(string drive)
+    {
+        if(!MaintenanceWindow.MatchesDefaultVolume(drive) || _controller.Snapshot is not {} view ||
+            !new RecommendationEngine().Evaluate(view,DateTimeOffset.UtcNow).Any(card=>card.Code=="disk_space:"+drive))return;
+        try
+        {
+            var window=new MaintenanceWindow(_controller,null,Localization,drive){Owner=this};
+            window.ShowDialog();
+            await Refresh();
+            if(WindowsAdministrationTab.IsSelected)await ReadWindowsInventory();
+        }
+        catch(UnauthorizedAccessException){SetWindowsActionStatus("SelectedFolderUnavailable");}
+    }
+
+    private async void ServiceRecoveryClick(object sender,RoutedEventArgs e)
+    {
+        if(_guidedActionRunning||_controller.Snapshot is not {} view||_recoveryIncident is not {} incident)return;
+        await RunGuidedAction(async ()=>
+        {
+            using var child=DashboardCommands.ReviewServiceRecovery(view,incident)??throw new InvalidOperationException();
+            await child.WaitForExitAsync(_closing.Token);
+            if(child.ExitCode!=0){SetWindowsActionStatus("ServiceRecoveryUnverified");return;}
+            using var service=new System.ServiceProcess.ServiceController(incident.AffectedService!);
+            for(var second=0;second<=10;second++)
+            {
+                service.Refresh();
+                if(service.Status!=System.ServiceProcess.ServiceControllerStatus.Running)
+                {
+                    SetWindowsActionStatus("ServiceRecoveryUnverified");
+                    return;
+                }
+                if(second<10)await Task.Delay(TimeSpan.FromSeconds(1),_closing.Token);
+            }
+            SetWindowsActionStatus("ServiceRecoveryRunning",incident.AffectedService);
+        });
+    }
+
+    private async void NetworkProbesClick(object sender,RoutedEventArgs e)
+    {
+        if(_guidedActionRunning||_controller.Snapshot?.NetworkChecks is not {} checks||
+            !ViewFreshness.IsFresh(checks.AtUtc,DateTimeOffset.UtcNow))return;
+        var enable=!checks.Enabled;
+        if(Messages.Show(this,T("NetworkChecksConfirm",T(enable?"NetworkEnableChecks":"NetworkDisableChecks")),
+            T("WinGroupNetwork"),MessageBoxButton.OKCancel)!=MessageBoxResult.OK)return;
+        await RunGuidedAction(async ()=>
+        {
+            using var child=DashboardCommands.ConfigureNetworkProbes(enable)??throw new InvalidOperationException();
+            await child.WaitForExitAsync(_closing.Token);
+            if(child.ExitCode!=0){SetWindowsActionStatus("NetworkSettingUnverified");return;}
+            await Refresh();
+            SetWindowsActionStatus(_controller.Snapshot?.NetworkChecks?.Enabled==enable
+                ?"NetworkSettingVerified":"NetworkSettingUnverified");
+        });
+    }
+
+    private async Task RunGuidedAction(Func<Task> action)
+    {
+        _guidedActionRunning=true;
+        RenderWindowsDiagnosis(_renderedView);
+        try{await action();}
+        catch(OperationCanceledException) when(_closing.IsCancellationRequested){}
+        catch(Exception error) when(error is Win32Exception or IOException or InvalidOperationException or UnauthorizedAccessException)
+        {SetWindowsActionStatus("WinActionUnverified");}
+        finally{_guidedActionRunning=false;RenderWindowsDiagnosis(_renderedView);}
+    }
+
+    private void SetWindowsActionStatus(string key,params object?[] args)
+    {
+        _windowsActionText=()=>T(key,args);
+        WindowsActionStatus.Text=_windowsActionText();
     }
 }

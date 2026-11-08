@@ -1436,4 +1436,32 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="WinDiagnosisUnavailable" xml:space="preserve"><value>Der Monitor hat keine aktuellen Daten für Empfehlungen geliefert.</value></data>
   <data name="WinDiagnosisNone" xml:space="preserve"><value>Die aktuellen Daten lösen keine Empfehlung aus. Das schließt Probleme in Windows nicht aus.</value></data>
   <data name="WinDiagnosisCrashes" xml:space="preserve"><value>Windows-Abstürze untersuchen</value></data>
+  <data name="DiskMaintenancePreview" xml:space="preserve"><value>Bereinigungsvorschau</value></data>
+  <data name="DiskMaintenanceBefore" xml:space="preserve"><value>Laufwerk {0} · Frei vor dem Eingriff: {1}. Dateien in Quarantäne bleiben auf diesem Laufwerk.</value></data>
+  <data name="DiskMaintenanceMeasured" xml:space="preserve"><value>Laufwerk {0} · Vorher: {1} · Nachher: {2}. Andere Aktivitäten können den freien Speicher ebenfalls ändern.</value></data>
+  <data name="DiskMaintenanceImpact" xml:space="preserve"><value>Prüfen Sie geeignete temporäre Dateien auf dem Laufwerk des Benutzertempordners. Die Quarantäne behält sie dort.</value></data>
+  <data name="DiskMaintenanceRestore" xml:space="preserve"><value>Stellen Sie Dateien aus der Quarantäne wieder her oder bestätigen Sie das Löschen einer einzelnen Datei separat.</value></data>
+  <data name="ServiceCrashFinding" xml:space="preserve"><value>Windows hat einen unerwarteten Abbruch des Dienstes {0} erfasst. Prüfen Sie aktuelle Belege und den Dienststatus.</value></data>
+  <data name="ServiceStopFinding" xml:space="preserve"><value>Der Dienst {0} wurde beendet. Diese Beobachtung allein belegt keinen Absturz.</value></data>
+  <data name="ServiceRecoveryReview" xml:space="preserve"><value>Start des betroffenen Dienstes prüfen</value></data>
+  <data name="ServiceRecoveryRunning" xml:space="preserve"><value>Dienst {0} lief bei allen Prüfungen über 10 Sekunden.</value></data>
+  <data name="ServiceRecoveryUnverified" xml:space="preserve"><value>Der Dienststart wurde nicht bestätigt. Prüfen Sie Status und Genehmigungsergebnis.</value></data>
+  <data name="NetworkEnableChecks" xml:space="preserve"><value>Netzwerkprüfungen aktivieren</value></data>
+  <data name="NetworkDisableChecks" xml:space="preserve"><value>Netzwerkprüfungen deaktivieren</value></data>
+  <data name="NetworkChecksDisabled" xml:space="preserve"><value>Aktive Netzwerkprüfungen sind deaktiviert. Die Adapterliste zeigt den lokalen Zustand.</value></data>
+  <data name="NetworkChecksConfirm" xml:space="preserve"><value>{0}. Nach Administratorbestätigung starten die Host-Agent-Dienste neu. Aktive Prüfungen kontaktieren Gateway, 1.1.1.1 und den eingestellten DNS-Resolver.</value></data>
+  <data name="NetworkSettingVerified" xml:space="preserve"><value>Der Monitor hat die gewünschte Einstellung für Netzwerkprüfungen gemeldet.</value></data>
+  <data name="NetworkSettingUnverified" xml:space="preserve"><value>Die neue Einstellung konnte nicht bestätigt werden. Aktualisieren Sie die Ansicht und prüfen Sie den gemeldeten Zustand.</value></data>
+  <data name="WinActionUnverified" xml:space="preserve"><value>Das Ergebnis des Vorgangs konnte nicht bestätigt werden.</value></data>
+  <data name="NetworkProbeSummary" xml:space="preserve"><value>Gateway: {0} · Externe IP: {1} · DNS: {2}</value></data>
+  <data name="NetworkProbePassed" xml:space="preserve"><value>antwortet</value></data>
+  <data name="NetworkProbeFailed" xml:space="preserve"><value>fehlgeschlagen</value></data>
+  <data name="NetworkProbeTimeout" xml:space="preserve"><value>Zeitüberschreitung</value></data>
+  <data name="NetworkProbeMissing" xml:space="preserve"><value>nicht verfügbar</value></data>
+  <data name="NetworkFindingAdapter" xml:space="preserve"><value>Kein aktiver Adapter gemeldet. Prüfen Sie WLAN oder die Ethernet-Verbindung.</value></data>
+  <data name="NetworkFindingGateway" xml:space="preserve"><value>Die Gateway-Prüfung schlug fehl. Prüfen Sie die lokale Verbindung und den Router. ICMP kann gefiltert werden.</value></data>
+  <data name="NetworkFindingDns" xml:space="preserve"><value>Gateway und externe IP antworten, aber die Namensauflösung schlug fehl. Prüfen Sie den DNS-Resolver.</value></data>
+  <data name="NetworkFindingExternal" xml:space="preserve"><value>Das Gateway antwortet, aber die externe IP-Prüfung schlug fehl. Prüfen Sie den Internetzugang des Routers und mögliche ICMP-Filter.</value></data>
+  <data name="NetworkFindingHealthy" xml:space="preserve"><value>Alle drei Prüfungen waren zum Messzeitpunkt erfolgreich.</value></data>
+  <data name="NetworkFindingUnknown" xml:space="preserve"><value>Die verfügbaren Ergebnisse grenzen den Fehler nicht ein. Prüfen Sie den Adapter und wiederholen Sie die Messung.</value></data>
 </root>

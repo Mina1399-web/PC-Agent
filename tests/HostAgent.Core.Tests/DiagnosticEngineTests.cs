@@ -215,6 +215,18 @@ public sealed class DiagnosticEngineTests
     }
 
     [Theory]
+    [InlineData(-1, 85)]
+    [InlineData(-10, 78)]
+    public async Task Service_crash_confidence_requires_a_recent_matching_stop(int eventAgeMinutes,int confidence)
+    {
+        var result=Assert.Single(await EvaluateAsync(CreateEvidence(
+            processServices:new ProcessServiceTelemetry([], [new("Spooler","Print Spooler",HostServiceStatus.Stopped)],
+                [new("Spooler",HostServiceStatus.Running,HostServiceStatus.Stopped,Now)]),
+            eventLog:new EventLogTelemetry(Now,[Crash(42,"Print Spooler") with {OccurredAtUtc=Now.AddMinutes(eventAgeMinutes)}],[]))));
+        Assert.Equal(confidence,ReadInt32(result,"Confidence"));
+    }
+
+    [Theory]
     [InlineData(null, 82)]
     [InlineData(-1441, 82)]
     [InlineData(1, 82)]

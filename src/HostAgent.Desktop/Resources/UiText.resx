@@ -1436,4 +1436,32 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="WinDiagnosisUnavailable" xml:space="preserve"><value>The monitor has not provided current evidence for recommendations.</value></data>
   <data name="WinDiagnosisNone" xml:space="preserve"><value>Current evidence does not trigger a recommendation. This does not prove that Windows has no problems.</value></data>
   <data name="WinDiagnosisCrashes" xml:space="preserve"><value>Investigate Windows crashes</value></data>
+  <data name="DiskMaintenancePreview" xml:space="preserve"><value>Preview cleanup</value></data>
+  <data name="DiskMaintenanceBefore" xml:space="preserve"><value>Drive {0} · Free before: {1}. Moving files into quarantine keeps them on this drive.</value></data>
+  <data name="DiskMaintenanceMeasured" xml:space="preserve"><value>Drive {0} · Before: {1} · After: {2}. Other activity can also change free space.</value></data>
+  <data name="DiskMaintenanceImpact" xml:space="preserve"><value>Review eligible temporary files on the user’s temporary drive. Quarantine keeps them on that drive.</value></data>
+  <data name="DiskMaintenanceRestore" xml:space="preserve"><value>Restore files from quarantine or approve deletion of a specific file separately.</value></data>
+  <data name="ServiceCrashFinding" xml:space="preserve"><value>Windows recorded an unexpected termination of service {0}. Review recent evidence and the service’s current state.</value></data>
+  <data name="ServiceStopFinding" xml:space="preserve"><value>Service {0} stopped. This observation alone does not establish a crash.</value></data>
+  <data name="ServiceRecoveryReview" xml:space="preserve"><value>Review starting the affected service</value></data>
+  <data name="ServiceRecoveryRunning" xml:space="preserve"><value>Service {0} was running at every check during 10 seconds.</value></data>
+  <data name="ServiceRecoveryUnverified" xml:space="preserve"><value>Starting the service was not verified. Review its status and the approval result.</value></data>
+  <data name="NetworkEnableChecks" xml:space="preserve"><value>Enable network checks</value></data>
+  <data name="NetworkDisableChecks" xml:space="preserve"><value>Disable network checks</value></data>
+  <data name="NetworkChecksDisabled" xml:space="preserve"><value>Active network checks are disabled. The adapter list shows local state.</value></data>
+  <data name="NetworkChecksConfirm" xml:space="preserve"><value>{0}. This restarts Host Agent services after administrator approval. Active checks contact the gateway, 1.1.1.1 and the configured DNS resolver.</value></data>
+  <data name="NetworkSettingVerified" xml:space="preserve"><value>The monitor reported the requested network check setting.</value></data>
+  <data name="NetworkSettingUnverified" xml:space="preserve"><value>The new setting could not be verified. Refresh and check the reported state.</value></data>
+  <data name="WinActionUnverified" xml:space="preserve"><value>The operation was not verified.</value></data>
+  <data name="NetworkProbeSummary" xml:space="preserve"><value>Gateway: {0} · External IP: {1} · DNS: {2}</value></data>
+  <data name="NetworkProbePassed" xml:space="preserve"><value>responded</value></data>
+  <data name="NetworkProbeFailed" xml:space="preserve"><value>failed</value></data>
+  <data name="NetworkProbeTimeout" xml:space="preserve"><value>timed out</value></data>
+  <data name="NetworkProbeMissing" xml:space="preserve"><value>unavailable</value></data>
+  <data name="NetworkFindingAdapter" xml:space="preserve"><value>No active adapter was reported. Check Wi-Fi or the Ethernet connection.</value></data>
+  <data name="NetworkFindingGateway" xml:space="preserve"><value>The gateway did not pass the check. Check the local connection and router. ICMP can be filtered.</value></data>
+  <data name="NetworkFindingDns" xml:space="preserve"><value>The gateway and external IP respond, but name resolution failed. Check the configured DNS resolver.</value></data>
+  <data name="NetworkFindingExternal" xml:space="preserve"><value>The gateway responds, but the external IP check failed. Check the router’s internet connection and possible ICMP filtering.</value></data>
+  <data name="NetworkFindingHealthy" xml:space="preserve"><value>All three checks passed at the time of measurement.</value></data>
+  <data name="NetworkFindingUnknown" xml:space="preserve"><value>The available results do not locate a fault. Check the adapter and repeat the measurement.</value></data>
 </root>
