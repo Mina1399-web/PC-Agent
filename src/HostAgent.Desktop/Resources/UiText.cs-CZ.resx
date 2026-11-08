@@ -1443,7 +1443,7 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="DiskMaintenanceRestore" xml:space="preserve"><value>Soubory můžete obnovit z karantény nebo zvlášť potvrdit smazání konkrétního souboru.</value></data>
   <data name="ServiceCrashFinding" xml:space="preserve"><value>Windows zaznamenal neočekávané ukončení služby {0}. Prověřte čerstvé důkazy a aktuální stav služby.</value></data>
   <data name="ServiceStopFinding" xml:space="preserve"><value>Služba {0} se zastavila. Samotné zastavení neprokazuje pád.</value></data>
-  <data name="ServiceRecoveryReview" xml:space="preserve"><value>Prověřit spuštění postižené služby</value></data>
+  <data name="ServiceRecoveryReview" xml:space="preserve"><value>Prověřit spuštění služby {0}</value></data>
   <data name="ServiceRecoveryRunning" xml:space="preserve"><value>Služba {0} běžela při všech kontrolách během 10 sekund.</value></data>
   <data name="ServiceRecoveryUnverified" xml:space="preserve"><value>Spuštění služby se nepodařilo ověřit. Zkontrolujte její stav a výsledek schválení.</value></data>
   <data name="NetworkEnableChecks" xml:space="preserve"><value>Zapnout kontroly sítě</value></data>

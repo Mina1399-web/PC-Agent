@@ -1443,7 +1443,7 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="DiskMaintenanceRestore" xml:space="preserve"><value>Stellen Sie Dateien aus der Quarantäne wieder her oder bestätigen Sie das Löschen einer einzelnen Datei separat.</value></data>
   <data name="ServiceCrashFinding" xml:space="preserve"><value>Windows hat einen unerwarteten Abbruch des Dienstes {0} erfasst. Prüfen Sie aktuelle Belege und den Dienststatus.</value></data>
   <data name="ServiceStopFinding" xml:space="preserve"><value>Der Dienst {0} wurde beendet. Diese Beobachtung allein belegt keinen Absturz.</value></data>
-  <data name="ServiceRecoveryReview" xml:space="preserve"><value>Start des betroffenen Dienstes prüfen</value></data>
+  <data name="ServiceRecoveryReview" xml:space="preserve"><value>Start von {0} prüfen</value></data>
   <data name="ServiceRecoveryRunning" xml:space="preserve"><value>Dienst {0} lief bei allen Prüfungen über 10 Sekunden.</value></data>
   <data name="ServiceRecoveryUnverified" xml:space="preserve"><value>Der Dienststart wurde nicht bestätigt. Prüfen Sie Status und Genehmigungsergebnis.</value></data>
   <data name="NetworkEnableChecks" xml:space="preserve"><value>Netzwerkprüfungen aktivieren</value></data>

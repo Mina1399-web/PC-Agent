@@ -404,7 +404,8 @@ public sealed class DiagnosticEngine : IDiagnosticEngine
 
             var eventAt = crash.OccurredAtUtc!.Value;
             var corroboration = name is null || !services.Services.Any(service =>
-                service.ServiceName.Equals(name, StringComparison.OrdinalIgnoreCase) && service.Status == HostServiceStatus.Stopped)
+                service.ServiceName.Equals(name, StringComparison.OrdinalIgnoreCase)
+                && service is { Status:HostServiceStatus.Stopped, StartMode:HostServiceStartMode.Automatic, HasTriggers:false })
                 ? null
                 : failedChanges.FirstOrDefault(change =>
                     change.ServiceName.Equals(name, StringComparison.OrdinalIgnoreCase)

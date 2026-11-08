@@ -1443,7 +1443,7 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="DiskMaintenanceRestore" xml:space="preserve"><value>Restore files from quarantine or approve deletion of a specific file separately.</value></data>
   <data name="ServiceCrashFinding" xml:space="preserve"><value>Windows recorded an unexpected termination of service {0}. Review recent evidence and the service’s current state.</value></data>
   <data name="ServiceStopFinding" xml:space="preserve"><value>Service {0} stopped. This observation alone does not establish a crash.</value></data>
-  <data name="ServiceRecoveryReview" xml:space="preserve"><value>Review starting the affected service</value></data>
+  <data name="ServiceRecoveryReview" xml:space="preserve"><value>Review starting {0}</value></data>
   <data name="ServiceRecoveryRunning" xml:space="preserve"><value>Service {0} was running at every check during 10 seconds.</value></data>
   <data name="ServiceRecoveryUnverified" xml:space="preserve"><value>Starting the service was not verified. Review its status and the approval result.</value></data>
   <data name="NetworkEnableChecks" xml:space="preserve"><value>Enable network checks</value></data>

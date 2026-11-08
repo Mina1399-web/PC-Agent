@@ -437,6 +437,7 @@ public partial class MainWindow:Window
         _recoveryIncident=view is null?null:view.Incidents.FirstOrDefault(incident=>DashboardCommands.CanReviewServiceRecovery(view,incident,now));
         DiskCleanupAction.Visibility=_cleanupDrive is null?Visibility.Collapsed:Visibility.Visible;
         ServiceRecoveryAction.Visibility=_recoveryIncident is null?Visibility.Collapsed:Visibility.Visible;
+        if(_recoveryIncident is not null)ServiceRecoveryAction.Content=T("ServiceRecoveryReview",_recoveryIncident.AffectedService);
         NetworkProbesAction.Visibility=view?.NetworkChecks is null?Visibility.Collapsed:Visibility.Visible;
         NetworkProbesAction.Content=T(view?.NetworkChecks?.Enabled==true?"NetworkDisableChecks":"NetworkEnableChecks");
         ServiceRecoveryAction.IsEnabled=NetworkProbesAction.IsEnabled=!_guidedActionRunning;
@@ -450,7 +451,7 @@ public partial class MainWindow:Window
             var localized=RecommendationText.Localize(card,view,Localization);
             return $"{localized.Title}\n{localized.Evidence}\n{localized.Benefit}";
         }).ToList();
-        var service=view.Incidents.FirstOrDefault(i=>i.Code is ("service_crash" or "service_stopped")
+        var service=_recoveryIncident??view.Incidents.FirstOrDefault(i=>i.Code is ("service_crash" or "service_stopped")
             &&i.State is ("Detected" or "Active" or "Acknowledged")&&ViewFreshness.IsFresh(i.AtUtc,now));
         if(service is not null) findings.Add(T(service.Code=="service_crash"?"ServiceCrashFinding":"ServiceStopFinding",service.AffectedService??"—"));
         if(view.NetworkChecks is {} checks && ViewFreshness.IsFresh(checks.AtUtc,now))
