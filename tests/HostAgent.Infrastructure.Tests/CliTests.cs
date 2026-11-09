@@ -80,11 +80,15 @@ public sealed class CliTests
         Assert.Equal(0,calls);Assert.Equal(0,secrets);Assert.DoesNotContain("do-not-accept-secret-argument",output.ToString());
     }
     [Fact]
+    public void Administrator_required_message_points_to_the_safe_dashboard_and_elevated_cli()
+    {
+        Assert.StartsWith("administrator_required:", CliAccessMessages.AdministratorRequired, StringComparison.Ordinal);
+        Assert.Contains("open Host Agent from Start", CliAccessMessages.AdministratorRequired, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Run as administrator", CliAccessMessages.AdministratorRequired, StringComparison.OrdinalIgnoreCase);
+    }
+    [UnelevatedWindowsFact]
     public async Task Non_admin_status_explains_the_safe_dashboard_and_elevated_cli_paths()
     {
-        using var identity=WindowsIdentity.GetCurrent();
-        if(new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator))
-            throw Xunit.Sdk.SkipException.ForSkip("The CLI privilege UX integration check runs under an unelevated account in the approved DEV VM.");
         var assembly=typeof(CliApplication).Assembly.Location;
         var dotnet=Path.GetFullPath(Path.Combine(System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory(),"..","..","..","dotnet.exe"));
         var start=new System.Diagnostics.ProcessStartInfo(File.Exists(dotnet)?dotnet:"dotnet")
@@ -168,5 +172,16 @@ public sealed class CliTests
         public CliApplication App(Func<byte[],CancellationToken,ValueTask<byte[]>> send,Func<string,CancellationToken,ValueTask<string?>> confirm,
             Func<HelperOperationRequest,CancellationToken,ValueTask<OperationApproval>> approve)=>new(send,_=>ValueTask.FromResult<string?>(null),confirm,approve,Output,Directory,WindowsIdentity.GetCurrent().User!);
         public ValueTask DisposeAsync(){System.IO.Directory.Delete(Directory,true);return ValueTask.CompletedTask;}
+    }
+}
+
+[AttributeUsage(AttributeTargets.Method)]
+public sealed class UnelevatedWindowsFactAttribute : FactAttribute
+{
+    public UnelevatedWindowsFactAttribute()
+    {
+        using var identity = WindowsIdentity.GetCurrent();
+        if (new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator))
+            Skip = "The CLI privilege UX integration check requires an unelevated account (covered in the approved DEV VM).";
     }
 }
