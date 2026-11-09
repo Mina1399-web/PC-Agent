@@ -80,6 +80,29 @@ public sealed class CliTests
         Assert.Equal(0,calls);Assert.Equal(0,secrets);Assert.DoesNotContain("do-not-accept-secret-argument",output.ToString());
     }
     [Fact]
+    public async Task Non_admin_status_explains_the_safe_dashboard_and_elevated_cli_paths()
+    {
+        using var identity=WindowsIdentity.GetCurrent();
+        if(new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator))
+            throw Xunit.Sdk.SkipException.ForSkip("The CLI privilege UX integration check runs under an unelevated account in the approved DEV VM.");
+        var assembly=typeof(CliApplication).Assembly.Location;
+        var dotnet=Path.GetFullPath(Path.Combine(System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory(),"..","..","..","dotnet.exe"));
+        var start=new System.Diagnostics.ProcessStartInfo(File.Exists(dotnet)?dotnet:"dotnet")
+        {
+            UseShellExecute=false,RedirectStandardOutput=true,RedirectStandardError=true,CreateNoWindow=true
+        };
+        start.ArgumentList.Add(assembly);start.ArgumentList.Add("status");
+        using var process=System.Diagnostics.Process.Start(start)??throw new InvalidOperationException("cli_process_start_failed");
+        await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10));
+        var error=await process.StandardError.ReadToEndAsync();
+        var output=await process.StandardOutput.ReadToEndAsync();
+        Assert.Equal(1,process.ExitCode);
+        Assert.True(error.StartsWith("administrator_required:",StringComparison.Ordinal),error);
+        Assert.Contains("open Host Agent from Start",error,StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Run as administrator",error,StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("status",output,StringComparison.OrdinalIgnoreCase);
+    }
+    [Fact]
     public async Task Masked_secret_input_is_sent_once_and_never_echoed()
     {
         var calls=0;var output=new StringWriter();

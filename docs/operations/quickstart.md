@@ -12,7 +12,13 @@ production release.
 
 Use a production release whose HostAgent.msi signature is valid, whose publisher thumbprint matches the independently trusted publisher, and whose binaries are accepted by the target's existing Code Integrity policy. A DEV package is unsigned and its MSI is restricted to the approved VM; it is not a production release. Never weaken a policy or import an untrusted certificate to make installation work.
 
-Open HostAgent.msi and approve the normal Windows administrator prompt. The MSI registers HostAgent as NT SERVICE/HostAgent and HostAgent.Helper as LocalSystem, creates Event Log sources, configures bounded crash recovery and starts both services. The SYSTEM bootstrap creates protected ProgramData/HostAgent, HostAgent.Helper and HostAgent.Operator directories and safe configuration only when missing. An unsafe existing data ACL causes installation to fail; it is never silently repaired. Unmanaged existing services with either product name block a new installation.
+The installer requires an explicit acknowledgement property. Opening the MSI by double-click does not supply it. After verifying the package and reading the disclosures, open PowerShell as administrator and run:
+
+```powershell
+msiexec.exe /i "C:\path\to\HostAgent.msi" HOSTAGENT_INSTALL_ACK=YES /norestart
+```
+
+Replace the path with the verified MSI location. This property acknowledges the listed service, Program Files, protected ProgramData and outbound-default changes; it does not enable outbound features or change the operating mode. The MSI registers HostAgent as NT SERVICE/HostAgent and HostAgent.Helper as LocalSystem, creates Event Log sources, configures bounded crash recovery and starts both services. The SYSTEM bootstrap creates protected ProgramData/HostAgent, HostAgent.Helper and HostAgent.Operator directories and safe configuration only when missing. An unsafe existing data ACL causes installation to fail; it is never silently repaired. Unmanaged existing services with either product name block a new installation.
 
 Initial mode is Shadow/read-only; outbound adapters are disabled, helper registrations and approver lists are empty. Existing configuration/data survive repair and uninstall. A failed MSI installation rolls back its Windows Installer changes; protected data created by bootstrap are preserved for diagnosis.
 
@@ -28,6 +34,13 @@ $agent = "$env:ProgramFiles\HostAgent\Cli\HostAgent.Cli.exe"
 & $agent incidents
 & $agent incident <incident-id>
 ```
+
+The CLI opens with administrator rights and returns the stable code
+`administrator_required` with these next steps if it is launched unelevated.
+For routine, read-only status and recommendations, use the Host Agent desktop
+dashboard from Start; do not elevate the dashboard. Administrative CLI work
+requires deliberately opening PowerShell or Windows Terminal with **Run as
+administrator**. A refused command performs no action.
 
 Use `incidents` to get an ID, then `incident <incident-id>` to inspect its durable diagnosis, confidence scope, evidence and recommended next step before proposing an operation. Bugcheck details can identify the stop code and dump, but will explicitly leave the driver unattributed until dump analysis confirms it; driver changes are never automatic. The detail command is read-only and does not return complete telemetry snapshots.
 

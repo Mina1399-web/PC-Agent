@@ -22,7 +22,7 @@ if(args is ["--installer-bootstrap"])
     catch{Console.Error.WriteLine("installer_bootstrap_failed");return 1;}
 }
 if(!new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator))
-{Console.Error.WriteLine("administrator_required");return 1;}
+{Console.Error.WriteLine(CliAccessMessages.AdministratorRequired);return 1;}
 try
 {
     var sid=(SecurityIdentifier)new NTAccount("NT SERVICE","HostAgent").Translate(typeof(SecurityIdentifier));
