@@ -34,12 +34,16 @@ public partial class MainWindow:Window
     private readonly SemaphoreSlim _reading=new(1,1);
     private readonly DispatcherTimer _timer=new(){Interval=TimeSpan.FromSeconds(15)};
     private readonly System.Windows.Forms.NotifyIcon _tray=new(){Text="Host Agent",Icon=System.Drawing.SystemIcons.Information};
+    private readonly Func<bool>? _confirmDeveloperMode;
     private ViewMetric[] _cpuHistory=[],_memoryHistory=[];
     private ViewIncidentDetail? _selectedDetail;
     private int _detailRequestVersion;
     private readonly OperationObservation _observation=new();
     public DesktopLocalization Localization { get; }
     private bool _hasRefreshed, _refreshFailed, _detailLoading;
+    private DesktopMode _desktopMode=DesktopMode.Standard;
+    private bool _modePreferenceUnavailable, _childWorkflowPending, _maintenanceWindowOpen;
+    private int _lastStandardTab;
     private Func<string>? _comparisonText;
     private DashboardSnapshot? _renderedView;
     private string _renderedState="disconnected";
@@ -50,13 +54,20 @@ public partial class MainWindow:Window
     public MainWindow(DashboardController controller, DesktopLocalization localization) : this(controller, localization, null) { }
     public MainWindow(DashboardController controller, DesktopLocalization localization, IDiskHealthReader? diskHealthReader)
         : this(controller, localization, diskHealthReader, WindowsAdministration.Read) { }
-    internal MainWindow(DashboardController controller, DesktopLocalization localization, IDiskHealthReader? diskHealthReader, Func<WindowsArea, WindowsInventory> readWindowsInventory)
+    internal MainWindow(DashboardController controller, DesktopLocalization localization, IDiskHealthReader? diskHealthReader,
+        Func<WindowsArea, WindowsInventory> readWindowsInventory, Func<bool>? confirmDeveloperMode=null)
     {
         Localization=localization;
+        _confirmDeveloperMode=confirmDeveloperMode;
+        try{_desktopMode=Localization.ReadDesktopMode();}
+        catch(Exception error) when(error is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or InvalidOperationException or ArgumentException)
+        {_desktopMode=DesktopMode.Standard;_modePreferenceUnavailable=true;}
         _diskHealthReader = diskHealthReader ?? new WindowsDiskHealthReader();
         _readWindowsInventory=readWindowsInventory;
         InitializeComponent();_controller=controller;
         Localization.Apply(this);
+        InitializeDesign();
+        ApplyDesktopMode();
         LanguageChoice.ItemsSource=DesktopLocalization.Languages;
         LanguageChoice.SelectedValue=Localization.LanguageCode;
         LanguageChoice.SelectionChanged+=LanguageSelected;
@@ -90,6 +101,9 @@ public partial class MainWindow:Window
     private void LanguageChanged(object? sender, EventArgs e)
     {
         Localization.Apply(this);
+        UpdateDesktopModeControls();
+        UpdateThemeLabel();
+        LanguageChoice.SelectedValue=Localization.LanguageCode;
         _tray.ContextMenuStrip!.Items[0].Text=T("OpenDashboard");
         _tray.ContextMenuStrip.Items[1].Text=T("ExitDashboard");
         if(_hasRefreshed)RenderSnapshot(_renderedView,false);
@@ -100,9 +114,70 @@ public partial class MainWindow:Window
         RenderDetail();
         foreach(var grid in new[]{DisksGrid,ProcessGrid,HealthGrid,ServicesGrid,IncidentsGrid})grid.Items.Refresh();
     }
+
+    internal DesktopMode CurrentDesktopMode=>_desktopMode;
+    internal bool DeveloperFeaturesEnabled=>DesktopModePolicy.CanOpenDeveloperSurface(_desktopMode);
+
+    private void ApplyDesktopMode()
+    {
+        var developer=DeveloperFeaturesEnabled;
+        for(var index=0;index<DashboardTabs.Items.Count;index++)
+            if(DashboardTabs.Items[index] is TabItem tab&&DesktopModePolicy.IsDeveloperTab(index))
+                tab.Visibility=developer?Visibility.Visible:Visibility.Collapsed;
+        HeaderMaintenanceButton.Visibility=developer?Visibility.Visible:Visibility.Collapsed;
+        if(!developer&&DashboardTabs.SelectedIndex>=4)DashboardTabs.SelectedIndex=0;
+        if(developer)_lastStandardTab=0;
+        UpdateDesktopModeControls();
+    }
+
+    private void UpdateDesktopModeControls()
+    {
+        DesktopModeButton.Content=T(DeveloperFeaturesEnabled?"ReturnToStandardMode":"EnableDeveloperMode");
+        System.Windows.Automation.AutomationProperties.SetName(DesktopModeButton,(string)DesktopModeButton.Content);
+        DesktopModeButton.ToolTip=_modePreferenceUnavailable?T("ModePreferenceSaveFailed"):
+            DeveloperFeaturesEnabled?T("ReturnToStandardMode"):T("DeveloperModeConsent");
+        KillSwitchQuickButton.Content=T("BlockAllRepairs");
+        System.Windows.Automation.AutomationProperties.SetName(KillSwitchQuickButton,T("BlockAllRepairs"));
+    }
+
+    private void DesktopModeClick(object sender,RoutedEventArgs e)
+        =>RequestDesktopMode(DeveloperFeaturesEnabled?DesktopMode.Standard:DesktopMode.Developer);
+
+    internal bool RequestDesktopMode(DesktopMode mode)
+    {
+        if(mode==_desktopMode)return true;
+        if(!DesktopModePolicy.CanChangeMode(_childWorkflowPending,_guidedActionRunning,_maintenanceWindowOpen))
+        {Messages.Show(this,T("ModeChangeBlockedWhileActionRuns"));return false;}
+        if(mode==DesktopMode.Developer)
+        {
+            var accepted=_confirmDeveloperMode?.Invoke()??Messages.Show(this,T("DeveloperModeConsent"),T("EnableDeveloperMode"),
+                MessageBoxButton.OKCancel,MessageBoxImage.Information)==MessageBoxResult.OK;
+            if(!accepted)return false;
+        }
+        try{Localization.SaveDesktopMode(mode);}
+        catch(Exception error) when(error is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or InvalidOperationException or ArgumentException)
+        {Messages.Show(this,T("ModePreferenceSaveFailed"));return false;}
+        _desktopMode=mode;_modePreferenceUnavailable=false;
+        if(mode==DesktopMode.Standard)
+        {
+            _windowsInventoryRequest++;_windowsInventory=null;WindowsInventoryGrid.ItemsSource=null;
+            WindowsDiagnosis.Text="";WindowsActionStatus.Text="";
+            DashboardTabs.SelectedIndex=0;DashboardTabs.Focus();
+        }
+        ApplyDesktopMode();
+        return true;
+    }
+
+    private bool RequireDeveloperMode()
+    {
+        if(DeveloperFeaturesEnabled)return true;
+        Messages.Show(this,T("DeveloperModeRequired"));
+        return false;
+    }
     private async Task Refresh()
     {
         if(!await _reading.WaitAsync(0))return;
+        RefreshButton.IsEnabled=false;
         try
         {
             await _controller.RefreshAsync(_closing.Token);
@@ -119,10 +194,11 @@ public partial class MainWindow:Window
         }
         catch(OperationCanceledException) when(_closing.IsCancellationRequested){}
         catch {_hasRefreshed=true;_refreshFailed=true;_renderedView=null;_renderedState=_controller.State;RenderSnapshot(null,false);}
-        finally {_reading.Release();}
+        finally {RefreshButton.IsEnabled=true;_reading.Release();}
     }
     private void RenderSnapshot(DashboardSnapshot? view,bool replaceRows)
     {
+            RenderDesignMetrics(view);
             RenderWindowsDiagnosis(view);
             HealthSummaryText.Text=HealthSummary.Describe(view,Localization.Culture);
             if(view is null)
@@ -183,8 +259,14 @@ public partial class MainWindow:Window
 
     private void MaintenanceClick(object sender,RoutedEventArgs e)
     {
-        var window=new MaintenanceWindow(_controller,null,Localization){Owner=this};
-        window.ShowDialog();
+        if(!RequireDeveloperMode())return;
+        _maintenanceWindowOpen=true;
+        try
+        {
+            var window=new MaintenanceWindow(_controller,null,Localization,developerMode:()=>DeveloperFeaturesEnabled){Owner=this};
+            window.ShowDialog();
+        }
+        finally{_maintenanceWindowOpen=false;}
     }
     private string Percent(ViewMetric? metric)=>metric is {} point?point.Value.ToString("0.#",Localization.Culture)+" %":"—";
     private void SetEmptyStates(DashboardSnapshot? view)
@@ -279,6 +361,7 @@ public partial class MainWindow:Window
     }
     private async void OperationClick(object sender,RoutedEventArgs e)
     {
+        if(!RequireDeveloperMode())return;
         if(_controller.Snapshot is not {} view)return;
         try
         {
@@ -288,30 +371,39 @@ public partial class MainWindow:Window
             long? ticks=process&&long.TryParse(TicksInput.Text,NumberStyles.None,CultureInfo.InvariantCulture,out var t)?t:null;
             _=DashboardCommands.ProposalArguments(view,OperationIncident.Text,op,AliasInput.Text,pid,ticks);
             if(Messages.Show(this,T("OpenAdministratorVerificationForThisExactActionEndingAProcessOrStopp"),T("ManualAction"),MessageBoxButton.OKCancel,MessageBoxImage.Warning)!=MessageBoxResult.OK)return;
+            if(!RequireDeveloperMode())return;
             _observation.Begin(view);_comparisonText=null;ComparisonText.Text="";OperationButton.IsEnabled=false;
-            using var child=DashboardCommands.Propose(view,OperationIncident.Text,op,AliasInput.Text,pid,ticks);
-            if(child is null)throw new InvalidOperationException();
-            await child.WaitForExitAsync(_closing.Token);
-            _observation.Complete(DateTimeOffset.UtcNow,child.ExitCode==0);
-            var succeeded=child.ExitCode==0;
-            _comparisonText=()=>succeeded?T("CLIFinishedWaitForANewMeasurementAndUseTheComparisonImprovementHasNo"):T("TheCLIDidNotConfirmTheActionOrRejectedItASuccessfulRepairHasNotBeenE");
-            ComparisonText.Text=_comparisonText();
-            await Refresh();
+            _childWorkflowPending=true;
+            try
+            {
+                using var child=DashboardCommands.Propose(view,OperationIncident.Text,op,AliasInput.Text,pid,ticks);
+                if(child is null)throw new InvalidOperationException();
+                await child.WaitForExitAsync(_closing.Token);
+                _observation.Complete(DateTimeOffset.UtcNow,child.ExitCode==0);
+                var succeeded=child.ExitCode==0;
+                _comparisonText=()=>succeeded?T("CLIFinishedWaitForANewMeasurementAndUseTheComparisonImprovementHasNo"):T("TheCLIDidNotConfirmTheActionOrRejectedItASuccessfulRepairHasNotBeenE");
+                ComparisonText.Text=_comparisonText();
+                await Refresh();
+            }
+            finally{_childWorkflowPending=false;}
         }
         catch(OperationCanceledException) when(_closing.IsCancellationRequested){_observation.Complete(DateTimeOffset.UtcNow,false);}
         catch {_observation.Complete(DateTimeOffset.UtcNow,false);Messages.Show(this,T("CannotPrepareTheActionCheckTheModeInstalledCLIVersionRegisteredAlias"));}
     }
     private async void KillSwitchClick(object sender,RoutedEventArgs e)
     {
+        if(_childWorkflowPending)return;
         if(Messages.Show(this,T("BlockRepairsInBothTheMonitorAndHelperTheCLIWillRequestUACAndAPPLYCon"),T("EmergencySwitch"),MessageBoxButton.OKCancel,MessageBoxImage.Warning)!=MessageBoxResult.OK)return;
         try
         {
+            _childWorkflowPending=true;
             using var child=DashboardCommands.BlockRepairs();if(child is null)return;
             await child.WaitForExitAsync(_closing.Token);await Refresh();
             if(child.ExitCode!=0)Messages.Show(this,T("TheCLIDidNotConfirmTheChangeTheKillSwitchHasNotBeenVerifiedAsOn"));
         }
         catch(OperationCanceledException) when(_closing.IsCancellationRequested){}
         catch {Messages.Show(this,T("CouldNotVerifyTheKillSwitchDoNotPerformAnyFurtherActions"));}
+        finally{_childWorkflowPending=false;}
     }
     private async void CompareClick(object sender,RoutedEventArgs e)
     {
@@ -358,32 +450,42 @@ public partial class MainWindow:Window
     private async void RefreshClick(object sender,RoutedEventArgs e)=>await Refresh();
     private async void InvestigateClick(object sender,RoutedEventArgs e)=>await Investigate();
     private void OpenSettings(GuidedAction action)
-    {try {DashboardCommands.OpenSettings(action);}catch {Messages.Show(this,T("CouldNotOpenWindowsSettings"));}}
+    {if(!RequireDeveloperMode())return;try {DashboardCommands.OpenSettings(action);}catch {Messages.Show(this,T("CouldNotOpenWindowsSettings"));}}
     private void StorageClick(object sender,RoutedEventArgs e)=>OpenSettings(GuidedAction.StorageSettings);
     private void AppsClick(object sender,RoutedEventArgs e)=>OpenSettings(GuidedAction.AppsSettings);
     private void StartupClick(object sender,RoutedEventArgs e)=>OpenSettings(GuidedAction.StartupSettings);
 
     private void WindowsAdministrationClick(object sender,RoutedEventArgs e)
     {
+        if(!RequireDeveloperMode())return;
         WindowsAdministrationTab.IsSelected=true;
         WindowsAdministrationTab.Focus();
     }
 
     private async void WindowsDashboardTabChanged(object sender,SelectionChangedEventArgs e)
     {
+        if(ReferenceEquals(e.Source,DashboardTabs))
+        {
+            var selected=DashboardTabs.SelectedIndex;
+            if(!DeveloperFeaturesEnabled&&DesktopModePolicy.IsDeveloperTab(selected))
+            {DashboardTabs.SelectedIndex=_lastStandardTab;return;}
+            if(!DesktopModePolicy.IsDeveloperTab(selected))_lastStandardTab=selected;
+        }
         if(ReferenceEquals(e.Source,DashboardTabs)&&WindowsAdministrationTab?.IsSelected==true)
             await ReadWindowsInventory();
     }
 
     private async void WindowsAreaChanged(object sender,SelectionChangedEventArgs e)
     {
+        if(!DeveloperFeaturesEnabled)return;
         if(WindowsAdministrationTab?.IsSelected==true)await ReadWindowsInventory();
     }
 
-    private async void WindowsInventoryRefresh(object sender,RoutedEventArgs e)=>await ReadWindowsInventory();
+    private async void WindowsInventoryRefresh(object sender,RoutedEventArgs e){if(RequireDeveloperMode())await ReadWindowsInventory();}
 
     private async Task ReadWindowsInventory()
     {
+        if(!DeveloperFeaturesEnabled){_windowsInventory=null;WindowsInventoryGrid.ItemsSource=null;return;}
         if(WindowsInventoryArea.SelectedItem is not ComboBoxItem {Tag:string name} ||
             !Enum.TryParse<WindowsArea>(name,out var area))return;
         var request=++_windowsInventoryRequest;
@@ -395,9 +497,9 @@ public partial class MainWindow:Window
             await _windowsInventoryGate.WaitAsync(_closing.Token);
             try
             {
-                if(request!=_windowsInventoryRequest)return;
+                if(request!=_windowsInventoryRequest||!DeveloperFeaturesEnabled)return;
                 var result=await Task.Run(()=>_readWindowsInventory(area),_closing.Token);
-                if(request!=_windowsInventoryRequest||_closing.IsCancellationRequested)return;
+                if(request!=_windowsInventoryRequest||_closing.IsCancellationRequested||!DeveloperFeaturesEnabled)return;
                 _windowsInventory=result;
                 RenderWindowsInventory();
             }
@@ -416,6 +518,9 @@ public partial class MainWindow:Window
     private void RenderWindowsInventory()
     {
         if(_windowsInventory is not {} inventory)return;
+        var isProcesses=WindowsInventoryArea.SelectedItem is ComboBoxItem {Tag:"Processes"};
+        WindowsInventoryGrid.Columns[1].Header=T(isProcesses?"ProcessPID":"WinInventoryDetail");
+        WindowsInventoryGrid.Columns[3].Header=T(isProcesses?"Memory":"WinInventoryValue");
         var search=WindowsInventorySearch.Text.Trim();
         var rows=inventory.Rows.Select(row=>row with
         {
@@ -483,25 +588,31 @@ public partial class MainWindow:Window
 
     private async void DiskCleanupClick(object sender,RoutedEventArgs e)
     {
+        if(!RequireDeveloperMode())return;
         if(_cleanupDrive is {} drive)await OpenDiskCleanup(drive);
     }
 
     private async Task OpenDiskCleanup(string drive)
     {
+        if(!RequireDeveloperMode())return;
         if(!MaintenanceWindow.MatchesDefaultVolume(drive) || _controller.Snapshot is not {} view ||
             !new RecommendationEngine().Evaluate(view,DateTimeOffset.UtcNow).Any(card=>card.Code=="disk_space:"+drive))return;
         try
         {
-            var window=new MaintenanceWindow(_controller,null,Localization,drive){Owner=this};
+            _maintenanceWindowOpen=true;
+            var window=new MaintenanceWindow(_controller,null,Localization,drive,()=>DeveloperFeaturesEnabled){Owner=this};
             window.ShowDialog();
+            _maintenanceWindowOpen=false;
             await Refresh();
-            if(WindowsAdministrationTab.IsSelected)await ReadWindowsInventory();
+            if(WindowsAdministrationTab.IsSelected&&DeveloperFeaturesEnabled)await ReadWindowsInventory();
         }
         catch(UnauthorizedAccessException){SetWindowsActionStatus("SelectedFolderUnavailable");}
+        finally{_maintenanceWindowOpen=false;}
     }
 
     private async void ServiceRecoveryClick(object sender,RoutedEventArgs e)
     {
+        if(!RequireDeveloperMode())return;
         if(_guidedActionRunning||_controller.Snapshot is not {} view||_recoveryIncident is not {} incident)return;
         await RunGuidedAction(async ()=>
         {
@@ -525,6 +636,7 @@ public partial class MainWindow:Window
 
     private async void NetworkProbesClick(object sender,RoutedEventArgs e)
     {
+        if(!RequireDeveloperMode())return;
         if(_guidedActionRunning||_controller.Snapshot?.NetworkChecks is not {} checks||
             !ViewFreshness.IsFresh(checks.AtUtc,DateTimeOffset.UtcNow))return;
         var enable=!checks.Enabled;
@@ -543,6 +655,7 @@ public partial class MainWindow:Window
 
     private async Task RunGuidedAction(Func<Task> action)
     {
+        if(!RequireDeveloperMode())return;
         _guidedActionRunning=true;
         RenderWindowsDiagnosis(_renderedView);
         try{await action();}

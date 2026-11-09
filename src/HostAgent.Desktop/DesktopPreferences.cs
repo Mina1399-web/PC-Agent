@@ -8,7 +8,11 @@ public interface IDesktopPreferences
 {
     string? ReadLanguage();
     void SaveLanguage(string language);
+    DesktopMode ReadDesktopMode();
+    void SaveDesktopMode(DesktopMode mode);
 }
+
+public enum DesktopMode { Standard, Developer }
 
 /// <summary>User-scoped JSON settings. Never reads or writes service configuration.</summary>
 public sealed class DesktopPreferences(string path) : IDesktopPreferences
@@ -19,6 +23,23 @@ public sealed class DesktopPreferences(string path) : IDesktopPreferences
 
     public string? ReadLanguage() => ReadObject()?["uiLanguage"]?.GetValue<string>();
 
+    public DesktopMode ReadDesktopMode()
+    {
+        var value = ReadObject()?["desktopMode"]?.GetValue<string>();
+        return Enum.TryParse<DesktopMode>(value, ignoreCase: false, out var mode) && Enum.IsDefined(mode)
+            ? mode : DesktopMode.Standard;
+    }
+
+    public void SaveDesktopMode(DesktopMode mode)
+    {
+        if (!Enum.IsDefined(mode)) throw new ArgumentOutOfRangeException(nameof(mode));
+        var fullPath = Path.GetFullPath(path);
+        AssertPlainPath(fullPath);
+        var settings = ReadObject() ?? new JsonObject();
+        settings["desktopMode"] = mode.ToString();
+        WriteObject(fullPath, settings);
+    }
+
     public void SaveLanguage(string language)
     {
         if (language is not ("cs-CZ" or "en" or "de")) throw new ArgumentException("unsupported_ui_language", nameof(language));
@@ -26,6 +47,11 @@ public sealed class DesktopPreferences(string path) : IDesktopPreferences
         AssertPlainPath(fullPath);
         var settings = ReadObject() ?? new JsonObject();
         settings["uiLanguage"] = language;
+        WriteObject(fullPath, settings);
+    }
+
+    private static void WriteObject(string fullPath, JsonObject settings)
+    {
         Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
         AssertPlainPath(fullPath);
         var temporary = fullPath + "." + Guid.NewGuid().ToString("N") + ".tmp";

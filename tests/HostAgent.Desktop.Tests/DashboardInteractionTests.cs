@@ -12,6 +12,117 @@ namespace HostAgent.Desktop.Tests;
 public sealed class DashboardInteractionTests
 {
     [Fact]
+    public Task Triage_link_selects_the_ranked_record_instead_of_the_previous_row() => WithWindow((window, view) =>
+    {
+        var now=DateTimeOffset.UtcNow;
+        var lower=view.Incident with{Id="newer-warning",Code="disk_capacity",Severity="Warning",AtUtc=now.AddMinutes(-1)};
+        var highest=view.Incident with{Code="windows_bugcheck",Severity="High",AtUtc=now.AddHours(-1)};
+        view.Snapshot=view.Snapshot with{Incidents=[lower,highest]};
+        Refresh(window);
+        var grid=(DataGrid)window.FindName("IncidentsGrid");
+        grid.SelectedIndex=0;
+        ((Button)window.FindName("QuickIncidents")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.Equal(highest.Id,Assert.IsType<ViewIncident>(grid.SelectedItem).Id);
+        Assert.Contains("UTC",((TextBlock)window.FindName("TriageIncidentText")).Text);
+        Assert.Equal(1,((TabControl)window.FindName("DashboardTabs")).SelectedIndex);
+    });
+
+    [Fact]
+    public Task Information_severity_ranks_above_unknown_and_preserves_unknown_detail() => WithWindow((window, view) =>
+    {
+        var now=DateTimeOffset.UtcNow;
+        var unknown=view.Incident with{Id="unknown",Code="unknown_diagnostic",Severity="new-severity",AtUtc=now.AddMinutes(-1)};
+        var information=view.Incident with{Severity="Information",AtUtc=now.AddMinutes(-2)};
+        view.Snapshot=view.Snapshot with{Incidents=[unknown,information]};
+        Refresh(window);
+        ((Button)window.FindName("QuickIncidents")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        var grid=(DataGrid)window.FindName("IncidentsGrid");
+        Assert.Equal(information.Id,Assert.IsType<ViewIncident>(grid.SelectedItem).Id);
+        Assert.Contains("Informace",((TextBlock)window.FindName("TriageIncidentText")).Text);
+        Assert.Contains(grid.Items.Cast<ViewIncident>(),x=>x.Id==unknown.Id && x.Severity=="new-severity");
+    });
+
+    [Fact]
+    public Task Triage_surfaces_recorded_fault_and_current_disk_pressure_independently_of_collector_health() => WithWindow((window, view) =>
+    {
+        var now=DateTimeOffset.UtcNow;
+        view.Snapshot=view.Snapshot with
+        {
+            Health=[new("cpu-memory","collector_healthy",false)],
+            Incidents=[view.Incident with{Code="windows_bugcheck",AtUtc=now.AddHours(-1)}],
+            Disks=[new("C:",4,100,now)]
+        };
+        Refresh(window);
+        Assert.Contains("Pád Windows",((TextBlock)window.FindName("TriageIncidentText")).Text);
+        Assert.Contains("před 60 min",((TextBlock)window.FindName("TriageIncidentText")).Text);
+        Assert.Contains("neprokazuje",((TextBlock)window.FindName("TriageActionText")).Text);
+        Assert.Contains("4 %",((TextBlock)window.FindName("TriageDiskText")).Text);
+        Assert.Contains("0 z 1",((TextBlock)window.FindName("HealthSummaryText")).Text);
+        view.Snapshot=view.Snapshot with{GeneratedAtUtc=now.AddHours(-1)};
+        Refresh(window);
+        Assert.DoesNotContain("Pád Windows",((TextBlock)window.FindName("TriageIncidentText")).Text);
+        Assert.Equal(Visibility.Collapsed,((TextBlock)window.FindName("TriageDiskText")).Visibility);
+    });
+
+    [Fact]
+    public Task Process_identity_fields_are_only_presented_for_process_actions() => WithWindow((window, view) =>
+    {
+        var fields=(StackPanel)window.FindName("ProcessIdentityPanel");
+        var operation=(ComboBox)window.FindName("OperationChoice");
+        Assert.Equal(Visibility.Collapsed,fields.Visibility);
+        operation.SelectedIndex=3;
+        Assert.Equal(Visibility.Visible,fields.Visibility);
+        operation.SelectedIndex=0;
+        Assert.Equal(Visibility.Collapsed,fields.Visibility);
+    });
+
+    [Fact]
+    public Task Theme_switch_keeps_data_selection_and_approval_state() => WithWindow((window, view) =>
+    {
+        var process = (DataGrid)window.FindName("ProcessGrid");
+        process.SelectedIndex = 0;
+        var cpu = ((TextBlock)window.FindName("CpuText")).Text;
+        var operationEnabled = ((Button)window.FindName("OperationButton")).IsEnabled;
+        var theme = (Button)window.FindName("ThemeButton");
+        theme.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.Equal("Tmavý motiv", theme.Content);
+        Assert.Equal(cpu, ((TextBlock)window.FindName("CpuText")).Text);
+        Assert.Equal("42", ((TextBox)window.FindName("PidInput")).Text);
+        Assert.Equal(operationEnabled, ((Button)window.FindName("OperationButton")).IsEnabled);
+        window.Localization.SelectLanguage("de");
+        Assert.Equal("Dunkler Modus", theme.Content);
+        theme.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.Equal("Heller Modus", theme.Content);
+        Assert.Equal(cpu, ((TextBlock)window.FindName("CpuText")).Text);
+    });
+
+    [Fact]
+    public Task Quick_links_navigate_without_requesting_a_repair() => WithWindow((window, view) =>
+    {
+        ((Button)window.FindName("QuickIncidents")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.Equal(1, ((TabControl)window.FindName("DashboardTabs")).SelectedIndex);
+        PumpUntil(()=>((TextBox)window.FindName("OperationIncident")).Text==view.Incident.Id);
+        ((Button)window.FindName("QuickComponents")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.Equal(3, ((TabControl)window.FindName("DashboardTabs")).SelectedIndex);
+        Assert.Equal(view.Incident.Id, ((TextBox)window.FindName("OperationIncident")).Text);
+    });
+
+    [Fact]
+    public Task Metric_meters_clear_when_current_measurements_are_missing() => WithWindow((window, view) =>
+    {
+        view.Snapshot = view.Snapshot with { Cpu = new(DateTimeOffset.UtcNow, 37) };
+        Refresh(window);
+        var meter = (ProgressBar)window.FindName("CpuMeter");
+        Assert.Equal(37, meter.Value);
+        Assert.Equal(Visibility.Visible, meter.Visibility);
+        view.Snapshot = view.Snapshot with { Cpu = null };
+        Refresh(window);
+        Assert.Equal(0, meter.Value);
+        Assert.Equal(Visibility.Hidden, meter.Visibility);
+        Assert.Equal("—", ((TextBlock)window.FindName("CpuText")).Text);
+    });
+
+    [Fact]
     public Task Summary_reports_missing_measurements_and_clears_previous_health_on_disconnect() => WithWindow((window, view) =>
     {
         view.Snapshot = view.Snapshot with { Degraded = true, Cpu = null,
@@ -139,6 +250,44 @@ public sealed class DashboardInteractionTests
         Assert.DoesNotContain(view.Incident.Id, ((TextBox)window.FindName("DetailText")).Text);
         Assert.Equal("", ((TextBox)window.FindName("OperationIncident")).Text);
     });
+
+    [Fact]
+    public async Task New_profile_starts_standard_and_gates_developer_tabs_until_explicit_enable()
+    {
+        await StaTest.RunAsync(() =>
+        {
+            MainWindow? window=null;
+            try
+            {
+                var view=new FakeView();var inventoryReads=0;
+                window=new MainWindow(new DashboardController(view.Send),TestLocalization.CzechStandard(),null,
+                    _=>{inventoryReads++;return new WindowsInventory([]);},()=>true);
+                window.Show();PumpUntil(()=>((TextBlock)window.FindName("CpuText")).Text.Contains("42"));
+                Assert.Equal(DesktopMode.Standard,window.CurrentDesktopMode);
+                var tabs=(TabControl)window.FindName("DashboardTabs");
+                Assert.Equal(Visibility.Collapsed,((TabItem)tabs.Items[4]).Visibility);
+                Assert.Equal(Visibility.Collapsed,((TabItem)tabs.Items[5]).Visibility);
+                Assert.Equal(Visibility.Collapsed,((Button)window.FindName("HeaderMaintenanceButton")).Visibility);
+                tabs.SelectedIndex=5;Drain();
+                Assert.Equal(0,tabs.SelectedIndex);Assert.Equal(0,inventoryReads);
+
+                ((Button)window.FindName("DesktopModeButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                Assert.Equal(DesktopMode.Developer,window.CurrentDesktopMode);
+                Assert.Equal(DesktopMode.Developer,window.Localization.ReadDesktopMode());
+                Assert.Equal(Visibility.Visible,((TabItem)tabs.Items[4]).Visibility);
+                Assert.Equal(Visibility.Visible,((TabItem)tabs.Items[5]).Visibility);
+                tabs.SelectedIndex=5;Drain();
+                Assert.True(inventoryReads>0);
+                Assert.Equal("Shadow",view.Snapshot.Mode); // UI preference did not change service safety mode.
+
+                ((Button)window.FindName("DesktopModeButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                Assert.Equal(DesktopMode.Standard,window.CurrentDesktopMode);
+                Assert.Equal(0,tabs.SelectedIndex);
+                Assert.Equal("Shadow",view.Snapshot.Mode);
+            }
+            finally{window?.Close();}
+        });
+    }
 
     [Fact]
     public Task An_older_detail_reply_cannot_replace_a_newer_reply_for_the_same_incident() => WithWindow((window, view) =>

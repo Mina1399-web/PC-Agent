@@ -113,7 +113,7 @@
     <comment>Source (cs-CZ): V posledních uložených záznamech nejsou incidenty.</comment>
   </data>
   <data xml:space="preserve" name="ShowingTheLatestRecordsDiagnosticConfidenceDoesNotGuaranteeASuccessf">
-    <value>Die letzten {0} Einträge werden angezeigt. Die Sicherheit der Diagnose garantiert keine erfolgreiche Reparatur.</value>
+    <value>Die letzten {0} Einträge. Der Wert ist eine Regelausgabe, keine validierte Wahrscheinlichkeit oder Reparaturgarantie.</value>
     <comment>Source (cs-CZ): Zobrazeno {0} posledních záznamů. Jistota diagnózy neznamená záruku úspěšné opravy.</comment>
   </data>
   <data xml:space="preserve" name="TheCurrentEvidenceDoesNotCallForANewRecommendationMissingMeasurement">
@@ -153,18 +153,18 @@
     <comment>Source (cs-CZ): Detail není dostupný.</comment>
   </data>
   <data xml:space="preserve" name="ConfidenceRefersToTheStopCodeClassificationItDoesNotIdentifyAFaultyD">
-    <value>Die Konfidenz gibt die Klassifizierung des Stoppcodes an. Sie identifiziert keinen fehlerhaften Treiber.</value>
+    <value>Der Wert klassifiziert den Stoppcode; er identifiziert keinen fehlerhaften Treiber.</value>
     <comment>Source (cs-CZ): Confidence určuje klasifikaci stop kódu. Neurčuje vadný ovladač.</comment>
   </data>
   <data xml:space="preserve" name="ConfidenceIsAnEstimateOfTheLikelyCauseNotAGuaranteeOfTheCorrectRepai">
-    <value>Die Konfidenz ist eine Einschätzung der wahrscheinlichen Ursache und keine Garantie für die richtige Reparatur.</value>
+    <value>Der Wert ist eine diagnostische Regelausgabe, keine validierte Ursachenwahrscheinlichkeit oder Reparaturgarantie.</value>
     <comment>Source (cs-CZ): Confidence je odhad pravděpodobné příčiny, nikoli záruka správné opravy.</comment>
   </data>
   <data xml:space="preserve" name="IncidentCodeStatusConfidence">
     <value>Vorfall: {0}
 Code: {1}
 Status: {2}
-Konfidenz: {3} %
+Regelwert: {3} / 100
 </value>
     <comment>Source (cs-CZ): Incident: {0}
 Kód: {1}
@@ -643,7 +643,7 @@ Graf se zobrazí po získání uložených měření.</comment>
     <comment>Source (cs-CZ): Stav</comment>
   </data>
   <data xml:space="preserve" name="Confidence">
-    <value>Sicherheit %</value>
+    <value>Wert / 100</value>
     <comment>Source (cs-CZ): Jistota %</comment>
   </data>
   <data xml:space="preserve" name="Occurrences">
@@ -923,7 +923,7 @@ Graf se zobrazí po získání uložených měření.</comment>
     <comment>Source (cs-CZ): Prověřit příčinu pádu Windows</comment>
   </data>
   <data xml:space="preserve" name="CodeConfidenceRefersToTheStopCodeClassificationNotTheIdentificationO">
-    <value>Code {0}; die Konfidenz von {1} % klassifiziert den Stoppcode und identifiziert keinen fehlerhaften Treiber.</value>
+    <value>Code {0}; Regelwert {1} / 100 klassifiziert den Stoppcode, nicht einen fehlerhaften Treiber.</value>
     <comment>Source (cs-CZ): Kód {0}; confidence {1} % je klasifikace stop kódu, nikoli určení vadného ovladače.</comment>
   </data>
   <data xml:space="preserve" name="ComparingWEREventsWithTheDumpMayHelpNarrowDownTheCauseOfTheCrash">
@@ -951,7 +951,7 @@ Graf se zobrazí po získání uložených měření.</comment>
     <comment>Source (cs-CZ): Volné místo {0:0.#} % ({1} B).</comment>
   </data>
   <data xml:space="preserve" name="FreeingUpSpaceMayHelpAppsAndUpdatesAnEstimateOfTheSpeedImprovementIs">
-    <value>Das Freigeben von Speicherplatz kann Anwendungen und Updates helfen. Eine Beschleunigung lässt sich nicht abschätzen.</value>
+    <value>Quarantäne ist rückgängig machbare Ablage auf demselben Laufwerk; sie schafft keinen Platz. Erst separat bestätigtes endgültiges Löschen kann Platz freigeben.</value>
     <comment>Source (cs-CZ): Uvolnění místa může pomoci aplikacím a aktualizacím. Odhad zrychlení není k dispozici.</comment>
   </data>
   <data xml:space="preserve" name="StorageSettingsWillShowCandidatesReviewEverySelectionForDeletionPers">
@@ -1464,4 +1464,43 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="NetworkFindingExternal" xml:space="preserve"><value>Das Gateway antwortet, aber die externe IP-Prüfung schlug fehl. Prüfen Sie den Internetzugang des Routers und mögliche ICMP-Filter.</value></data>
   <data name="NetworkFindingHealthy" xml:space="preserve"><value>Alle drei Prüfungen waren zum Messzeitpunkt erfolgreich.</value></data>
   <data name="NetworkFindingUnknown" xml:space="preserve"><value>Die verfügbaren Ergebnisse grenzen den Fehler nicht ein. Prüfen Sie den Adapter und wiederholen Sie die Messung.</value></data>
+  <data name="DesignLightTheme" xml:space="preserve"><value>Heller Modus</value></data>
+  <data name="DesignDarkTheme" xml:space="preserve"><value>Dunkler Modus</value></data>
+  <data name="DesignTheme" xml:space="preserve"><value>Darstellung ändern</value></data>
+  <data name="DesignThemeSession" xml:space="preserve"><value>Darstellung dieses Fensters. Überwachungseinstellungen bleiben unverändert.</value></data>
+  <data name="DesignAttention" xml:space="preserve"><value>Was als Nächstes prüfen</value></data>
+  <data name="DesignEvidenceUnavailable" xml:space="preserve"><value>Aktuelle Nachweise sind nicht verfügbar.</value></data>
+  <data name="DesignRefreshFirst" xml:space="preserve"><value>Mit Aktualisieren erneut mit dem lokalen Dienst verbinden.</value></data>
+  <data name="DesignNoOpenEvidence" xml:space="preserve"><value>In den letzten gespeicherten Einträgen ist kein ungelöster Vorfall. Dies ist keine vollständige Prüfung.</value></data>
+  <data name="DesignRecordedIncident" xml:space="preserve"><value>Gespeichertes Ereignis: {0} · {1}
+{2:g} UTC · vor {3} Min.</value></data>
+  <data name="DesignReviewRecordedEvidence" xml:space="preserve"><value>Zuerst Vorfälle öffnen und die Nachweise prüfen. Ein gespeichertes Ereignis belegt keinen aktuell anhaltenden Fehler.</value></data>
+  <data name="DesignReviewRecommendations" xml:space="preserve"><value>Unter Empfehlungen stehen Schritte auf Grundlage der verfügbaren Messungen.</value></data>
+  <data name="DesignLowDisk" xml:space="preserve"><value>Laufwerk {0}: nur {1:0.#} % frei. Updates können Platz benötigen. Zuerst Empfehlungen öffnen.</value></data>
+  <data name="DesignWindowsCrash" xml:space="preserve"><value>Windows-Absturz</value></data>
+  <data name="DesignWindowsCrashIrql" xml:space="preserve"><value>Windows-Absturz: ungültiger Kernel-Speicherzugriff</value></data>
+  <data name="DesignMemoryPressure" xml:space="preserve"><value>Wenig verfügbarer Arbeitsspeicher</value></data>
+  <data name="DesignCpuLoad" xml:space="preserve"><value>Anhaltende CPU-Auslastung</value></data>
+  <data name="DesignProcessCpuLoad" xml:space="preserve"><value>Hohe CPU-Auslastung durch einen Prozess</value></data>
+  <data name="DesignDiskCapacity" xml:space="preserve"><value>Wenig Speicherplatz</value></data>
+  <data name="DesignGatewayFailure" xml:space="preserve"><value>Gateway nicht erreichbar</value></data>
+  <data name="DesignDnsFailure" xml:space="preserve"><value>Namensauflösung fehlgeschlagen</value></data>
+  <data name="DesignInternetFailure" xml:space="preserve"><value>Problem mit der Internetverbindung</value></data>
+  <data name="DesignServiceStopped" xml:space="preserve"><value>Dienst beendet; Ursache unbestätigt</value></data>
+  <data name="DesignServiceCrash" xml:space="preserve"><value>Unerwartetes Dienstende</value></data>
+  <data name="DesignMetricDeviation" xml:space="preserve"><value>Messwert weicht vom üblichen Zustand ab</value></data>
+  <data name="DesignCritical" xml:space="preserve"><value>Kritisch</value></data>
+  <data name="DesignHigh" xml:space="preserve"><value>Hoch</value></data>
+  <data name="DesignWarning" xml:space="preserve"><value>Warnung</value></data>
+  <data name="DesignInfo" xml:space="preserve"><value>Information</value></data>
+  <data name="DesignSeverity" xml:space="preserve"><value>Schweregrad</value></data>
+  <data name="DesignClassification" xml:space="preserve"><value>Wert / 100</value></data>
+  <data name="DesignAliasHelp" xml:space="preserve"><value>Erweitert: Nur einen vom Administrator registrierten Alias verwenden. Ohne Alias die Nachweise und Empfehlungen lesen; keinen Dienstnamen erraten.</value></data>
+  <data name="EnableDeveloperMode" xml:space="preserve"><value>Entwicklermodus aktivieren</value></data>
+  <data name="ReturnToStandardMode" xml:space="preserve"><value>Entwicklermodus · zurück zu Standard</value></data>
+  <data name="DeveloperModeConsent" xml:space="preserve"><value>Der Entwicklermodus zeigt eine detailliertere Windows-Übersicht, Dienst- und Netzwerkdiagnosen sowie geführte Wartung. Er gewährt keine Administratorrechte und ändert keine Sicherheitsrichtlinien des Dienstes. Jede unterstützte Reparatur erfordert weiterhin eine genaue Prüfung und eigene Zustimmung. Fortfahren?</value></data>
+  <data name="DeveloperModeRequired" xml:space="preserve"><value>Diese Ansicht oder Aktion ist im Entwicklermodus verfügbar. Aktivieren Sie ihn mit der Schaltfläche im Kopfbereich.</value></data>
+  <data name="ModeChangeBlockedWhileActionRuns" xml:space="preserve"><value>Eine Aktion läuft noch oder das Wartungsfenster ist geöffnet. Warten Sie auf das Ergebnis und schließen Sie das Fenster, bevor Sie den Modus ändern.</value></data>
+  <data name="ModePreferenceSaveFailed" xml:space="preserve"><value>Der Oberflächenmodus konnte nicht gespeichert werden. Der aktuelle Modus bleibt aktiv.</value></data>
+  <data name="DeveloperModeActiveCloseToReturn" xml:space="preserve"><value>Der Entwicklermodus ist aktiv. Schließen Sie dieses Wartungsfenster und wechseln Sie über die Schaltfläche im Kopfbereich zurück zu Standard.</value></data>
 </root>

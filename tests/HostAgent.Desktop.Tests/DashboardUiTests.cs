@@ -49,11 +49,12 @@ public sealed class DashboardUiTests
                         _=>AdminProtocol.Reply(false,"view_unavailable")
                     });
                 });
-                window=new MainWindow(controller,TestLocalization.Czech());window.Show();
+                window=new MainWindow(controller,TestLocalization.Czech(),null,
+                    _=>new WindowsInventory([new("Ukázkový proces / Sample process", "42", "Running", "128 MiB") ]));window.Show();
                 PumpUntil(()=>((TextBlock)window.FindName("CpuText")).Text.Contains("42"));
                 Assert.Contains("64",((TextBlock)window.FindName("MemoryText")).Text);
                 Assert.Equal("2 h 00 min",((TextBlock)window.FindName("UptimeText")).Text);
-                Assert.Equal(Color.FromRgb(0x14,0x24,0x3B),((SolidColorBrush)((TextBlock)window.FindName("CpuText")).Foreground).Color);
+                Assert.Equal(((SolidColorBrush)window.FindResource("InkBrush")).Color,((SolidColorBrush)((TextBlock)window.FindName("CpuText")).Foreground).Color);
                 Assert.False(((Button)window.FindName("OperationButton")).IsEnabled);
                 Assert.Contains("Shadow",((TextBlock)window.FindName("OperationHintText")).Text);
                 Assert.Equal("1",((TextBlock)window.FindName("IncidentCountText")).Text);
@@ -78,6 +79,18 @@ public sealed class DashboardUiTests
                     Assert.Equal(window.ActualWidth<1050?2:4,((System.Windows.Controls.Primitives.UniformGrid)window.FindName("MetricsGrid")).Columns);
                     Capture(window,$"overview-{size.Item1:0}-synthetic");
                 }
+                window.Width=1280;window.Height=880;
+                var theme=(Button)window.FindName("ThemeButton");
+                theme.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                Capture(window,"overview-light-synthetic");
+                theme.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                foreach(var language in new[]{"en","de"})
+                {
+                    window.Localization.SelectLanguage(language);
+                    window.Width=850;window.Height=620;
+                    Capture(window,$"overview-{language}-850-synthetic");
+                }
+                window.Localization.SelectLanguage("cs-CZ");
                 window.Width=1280;window.Height=880;
                 var overviewScroll=(ScrollViewer)((TabItem)tabs.Items[0]).Content;
                 overviewScroll.ScrollToBottom();Capture(window,"overview-tables-synthetic");overviewScroll.ScrollToTop();

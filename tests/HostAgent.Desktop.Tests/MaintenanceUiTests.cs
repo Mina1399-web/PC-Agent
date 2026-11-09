@@ -143,6 +143,34 @@ public sealed class MaintenanceUiTests
         });
     }
 
+    [Fact]
+    public async Task Downgrade_invalidates_preview_and_approval_before_file_mutation()
+    {
+        using var fixture=new Fixture();
+        var original=fixture.File("synthetic-mode-change.tmp","synthetic payload");
+        await RunSta(() =>
+        {
+            var developer=true;
+            var window=new MaintenanceWindow(Controller(Snapshot("Confirmation")),fixture.Service("Confirmation"),
+                TestLocalization.Czech(),developerMode:()=>developer);
+            window.Show();
+            try
+            {
+                Click(window,"MaintenancePreviewButton");
+                PumpUntil(()=>window.CurrentPreview is {Items.Count:1});
+                var preview=window.CurrentPreview!;
+                var approval=(TextBox)window.FindName("MaintenanceApproval");approval.Text=preview.Id;
+                developer=false;
+                Click(window,"MaintenanceQuarantineButton");
+                Assert.Null(window.CurrentPreview);
+                Assert.Equal("",approval.Text);
+                Assert.True(File.Exists(original));
+                Assert.Contains("vývojářském režimu",((TextBlock)window.FindName("MaintenanceStatus")).Text);
+            }
+            finally{window.Close();}
+        });
+    }
+
     private static DashboardController Controller(DashboardSnapshot snapshot) => new((payload, _) =>
     {
         var request = ViewProtocol.Parse(payload);

@@ -2,112 +2,166 @@
  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
  xmlns:local="clr-namespace:HostAgent.Desktop"
  Title="{DynamicResource Loc.HostAgentComputerStatus}" Width="1280" Height="880" MinWidth="850" MinHeight="620"
- Background="{DynamicResource CanvasBrush}" Foreground="{DynamicResource InkBrush}" FontFamily="Segoe UI" FontSize="14">
+ Background="{DynamicResource CanvasBrush}" Foreground="{DynamicResource InkBrush}" FontFamily="Segoe UI" FontSize="14" UseLayoutRounding="True" SnapsToDevicePixels="True">
  <Window.Resources>
-  <SolidColorBrush x:Key="CanvasBrush" Color="#F4F7FB"/>
-  <SolidColorBrush x:Key="CardBrush" Color="#FFFFFF"/>
-  <SolidColorBrush x:Key="InkBrush" Color="#14243B"/>
-  <SolidColorBrush x:Key="MutedBrush" Color="#52627A"/>
-  <SolidColorBrush x:Key="AccentBrush" Color="#2259C5"/>
-  <SolidColorBrush x:Key="LineBrush" Color="#DDE4EE"/>
-  <SolidColorBrush x:Key="RailBrush" Color="#12243C"/>
+  <SolidColorBrush x:Key="CanvasBrush" Color="#101722"/>
+  <SolidColorBrush x:Key="CardBrush" Color="#192331"/>
+  <SolidColorBrush x:Key="InkBrush" Color="#F1F5FC"/>
+  <SolidColorBrush x:Key="MutedBrush" Color="#B3C1D5"/>
+  <SolidColorBrush x:Key="AccentBrush" Color="#9AC4FF"/>
+  <SolidColorBrush x:Key="AccentInkBrush" Color="#101722"/>
+  <SolidColorBrush x:Key="LineBrush" Color="#344358"/>
+  <SolidColorBrush x:Key="InputBorderBrush" Color="#718198"/>
+  <SolidColorBrush x:Key="RailBrush" Color="#0C121C"/>
   <SolidColorBrush x:Key="RailTextBrush" Color="#D5DFEF"/>
-  <SolidColorBrush x:Key="GreenBrush" Color="#176B50"/>
-  <SolidColorBrush x:Key="GreenSurfaceBrush" Color="#E8F5EF"/>
-  <SolidColorBrush x:Key="WarningBrush" Color="#895514"/>
-  <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#FFF4DE"/>
-  <SolidColorBrush x:Key="ErrorBrush" Color="#A03232"/>
-  <SolidColorBrush x:Key="ErrorSurfaceBrush" Color="#FDECEC"/>
-  <SolidColorBrush x:Key="RamBrush" Color="#7854BA"/>
+  <SolidColorBrush x:Key="SelectedBrush" Color="#263E60"/>
+  <SolidColorBrush x:Key="HoverBrush" Color="#28374B"/>
+  <SolidColorBrush x:Key="AlternateBrush" Color="#1E2B3B"/>
+  <SolidColorBrush x:Key="GreenBrush" Color="#83DCB8"/>
+  <SolidColorBrush x:Key="GreenSurfaceBrush" Color="#17372F"/>
+  <SolidColorBrush x:Key="WarningBrush" Color="#F3CF8B"/>
+  <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#3C3020"/>
+  <SolidColorBrush x:Key="ErrorBrush" Color="#FFB4B4"/>
+  <SolidColorBrush x:Key="ErrorSurfaceBrush" Color="#43282E"/>
+  <SolidColorBrush x:Key="RamBrush" Color="#C6AEFF"/>
   <local:ByteSizeConverter x:Key="Bytes"/>
   <local:IncidentStateConverter x:Key="IncidentState"/>
   <local:TechnicalTextConverter x:Key="TechnicalText"/>
   <local:TelemetryExplanationConverter x:Key="TelemetryExplanation"/>
+  <Style TargetType="ScrollBar">
+   <Style.Triggers><Trigger Property="Orientation" Value="Vertical">
+    <Setter Property="Width" Value="12"/>
+    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ScrollBar">
+     <Track x:Name="PART_Track" IsDirectionReversed="True" Orientation="Vertical">
+      <Track.DecreaseRepeatButton><RepeatButton Command="ScrollBar.PageUpCommand" Focusable="False"><RepeatButton.Template><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></RepeatButton.Template></RepeatButton></Track.DecreaseRepeatButton>
+      <Track.Thumb><Thumb MinHeight="28"><Thumb.Template><ControlTemplate TargetType="Thumb"><Border x:Name="Grip" Background="{DynamicResource InputBorderBrush}" CornerRadius="4" Margin="3,0"/><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Grip" Property="Background" Value="{DynamicResource AccentBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Thumb.Template></Thumb></Track.Thumb>
+      <Track.IncreaseRepeatButton><RepeatButton Command="ScrollBar.PageDownCommand" Focusable="False"><RepeatButton.Template><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></RepeatButton.Template></RepeatButton></Track.IncreaseRepeatButton>
+     </Track>
+    </ControlTemplate></Setter.Value></Setter>
+   </Trigger></Style.Triggers>
+  </Style>
   <Style x:Key="GridText" TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/></Style>
-  <Style x:Key="Caption" TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource MutedBrush}"/><Setter Property="FontSize" Value="13"/><Setter Property="TextWrapping" Value="Wrap"/></Style>
+  <Style x:Key="Caption" TargetType="TextBlock"><Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/><Setter Property="FontSize" Value="13"/><Setter Property="TextWrapping" Value="Wrap"/><Setter Property="LineHeight" Value="20"/></Style>
   <Style x:Key="SectionTitle" TargetType="TextBlock"><Setter Property="FontSize" Value="20"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Margin" Value="0,0,0,8"/></Style>
-  <Style x:Key="Card" TargetType="Border"><Setter Property="Background" Value="{StaticResource CardBrush}"/><Setter Property="BorderBrush" Value="{StaticResource LineBrush}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="12"/><Setter Property="Padding" Value="20"/></Style>
-  <Style x:Key="FocusRing" TargetType="Control"><Setter Property="Template"><Setter.Value><ControlTemplate><Rectangle Margin="-3" Stroke="{StaticResource AccentBrush}" StrokeThickness="2" StrokeDashArray="2 1" RadiusX="6" RadiusY="6"/></ControlTemplate></Setter.Value></Setter></Style>
+  <Style x:Key="Card" TargetType="Border"><Setter Property="Background" Value="{DynamicResource CardBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="12"/><Setter Property="Padding" Value="20"/></Style>
+  <Style x:Key="FocusRing" TargetType="Control"><Setter Property="Template"><Setter.Value><ControlTemplate><Rectangle Margin="-3" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" StrokeDashArray="2 1" RadiusX="6" RadiusY="6"/></ControlTemplate></Setter.Value></Setter></Style>
   <Style TargetType="Button">
-   <Setter Property="Padding" Value="16,10"/><Setter Property="Margin" Value="0,0,8,8"/><Setter Property="Background" Value="{StaticResource CardBrush}"/>
-   <Setter Property="Foreground" Value="{StaticResource InkBrush}"/><Setter Property="BorderBrush" Value="#718198"/><Setter Property="BorderThickness" Value="1"/>
+   <Setter Property="Padding" Value="16,10"/><Setter Property="Margin" Value="0,0,8,8"/><Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+   <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/><Setter Property="BorderThickness" Value="1"/>
    <Setter Property="Cursor" Value="Hand"/><Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
     <Border x:Name="Surface" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
      <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True"/>
     </Border><ControlTemplate.Triggers>
-     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Surface" Property="Opacity" Value="0.8"/></Trigger>
-     <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Surface" Property="BorderBrush" Value="{StaticResource AccentBrush}"/><Setter TargetName="Surface" Property="BorderThickness" Value="2"/></Trigger>
-     <Trigger Property="IsEnabled" Value="False"><Setter Property="Foreground" Value="{StaticResource MutedBrush}"/><Setter Property="Background" Value="#E9EEF5"/><Setter Property="Cursor" Value="Arrow"/></Trigger>
+     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Surface" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/></Trigger>
+     <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Surface" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/><Setter TargetName="Surface" Property="BorderThickness" Value="2"/></Trigger>
+     <Trigger Property="IsEnabled" Value="False"><Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/><Setter Property="Background" Value="{DynamicResource AlternateBrush}"/><Setter Property="Cursor" Value="Arrow"/></Trigger>
     </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
   </Style>
-  <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}"><Setter Property="Background" Value="{StaticResource AccentBrush}"/><Setter Property="Foreground" Value="White"/><Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/></Style>
-  <Style TargetType="TextBox"><Setter Property="Padding" Value="10,8"/><Setter Property="BorderBrush" Value="#718198"/><Setter Property="Foreground" Value="{StaticResource InkBrush}"/><Setter Property="Background" Value="White"/><Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/></Style>
-  <Style TargetType="ComboBox"><Setter Property="Padding" Value="10,8"/><Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/></Style>
+  <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}"><Setter Property="Background" Value="{DynamicResource AccentBrush}"/><Setter Property="Foreground" Value="{DynamicResource AccentInkBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/></Style>
+  <Style TargetType="TextBox"><Setter Property="Padding" Value="10,8"/><Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/><Setter Property="Foreground" Value="{DynamicResource InkBrush}"/><Setter Property="Background" Value="{DynamicResource CardBrush}"/><Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/></Style>
+  <Style TargetType="ComboBoxItem">
+   <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/><Setter Property="Padding" Value="12,8"/>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBoxItem"><Border x:Name="Item" Background="{DynamicResource CardBrush}" Padding="{TemplateBinding Padding}"><ContentPresenter/></Border><ControlTemplate.Triggers><Trigger Property="IsHighlighted" Value="True"><Setter TargetName="Item" Property="Background" Value="{DynamicResource SelectedBrush}"/></Trigger><Trigger Property="IsSelected" Value="True"><Setter TargetName="Item" Property="Background" Value="{DynamicResource SelectedBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+  </Style>
+  <Style TargetType="ComboBox">
+   <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/><Setter Property="Background" Value="{DynamicResource CardBrush}"/><Setter Property="Padding" Value="12,8"/><Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBox"><Grid>
+    <ToggleButton Focusable="False" IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" ClickMode="Press">
+     <ToggleButton.Template><ControlTemplate TargetType="ToggleButton"><Border x:Name="ComboSurface" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="6"><TextBlock Text="⌄" Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Right" Margin="0,0,10,0" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ComboSurface" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></ToggleButton.Template>
+    </ToggleButton>
+    <ContentPresenter Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" Margin="12,8,30,8" IsHitTestVisible="False" VerticalAlignment="Center"/>
+    <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False"><Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="6" MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"><ScrollViewer MaxHeight="300"><ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/></ScrollViewer></Border></Popup>
+   </Grid></ControlTemplate></Setter.Value></Setter>
+  </Style>
   <Style TargetType="DataGrid">
    <Setter Property="IsReadOnly" Value="True"/><Setter Property="AutoGenerateColumns" Value="False"/><Setter Property="CanUserAddRows" Value="False"/>
    <Setter Property="CanUserReorderColumns" Value="False"/><Setter Property="HeadersVisibility" Value="Column"/><Setter Property="GridLinesVisibility" Value="Horizontal"/>
-   <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource LineBrush}"/><Setter Property="RowHeight" Value="40"/><Setter Property="Background" Value="White"/>
-   <Setter Property="BorderThickness" Value="0"/><Setter Property="AlternatingRowBackground" Value="#F8FAFD"/><Setter Property="RowHeaderWidth" Value="0"/>
+   <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource LineBrush}"/><Setter Property="MinRowHeight" Value="44"/><Setter Property="Foreground" Value="{DynamicResource InkBrush}"/><Setter Property="RowBackground" Value="{DynamicResource CardBrush}"/><Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+   <Setter Property="BorderThickness" Value="0"/><Setter Property="AlternatingRowBackground" Value="{DynamicResource AlternateBrush}"/><Setter Property="RowHeaderWidth" Value="0"/>
    <Setter Property="SelectionMode" Value="Single"/><Setter Property="SelectionUnit" Value="FullRow"/>
   </Style>
-  <Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="#F4F7FB"/><Setter Property="Foreground" Value="{StaticResource MutedBrush}"/><Setter Property="Padding" Value="12,10"/><Setter Property="FontSize" Value="12"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="BorderThickness" Value="0"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Content}"/></Style>
-  <Style TargetType="DataGridCell"><Setter Property="Padding" Value="12,0"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="DataGridCell"><Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}"><ContentPresenter VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter Property="Background" Value="#E8F0FF"/><Setter Property="Foreground" Value="{StaticResource InkBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
+  <Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="{DynamicResource CanvasBrush}"/><Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/><Setter Property="Padding" Value="12,10"/><Setter Property="FontSize" Value="12"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="BorderThickness" Value="0"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Content}"/></Style>
+  <Style TargetType="DataGridCell"><Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="{DynamicResource SelectedBrush}"/><Setter Property="Foreground" Value="{DynamicResource InkBrush}"/></Trigger></Style.Triggers><Setter Property="Padding" Value="12,0"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="DataGridCell"><Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}"><ContentPresenter VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter Property="Background" Value="{DynamicResource SelectedBrush}"/><Setter Property="Foreground" Value="{DynamicResource InkBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
+  <Style TargetType="Label"><Setter Property="Foreground" Value="{DynamicResource InkBrush}"/></Style>
+  <Style TargetType="Expander"><Setter Property="Foreground" Value="{DynamicResource InkBrush}"/></Style>
+  <Style TargetType="ToolTip"><Setter Property="Background" Value="{DynamicResource CardBrush}"/><Setter Property="Foreground" Value="{DynamicResource InkBrush}"/><Setter Property="Padding" Value="12,8"/></Style>
+  <Style TargetType="DataGridRow">
+   <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+   <Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="{DynamicResource SelectedBrush}"/><Setter Property="Foreground" Value="{DynamicResource InkBrush}"/></Trigger></Style.Triggers>
+  </Style>
+  <Style TargetType="ProgressBar">
+   <Setter Property="Height" Value="4"/><Setter Property="Maximum" Value="100"/><Setter Property="Focusable" Value="False"/><Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/><Setter Property="Background" Value="{DynamicResource LineBrush}"/>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ProgressBar"><Grid><Border x:Name="PART_Track" Background="{TemplateBinding Background}" CornerRadius="2"/><Border x:Name="PART_Indicator" HorizontalAlignment="Left" Background="{TemplateBinding Foreground}" CornerRadius="2"/></Grid></ControlTemplate></Setter.Value></Setter>
+  </Style>
   <Style TargetType="TabItem">
-   <Setter Property="Foreground" Value="{StaticResource InkBrush}"/><Setter Property="FontSize" Value="14"/><Setter Property="Margin" Value="12,3"/><Setter Property="Padding" Value="16,14"/>
+   <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/><Setter Property="FontSize" Value="14"/><Setter Property="Margin" Value="12,3"/><Setter Property="Padding" Value="16,14"/>
    <Setter Property="HorizontalContentAlignment" Value="Left"/>
-   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TabItem"><Border x:Name="Nav" CornerRadius="6" Background="Transparent" Padding="{TemplateBinding Padding}"><ContentPresenter ContentSource="Header"/></Border><ControlTemplate.Triggers>
-    <Trigger Property="IsSelected" Value="True"><Setter TargetName="Nav" Property="Background" Value="#263E60"/></Trigger>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TabItem"><Border x:Name="Nav" CornerRadius="6" BorderThickness="3,0,0,0" BorderBrush="Transparent" Background="Transparent" Padding="{TemplateBinding Padding}"><ContentPresenter ContentSource="Header"/></Border><ControlTemplate.Triggers>
+    <Trigger Property="IsSelected" Value="True"><Setter TargetName="Nav" Property="Background" Value="#263E60"/><Setter TargetName="Nav" Property="BorderBrush" Value="#9AC4FF"/><Setter TargetName="Nav" Property="TextElement.FontWeight" Value="SemiBold"/></Trigger>
     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Nav" Property="Background" Value="#263E60"/></Trigger>
     <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Nav" Property="BorderBrush" Value="#8EB7FF"/><Setter TargetName="Nav" Property="BorderThickness" Value="2"/></Trigger>
    </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
   </Style>
  </Window.Resources>
- <Grid Background="{StaticResource CanvasBrush}">
+ <Grid Background="{DynamicResource CanvasBrush}">
   <Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-  <Border Grid.RowSpan="2" Background="{StaticResource RailBrush}"/>
+  <Border Grid.RowSpan="2" Background="{DynamicResource RailBrush}"/>
   <StackPanel Margin="28,28,20,28">
-   <StackPanel Orientation="Horizontal"><Border Background="#263E60" CornerRadius="8" Width="32" Height="32" Margin="0,0,10,0"><TextBlock Text="H" Foreground="White" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="Host Agent" FontSize="20" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/></StackPanel>
-   <TextBlock Text="{DynamicResource Loc.LOCALMONITOR}" FontSize="11" Foreground="{StaticResource RailTextBrush}" Margin="0,12,0,0"/>
+   <StackPanel Orientation="Horizontal"><Border Background="#263E60" CornerRadius="8" Width="32" Height="32" Margin="0,0,10,0"><TextBlock Text="&#xE9D9;" FontFamily="Segoe MDL2 Assets" Foreground="#9AC4FF" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="Host Agent" FontSize="20" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/></StackPanel>
+   <TextBlock Text="{DynamicResource Loc.LOCALMONITOR}" FontSize="11" Foreground="{DynamicResource RailTextBrush}" Margin="0,12,0,0"/>
   </StackPanel>
   <StackPanel Grid.Column="1" Margin="28,24,28,12">
    <DockPanel LastChildFill="True">
-    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><Label Content="{DynamicResource Loc.InterfaceLanguage}" Target="{Binding ElementName=LanguageChoice}" VerticalAlignment="Center"/><ComboBox x:Name="LanguageChoice" ItemsSource="{x:Null}" DisplayMemberPath="NativeName" SelectedValuePath="Code" Width="125" Margin="0,0,0,8" AutomationProperties.Name="{DynamicResource Loc.InterfaceLanguage}"/></StackPanel>
+    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><Button x:Name="ThemeButton" Click="ThemeClick" Content="{DynamicResource Loc.DesignLightTheme}" ToolTip="{DynamicResource Loc.DesignThemeSession}" AutomationProperties.Name="{DynamicResource Loc.DesignTheme}" Padding="12,8"/><Label Content="{DynamicResource Loc.InterfaceLanguage}" Target="{Binding ElementName=LanguageChoice}" VerticalAlignment="Center"/><ComboBox x:Name="LanguageChoice" ItemsSource="{x:Null}" DisplayMemberPath="NativeName" SelectedValuePath="Code" Width="125" Margin="0,0,0,8" AutomationProperties.Name="{DynamicResource Loc.InterfaceLanguage}"/></StackPanel>
     <StackPanel MinWidth="90"><TextBlock x:Name="WorkspaceTitle" Text="{DynamicResource Loc.Workspace}" FontWeight="SemiBold" FontSize="14" TextWrapping="Wrap"/><TextBlock Text="{DynamicResource Loc.ThisComputer}" Style="{StaticResource Caption}" Margin="0,4,0,0"/></StackPanel>
    </DockPanel>
-   <WrapPanel Margin="0,8,0,0"><Button x:Name="RefreshButton" Content="{DynamicResource Loc.Refresh}" Click="RefreshClick"/><Button Content="{DynamicResource Loc.InvestigateProblem}" Click="InvestigateClick"/><Button Content="{DynamicResource Loc.TemporaryFileMaintenance}" Click="MaintenanceClick"/><Button Content="{DynamicResource Loc.Hide}" ToolTip="{DynamicResource Loc.HideToSystemTray}" AutomationProperties.Name="{DynamicResource Loc.HideToSystemTray}" Click="TrayClick" Margin="0,0,0,8"/></WrapPanel>
-   <Border x:Name="StatusBanner" Background="#E8F0FF" CornerRadius="6" Padding="12,10" Margin="0,8,0,0"><TextBlock x:Name="StatusText" Text="{DynamicResource Loc.ConnectingToTheLocalService}" TextWrapping="Wrap" FontSize="12" AutomationProperties.LiveSetting="Polite"/></Border>
+   <WrapPanel Margin="0,8,0,0"><Button x:Name="RefreshButton" ToolTip="F5" Content="{DynamicResource Loc.Refresh}" Click="RefreshClick"/><Button x:Name="DesktopModeButton" Content="{DynamicResource Loc.EnableDeveloperMode}" Click="DesktopModeClick" AutomationProperties.Name="{DynamicResource Loc.EnableDeveloperMode}"/><Button x:Name="KillSwitchQuickButton" Content="{DynamicResource Loc.BlockAllRepairs}" Click="KillSwitchClick"/><Button Style="{StaticResource PrimaryButton}" Content="{DynamicResource Loc.InvestigateProblem}" Click="InvestigateClick"/><Button x:Name="HeaderMaintenanceButton" Content="{DynamicResource Loc.TemporaryFileMaintenance}" Click="MaintenanceClick"/><Button Content="{DynamicResource Loc.Hide}" ToolTip="{DynamicResource Loc.HideToSystemTray}" AutomationProperties.Name="{DynamicResource Loc.HideToSystemTray}" Click="TrayClick" Margin="0,0,0,8"/></WrapPanel>
+   <Border x:Name="StatusBanner" Background="{DynamicResource SelectedBrush}" CornerRadius="6" Padding="12,10" Margin="0,8,0,0"><TextBlock x:Name="StatusText" Text="{DynamicResource Loc.ConnectingToTheLocalService}" TextWrapping="Wrap" FontSize="12" AutomationProperties.LiveSetting="Polite"/></Border>
   </StackPanel>
   <TabControl x:Name="DashboardTabs" SelectionChanged="WindowsDashboardTabChanged" Grid.Row="1" Grid.ColumnSpan="2" Background="Transparent" BorderThickness="0" TabStripPlacement="Left">
    <TabControl.Template><ControlTemplate TargetType="TabControl"><Grid>
     <Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-    <DockPanel><Border DockPanel.Dock="Bottom" Margin="20,20,20,24" BorderBrush="#3E536F" BorderThickness="0,1,0,0" Padding="8,20,8,0"><StackPanel><TextBlock Text="{DynamicResource Loc.UnderYourControl}" Foreground="White" FontWeight="SemiBold" FontSize="13"/><TextBlock Text="{DynamicResource Loc.ActionsRequireApprovalTheDashboardDoesNotStopServices}" Foreground="{StaticResource RailTextBrush}" TextWrapping="Wrap" FontSize="12" LineHeight="19" Margin="0,8,0,0"/></StackPanel></Border><ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False"><StackPanel IsItemsHost="True" KeyboardNavigation.TabIndex="1" VerticalAlignment="Top"/></ScrollViewer></DockPanel>
+    <DockPanel><Border x:Name="NavigationFooter" DockPanel.Dock="Bottom" Margin="20,20,20,24" BorderBrush="#3E536F" BorderThickness="0,1,0,0" Padding="8,20,8,0"><StackPanel><TextBlock Text="{DynamicResource Loc.UnderYourControl}" Foreground="White" FontWeight="SemiBold" FontSize="13"/><TextBlock Text="{DynamicResource Loc.ActionsRequireApprovalTheDashboardDoesNotStopServices}" Foreground="{DynamicResource RailTextBrush}" TextWrapping="Wrap" FontSize="12" LineHeight="19" Margin="0,8,0,0"/></StackPanel></Border><ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False"><StackPanel IsItemsHost="True" KeyboardNavigation.TabIndex="1" VerticalAlignment="Top"/></ScrollViewer></DockPanel>
     <ContentPresenter Grid.Column="1" x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" Margin="28,12,28,0"/>
    </Grid></ControlTemplate></TabControl.Template>
    <TabItem AutomationProperties.Name="{DynamicResource Loc.Dashboard}">
-    <TabItem.Header><TextBlock Text="{DynamicResource Loc.DashboardText0107}" Foreground="{StaticResource RailTextBrush}"/></TabItem.Header>
+    <TabItem.Header><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE80F;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource RailTextBrush}" Width="24" VerticalAlignment="Center"/><TextBlock TextWrapping="Wrap" MaxWidth="126" Text="{DynamicResource Loc.Dashboard}" Foreground="{DynamicResource RailTextBrush}"/></StackPanel></TabItem.Header>
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="0,0,12,28">
      <TextBlock Text="{DynamicResource Loc.ComputerStatus}" FontSize="28" FontWeight="SemiBold"/>
-     <TextBlock x:Name="HealthSummaryText" Text="{DynamicResource Loc.HealthSummaryConnecting}" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,8,0,12" AutomationProperties.LiveSetting="Polite"/>
-     <TextBlock Text="{DynamicResource Loc.CurrentMeasurementsAndContextToHelpYouDecide}" Style="{StaticResource Caption}" Margin="0,6,0,20"/>
+     <TextBlock Text="{DynamicResource Loc.CurrentMeasurementsAndContextToHelpYouDecide}" Style="{StaticResource Caption}" Margin="0,4,0,12"/>
+     <Border Style="{StaticResource Card}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="3,0,0,0" Padding="16" Margin="0,0,0,16">
+      <StackPanel>
+       <TextBlock Text="{DynamicResource Loc.DesignAttention}" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+       <TextBlock x:Name="TriageIncidentText" Text="{DynamicResource Loc.DesignEvidenceUnavailable}" TextWrapping="Wrap" FontWeight="SemiBold" Margin="0,0,0,6"/>
+       <TextBlock x:Name="TriageActionText" Text="{DynamicResource Loc.DesignRefreshFirst}" Style="{StaticResource Caption}"/>
+       <TextBlock x:Name="TriageDiskText" Style="{StaticResource Caption}" Foreground="{DynamicResource WarningBrush}" Margin="0,8,0,0" Visibility="Collapsed"/>
+       <WrapPanel Margin="0,16,0,0">
+        <Button x:Name="QuickIncidents" Content="{DynamicResource Loc.Incidents}" Tag="1" Click="QuickNavigate" ToolTip="Ctrl+2" Padding="12,8" Margin="0,0,8,0"/>
+        <Button x:Name="QuickRecommendations" Content="{DynamicResource Loc.Recommendations}" Tag="2" Click="QuickNavigate" Padding="12,8" Margin="0,0,8,0"/>
+        <Button x:Name="QuickComponents" Content="{DynamicResource Loc.Components}" Tag="3" Click="QuickNavigate" ToolTip="Ctrl+4" Padding="12,8" Margin="0,0,8,0"/>
+       </WrapPanel>
+      </StackPanel>
+     </Border>
+     <TextBlock x:Name="HealthSummaryText" Text="{DynamicResource Loc.HealthSummaryConnecting}" Style="{StaticResource Caption}" Margin="0,0,0,16" AutomationProperties.LiveSetting="Polite"/>
      <UniformGrid x:Name="MetricsGrid" Columns="4" Margin="0,0,-12,8">
-      <Border Style="{StaticResource Card}" Margin="0,0,12,12"><StackPanel><TextBlock Text="{DynamicResource Loc.Processor}" Style="{StaticResource Caption}"/><TextBlock x:Name="CpuText" Text="—" FontSize="32" FontWeight="SemiBold" Margin="0,10,0,8"/><TextBlock Text="{DynamicResource Loc.TotalCPUUtilization}" Style="{StaticResource Caption}" FontSize="12"/></StackPanel></Border>
-      <Border Style="{StaticResource Card}" Margin="0,0,12,12"><StackPanel><TextBlock Text="{DynamicResource Loc.RAM}" Style="{StaticResource Caption}"/><TextBlock x:Name="MemoryText" Text="—" FontSize="32" FontWeight="SemiBold" Margin="0,10,0,8"/><TextBlock Text="{DynamicResource Loc.PhysicalMemoryUsage}" Style="{StaticResource Caption}" FontSize="12"/></StackPanel></Border>
+      <Border Style="{StaticResource Card}" Margin="0,0,12,12"><StackPanel><TextBlock Text="{DynamicResource Loc.Processor}" Style="{StaticResource Caption}"/><TextBlock x:Name="CpuText" Text="—" FontSize="32" FontWeight="SemiBold" Margin="0,10,0,8"/><TextBlock Text="{DynamicResource Loc.TotalCPUUtilization}" Style="{StaticResource Caption}" FontSize="12"/><ProgressBar x:Name="CpuMeter" Visibility="Hidden" Foreground="{DynamicResource AccentBrush}" Margin="0,16,0,0" AutomationProperties.Name="{DynamicResource Loc.TotalCPUUtilization}"/></StackPanel></Border>
+      <Border Style="{StaticResource Card}" Margin="0,0,12,12"><StackPanel><TextBlock Text="{DynamicResource Loc.RAM}" Style="{StaticResource Caption}"/><TextBlock x:Name="MemoryText" Foreground="{DynamicResource RamBrush}" Text="—" FontSize="32" FontWeight="SemiBold" Margin="0,10,0,8"/><TextBlock Text="{DynamicResource Loc.PhysicalMemoryUsage}" Style="{StaticResource Caption}" FontSize="12"/><ProgressBar x:Name="MemoryMeter" Visibility="Hidden" Foreground="{DynamicResource RamBrush}" Margin="0,16,0,0" AutomationProperties.Name="{DynamicResource Loc.PhysicalMemoryUsage}"/></StackPanel></Border>
       <Border Style="{StaticResource Card}" Margin="0,0,12,12"><StackPanel><TextBlock Text="{DynamicResource Loc.Uptime}" Style="{StaticResource Caption}"/><TextBlock x:Name="UptimeText" Text="—" FontSize="23" FontWeight="SemiBold" Margin="0,16,0,12" TextWrapping="Wrap"/><TextBlock Text="{DynamicResource Loc.SinceWindowsStarted}" Style="{StaticResource Caption}" FontSize="12"/></StackPanel></Border>
       <Border Style="{StaticResource Card}" Margin="0,0,12,12"><StackPanel><TextBlock Text="{DynamicResource Loc.OpenIncidents}" Style="{StaticResource Caption}"/><TextBlock x:Name="IncidentCountText" Text="—" FontSize="32" FontWeight="SemiBold" Margin="0,10,0,8"/><TextBlock Text="{DynamicResource Loc.InTheLatest20Records}" Style="{StaticResource Caption}" FontSize="12"/></StackPanel></Border>
      </UniformGrid>
      <Border Style="{StaticResource Card}" Margin="0,0,0,16"><StackPanel>
       <DockPanel><TextBlock Text="{DynamicResource Loc.PerformanceHistory}" Style="{StaticResource SectionTitle}"/><TextBlock Text="{DynamicResource Loc.Text24Hours}" Style="{StaticResource Caption}" HorizontalAlignment="Right"/></DockPanel>
-      <DockPanel Margin="0,0,0,20"><StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBlock Text="● CPU" Foreground="{StaticResource AccentBrush}" Margin="12,0,16,0"/><TextBlock Text="● RAM" Foreground="{StaticResource RamBrush}"/></StackPanel><TextBlock Text="{DynamicResource Loc.Text15MinuteAveragesGapsInMeasurementsRemainVisible}" Style="{StaticResource Caption}"/></DockPanel>
+      <DockPanel Margin="0,0,0,20"><StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBlock Text="● CPU" Foreground="{DynamicResource AccentBrush}" Margin="12,0,16,0"/><TextBlock Text="● RAM" Foreground="{DynamicResource RamBrush}"/></StackPanel><TextBlock Text="{DynamicResource Loc.Text15MinuteAveragesGapsInMeasurementsRemainVisible}" Style="{StaticResource Caption}"/></DockPanel>
       <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="38"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
        <Grid Height="180"><TextBlock Text="100 %" Style="{StaticResource Caption}" FontSize="11"/><TextBlock Text="50 %" Style="{StaticResource Caption}" FontSize="11" VerticalAlignment="Center"/><TextBlock Text="0 %" Style="{StaticResource Caption}" FontSize="11" VerticalAlignment="Bottom"/></Grid>
-       <Canvas Grid.Column="1" x:Name="Chart" Height="180" Background="White" ClipToBounds="True" SizeChanged="ChartSizeChanged" AutomationProperties.Name="{DynamicResource Loc.CPUAndRAMHistoryOver24Hours}"/>
-       <TextBlock Grid.Column="1" x:Name="ChartEmptyText" Text="{DynamicResource Loc.HistoryIsNotAvailableYetTheChartWillAppearWhenSavedMeasurementsAreAv}" Style="{StaticResource Caption}" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+       <Canvas Grid.Column="1" x:Name="Chart" Height="180" Background="{DynamicResource CardBrush}" ClipToBounds="True" SizeChanged="ChartSizeChanged" AutomationProperties.Name="{DynamicResource Loc.CPUAndRAMHistoryOver24Hours}"/>
+       <TextBlock Grid.Column="1" x:Name="ChartEmptyText" MaxWidth="360" Margin="16" Text="{DynamicResource Loc.HistoryIsNotAvailableYetTheChartWillAppearWhenSavedMeasurementsAreAv}" Style="{StaticResource Caption}" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
       </Grid>
       <Grid Margin="38,10,0,0"><TextBlock Text="{DynamicResource Loc.Text24HAgo}" Style="{StaticResource Caption}" FontSize="11"/><TextBlock Text="{DynamicResource Loc.Text12HAgo}" Style="{StaticResource Caption}" FontSize="11" HorizontalAlignment="Center"/><TextBlock Text="{DynamicResource Loc.Now}" Style="{StaticResource Caption}" FontSize="11" HorizontalAlignment="Right"/></Grid>
      </StackPanel></Border>
-     <Border Background="#E8F0FF" CornerRadius="6" Padding="14,12" Margin="0,0,0,16"><TextBlock x:Name="NetworkText" Text="{DynamicResource Loc.NetworkWaitingForMeasurements}" TextWrapping="Wrap" FontSize="13"/></Border>
+     <Border Background="{DynamicResource SelectedBrush}" CornerRadius="6" Padding="14,12" Margin="0,0,0,16"><TextBlock x:Name="NetworkText" Text="{DynamicResource Loc.NetworkWaitingForMeasurements}" TextWrapping="Wrap" FontSize="13"/></Border>
      <Border Style="{StaticResource Card}" Margin="0,0,0,16"><StackPanel><TextBlock Text="{DynamicResource Loc.Storage}" Style="{StaticResource SectionTitle}"/><TextBlock x:Name="DisksEmptyText" Text="{DynamicResource Loc.DiskCapacitiesAreNotAvailableYet}" Style="{StaticResource Caption}" Margin="0,0,0,12"/>
       <DataGrid x:Name="DisksGrid" MaxHeight="210" AutomationProperties.Name="{DynamicResource Loc.DiskCapacityAndFreeSpace}"><DataGrid.Columns><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="Disk" Binding="{Binding Drive}" Width="*"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="FreeSpace" Binding="{Binding FreeBytes, Converter={StaticResource Bytes}}" Width="*"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="TotalCapacity" Binding="{Binding CapacityBytes, Converter={StaticResource Bytes}}" Width="*"/></DataGrid.Columns></DataGrid>
       <Button x:Name="SmartReadButton" Content="{DynamicResource Loc.ReadSmartPrediction}" Click="SmartClick" HorizontalAlignment="Left" Margin="0,10,0,4"/>
@@ -119,33 +173,37 @@
      </StackPanel></Border>
     </StackPanel></ScrollViewer>
    </TabItem>
-   <TabItem AutomationProperties.Name="{DynamicResource Loc.Incidents}"><TabItem.Header><TextBlock Text="{DynamicResource Loc.IncidentsText0140}" Foreground="{StaticResource RailTextBrush}"/></TabItem.Header>
-    <Grid Margin="0,0,12,24"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="240"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+   <TabItem AutomationProperties.Name="{DynamicResource Loc.Incidents}"><TabItem.Header><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE7BA;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource RailTextBrush}" Width="24" VerticalAlignment="Center"/><TextBlock TextWrapping="Wrap" MaxWidth="126" Text="{DynamicResource Loc.Incidents}" Foreground="{DynamicResource RailTextBrush}"/></StackPanel></TabItem.Header>
+    <Grid Margin="0,0,12,24"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="2*" MinHeight="100"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
      <StackPanel Margin="0,0,0,20"><TextBlock Text="{DynamicResource Loc.IncidentsAndEvidence}" FontSize="28" FontWeight="SemiBold"/><TextBlock Text="{DynamicResource Loc.TheLatest20RecordsSelectAnIncidentToReviewItsEvidence}" Style="{StaticResource Caption}" Margin="0,6,0,12"/><TextBlock x:Name="IncidentsEmptyText" Text="{DynamicResource Loc.WaitingForSavedIncidents}" Style="{StaticResource Caption}"/></StackPanel>
-      <Border Grid.Row="1" Style="{StaticResource Card}" Padding="8"><DataGrid x:Name="IncidentsGrid" SelectionChanged="IncidentSelected" AutomationProperties.Name="{DynamicResource Loc.RecentIncidents}"><DataGrid.Columns><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="UTCTime" Binding="{Binding AtUtc, StringFormat=g}" Width="180"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="CauseCode" Binding="{Binding Code, Converter={StaticResource TechnicalText}}" Width="*" MinWidth="180"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="Service" Binding="{Binding AffectedService}" Width="150"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="Status" Binding="{Binding State, Converter={StaticResource IncidentState}}" Width="140"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="Confidence" Binding="{Binding Confidence}" Width="85"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="Occurrences" Binding="{Binding Recurrences}" Width="75"/></DataGrid.Columns></DataGrid></Border>
+      <Border Grid.Row="1" Style="{StaticResource Card}" Padding="8"><DataGrid x:Name="IncidentsGrid" SelectionChanged="IncidentSelected" AutomationProperties.Name="{DynamicResource Loc.RecentIncidents}"><DataGrid.Columns><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="UTCTime" Binding="{Binding AtUtc, StringFormat=g}" Width="180"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="CauseCode" Binding="{Binding Code, Converter={StaticResource TechnicalText}}" Width="*" MinWidth="230"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="DesignSeverity" Binding="{Binding Severity, Converter={StaticResource TechnicalText}, ConverterParameter=Label}" Width="135"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="Status" Binding="{Binding State, Converter={StaticResource IncidentState}}" Width="140"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="DesignClassification" Binding="{Binding Confidence}" Width="130"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="Occurrences" Binding="{Binding Recurrences}" Width="75"/></DataGrid.Columns></DataGrid></Border>
      <Button Grid.Row="2" Content="{DynamicResource Loc.ExportIncident}" ToolTip="{DynamicResource Loc.SaveALocalJSONFileWithLimitedEvidence}" Click="ExportClick" HorizontalAlignment="Left" Margin="0,16,0,16"/>
-     <TextBox Grid.Row="3" x:Name="DetailText" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" BorderThickness="0" Padding="20" AutomationProperties.Name="{DynamicResource Loc.IncidentDetailsAndLimitedEvidence}" Text="{DynamicResource Loc.SelectAnIncidentToViewTheAvailableCodesTimesAndNumericEvidence}"/>
+     <TextBox Grid.Row="3" x:Name="DetailText" MinHeight="70" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" BorderThickness="0" Padding="20" AutomationProperties.Name="{DynamicResource Loc.IncidentDetailsAndLimitedEvidence}" Text="{DynamicResource Loc.SelectAnIncidentToViewTheAvailableCodesTimesAndNumericEvidence}"/>
     </Grid>
    </TabItem>
-   <TabItem AutomationProperties.Name="{DynamicResource Loc.Recommendations}"><TabItem.Header><TextBlock Text="{DynamicResource Loc.RecommendationsText0155}" Foreground="{StaticResource RailTextBrush}"/></TabItem.Header>
+   <TabItem AutomationProperties.Name="{DynamicResource Loc.Recommendations}"><TabItem.Header><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE945;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource RailTextBrush}" Width="24" VerticalAlignment="Center"/><TextBlock TextWrapping="Wrap" MaxWidth="126" Text="{DynamicResource Loc.Recommendations}" Foreground="{DynamicResource RailTextBrush}"/></StackPanel></TabItem.Header>
     <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="0,0,12,24"><TextBlock Text="{DynamicResource Loc.RecommendedSteps}" FontSize="28" FontWeight="SemiBold"/><TextBlock Text="{DynamicResource Loc.SuggestionsAreBasedOnMeasurementsEachIncludesTheReasonBenefitAndImpa}" Style="{StaticResource Caption}" Margin="0,6,0,20"/><StackPanel x:Name="RecommendationsPanel"/></StackPanel></ScrollViewer>
    </TabItem>
-   <TabItem AutomationProperties.Name="{DynamicResource Loc.Components}"><TabItem.Header><TextBlock Text="{DynamicResource Loc.ComponentsText0159}" Foreground="{StaticResource RailTextBrush}"/></TabItem.Header>
+   <TabItem AutomationProperties.Name="{DynamicResource Loc.Components}"><TabItem.Header><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE9D9;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource RailTextBrush}" Width="24" VerticalAlignment="Center"/><TextBlock TextWrapping="Wrap" MaxWidth="126" Text="{DynamicResource Loc.Components}" Foreground="{DynamicResource RailTextBrush}"/></StackPanel></TabItem.Header>
     <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="0,0,12,24"><TextBlock Text="{DynamicResource Loc.MonitoringStatus}" FontSize="28" FontWeight="SemiBold"/><TextBlock Text="{DynamicResource Loc.AvailabilityOfIndividualComponentsAndTheLatestSavedServiceStatuses}" Style="{StaticResource Caption}" Margin="0,6,0,20"/>
      <Border Style="{StaticResource Card}" Margin="0,0,0,16"><StackPanel><TextBlock Text="{DynamicResource Loc.AgentComponents}" Style="{StaticResource SectionTitle}"/><TextBlock x:Name="HealthEmptyText" Text="{DynamicResource Loc.ComponentStatusIsNotAvailableYet}" Style="{StaticResource Caption}" Margin="0,0,0,12"/><DataGrid x:Name="HealthGrid" Height="270" AutomationProperties.Name="{DynamicResource Loc.AgentComponentStatus}"><DataGrid.Columns><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="Component" Binding="{Binding Component, Converter={StaticResource TechnicalText}}" Width="*"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="HealthCode" Binding="{Binding Code, Converter={StaticResource TechnicalText}}" Width="*" MinWidth="180"/><DataGridTextColumn local:DesktopLocalization.HeaderKey="LimitedReasons" Binding="{Binding Reasons, Converter={StaticResource TelemetryExplanation}}" Width="2*"><DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextWrapping" Value="Wrap"/><Setter Property="ToolTip" Value="{Binding ReasonSummary}"/></Style></DataGridTextColumn.ElementStyle></DataGridTextColumn><DataGridCheckBoxColumn local:DesktopLocalization.HeaderKey="Limitations" Binding="{Binding Degraded}" Width="90"/></DataGrid.Columns></DataGrid></StackPanel></Border>
      <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="{DynamicResource Loc.MonitoredServices}" Style="{StaticResource SectionTitle}"/><TextBlock x:Name="ServicesEmptyText" Text="{DynamicResource Loc.ServiceStatusesAreNotAvailableYet}" Style="{StaticResource Caption}" Margin="0,0,0,12"/><DataGrid x:Name="ServicesGrid" Height="230" AutomationProperties.Name="{DynamicResource Loc.SavedServiceStatuses}"><DataGrid.Columns><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="Service" Binding="{Binding Name}" Width="2*"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="Status" Binding="{Binding State, Converter={StaticResource TechnicalText}}" Width="*"/></DataGrid.Columns></DataGrid></StackPanel></Border>
     </StackPanel></ScrollViewer>
    </TabItem>
-   <TabItem AutomationProperties.Name="{DynamicResource Loc.Maintenance}"><TabItem.Header><TextBlock Text="{DynamicResource Loc.MaintenanceText0173}" Foreground="{StaticResource RailTextBrush}"/></TabItem.Header>
+   <TabItem AutomationProperties.Name="{DynamicResource Loc.Maintenance}"><TabItem.Header><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource RailTextBrush}" Width="24" VerticalAlignment="Center"/><TextBlock TextWrapping="Wrap" MaxWidth="126" Text="{DynamicResource Loc.Maintenance}" Foreground="{DynamicResource RailTextBrush}"/></StackPanel></TabItem.Header>
     <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="0,0,12,24">
      <TextBlock Text="{DynamicResource Loc.MaintenanceUnderYourControl}" FontSize="28" FontWeight="SemiBold"/><TextBlock Text="{DynamicResource Loc.ASpecificTargetTraceableEvidenceAndYourApprovalBeforeEveryAction}" Style="{StaticResource Caption}" Margin="0,6,0,20"/>
      <Border Style="{StaticResource Card}" Margin="0,0,0,16"><StackPanel><TextBlock Text="{DynamicResource Loc.ManualAction}" Style="{StaticResource SectionTitle}"/>
-      <Border Background="{StaticResource WarningSurfaceBrush}" CornerRadius="6" Padding="12" Margin="0,0,0,16"><TextBlock x:Name="OperationHintText" Text="{DynamicResource Loc.ActionsAreNotAvailableYetWaitingForTheCurrentServiceMode}" Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap"/></Border>
+      <Border Background="{DynamicResource WarningSurfaceBrush}" CornerRadius="6" Padding="12" Margin="0,0,0,16"><TextBlock x:Name="OperationHintText" Text="{DynamicResource Loc.ActionsAreNotAvailableYetWaitingForTheCurrentServiceMode}" Foreground="{DynamicResource WarningBrush}" TextWrapping="Wrap"/></Border>
       <TextBlock Text="{DynamicResource Loc.AnAdministratorApprovalWindowWillOpenReviewTheExactTargetAndTypeTheC}" Style="{StaticResource Caption}" Margin="0,0,0,16"/>
+      <TextBlock Text="{Binding ElementName=IncidentsGrid, Path=SelectedItem.Code, Converter={StaticResource TechnicalText}}" TextWrapping="Wrap" FontWeight="SemiBold" Margin="0,0,0,12"/>
       <Label Content="{DynamicResource Loc.IncidentSelectInTheIncidentsSection}" Target="{Binding ElementName=OperationIncident}" Padding="0,0,0,4"/><TextBox x:Name="OperationIncident" IsReadOnly="True" Margin="0,0,0,12" AutomationProperties.Name="{DynamicResource Loc.SelectedIncident}"/>
+      <TextBlock Text="{DynamicResource Loc.DesignAliasHelp}" Style="{StaticResource Caption}" Margin="0,0,0,12"/>
       <Label Content="{DynamicResource Loc.RegisteredTargetAlias}" Target="{Binding ElementName=AliasInput}" Padding="0,0,0,4"/><TextBox x:Name="AliasInput" MaxLength="64" Margin="0,0,0,12" AutomationProperties.Name="{DynamicResource Loc.RegisteredTargetAlias}"/>
       <Label Content="{DynamicResource Loc.RequestedAction}" Target="{Binding ElementName=OperationChoice}" Padding="0,0,0,4"/><ComboBox x:Name="OperationChoice" SelectedIndex="0" Margin="0,0,0,12" AutomationProperties.Name="{DynamicResource Loc.RequestedAction}"><ComboBoxItem Content="{DynamicResource Loc.RestartService}" Tag="RestartService"/><ComboBoxItem Content="{DynamicResource Loc.StartService}" Tag="StartService"/><ComboBoxItem Content="{DynamicResource Loc.StopService}" Tag="StopService"/><ComboBoxItem Content="{DynamicResource Loc.EndProcess}" Tag="TerminateProcess"/></ComboBox>
+      <StackPanel x:Name="ProcessIdentityPanel">
       <TextBlock Text="{DynamicResource Loc.ForAProcessPIDAndUTCStartTimeInTicksSelectingItOnTheDashboardFillsTh}" Style="{StaticResource Caption}"/><Grid Margin="0,8,0,16"><Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBox x:Name="PidInput" AutomationProperties.Name="{DynamicResource Loc.ProcessPID}"/><TextBox x:Name="TicksInput" Grid.Column="2" AutomationProperties.Name="{DynamicResource Loc.ProcessStartTimeInUTCTicks}"/></Grid>
+      </StackPanel>
       <WrapPanel><Button x:Name="OperationButton" Style="{StaticResource PrimaryButton}" Content="{DynamicResource Loc.ReviewAction}" Click="OperationClick" IsEnabled="False"/><Button Content="{DynamicResource Loc.BlockAllRepairs}" Click="KillSwitchClick"/></WrapPanel>
       <Button Content="{DynamicResource Loc.CompareStatusAfterAction}" Click="CompareClick" HorizontalAlignment="Left" Margin="0,8,0,8"/><TextBlock x:Name="ComparisonText" Style="{StaticResource Caption}" AutomationProperties.LiveSetting="Polite"/>
      </StackPanel></Border>
@@ -153,8 +211,8 @@
     </StackPanel></ScrollViewer>
    </TabItem>
    <TabItem x:Name="WindowsAdministrationTab" AutomationProperties.Name="{DynamicResource Loc.WinAdminTitle}">
-    <TabItem.Header><TextBlock Text="{DynamicResource Loc.WinAdminTitle}" Foreground="{StaticResource RailTextBrush}"/></TabItem.Header>
-    <DockPanel Margin="0,0,0,16">
+    <TabItem.Header><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE770;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource RailTextBrush}" Width="24" VerticalAlignment="Center"/><TextBlock TextWrapping="Wrap" MaxWidth="126" Text="{DynamicResource Loc.WinAdminTitle}" Foreground="{DynamicResource RailTextBrush}"/></StackPanel></TabItem.Header>
+    <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="0,0,12,24">
      <StackPanel DockPanel.Dock="Top" Margin="0,0,12,12">
       <TextBlock Text="{DynamicResource Loc.WinAdminTitle}" FontSize="28" FontWeight="SemiBold"/>
       <TextBlock Text="{DynamicResource Loc.WinAdminIntro}" Style="{StaticResource Caption}" Margin="0,6,0,0"/>
@@ -166,13 +224,21 @@
         <ComboBoxItem Tag="Network" Content="{DynamicResource Loc.WinGroupNetwork}"/>
         <ComboBoxItem Tag="Events" Content="{DynamicResource Loc.WinToolEventViewer}"/>
        </ComboBox>
-       <TextBox x:Name="WindowsInventorySearch" TextChanged="WindowsInventorySearchChanged" MinWidth="155" MaxLength="160" Margin="0,0,8,8" ToolTip="{DynamicResource Loc.WinInventoryFilter}" AutomationProperties.Name="{DynamicResource Loc.WinInventoryFilter}"/>
+       <StackPanel Margin="0,0,8,8"><Label Content="{DynamicResource Loc.WinInventoryFilter}" Target="{Binding ElementName=WindowsInventorySearch}" Padding="0,0,0,4"/><TextBox x:Name="WindowsInventorySearch" TextChanged="WindowsInventorySearchChanged" MinWidth="155" MaxLength="160" Margin="0,0,8,8" ToolTip="{DynamicResource Loc.WinInventoryFilter}" AutomationProperties.Name="{DynamicResource Loc.WinInventoryFilter}"/></StackPanel>
        <Button Content="{DynamicResource Loc.Refresh}" Click="WindowsInventoryRefresh"/>
        <Button Content="{DynamicResource Loc.WinDiagnosisCrashes}" Click="InvestigateClick"/>
        <Button Content="{DynamicResource Loc.TemporaryFileMaintenance}" Click="MaintenanceClick"/>
       </WrapPanel>
       <TextBlock x:Name="WindowsToolStatus" Style="{StaticResource Caption}" Margin="0,6,0,0" AutomationProperties.LiveSetting="Polite"/>
      </StackPanel>
+     <DataGrid x:Name="WindowsInventoryGrid" Height="300" EnableRowVirtualization="True" AutomationProperties.Name="{DynamicResource Loc.WinInventoryArea}">
+      <DataGrid.Columns>
+       <DataGridTextColumn local:DesktopLocalization.HeaderKey="Name" Binding="{Binding Name}" ElementStyle="{StaticResource GridText}" Width="2*"/>
+       <DataGridTextColumn local:DesktopLocalization.HeaderKey="WinInventoryDetail" Binding="{Binding Detail}" ElementStyle="{StaticResource GridText}" Width="2*"/>
+       <DataGridTextColumn local:DesktopLocalization.HeaderKey="Status" Binding="{Binding State}" ElementStyle="{StaticResource GridText}" Width="*"/>
+       <DataGridTextColumn local:DesktopLocalization.HeaderKey="WinInventoryValue" Binding="{Binding Value}" ElementStyle="{StaticResource GridText}" Width="2*"/>
+      </DataGrid.Columns>
+     </DataGrid>
      <Expander DockPanel.Dock="Bottom" Header="{DynamicResource Loc.WinDiagnosisTitle}" IsExpanded="True" Margin="0,8,0,0">
       <StackPanel>
        <ScrollViewer MaxHeight="110" VerticalScrollBarVisibility="Auto">
@@ -186,15 +252,7 @@
        <TextBlock x:Name="WindowsActionStatus" Style="{StaticResource Caption}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
       </StackPanel>
      </Expander>
-     <DataGrid x:Name="WindowsInventoryGrid" EnableRowVirtualization="True" AutomationProperties.Name="{DynamicResource Loc.WinInventoryArea}">
-      <DataGrid.Columns>
-       <DataGridTextColumn local:DesktopLocalization.HeaderKey="Name" Binding="{Binding Name}" ElementStyle="{StaticResource GridText}" Width="2*"/>
-       <DataGridTextColumn local:DesktopLocalization.HeaderKey="WinInventoryDetail" Binding="{Binding Detail}" ElementStyle="{StaticResource GridText}" Width="2*"/>
-       <DataGridTextColumn local:DesktopLocalization.HeaderKey="Status" Binding="{Binding State}" ElementStyle="{StaticResource GridText}" Width="*"/>
-       <DataGridTextColumn local:DesktopLocalization.HeaderKey="WinInventoryValue" Binding="{Binding Value}" ElementStyle="{StaticResource GridText}" Width="2*"/>
-      </DataGrid.Columns>
-     </DataGrid>
-    </DockPanel>
+    </StackPanel></ScrollViewer>
    </TabItem>
   </TabControl>
  </Grid>

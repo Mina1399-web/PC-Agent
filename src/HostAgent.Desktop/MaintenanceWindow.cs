@@ -33,6 +33,7 @@ internal sealed class MaintenanceWindow : Window
     private bool _measuredAfterAction;
     private MaintenancePreview? _preview;
     private readonly DesktopLocalization _language;
+    private readonly Func<bool> _developerMode;
     private readonly System.Collections.Generic.List<(DataGridColumn Column,string Source)> _columns=[];
     private Func<string>? _statusText, _previewText;
     private bool _actionInProgress;
@@ -42,9 +43,12 @@ internal sealed class MaintenanceWindow : Window
 
     internal MaintenanceWindow(DashboardController controller) : this(controller, null) { }
 
-    internal MaintenanceWindow(DashboardController controller, UserMaintenance? maintenance, DesktopLocalization? language=null, string? targetDrive=null)
+    internal MaintenanceWindow(DashboardController controller, UserMaintenance? maintenance, DesktopLocalization? language=null,
+        string? targetDrive=null, Func<bool>? developerMode=null)
     {
         _language=language??DesktopLocalization.ForCurrentUser();
+        _developerMode=developerMode??(()=>true);
+        if(!_developerMode())throw new UnauthorizedAccessException("developer_mode_required");
         NameScope.SetNameScope(this, new NameScope());
         _controller = controller;
         _targetDrive = targetDrive;
@@ -69,12 +73,14 @@ internal sealed class MaintenanceWindow : Window
         RegisterName("MaintenancePreviewInfo", _previewInfo);
 
         var content = new StackPanel { Margin = new Thickness(22) };
+        content.Children.Add(new TextBlock { Text = "DeveloperModeActiveCloseToReturn", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 12) });
         var chooseFolder = new Button { Content = "ChooseMaintenanceFolder", HorizontalAlignment = HorizontalAlignment.Left };
         RegisterName("MaintenanceFolderButton", chooseFolder);
         chooseFolder.Click += async (_, _) => await RunActionAsync(async () =>
         {
             var dialog = new Microsoft.Win32.OpenFolderDialog { Multiselect = false };
             if (dialog.ShowDialog(this) != true) return;
+            if(!EnsureDeveloperMode())return;
             try
             {
                 _maintenance = UserMaintenance.CreateForSelectedDirectory(dialog.FolderName, ReadFreshStateAsync);
@@ -125,6 +131,7 @@ internal sealed class MaintenanceWindow : Window
         RegisterName("MaintenanceDeleteButton", deleteButton);
         deleteButton.Click += async (_, _) => await RunActionAsync(async () =>
         {
+            if(!EnsureDeveloperMode())return;
             if (_entriesGrid.SelectedItem is not QuarantineItem item) { SetStatus(() => T("SelectAnItemInQuarantine")); return; }
             try
             {
@@ -161,12 +168,22 @@ internal sealed class MaintenanceWindow : Window
     }
     private async Task RunActionAsync(Func<Task> action)
     {
+        if(!EnsureDeveloperMode())return;
         if (_actionInProgress) return;
         _actionInProgress = true;
         var content = Content as UIElement;
         if (content is not null) content.IsEnabled = false;
         try { await action(); }
         finally { _actionInProgress = false; if (content is not null) content.IsEnabled = true; }
+    }
+
+    private bool EnsureDeveloperMode()
+    {
+        if(_developerMode())return true;
+        _preview=null;_previewGrid.ItemsSource=null;_previewInfo.Text="";_previewText=null;
+        _confirmation.Clear();_restoreConfirmation.Clear();_deleteConfirmation.Clear();
+        SetStatus(()=>T("DeveloperModeRequired"));
+        return false;
     }
 
     private void LanguageChanged(object? sender,EventArgs e)
@@ -183,12 +200,14 @@ internal sealed class MaintenanceWindow : Window
 
     private async ValueTask<DashboardSnapshot?> ReadFreshStateAsync(CancellationToken token)
     {
+        if(!EnsureDeveloperMode())return null;
         await _controller.RefreshAsync(token);
         return _controller.Snapshot;
     }
 
     private async Task PreviewAsync()
     {
+        if(!EnsureDeveloperMode())return;
         try
         {
             _preview = await _maintenance.PreviewAsync(_closing.Token);
@@ -205,6 +224,7 @@ internal sealed class MaintenanceWindow : Window
 
     private async Task QuarantineAsync()
     {
+        if(!EnsureDeveloperMode())return;
         if (_preview is null) { SetStatus(() => T("FirstCreateACurrentPreview")); return; }
         try
         {
@@ -221,6 +241,7 @@ internal sealed class MaintenanceWindow : Window
 
     private async Task RefreshListAsync()
     {
+        if(!EnsureDeveloperMode())return;
         try
         {
             var selected = (_entriesGrid.SelectedItem as QuarantineItem)?.Id;
@@ -234,6 +255,7 @@ internal sealed class MaintenanceWindow : Window
 
     private async Task RestoreAsync()
     {
+        if(!EnsureDeveloperMode())return;
         if (_entriesGrid.SelectedItem is not QuarantineItem item) { SetStatus(() => T("SelectAnItemInQuarantine")); return; }
         try
         {

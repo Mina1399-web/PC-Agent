@@ -113,7 +113,7 @@
     <comment>Source (cs-CZ): V posledních uložených záznamech nejsou incidenty.</comment>
   </data>
   <data xml:space="preserve" name="ShowingTheLatestRecordsDiagnosticConfidenceDoesNotGuaranteeASuccessf">
-    <value>Showing the {0} latest records. Diagnostic confidence does not guarantee a successful repair.</value>
+    <value>Showing the latest {0} records. The score is a rule output, not a validated probability or repair guarantee.</value>
     <comment>Source (cs-CZ): Zobrazeno {0} posledních záznamů. Jistota diagnózy neznamená záruku úspěšné opravy.</comment>
   </data>
   <data xml:space="preserve" name="TheCurrentEvidenceDoesNotCallForANewRecommendationMissingMeasurement">
@@ -153,18 +153,18 @@
     <comment>Source (cs-CZ): Detail není dostupný.</comment>
   </data>
   <data xml:space="preserve" name="ConfidenceRefersToTheStopCodeClassificationItDoesNotIdentifyAFaultyD">
-    <value>Confidence refers to the stop code classification. It does not identify a faulty driver.</value>
+    <value>The score classifies the stop code; it does not identify a faulty driver.</value>
     <comment>Source (cs-CZ): Confidence určuje klasifikaci stop kódu. Neurčuje vadný ovladač.</comment>
   </data>
   <data xml:space="preserve" name="ConfidenceIsAnEstimateOfTheLikelyCauseNotAGuaranteeOfTheCorrectRepai">
-    <value>Confidence is an estimate of the likely cause, not a guarantee of the correct repair.</value>
+    <value>The score is a diagnostic rule output, not a validated probability of the cause or a repair guarantee.</value>
     <comment>Source (cs-CZ): Confidence je odhad pravděpodobné příčiny, nikoli záruka správné opravy.</comment>
   </data>
   <data xml:space="preserve" name="IncidentCodeStatusConfidence">
     <value>Incident: {0}
 Code: {1}
 Status: {2}
-Confidence: {3} %
+Rule score: {3} / 100
 </value>
     <comment>Source (cs-CZ): Incident: {0}
 Kód: {1}
@@ -643,7 +643,7 @@ Graf se zobrazí po získání uložených měření.</comment>
     <comment>Source (cs-CZ): Stav</comment>
   </data>
   <data xml:space="preserve" name="Confidence">
-    <value>Confidence %</value>
+    <value>Score / 100</value>
     <comment>Source (cs-CZ): Jistota %</comment>
   </data>
   <data xml:space="preserve" name="Occurrences">
@@ -923,7 +923,7 @@ Graf se zobrazí po získání uložených měření.</comment>
     <comment>Source (cs-CZ): Prověřit příčinu pádu Windows</comment>
   </data>
   <data xml:space="preserve" name="CodeConfidenceRefersToTheStopCodeClassificationNotTheIdentificationO">
-    <value>Code {0}; confidence {1} % refers to the stop code classification, not the identification of a faulty driver.</value>
+    <value>Code {0}; rule score {1} / 100 classifies the stop code, not a faulty driver.</value>
     <comment>Source (cs-CZ): Kód {0}; confidence {1} % je klasifikace stop kódu, nikoli určení vadného ovladače.</comment>
   </data>
   <data xml:space="preserve" name="ComparingWEREventsWithTheDumpMayHelpNarrowDownTheCauseOfTheCrash">
@@ -951,7 +951,7 @@ Graf se zobrazí po získání uložených měření.</comment>
     <comment>Source (cs-CZ): Volné místo {0:0.#} % ({1} B).</comment>
   </data>
   <data xml:space="preserve" name="FreeingUpSpaceMayHelpAppsAndUpdatesAnEstimateOfTheSpeedImprovementIs">
-    <value>Freeing up space may help apps and updates. An estimate of the speed improvement is unavailable.</value>
+    <value>Quarantine is reversible storage on the same drive; it frees no space. Only separately confirmed permanent deletion can free space.</value>
     <comment>Source (cs-CZ): Uvolnění místa může pomoci aplikacím a aktualizacím. Odhad zrychlení není k dispozici.</comment>
   </data>
   <data xml:space="preserve" name="StorageSettingsWillShowCandidatesReviewEverySelectionForDeletionPers">
@@ -1464,4 +1464,43 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="NetworkFindingExternal" xml:space="preserve"><value>The gateway responds, but the external IP check failed. Check the router’s internet connection and possible ICMP filtering.</value></data>
   <data name="NetworkFindingHealthy" xml:space="preserve"><value>All three checks passed at the time of measurement.</value></data>
   <data name="NetworkFindingUnknown" xml:space="preserve"><value>The available results do not locate a fault. Check the adapter and repeat the measurement.</value></data>
+  <data name="DesignLightTheme" xml:space="preserve"><value>Light mode</value></data>
+  <data name="DesignDarkTheme" xml:space="preserve"><value>Dark mode</value></data>
+  <data name="DesignTheme" xml:space="preserve"><value>Change appearance</value></data>
+  <data name="DesignThemeSession" xml:space="preserve"><value>Appearance for this window. No monitoring settings change.</value></data>
+  <data name="DesignAttention" xml:space="preserve"><value>Where to look next</value></data>
+  <data name="DesignEvidenceUnavailable" xml:space="preserve"><value>Current evidence is unavailable.</value></data>
+  <data name="DesignRefreshFirst" xml:space="preserve"><value>Choose Refresh to reconnect to the local service.</value></data>
+  <data name="DesignNoOpenEvidence" xml:space="preserve"><value>No unresolved incident in the latest retained records. This is not a complete health check.</value></data>
+  <data name="DesignRecordedIncident" xml:space="preserve"><value>Recorded event: {0} · {1}
+{2:g} UTC · {3} min ago</value></data>
+  <data name="DesignReviewRecordedEvidence" xml:space="preserve"><value>First open Incidents and review the evidence. A retained event does not prove a fault is happening now.</value></data>
+  <data name="DesignReviewRecommendations" xml:space="preserve"><value>Open Recommendations for steps supported by the available measurements.</value></data>
+  <data name="DesignLowDisk" xml:space="preserve"><value>Disk {0}: only {1:0.#}% free. Updates may lack space. Open Recommendations before choosing files.</value></data>
+  <data name="DesignWindowsCrash" xml:space="preserve"><value>Windows crash</value></data>
+  <data name="DesignWindowsCrashIrql" xml:space="preserve"><value>Windows crash: invalid kernel memory access</value></data>
+  <data name="DesignMemoryPressure" xml:space="preserve"><value>Low available memory</value></data>
+  <data name="DesignCpuLoad" xml:space="preserve"><value>Sustained CPU load</value></data>
+  <data name="DesignProcessCpuLoad" xml:space="preserve"><value>High process CPU load</value></data>
+  <data name="DesignDiskCapacity" xml:space="preserve"><value>Low disk space</value></data>
+  <data name="DesignGatewayFailure" xml:space="preserve"><value>Gateway unreachable</value></data>
+  <data name="DesignDnsFailure" xml:space="preserve"><value>Name resolution failed</value></data>
+  <data name="DesignInternetFailure" xml:space="preserve"><value>Internet connectivity problem</value></data>
+  <data name="DesignServiceStopped" xml:space="preserve"><value>Service stopped; cause unconfirmed</value></data>
+  <data name="DesignServiceCrash" xml:space="preserve"><value>Unexpected service termination</value></data>
+  <data name="DesignMetricDeviation" xml:space="preserve"><value>Measurement differs from baseline</value></data>
+  <data name="DesignCritical" xml:space="preserve"><value>Critical</value></data>
+  <data name="DesignHigh" xml:space="preserve"><value>High</value></data>
+  <data name="DesignWarning" xml:space="preserve"><value>Warning</value></data>
+  <data name="DesignInfo" xml:space="preserve"><value>Information</value></data>
+  <data name="DesignSeverity" xml:space="preserve"><value>Severity</value></data>
+  <data name="DesignClassification" xml:space="preserve"><value>Score / 100</value></data>
+  <data name="DesignAliasHelp" xml:space="preserve"><value>Advanced: use only an alias registered by your administrator. If you do not have one, use the read-only evidence and recommendations; do not guess a service name.</value></data>
+  <data name="EnableDeveloperMode" xml:space="preserve"><value>Enable developer mode</value></data>
+  <data name="ReturnToStandardMode" xml:space="preserve"><value>Developer mode · return to Standard</value></data>
+  <data name="DeveloperModeConsent" xml:space="preserve"><value>Developer mode opens deeper Windows inventory, service and network diagnostics, and guided maintenance. It does not grant administrator rights or change service safety policy. Every supported repair still requires its own exact review and approval. Continue?</value></data>
+  <data name="DeveloperModeRequired" xml:space="preserve"><value>This screen or action is available in Developer mode. Use the mode button in the header to enable it.</value></data>
+  <data name="ModeChangeBlockedWhileActionRuns" xml:space="preserve"><value>The current action or maintenance window is still open. Wait for its result and close that window before changing modes.</value></data>
+  <data name="ModePreferenceSaveFailed" xml:space="preserve"><value>The interface mode could not be saved. The current mode remains active.</value></data>
+  <data name="DeveloperModeActiveCloseToReturn" xml:space="preserve"><value>Developer mode is active. Close this maintenance window, then use the header button to return to Standard.</value></data>
 </root>

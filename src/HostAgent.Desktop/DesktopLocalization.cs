@@ -47,6 +47,10 @@ public sealed class DesktopLocalization
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
+    public DesktopMode ReadDesktopMode() => _preferences.ReadDesktopMode();
+
+    public void SaveDesktopMode(DesktopMode mode) => _preferences.SaveDesktopMode(mode);
+
     public string Text(string key, params object?[] arguments) => Text(Culture, key, arguments);
     public static string Text(CultureInfo culture, string key, params object?[] arguments)
     {

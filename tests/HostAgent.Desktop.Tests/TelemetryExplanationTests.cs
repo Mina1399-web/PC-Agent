@@ -6,6 +6,19 @@ namespace HostAgent.Desktop.Tests;
 
 public sealed class TelemetryExplanationTests
 {
+    [Theory]
+    [InlineData("cs-CZ", "Pád Windows", "Nedostatek volné paměti")]
+    [InlineData("en", "Windows crash", "Low available memory")]
+    [InlineData("de", "Windows-Absturz", "Wenig verfügbarer Arbeitsspeicher")]
+    public void Incident_names_are_human_readable_and_preserve_unknown_codes(string language, string crash, string memory)
+    {
+        var culture=CultureInfo.GetCultureInfo(language);
+        Assert.Equal(crash,TechnicalText.Format("windows_bugcheck",culture));
+        Assert.Equal(memory,TechnicalText.Format("memory_pressure",culture));
+        Assert.Contains("windows_bugcheck",TechnicalText.Format("windows_bugcheck",culture,true));
+        Assert.Contains("future_incident_code",TechnicalText.Format("future_incident_code",culture));
+    }
+
     private static string Explain(object reasons) => (string)new TelemetryExplanationConverter()
         .Convert(reasons, typeof(string), null!, CultureInfo.GetCultureInfo("cs-CZ"));
 

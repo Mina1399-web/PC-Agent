@@ -113,7 +113,7 @@
     <comment>Source (cs-CZ): V posledních uložených záznamech nejsou incidenty.</comment>
   </data>
   <data xml:space="preserve" name="ShowingTheLatestRecordsDiagnosticConfidenceDoesNotGuaranteeASuccessf">
-    <value>Zobrazeno {0} posledních záznamů. Jistota diagnózy neznamená záruku úspěšné opravy.</value>
+    <value>Zobrazeno {0} posledních záznamů. Skóre je výstup pravidla, nikoli ověřená pravděpodobnost ani záruka opravy.</value>
     <comment>Source (cs-CZ): Zobrazeno {0} posledních záznamů. Jistota diagnózy neznamená záruku úspěšné opravy.</comment>
   </data>
   <data xml:space="preserve" name="TheCurrentEvidenceDoesNotCallForANewRecommendationMissingMeasurement">
@@ -153,18 +153,18 @@
     <comment>Source (cs-CZ): Detail není dostupný.</comment>
   </data>
   <data xml:space="preserve" name="ConfidenceRefersToTheStopCodeClassificationItDoesNotIdentifyAFaultyD">
-    <value>Jistota určuje klasifikaci stop kódu. Neurčuje vadný ovladač.</value>
+    <value>Skóre slouží ke klasifikaci stop kódu; neurčuje vadný ovladač.</value>
     <comment>Source (cs-CZ): Confidence určuje klasifikaci stop kódu. Neurčuje vadný ovladač.</comment>
   </data>
   <data xml:space="preserve" name="ConfidenceIsAnEstimateOfTheLikelyCauseNotAGuaranteeOfTheCorrectRepai">
-    <value>Jistota je odhad pravděpodobné příčiny, nikoli záruka správné opravy.</value>
+    <value>Skóre je výstup diagnostického pravidla, nikoli ověřená pravděpodobnost příčiny ani záruka opravy.</value>
     <comment>Source (cs-CZ): Confidence je odhad pravděpodobné příčiny, nikoli záruka správné opravy.</comment>
   </data>
   <data xml:space="preserve" name="IncidentCodeStatusConfidence">
     <value>Incident: {0}
 Kód: {1}
 Stav: {2}
-Jistota: {3} %
+Skóre pravidla: {3} / 100
 </value>
     <comment>Source (cs-CZ): Incident: {0}
 Kód: {1}
@@ -643,7 +643,7 @@ Graf se zobrazí po získání uložených měření.</comment>
     <comment>Source (cs-CZ): Stav</comment>
   </data>
   <data xml:space="preserve" name="Confidence">
-    <value>Jistota %</value>
+    <value>Skóre / 100</value>
     <comment>Source (cs-CZ): Jistota %</comment>
   </data>
   <data xml:space="preserve" name="Occurrences">
@@ -923,7 +923,7 @@ Graf se zobrazí po získání uložených měření.</comment>
     <comment>Source (cs-CZ): Prověřit příčinu pádu Windows</comment>
   </data>
   <data xml:space="preserve" name="CodeConfidenceRefersToTheStopCodeClassificationNotTheIdentificationO">
-    <value>Kód {0}; jistota {1} % je klasifikace stop kódu, nikoli určení vadného ovladače.</value>
+    <value>Kód {0}; skóre pravidla {1} / 100 klasifikuje stop kód, nikoli vadný ovladač.</value>
     <comment>Source (cs-CZ): Kód {0}; confidence {1} % je klasifikace stop kódu, nikoli určení vadného ovladače.</comment>
   </data>
   <data xml:space="preserve" name="ComparingWEREventsWithTheDumpMayHelpNarrowDownTheCauseOfTheCrash">
@@ -951,7 +951,7 @@ Graf se zobrazí po získání uložených měření.</comment>
     <comment>Source (cs-CZ): Volné místo {0:0.#} % ({1} B).</comment>
   </data>
   <data xml:space="preserve" name="FreeingUpSpaceMayHelpAppsAndUpdatesAnEstimateOfTheSpeedImprovementIs">
-    <value>Uvolnění místa může pomoci aplikacím a aktualizacím. Odhad zrychlení není k dispozici.</value>
+    <value>Karanténa je vratné odložení na stejném disku; místo neuvolní. Prostor může uvolnit až zvlášť potvrzené trvalé smazání.</value>
     <comment>Source (cs-CZ): Uvolnění místa může pomoci aplikacím a aktualizacím. Odhad zrychlení není k dispozici.</comment>
   </data>
   <data xml:space="preserve" name="StorageSettingsWillShowCandidatesReviewEverySelectionForDeletionPers">
@@ -1464,4 +1464,43 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="NetworkFindingExternal" xml:space="preserve"><value>Brána odpovídá, ale kontrola vnější IP selhala. Prověřte připojení routeru k internetu a případné blokování ICMP.</value></data>
   <data name="NetworkFindingHealthy" xml:space="preserve"><value>Všechny tři kontroly v době měření prošly.</value></data>
   <data name="NetworkFindingUnknown" xml:space="preserve"><value>Dostupné výsledky neurčují místo závady. Zkontrolujte adaptér a zopakujte měření.</value></data>
+  <data name="DesignLightTheme" xml:space="preserve"><value>Světlý motiv</value></data>
+  <data name="DesignDarkTheme" xml:space="preserve"><value>Tmavý motiv</value></data>
+  <data name="DesignTheme" xml:space="preserve"><value>Změnit vzhled</value></data>
+  <data name="DesignThemeSession" xml:space="preserve"><value>Vzhled tohoto okna. Nastavení monitorování se nemění.</value></data>
+  <data name="DesignAttention" xml:space="preserve"><value>Čemu věnovat pozornost</value></data>
+  <data name="DesignEvidenceUnavailable" xml:space="preserve"><value>Aktuální podklady nejsou dostupné.</value></data>
+  <data name="DesignRefreshFirst" xml:space="preserve"><value>Obnovte spojení s místní službou tlačítkem Obnovit.</value></data>
+  <data name="DesignNoOpenEvidence" xml:space="preserve"><value>V posledních uložených záznamech není nevyřešený incident. Nejde o úplnou kontrolu počítače.</value></data>
+  <data name="DesignRecordedIncident" xml:space="preserve"><value>Doložená událost: {0} · {1}
+{2:g} UTC · před {3} min</value></data>
+  <data name="DesignReviewRecordedEvidence" xml:space="preserve"><value>Nejdřív otevřete Incidenty a prohlédněte důkazy. Uložená událost neprokazuje, že problém právě trvá.</value></data>
+  <data name="DesignReviewRecommendations" xml:space="preserve"><value>V Doporučeních najdete kroky podložené dostupnými měřeními.</value></data>
+  <data name="DesignLowDisk" xml:space="preserve"><value>Disk {0}: jen {1:0.#} % volného místa. Aktualizacím může chybět prostor. Nejdřív otevřete Doporučení.</value></data>
+  <data name="DesignWindowsCrash" xml:space="preserve"><value>Pád Windows</value></data>
+  <data name="DesignWindowsCrashIrql" xml:space="preserve"><value>Pád Windows: neplatný přístup do paměti jádra</value></data>
+  <data name="DesignMemoryPressure" xml:space="preserve"><value>Nedostatek volné paměti</value></data>
+  <data name="DesignCpuLoad" xml:space="preserve"><value>Dlouhodobé vytížení procesoru</value></data>
+  <data name="DesignProcessCpuLoad" xml:space="preserve"><value>Vysoké vytížení procesorem aplikace</value></data>
+  <data name="DesignDiskCapacity" xml:space="preserve"><value>Nedostatek místa na disku</value></data>
+  <data name="DesignGatewayFailure" xml:space="preserve"><value>Síťová brána není dostupná</value></data>
+  <data name="DesignDnsFailure" xml:space="preserve"><value>Selhalo překládání síťových názvů</value></data>
+  <data name="DesignInternetFailure" xml:space="preserve"><value>Problém s připojením k internetu</value></data>
+  <data name="DesignServiceStopped" xml:space="preserve"><value>Služba se zastavila; příčina nepotvrzená</value></data>
+  <data name="DesignServiceCrash" xml:space="preserve"><value>Neočekávané ukončení služby</value></data>
+  <data name="DesignMetricDeviation" xml:space="preserve"><value>Měření se odchyluje od obvyklého stavu</value></data>
+  <data name="DesignCritical" xml:space="preserve"><value>Kritická</value></data>
+  <data name="DesignHigh" xml:space="preserve"><value>Vysoká</value></data>
+  <data name="DesignWarning" xml:space="preserve"><value>Varování</value></data>
+  <data name="DesignInfo" xml:space="preserve"><value>Informace</value></data>
+  <data name="DesignSeverity" xml:space="preserve"><value>Závažnost</value></data>
+  <data name="DesignClassification" xml:space="preserve"><value>Skóre / 100</value></data>
+  <data name="DesignAliasHelp" xml:space="preserve"><value>Pokročilé: použijte pouze alias zaregistrovaný správcem. Pokud jej nemáte, využijte důkazy a doporučení pouze pro čtení; název služby nehádejte.</value></data>
+  <data name="EnableDeveloperMode" xml:space="preserve"><value>Zapnout vývojářský režim</value></data>
+  <data name="ReturnToStandardMode" xml:space="preserve"><value>Vývojářský režim · zpět na standardní</value></data>
+  <data name="DeveloperModeConsent" xml:space="preserve"><value>Vývojářský režim zpřístupní podrobnější přehled Windows, diagnostiku služeb a sítě a řízenou údržbu. Neuděluje práva správce ani nemění bezpečnostní zásady služby. Každá podporovaná oprava stále vyžaduje vlastní přesnou kontrolu a schválení. Pokračovat?</value></data>
+  <data name="DeveloperModeRequired" xml:space="preserve"><value>Tato obrazovka nebo akce je dostupná ve vývojářském režimu. Zapněte jej tlačítkem v záhlaví.</value></data>
+  <data name="ModeChangeBlockedWhileActionRuns" xml:space="preserve"><value>Probíhá akce nebo je otevřené okno údržby. Před změnou režimu počkejte na výsledek a zavřete toto okno.</value></data>
+  <data name="ModePreferenceSaveFailed" xml:space="preserve"><value>Režim rozhraní se nepodařilo uložit. Dosavadní režim zůstává aktivní.</value></data>
+  <data name="DeveloperModeActiveCloseToReturn" xml:space="preserve"><value>Vývojářský režim je aktivní. Zavřete toto okno údržby a tlačítkem v záhlaví se vraťte ke standardnímu režimu.</value></data>
 </root>

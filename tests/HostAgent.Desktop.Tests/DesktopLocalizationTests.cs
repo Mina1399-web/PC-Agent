@@ -46,6 +46,32 @@ public sealed class DesktopLocalizationTests
     }
 
     [Fact]
+    public void Desktop_mode_is_user_scoped_persists_and_defaults_to_standard()
+    {
+        using var fixture=new PreferencesFixture();
+        var first=fixture.Preferences;
+        Assert.Equal(DesktopMode.Standard,first.ReadDesktopMode());
+        first.SaveLanguage("de");
+        first.SaveDesktopMode(DesktopMode.Developer);
+        var restarted=new DesktopPreferences(fixture.Path);
+        Assert.Equal(DesktopMode.Developer,restarted.ReadDesktopMode());
+        Assert.Equal("de",restarted.ReadLanguage());
+        restarted.SaveDesktopMode(DesktopMode.Standard);
+        Assert.Equal(DesktopMode.Standard,new DesktopPreferences(fixture.Path).ReadDesktopMode());
+        Assert.Throws<ArgumentOutOfRangeException>(()=>restarted.SaveDesktopMode((DesktopMode)99));
+    }
+
+    [Fact]
+    public void Unknown_or_malformed_desktop_mode_fails_closed_to_standard()
+    {
+        using var fixture=new PreferencesFixture();
+        File.WriteAllText(fixture.Path,"{\"desktopMode\":\"Unrestricted\"}");
+        Assert.Equal(DesktopMode.Standard,fixture.Preferences.ReadDesktopMode());
+        File.WriteAllText(fixture.Path,"{broken");
+        Assert.ThrowsAny<JsonException>(()=>fixture.Preferences.ReadDesktopMode());
+    }
+
+    [Fact]
     public void Failed_save_does_not_switch_or_notify_and_damaged_settings_are_preserved()
     {
         var language=new DesktopLocalization(new UnwritablePreferences(),CultureInfo.GetCultureInfo("cs-CZ"));
@@ -128,6 +154,8 @@ public sealed class DesktopLocalizationTests
     {
         public string? ReadLanguage()=>null;
         public void SaveLanguage(string language)=>throw new IOException("synthetic_readonly_fixture");
+        public DesktopMode ReadDesktopMode()=>DesktopMode.Standard;
+        public void SaveDesktopMode(DesktopMode mode)=>throw new IOException("synthetic_readonly_fixture");
     }
     internal sealed class PreferencesFixture:IDisposable
     {
@@ -141,10 +169,14 @@ public sealed class DesktopLocalizationTests
 
 internal static class TestLocalization
 {
-    internal static DesktopLocalization Czech()=>new(new MemoryPreferences(),CultureInfo.GetCultureInfo("cs-CZ"));
-    private sealed class MemoryPreferences:IDesktopPreferences
+    internal static DesktopLocalization Czech()=>new(new MemoryPreferences(DesktopMode.Developer),CultureInfo.GetCultureInfo("cs-CZ"));
+    internal static DesktopLocalization CzechStandard()=>new(new MemoryPreferences(DesktopMode.Standard),CultureInfo.GetCultureInfo("cs-CZ"));
+    private sealed class MemoryPreferences(DesktopMode initialMode):IDesktopPreferences
     {
+        public DesktopMode Mode {get;private set;}=initialMode;
         public string? ReadLanguage()=>null;
         public void SaveLanguage(string language){}
+        public DesktopMode ReadDesktopMode()=>Mode;
+        public void SaveDesktopMode(DesktopMode mode)=>Mode=mode;
     }
 }
