@@ -17,11 +17,14 @@ public sealed class DesktopModePolicyTests
     public void Mode_can_change_when_no_action_is_in_flight()
         =>Assert.True(DesktopModePolicy.CanChangeMode(false,false,false));
 
-    [Theory]
-    [InlineData(4)]
-    [InlineData(5)]
-    public void Maintenance_and_windows_administration_are_developer_tabs(int index)
-        =>Assert.True(DesktopModePolicy.IsDeveloperTab(index));
+    [Fact]
+    public void Maintenance_is_developer_only_but_windows_inventory_is_readable_in_standard_mode()
+    {
+        Assert.True(DesktopModePolicy.IsDeveloperTab(4));
+        Assert.False(DesktopModePolicy.IsDeveloperTab(5));
+        Assert.False(DesktopModePolicy.CanNavigateTo(4,DesktopMode.Standard));
+        Assert.True(DesktopModePolicy.CanNavigateTo(5,DesktopMode.Standard));
+    }
 
     [Theory]
     [InlineData(0)]

@@ -54,7 +54,10 @@ internal sealed class MaintenanceWindow : Window
         _targetDrive = targetDrive;
         _maintenance = maintenance ?? UserMaintenance.CreateForCurrentUser(ReadFreshStateAsync);
         Title = "HostAgentSafeMaintenance";
-        Width = 960; Height = 800; MinWidth = 760; MinHeight = 640;
+        var workArea=SystemParameters.WorkArea;
+        Width=Math.Min(1320,workArea.Width*.92);Height=Math.Min(920,workArea.Height*.90);
+        MinWidth=Math.Min(760,Width);MinHeight=Math.Min(620,Height);
+        FontFamily=new System.Windows.Media.FontFamily("Segoe UI");FontSize=16;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
         AddTextColumn(_previewGrid, "Name", nameof(MaintenanceItem.Name), 290);
@@ -275,7 +278,7 @@ internal sealed class MaintenanceWindow : Window
         if(property==nameof(MaintenanceItem.Bytes))binding.Converter=new ByteSizeConverter();
         if(property==nameof(QuarantineItem.State))binding.Converter=new TechnicalTextConverter();
         if(grid==_entriesGrid&&property==nameof(QuarantineItem.Name)){binding=new Binding{Converter=new MaintenanceNameConverter()};}
-        var column=new DataGridTextColumn{Header=title=="SHA-256"?title:T(title),Binding=binding,Width=new DataGridLength(width)};
+        var column=new DataGridTextColumn{Header=title=="SHA-256"?title:T(title),Binding=binding,Width=new DataGridLength(width,DataGridLengthUnitType.Star)};
         _columns.Add((column,title));grid.Columns.Add(column);
     }
 

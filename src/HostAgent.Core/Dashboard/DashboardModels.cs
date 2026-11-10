@@ -28,7 +28,7 @@ public sealed record DashboardSnapshot(DateTimeOffset GeneratedAtUtc, string Mod
     public ViewDiskIoDiagnostics? DiskIoDiagnostics {get;init;}
     public ViewNetworkChecks? NetworkChecks {get;init;}
 }
-public enum GuidedAction { None, StorageSettings, AppsSettings, StartupSettings, Investigate }
+public enum GuidedAction { None, Storage, Apps, Startup, Investigate }
 public sealed record Recommendation(string Code, string Title, string Evidence, string Benefit, string Impact,
     string Rollback, GuidedAction Action, string? IncidentId = null);
 

@@ -11,6 +11,7 @@ internal static class TechnicalText
     private static readonly IReadOnlyDictionary<string,string> Labels=new Dictionary<string,string>(StringComparer.Ordinal)
     {
         ["windows_bugcheck"]="DesignWindowsCrash",["bugcheck_irql_not_less_or_equal"]="DesignWindowsCrashIrql",
+        ["other_diagnosis"]="DesignOtherDiagnosis",
         ["memory_pressure"]="DesignMemoryPressure",["cpu_host_saturation"]="DesignCpuLoad",["cpu_process_saturation"]="DesignProcessCpuLoad",
         ["disk_capacity"]="DesignDiskCapacity",["gateway_failure"]="DesignGatewayFailure",["dns_failure"]="DesignDnsFailure",
         ["internet_connectivity_failure"]="DesignInternetFailure",["service_stopped"]="DesignServiceStopped",["service_crash"]="DesignServiceCrash",
@@ -35,7 +36,9 @@ internal static class TechnicalText
     {
         if(string.IsNullOrEmpty(code))return "—";
         if(Labels.TryGetValue(code,out var source))return DesktopLocalization.Text(culture,source)+(includeCode?" ("+code+")":"");
-        return DesktopLocalization.Text(culture,"TechnicalCode",code);
+        return includeCode
+            ? DesktopLocalization.Text(culture,"TechnicalCode",code)
+            : DesktopLocalization.Text(culture,"UnclassifiedDiagnostic");
     }
     internal static IEnumerable<string> Sources => Labels.Values;
 }
@@ -43,7 +46,7 @@ internal static class TechnicalText
 public sealed class TechnicalTextConverter : IValueConverter
 {
     public object Convert(object value,Type targetType,object parameter,CultureInfo culture)
-        => string.Join(", ",(value as string ?? "").Split(", ",StringSplitOptions.RemoveEmptyEntries).Select(code=>TechnicalText.Format(code,culture,!string.Equals(parameter as string,"Label",StringComparison.Ordinal))));
+        => string.Join(", ",(value as string ?? "").Split(", ",StringSplitOptions.RemoveEmptyEntries).Select(code=>TechnicalText.Format(code,culture,string.Equals(parameter as string,"Developer",StringComparison.Ordinal))));
     public object ConvertBack(object value,Type targetType,object parameter,CultureInfo culture)=>throw new NotSupportedException();
 }
 

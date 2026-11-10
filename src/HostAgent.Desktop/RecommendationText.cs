@@ -13,13 +13,13 @@ internal static class RecommendationText
             "sustained_cpu"=>card with
             {
                 Title=T("InvestigateSustainedCPUUtilization"),Evidence=T("CPUAtLeast90ForAtLeast4MinutesWithinTheLast6Minutes"),
-                Benefit=T("ReducingUnnecessaryStartupAppsMayFreeUpProcessingCapacityTheBenefitM"),
+                Benefit=T("InAppStartupListCanHelpIdentifyPossibleCausesButIsReadOnly"),
                 Impact=T("DisablingAutomaticStartupMayDelaySynchronizationOrOtherAppFeatures"),Rollback=T("YouCanEnableTheItemAgainInStartupSettings")
             },
             "sustained_memory"=>card with
             {
                 Title=T("InvestigateMemoryPressure"),Evidence=T("RAMAtLeast90ForAtLeast4MinutesWithinTheLast6Minutes"),
-                Benefit=T("ClosingAnUnnecessaryAppMayFreeUpRAMSaveAnyUnsavedWorkFirst"),
+                Benefit=T("InAppAppListCanHelpReviewMemoryUseButIsReadOnly"),
                 Impact=T("UninstallingIsNotRequiredFirstReviewAppUsageOnTheDashboard"),Rollback=T("YouCanReopenAClosedAppUnsavedDataMayNotBeRecoverable")
             },
             "analyze_crash"=>card with

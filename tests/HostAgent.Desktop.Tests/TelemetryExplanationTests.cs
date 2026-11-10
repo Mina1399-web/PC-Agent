@@ -10,13 +10,14 @@ public sealed class TelemetryExplanationTests
     [InlineData("cs-CZ", "Pád Windows", "Nedostatek volné paměti")]
     [InlineData("en", "Windows crash", "Low available memory")]
     [InlineData("de", "Windows-Absturz", "Wenig verfügbarer Arbeitsspeicher")]
-    public void Incident_names_are_human_readable_and_preserve_unknown_codes(string language, string crash, string memory)
+    public void Incident_names_are_human_readable_and_hide_unknown_codes_by_default(string language, string crash, string memory)
     {
         var culture=CultureInfo.GetCultureInfo(language);
         Assert.Equal(crash,TechnicalText.Format("windows_bugcheck",culture));
         Assert.Equal(memory,TechnicalText.Format("memory_pressure",culture));
         Assert.Contains("windows_bugcheck",TechnicalText.Format("windows_bugcheck",culture,true));
-        Assert.Contains("future_incident_code",TechnicalText.Format("future_incident_code",culture));
+        Assert.DoesNotContain("future_incident_code",TechnicalText.Format("future_incident_code",culture));
+        Assert.Contains("future_incident_code",TechnicalText.Format("future_incident_code",culture,true));
     }
 
     private static string Explain(object reasons) => (string)new TelemetryExplanationConverter()
@@ -30,12 +31,13 @@ public sealed class TelemetryExplanationTests
     }
 
     [Fact]
-    public void Mixed_known_and_future_reasons_preserve_unknown_diagnostics()
+    public void Mixed_known_and_future_reasons_hide_unknown_codes_but_preserve_input()
     {
         string[] reasons = ["process_cpu_time_access_denied", "future_collector_reason"];
         var text = Explain(reasons);
         Assert.Contains("Čas CPU některých procesů", text);
-        Assert.Contains("future_collector_reason", text);
+        Assert.DoesNotContain("future_collector_reason", text);
+        Assert.Contains("další omezení sběru dat", text);
         Assert.Equal(new[] { "process_cpu_time_access_denied", "future_collector_reason" }, reasons);
     }
 

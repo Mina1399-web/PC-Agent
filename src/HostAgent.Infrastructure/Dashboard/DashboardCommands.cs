@@ -54,10 +54,4 @@ public static class DashboardCommands
         start.Arguments=string.Join(" ",args);
         return Process.Start(start);
     }
-    public static void OpenSettings(GuidedAction action)
-    {
-        var uri=action switch{GuidedAction.StorageSettings=>"ms-settings:storagesense",GuidedAction.AppsSettings=>"ms-settings:appsfeatures",
-            GuidedAction.StartupSettings=>"ms-settings:startupapps",_=>throw new InvalidDataException("desktop_settings_invalid")};
-        using var process=Process.Start(new ProcessStartInfo(uri){UseShellExecute=true});
-    }
 }

@@ -117,7 +117,7 @@
     <comment>Source (cs-CZ): Zobrazeno {0} posledních záznamů. Jistota diagnózy neznamená záruku úspěšné opravy.</comment>
   </data>
   <data xml:space="preserve" name="TheCurrentEvidenceDoesNotCallForANewRecommendationMissingMeasurement">
-    <value>Die aktuellen Nachweise erfordern keine neue Empfehlung. Fehlende Messungen bedeuten keinen fehlerfreien Zustand.</value>
+    <value>Host Agent hat anhand der verfügbaren Messwerte keinen Reparaturschritt vorgeschlagen. Das beweist nicht, dass der PC fehlerfrei ist. Ein sicherer nächster Schritt: gespeicherte Windows-Ereignisse schreibgeschützt prüfen oder Messwerte aktualisieren.</value>
     <comment>Source (cs-CZ): Aktuální důkazy nevyžadují nové doporučení. Chybějící měření neznamená bezchybný stav.</comment>
   </data>
   <data xml:space="preserve" name="Evidence">
@@ -815,7 +815,7 @@ Graf se zobrazí po získání uložených měření.</comment>
     <comment>Source (cs-CZ): Porovnat stav po zásahu</comment>
   </data>
   <data xml:space="preserve" name="WindowsSettings">
-    <value>Windows-Einstellungen</value>
+    <value>Windows-Verwaltung in der App</value>
     <comment>Source (cs-CZ): Nastavení Windows</comment>
   </data>
   <data xml:space="preserve" name="ChooseWhatToManageConfirmYourFileAndApplicationSelectionsDirectlyInW">
@@ -895,7 +895,7 @@ Graf se zobrazí po získání uložených měření.</comment>
     <comment>Source (cs-CZ): Vypnutí automatického spuštění může odložit synchronizaci nebo jiné funkce aplikace.</comment>
   </data>
   <data xml:space="preserve" name="YouCanEnableTheItemAgainInStartupSettings">
-    <value>Der Eintrag kann in den Autostart-Einstellungen wieder aktiviert werden.</value>
+    <value>Die Autostartliste ist in Host Agent schreibgeschützt; Änderungen werden noch nicht unterstützt.</value>
     <comment>Source (cs-CZ): Položku lze znovu povolit v nastavení Po spuštění.</comment>
   </data>
   <data xml:space="preserve" name="InvestigateMemoryPressure">
@@ -1477,6 +1477,23 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="DesignReviewRecordedEvidence" xml:space="preserve"><value>Zuerst Vorfälle öffnen und die Nachweise prüfen. Ein gespeichertes Ereignis belegt keinen aktuell anhaltenden Fehler.</value></data>
   <data name="DesignReviewRecommendations" xml:space="preserve"><value>Unter Empfehlungen stehen Schritte auf Grundlage der verfügbaren Messungen.</value></data>
   <data name="DesignLowDisk" xml:space="preserve"><value>Laufwerk {0}: nur {1:0.#} % frei. Updates können Platz benötigen. Zuerst Empfehlungen öffnen.</value></data>
+  <data name="DesignNavSituation" xml:space="preserve"><value>Lage</value></data>
+  <data name="DesignNavEvents" xml:space="preserve"><value>Ereignisse</value></data>
+  <data name="DesignNavSystem" xml:space="preserve"><value>System</value></data>
+  <data name="DesignNavMaintenance" xml:space="preserve"><value>Wartung</value></data>
+  <data name="DesignNavTools" xml:space="preserve"><value>Werkzeuge</value></data>
+  <data name="DesignModeStandardActive" xml:space="preserve"><value>Standardmodus · Entwicklermodus aktivieren</value></data>
+  <data name="DesignModeDeveloperActive" xml:space="preserve"><value>Entwicklermodus aktiv · zurück zu Standard</value></data>
+  <data name="DesignEvidenceSourceUnavailable" xml:space="preserve"><value>Messzeit und Quelle sind nicht verfügbar, bis der lokale Dienst antwortet.</value></data>
+  <data name="DesignEvidenceSourceAndTime" xml:space="preserve"><value>Letzte Messung vom lokalen Host Agent-Dienst: {0:dd.MM.yyyy HH:mm:ss}.</value></data>
+  <data name="DesignSituationTitle" xml:space="preserve"><value>Aktuelle Lage</value></data>
+  <data name="DesignSituationIntro" xml:space="preserve"><value>Beginnen Sie mit dem letzten erfassten Problem, dem Beobachtungszeitpunkt und einem sicheren nächsten Schritt.</value></data>
+  <data name="DesignSystemTitle" xml:space="preserve"><value>Systemstatus</value></data>
+  <data name="DesignSystemIntro" xml:space="preserve"><value>Aktuelle Messwerte und Komponentenstatus mit ihrem Beobachtungszeitpunkt.</value></data>
+  <data name="DesignSystemReadings" xml:space="preserve"><value>Letzte Host-Messwerte</value></data>
+  <data name="DesignReviewEvidenceButton" xml:space="preserve"><value>Gespeichertes Ereignis prüfen</value></data>
+  <data name="DesignReviewRecommendationsButton" xml:space="preserve"><value>Empfohlene Schritte anzeigen</value></data>
+  <data name="DesignRefreshMeasurementsButton" xml:space="preserve"><value>Messwerte aktualisieren</value></data>
   <data name="DesignWindowsCrash" xml:space="preserve"><value>Windows-Absturz</value></data>
   <data name="DesignWindowsCrashIrql" xml:space="preserve"><value>Windows-Absturz: ungültiger Kernel-Speicherzugriff</value></data>
   <data name="DesignMemoryPressure" xml:space="preserve"><value>Wenig verfügbarer Arbeitsspeicher</value></data>
@@ -1503,4 +1520,36 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="ModeChangeBlockedWhileActionRuns" xml:space="preserve"><value>Eine Aktion läuft noch oder das Wartungsfenster ist geöffnet. Warten Sie auf das Ergebnis und schließen Sie das Fenster, bevor Sie den Modus ändern.</value></data>
   <data name="ModePreferenceSaveFailed" xml:space="preserve"><value>Der Oberflächenmodus konnte nicht gespeichert werden. Der aktuelle Modus bleibt aktiv.</value></data>
   <data name="DeveloperModeActiveCloseToReturn" xml:space="preserve"><value>Der Entwicklermodus ist aktiv. Schließen Sie dieses Wartungsfenster und wechseln Sie über die Schaltfläche im Kopfbereich zurück zu Standard.</value></data>
+  <data name="DesignOtherDiagnosis" xml:space="preserve"><value>Anderer erfasster Zustand</value></data>
+  <data name="UnclassifiedDiagnostic" xml:space="preserve"><value>Nicht zugeordneter Diagnosestatus</value></data>
+  <data name="UnclassifiedCollectionLimitation" xml:space="preserve"><value>Es wurde eine weitere Einschränkung der Datenerfassung gemeldet.</value></data>
+  <data name="SomeCollectionDataIsUnavailable" xml:space="preserve"><value>Einige Messwerte sind nicht verfügbar.</value></data>
+  <data name="ActionIsNotRecommendedByIncident" xml:space="preserve"><value>Diese Aktionsliste ist keine Reparaturempfehlung. Das Ereignis bestätigt keine Ursache. Prüfen Sie den aktuellen Dienststatus und die Auswirkungen, bevor Sie eine konkrete Aktion auswählen. Jede Aktion benötigt eine eigene Bestätigung.</value></data>
+  <data name="SelectActionAfterReviewingEvidence" xml:space="preserve"><value>Prüfen Sie zuerst Ziel und Nachweise, und wählen Sie dann selbst die genaue Aktion.</value></data>
+  <data name="InAppWindowsManagementIntro" xml:space="preserve"><value>Windows-Status wird hier angezeigt. Unterstützte Dienstwiederherstellung, Prozessaktionen und Dateibereinigung bleiben in Host Agent und erfordern eine separate Freigabe. Installierte Apps und Autostarteinträge sind derzeit schreibgeschützt.</value></data>
+  <data name="WinInventoryApplications" xml:space="preserve"><value>Installierte Apps</value></data>
+  <data name="WinInventoryStartup" xml:space="preserve"><value>Autostarteinträge</value></data>
+  <data name="WinInventoryApplicationsReadOnly" xml:space="preserve"><value>Schreibgeschützt: Installation und Deinstallation sind in Host Agent noch nicht verfügbar.</value></data>
+  <data name="WinInventoryStartupReadOnly" xml:space="preserve"><value>Schreibgeschützt: Autostarteinträge können derzeit nicht aktiviert oder deaktiviert werden.</value></data>
+  <data name="WinInventoryProcessesCapability" xml:space="preserve"><value>Schreibgeschützte Liste. Wählen Sie einen Prozess aus, um seine Identität für eine typisierte Aktion zu übernehmen; ein ausgewählter Vorfall und ein registriertes Ziel sind weiterhin erforderlich.</value></data>
+  <data name="WinInventoryServicesCapability" xml:space="preserve"><value>Schreibgeschützte Liste. Eine Dienstwiederherstellung wird nur bei aktuellen passenden Nachweisen angeboten und benötigt stets eine separate Freigabe.</value></data>
+  <data name="WinInventoryDisksCapability" xml:space="preserve"><value>Schreibgeschützte Liste. Eine Bereinigungsvorschau in der App ist nur für das Benutzerprofil-Laufwerk bei einem aktuellen Speicherplatzmangel verfügbar.</value></data>
+  <data name="WinInventoryNetworkCapability" xml:space="preserve"><value>Schreibgeschützte Adapterliste. Aktive Netzwerktests sind getrennt und erfordern den Entwicklermodus.</value></data>
+  <data name="WinInventoryEventsCapability" xml:space="preserve"><value>Schreibgeschützte Liste der letzten Windows-Systemereignisse.</value></data>
+  <data name="PrepareProcessAction" xml:space="preserve"><value>Prozessaktion vorbereiten</value></data>
+  <data name="OpenWindowsManagement" xml:space="preserve"><value>Windows-Verwaltung in Host Agent öffnen</value></data>
+  <data name="NoIncidentSelected" xml:space="preserve"><value>Kein Vorfall ausgewählt. Wählen Sie unter Vorfälle einen Eintrag aus, bevor Sie eine Aktion vorbereiten.</value></data>
+  <data name="IncidentSummary" xml:space="preserve"><value>{0} · erfasst {1}</value></data>
+  <data name="TechnicalDetails" xml:space="preserve"><value>Technische Details</value></data>
+  <data name="TechnicalIncidentIdentifiers" xml:space="preserve"><value>Vorfall-ID: {0}\nInterner Code: {1}</value></data>
+  <data name="SelectIncidentBeforeAction" xml:space="preserve"><value>Wählen Sie unter Vorfälle einen Eintrag aus, bevor Sie eine Aktion vorbereiten.</value></data>
+  <data name="EnterRegisteredTargetAlias" xml:space="preserve"><value>Geben Sie einen registrierten Zielalias ein. Nur Ziele aus der genehmigten Liste sind zulässig.</value></data>
+  <data name="SelectProcessBeforeAction" xml:space="preserve"><value>Wählen Sie einen Prozess aus der lokalen Liste aus, damit PID und Startzeit übernommen werden.</value></data>
+  <data name="ActionReadyRequiresSeparateApproval" xml:space="preserve"><value>Die erforderlichen Angaben sind vorhanden. Prüfen und genehmigen Sie das genaue Ziel im nächsten Dialog; allein auf diesem Bildschirm wird nichts ausgeführt.</value></data>
+  <data name="ActionTargetNotRegisteredOrRequestInvalid" xml:space="preserve"><value>Dieses Ziel oder diese Aktion ist nicht für eine Freigabe registriert. Prüfen Sie den Zielalias und wählen Sie einen zulässigen Vorgang.</value></data>
+  <data name="ActionsRequireFreshStatus" xml:space="preserve"><value>Aktualisieren Sie den lokalen Status, bevor Sie eine Aktion vorbereiten.</value></data>
+  <data name="InAppStartupListCanHelpIdentifyPossibleCausesButIsReadOnly" xml:space="preserve"><value>Die Autostartliste in der App kann bei der Ursachenprüfung helfen. Sie ist schreibgeschützt; diese Empfehlung ändert nichts.</value></data>
+  <data name="InAppAppListCanHelpReviewMemoryUseButIsReadOnly" xml:space="preserve"><value>Die App-Liste kann helfen, den Speicherverbrauch zu prüfen. Sie ist schreibgeschützt; diese Empfehlung schließt keine Apps.</value></data>
+  <data name="PrepareServiceAction" xml:space="preserve"><value>Dienstaktion vorbereiten</value></data>
+  <data name="WinPrepareServiceActionHelp" xml:space="preserve"><value>Die ausgewählte Dienstkennung wird in das Prüfungsformular übernommen. Sie muss einem vom Administrator genehmigten Alias entsprechen; der Helper prüft dies vor jeder Aktion.</value></data>
 </root>

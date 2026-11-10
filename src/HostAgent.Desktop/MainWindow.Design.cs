@@ -10,7 +10,7 @@ namespace HostAgent.Desktop;
 
 public partial class MainWindow
 {
-    private bool _darkTheme = true;
+    private bool _darkTheme;
     private string? _triageIncidentId;
 
     private void InitializeDesign()
@@ -25,8 +25,8 @@ public partial class MainWindow
 
     private void UpdateDesignLayout()
     {
-        // Keep all destinations visible on short desktop displays. The same approval
-        // explanation remains in the status banner and at the point of every action.
+        // Keep all six named destinations visible on short desktop displays. The
+        // same approval explanation remains in the status banner and at every action.
         if (DashboardTabs.Template.FindName("NavigationFooter", DashboardTabs) is Border footer)
             footer.Visibility = ActualHeight < 700 ? Visibility.Collapsed : Visibility.Visible;
     }
@@ -47,19 +47,26 @@ public partial class MainWindow
 
     private void NavigateTo(int index)
     {
+        if (index < 0 || index >= DashboardTabs.Items.Count) return;
+        if (!DesktopModePolicy.CanNavigateTo(index, _desktopMode)) return;
         DashboardTabs.SelectedIndex = index;
         ((TabItem)DashboardTabs.Items[index]).Focus();
     }
 
-    private void QuickNavigate(object sender, RoutedEventArgs e)
+    private void TriageActionClick(object sender, RoutedEventArgs e)
     {
-        if (sender is Button { Tag: string index } && int.TryParse(index, out var value)) NavigateTo(value);
-        if (ReferenceEquals(sender, QuickIncidents))
+        if (sender is not Button { Tag: string target }) return;
+        if (target == "refresh")
         {
-            var incident = IncidentsGrid.Items.OfType<ViewIncident>().FirstOrDefault(x => x.Id == _triageIncidentId);
-            IncidentsGrid.SelectedItem = incident;
-            if (incident is not null) IncidentsGrid.ScrollIntoView(incident);
+            RefreshClick(sender, e);
+            return;
         }
+        if (!int.TryParse(target, out var index) || index is < 1 or > 2) return;
+        NavigateTo(index);
+        if (index != 1) return;
+        var incident = IncidentsGrid.Items.OfType<ViewIncident>().FirstOrDefault(x => x.Id == _triageIncidentId);
+        IncidentsGrid.SelectedItem = incident;
+        if (incident is not null) IncidentsGrid.ScrollIntoView(incident);
     }
 
     private void ThemeClick(object sender, RoutedEventArgs e)
@@ -93,6 +100,10 @@ public partial class MainWindow
             _triageIncidentId = null;
             TriageIncidentText.Text = T("DesignEvidenceUnavailable");
             TriageActionText.Text = T("DesignRefreshFirst");
+            TriageEvidenceMetaText.Text = T("DesignEvidenceSourceUnavailable");
+            TriageActionButton.Content = T("DesignRefreshMeasurementsButton");
+            TriageActionButton.Tag = "refresh";
+            System.Windows.Automation.AutomationProperties.SetName(TriageActionButton, (string)TriageActionButton.Content);
             TriageDiskText.Text = "";
             TriageDiskText.Visibility = Visibility.Collapsed;
             return;
@@ -106,6 +117,10 @@ public partial class MainWindow
             TechnicalText.Format(incident.Code, Localization.Culture), TechnicalText.Format(incident.Severity, Localization.Culture),
             incident.AtUtc.ToUniversalTime(), Math.Max(0, (int)(now - incident.AtUtc).TotalMinutes));
         TriageActionText.Text = incident is null ? T("DesignReviewRecommendations") : T("DesignReviewRecordedEvidence");
+        TriageEvidenceMetaText.Text = T("DesignEvidenceSourceAndTime", view.GeneratedAtUtc.ToLocalTime());
+        TriageActionButton.Content = T(incident is null ? "DesignReviewRecommendationsButton" : "DesignReviewEvidenceButton");
+        TriageActionButton.Tag = incident is null ? "2" : "1";
+        System.Windows.Automation.AutomationProperties.SetName(TriageActionButton, (string)TriageActionButton.Content);
         var disk = view.Disks.Where(x => ViewFreshness.IsFresh(x.AtUtc, now) && x.CapacityBytes > 0 && x.FreeBytes >= 0 && x.FreeBytes <= x.CapacityBytes / 10)
             .OrderBy(x => (double)x.FreeBytes / x.CapacityBytes).FirstOrDefault();
         TriageDiskText.Text = disk is null ? "" : T("DesignLowDisk", disk.Drive, 100d * disk.FreeBytes / disk.CapacityBytes);
@@ -121,25 +136,25 @@ public partial class MainWindow
 
     private static readonly (string Key, string Dark, string Light)[] ThemeColors =
     [
-        ("CanvasBrush", "#101722", "#F4F7FB"),
-        ("CardBrush", "#192331", "#FFFFFF"),
-        ("InkBrush", "#F1F5FC", "#14243B"),
-        ("MutedBrush", "#B3C1D5", "#52627A"),
-        ("AccentBrush", "#9AC4FF", "#2259C5"),
-        ("AccentInkBrush", "#101722", "#FFFFFF"),
-        ("LineBrush", "#344358", "#DDE4EE"),
-        ("InputBorderBrush", "#718198", "#718198"),
-        ("RailBrush", "#0C121C", "#12243C"),
-        ("RailTextBrush", "#D5DFEF", "#D5DFEF"),
-        ("SelectedBrush", "#263E60", "#E8F0FF"),
-        ("HoverBrush", "#28374B", "#E8F0FF"),
-        ("AlternateBrush", "#1E2B3B", "#F8FAFD"),
-        ("GreenBrush", "#83DCB8", "#176B50"),
-        ("GreenSurfaceBrush", "#17372F", "#E8F5EF"),
-        ("WarningBrush", "#F3CF8B", "#895514"),
-        ("WarningSurfaceBrush", "#3C3020", "#FFF4DE"),
-        ("ErrorBrush", "#FFB4B4", "#A03232"),
-        ("ErrorSurfaceBrush", "#43282E", "#FDECEC"),
-        ("RamBrush", "#C6AEFF", "#7854BA")
+        ("CanvasBrush", "#101722", "#EEECE5"),
+        ("CardBrush", "#192331", "#FAF9F4"),
+        ("InkBrush", "#F1F5FC", "#172722"),
+        ("MutedBrush", "#B3C1D5", "#53635B"),
+        ("AccentBrush", "#9AC4FF", "#17674E"),
+        ("AccentInkBrush", "#101722", "#FAF9F4"),
+        ("LineBrush", "#344358", "#B9BDB3"),
+        ("InputBorderBrush", "#718198", "#7E897F"),
+        ("RailBrush", "#0C121C", "#183A32"),
+        ("RailTextBrush", "#D5DFEF", "#E3EBE4"),
+        ("SelectedBrush", "#263E60", "#31564B"),
+        ("HoverBrush", "#28374B", "#24493E"),
+        ("AlternateBrush", "#1E2B3B", "#F0EFE8"),
+        ("GreenBrush", "#83DCB8", "#17674E"),
+        ("GreenSurfaceBrush", "#17372F", "#DFEEE7"),
+        ("WarningBrush", "#F3CF8B", "#9A591C"),
+        ("WarningSurfaceBrush", "#3C3020", "#F5E8D2"),
+        ("ErrorBrush", "#FFB4B4", "#A7432A"),
+        ("ErrorSurfaceBrush", "#43282E", "#F2DFD9"),
+        ("RamBrush", "#C6AEFF", "#58639A")
     ];
 }

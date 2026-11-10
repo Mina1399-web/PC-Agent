@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
@@ -21,7 +22,7 @@ public sealed class DashboardInteractionTests
         Refresh(window);
         var grid=(DataGrid)window.FindName("IncidentsGrid");
         grid.SelectedIndex=0;
-        ((Button)window.FindName("QuickIncidents")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        ((Button)window.FindName("TriageActionButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.Equal(highest.Id,Assert.IsType<ViewIncident>(grid.SelectedItem).Id);
         Assert.Contains("UTC",((TextBlock)window.FindName("TriageIncidentText")).Text);
         Assert.Equal(1,((TabControl)window.FindName("DashboardTabs")).SelectedIndex);
@@ -35,7 +36,7 @@ public sealed class DashboardInteractionTests
         var information=view.Incident with{Severity="Information",AtUtc=now.AddMinutes(-2)};
         view.Snapshot=view.Snapshot with{Incidents=[unknown,information]};
         Refresh(window);
-        ((Button)window.FindName("QuickIncidents")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        ((Button)window.FindName("TriageActionButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         var grid=(DataGrid)window.FindName("IncidentsGrid");
         Assert.Equal(information.Id,Assert.IsType<ViewIncident>(grid.SelectedItem).Id);
         Assert.Contains("Informace",((TextBlock)window.FindName("TriageIncidentText")).Text);
@@ -56,13 +57,79 @@ public sealed class DashboardInteractionTests
         Assert.Contains("Pád Windows",((TextBlock)window.FindName("TriageIncidentText")).Text);
         Assert.Contains("před 60 min",((TextBlock)window.FindName("TriageIncidentText")).Text);
         Assert.Contains("neprokazuje",((TextBlock)window.FindName("TriageActionText")).Text);
+        Assert.Contains("místní služby Host Agent",((TextBlock)window.FindName("TriageEvidenceMetaText")).Text);
+        Assert.Contains("Prohlédnout uloženou událost",((Button)window.FindName("TriageActionButton")).Content.ToString());
         Assert.Contains("4 %",((TextBlock)window.FindName("TriageDiskText")).Text);
         Assert.Contains("0 z 1",((TextBlock)window.FindName("HealthSummaryText")).Text);
         view.Snapshot=view.Snapshot with{GeneratedAtUtc=now.AddHours(-1)};
         Refresh(window);
         Assert.DoesNotContain("Pád Windows",((TextBlock)window.FindName("TriageIncidentText")).Text);
+        Assert.Equal("Obnovit měření",((Button)window.FindName("TriageActionButton")).Content.ToString());
+        Assert.Equal("refresh",((Button)window.FindName("TriageActionButton")).Tag);
+        Assert.Contains("Čas a zdroj měření",((TextBlock)window.FindName("TriageEvidenceMetaText")).Text);
         Assert.Equal(Visibility.Collapsed,((TextBlock)window.FindName("TriageDiskText")).Visibility);
     });
+
+    [Fact]
+    public Task Situation_uses_a_safe_recommendation_step_when_there_is_no_open_incident() => WithWindow((window, view) =>
+    {
+        view.Snapshot=view.Snapshot with{Incidents=[]};
+        Refresh(window);
+        var action=(Button)window.FindName("TriageActionButton");
+        Assert.Equal("Zobrazit doporučené kroky",action.Content.ToString());
+        Assert.Equal("2",action.Tag);
+        action.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.Equal(2,((TabControl)window.FindName("DashboardTabs")).SelectedIndex);
+        Assert.False(((Button)window.FindName("OperationButton")).IsEnabled);
+    });
+
+    [Fact]
+    public Task Empty_recommendations_offer_read_only_saved_evidence_review() => WithWindow((window, view) =>
+    {
+        view.Snapshot=view.Snapshot with{Incidents=[],Health=[new("cpu-memory","collector_healthy",false)]};
+        Refresh(window);
+        var panel=(StackPanel)window.FindName("RecommendationsPanel");
+        var buttons=panel.Children.OfType<Border>().SelectMany(card=>(card.Child as StackPanel)?.Children.OfType<Button>()??Enumerable.Empty<Button>());
+        Assert.Contains(buttons,button=>button.Content?.ToString()=="Prověřit uložené důkazy");
+    });
+
+    [Fact]
+    public Task Manual_action_has_no_default_and_requires_an_explicit_choice() => WithWindow((window, view) =>
+    {
+        view.Snapshot=view.Snapshot with{Mode="Confirmation",ReadOnly=false};
+        Refresh(window);
+        var choice=(ComboBox)window.FindName("OperationChoice");
+        var action=(Button)window.FindName("OperationButton");
+        Assert.Contains("není doporučením opravy",((TextBlock)window.FindName("ActionRecommendationNotice")).Text);
+        Assert.Equal(-1,choice.SelectedIndex);
+        Assert.False(action.IsEnabled);
+        choice.SelectedIndex=0;
+        Assert.False(action.IsEnabled);
+        Assert.Contains("událost",((TextBlock)window.FindName("OperationHintText")).Text,StringComparison.OrdinalIgnoreCase);
+        ((DataGrid)window.FindName("IncidentsGrid")).SelectedIndex=0;
+        Assert.Contains("alias",((TextBlock)window.FindName("OperationHintText")).Text,StringComparison.OrdinalIgnoreCase);
+        ((TextBox)window.FindName("AliasInput")).Text="review-target";
+        Assert.True(action.IsEnabled);
+        choice.SelectedIndex=-1;
+        Assert.False(action.IsEnabled);
+    });
+
+    [Fact]
+    public void Standard_uses_localized_diagnostic_labels_and_developer_detail_can_show_codes()
+    {
+        var converter=new TechnicalTextConverter();
+        var culture=CultureInfo.GetCultureInfo("cs-CZ");
+        var diagnosis=converter.Convert("other_diagnosis",typeof(string),"Label",culture).ToString();
+        var partial=converter.Convert("collectors_partial",typeof(string),"Label",culture).ToString();
+        var unknown=converter.Convert("future_diagnostic",typeof(string),"Label",culture).ToString();
+        var developer=converter.Convert("other_diagnosis",typeof(string),"Developer",culture).ToString();
+        Assert.Contains("Jiný zaznamenaný stav",diagnosis);
+        Assert.DoesNotContain("other_diagnosis",diagnosis);
+        Assert.Contains("Částečná data",partial);
+        Assert.DoesNotContain("collectors_partial",partial);
+        Assert.DoesNotContain("future_diagnostic",unknown);
+        Assert.Contains("other_diagnosis",developer);
+    }
 
     [Fact]
     public Task Process_identity_fields_are_only_presented_for_process_actions() => WithWindow((window, view) =>
@@ -85,26 +152,26 @@ public sealed class DashboardInteractionTests
         var operationEnabled = ((Button)window.FindName("OperationButton")).IsEnabled;
         var theme = (Button)window.FindName("ThemeButton");
         theme.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-        Assert.Equal("Tmavý motiv", theme.Content);
+        Assert.Equal("Světlý motiv", theme.Content);
         Assert.Equal(cpu, ((TextBlock)window.FindName("CpuText")).Text);
         Assert.Equal("42", ((TextBox)window.FindName("PidInput")).Text);
         Assert.Equal(operationEnabled, ((Button)window.FindName("OperationButton")).IsEnabled);
         window.Localization.SelectLanguage("de");
-        Assert.Equal("Dunkler Modus", theme.Content);
-        theme.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.Equal("Heller Modus", theme.Content);
+        theme.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.Equal("Dunkler Modus", theme.Content);
         Assert.Equal(cpu, ((TextBlock)window.FindName("CpuText")).Text);
     });
 
     [Fact]
-    public Task Quick_links_navigate_without_requesting_a_repair() => WithWindow((window, view) =>
+    public Task Primary_safe_step_navigates_to_evidence_without_requesting_a_repair() => WithWindow((window, view) =>
     {
-        ((Button)window.FindName("QuickIncidents")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        ((Button)window.FindName("TriageActionButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.Equal(1, ((TabControl)window.FindName("DashboardTabs")).SelectedIndex);
-        PumpUntil(()=>((TextBox)window.FindName("OperationIncident")).Text==view.Incident.Id);
-        ((Button)window.FindName("QuickComponents")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-        Assert.Equal(3, ((TabControl)window.FindName("DashboardTabs")).SelectedIndex);
-        Assert.Equal(view.Incident.Id, ((TextBox)window.FindName("OperationIncident")).Text);
+        var incidentSummary=((TextBlock)window.FindName("OperationIncidentSummary")).Text;
+        Assert.DoesNotContain(view.Incident.Id,incidentSummary);
+        Assert.DoesNotContain("Není vybraná",incidentSummary);
+        Assert.False(((Button)window.FindName("OperationButton")).IsEnabled);
     });
 
     [Fact]
@@ -158,7 +225,7 @@ public sealed class DashboardInteractionTests
     });
 
     [Fact]
-    public Task Health_table_explains_partial_process_metrics_and_keeps_raw_diagnostics() => WithWindow((window, view) =>
+    public Task Health_table_explains_partial_data_without_exposing_raw_codes() => WithWindow((window, view) =>
     {
         view.Snapshot = view.Snapshot with
         {
@@ -173,9 +240,12 @@ public sealed class DashboardInteractionTests
         var row = grid.Items[0];
         var explanation = Assert.IsType<TextBlock>(grid.Columns[2].GetCellContent(row));
         Assert.Contains("Čas CPU některých procesů", explanation.Text);
-        Assert.Contains("future_collector_reason", explanation.Text);
-        Assert.Equal("process_cpu_time_access_denied, future_collector_reason", explanation.ToolTip);
-        Assert.Contains("collector_partial", Assert.IsType<TextBlock>(grid.Columns[1].GetCellContent(row)).Text);
+        Assert.Contains("další omezení sběru dat", explanation.Text);
+        Assert.DoesNotContain("future_collector_reason", explanation.Text);
+        Assert.Equal(explanation.Text, explanation.ToolTip);
+        var code=Assert.IsType<TextBlock>(grid.Columns[1].GetCellContent(row)).Text;
+        Assert.Contains("Částečná data",code);
+        Assert.DoesNotContain("collector_partial",code);
         Assert.True(Assert.IsType<ViewHealth>(row).Degraded);
     });
 
@@ -245,10 +315,10 @@ public sealed class DashboardInteractionTests
     {
         var grid = (DataGrid)window.FindName("IncidentsGrid");
         grid.SelectedIndex = 0;
-        PumpUntil(() => ((TextBox)window.FindName("DetailText")).Text.Contains(view.Incident.Id));
+        PumpUntil(() => !((TextBlock)window.FindName("OperationIncidentSummary")).Text.Contains("Není vybraná"));
         grid.SelectedIndex = -1;
         Assert.DoesNotContain(view.Incident.Id, ((TextBox)window.FindName("DetailText")).Text);
-        Assert.Equal("", ((TextBox)window.FindName("OperationIncident")).Text);
+        Assert.Contains("Není vybraná",((TextBlock)window.FindName("OperationIncidentSummary")).Text);
     });
 
     [Fact]
@@ -265,24 +335,33 @@ public sealed class DashboardInteractionTests
                 window.Show();PumpUntil(()=>((TextBlock)window.FindName("CpuText")).Text.Contains("42"));
                 Assert.Equal(DesktopMode.Standard,window.CurrentDesktopMode);
                 var tabs=(TabControl)window.FindName("DashboardTabs");
-                Assert.Equal(Visibility.Collapsed,((TabItem)tabs.Items[4]).Visibility);
-                Assert.Equal(Visibility.Collapsed,((TabItem)tabs.Items[5]).Visibility);
-                Assert.Equal(Visibility.Collapsed,((Button)window.FindName("HeaderMaintenanceButton")).Visibility);
+                Assert.All(tabs.Items.Cast<TabItem>(),tab=>Assert.Equal(Visibility.Visible,tab.Visibility));
+                Assert.False(((TabItem)tabs.Items[4]).IsEnabled);
+                Assert.True(((TabItem)tabs.Items[5]).IsEnabled);
+                Assert.Contains("Standardní režim",((Button)window.FindName("DesktopModeButton")).Content.ToString());
+                Assert.Equal(new[]{"Situace","Události","Doporučení","Systém","Údržba","Nástroje"},
+                    tabs.Items.Cast<TabItem>().Select(System.Windows.Automation.AutomationProperties.GetName));
+                Assert.True(DesktopModePolicy.CanNavigateTo(3,DesktopMode.Standard));
+                Assert.False(DesktopModePolicy.CanNavigateTo(4,DesktopMode.Standard));
+                Assert.True(DesktopModePolicy.CanNavigateTo(5,DesktopMode.Standard));
+                Assert.True(DesktopModePolicy.CanNavigateTo(5,DesktopMode.Developer));
+                Assert.Equal("Prohlédnout uloženou událost",((Button)window.FindName("TriageActionButton")).Content.ToString());
                 tabs.SelectedIndex=5;Drain();
-                Assert.Equal(0,tabs.SelectedIndex);Assert.Equal(0,inventoryReads);
+                Assert.Equal(5,tabs.SelectedIndex);Assert.True(inventoryReads>0);
 
                 ((Button)window.FindName("DesktopModeButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 Assert.Equal(DesktopMode.Developer,window.CurrentDesktopMode);
                 Assert.Equal(DesktopMode.Developer,window.Localization.ReadDesktopMode());
-                Assert.Equal(Visibility.Visible,((TabItem)tabs.Items[4]).Visibility);
-                Assert.Equal(Visibility.Visible,((TabItem)tabs.Items[5]).Visibility);
+                Assert.True(((TabItem)tabs.Items[4]).IsEnabled);
+                Assert.True(((TabItem)tabs.Items[5]).IsEnabled);
+                Assert.Contains("Vývojářský režim zapnutý",((Button)window.FindName("DesktopModeButton")).Content.ToString());
                 tabs.SelectedIndex=5;Drain();
                 Assert.True(inventoryReads>0);
                 Assert.Equal("Shadow",view.Snapshot.Mode); // UI preference did not change service safety mode.
 
                 ((Button)window.FindName("DesktopModeButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 Assert.Equal(DesktopMode.Standard,window.CurrentDesktopMode);
-                Assert.Equal(0,tabs.SelectedIndex);
+                Assert.Equal(5,tabs.SelectedIndex);
                 Assert.Equal("Shadow",view.Snapshot.Mode);
             }
             finally{window?.Close();}

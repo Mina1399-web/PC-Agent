@@ -37,6 +37,7 @@ public partial class MainWindow:Window
     private readonly Func<bool>? _confirmDeveloperMode;
     private ViewMetric[] _cpuHistory=[],_memoryHistory=[];
     private ViewIncidentDetail? _selectedDetail;
+    private string? _selectedOperationIncidentId;
     private int _detailRequestVersion;
     private readonly OperationObservation _observation=new();
     public DesktopLocalization Localization { get; }
@@ -68,6 +69,11 @@ public partial class MainWindow:Window
         Localization.Apply(this);
         InitializeDesign();
         ApplyDesktopMode();
+        OperationChoice.SelectionChanged += OperationChoiceChanged;
+        AliasInput.TextChanged += OperationFieldsChanged;
+        PidInput.TextChanged += OperationFieldsChanged;
+        TicksInput.TextChanged += OperationFieldsChanged;
+        WindowsInventoryGrid.SelectionChanged += WindowsInventorySelectionChanged;
         LanguageChoice.ItemsSource=DesktopLocalization.Languages;
         LanguageChoice.SelectedValue=Localization.LanguageCode;
         LanguageChoice.SelectionChanged+=LanguageSelected;
@@ -112,6 +118,7 @@ public partial class MainWindow:Window
         RenderWindowsInventory();
         if(_windowsActionText is not null)WindowsActionStatus.Text=_windowsActionText();
         RenderDetail();
+        RenderSelectedIncidentSummary();
         foreach(var grid in new[]{DisksGrid,ProcessGrid,HealthGrid,ServicesGrid,IncidentsGrid})grid.Items.Refresh();
     }
 
@@ -123,21 +130,24 @@ public partial class MainWindow:Window
         var developer=DeveloperFeaturesEnabled;
         for(var index=0;index<DashboardTabs.Items.Count;index++)
             if(DashboardTabs.Items[index] is TabItem tab&&DesktopModePolicy.IsDeveloperTab(index))
-                tab.Visibility=developer?Visibility.Visible:Visibility.Collapsed;
-        HeaderMaintenanceButton.Visibility=developer?Visibility.Visible:Visibility.Collapsed;
-        if(!developer&&DashboardTabs.SelectedIndex>=4)DashboardTabs.SelectedIndex=0;
+            {
+                tab.Visibility=Visibility.Visible;
+                tab.IsEnabled=developer;
+                tab.ToolTip=developer?null:T("DeveloperModeRequired");
+            }
+        if(!developer&&DashboardTabs.SelectedIndex==4)DashboardTabs.SelectedIndex=0;
         if(developer)_lastStandardTab=0;
         UpdateDesktopModeControls();
+        UpdateOperationReadiness();
     }
 
     private void UpdateDesktopModeControls()
     {
-        DesktopModeButton.Content=T(DeveloperFeaturesEnabled?"ReturnToStandardMode":"EnableDeveloperMode");
-        System.Windows.Automation.AutomationProperties.SetName(DesktopModeButton,(string)DesktopModeButton.Content);
+        var modeText=T(DeveloperFeaturesEnabled?"DesignModeDeveloperActive":"DesignModeStandardActive");
+        DesktopModeButton.Content=modeText;
+        System.Windows.Automation.AutomationProperties.SetName(DesktopModeButton,modeText);
         DesktopModeButton.ToolTip=_modePreferenceUnavailable?T("ModePreferenceSaveFailed"):
             DeveloperFeaturesEnabled?T("ReturnToStandardMode"):T("DeveloperModeConsent");
-        KillSwitchQuickButton.Content=T("BlockAllRepairs");
-        System.Windows.Automation.AutomationProperties.SetName(KillSwitchQuickButton,T("BlockAllRepairs"));
     }
 
     private void DesktopModeClick(object sender,RoutedEventArgs e)
@@ -160,11 +170,14 @@ public partial class MainWindow:Window
         _desktopMode=mode;_modePreferenceUnavailable=false;
         if(mode==DesktopMode.Standard)
         {
-            _windowsInventoryRequest++;_windowsInventory=null;WindowsInventoryGrid.ItemsSource=null;
             WindowsDiagnosis.Text="";WindowsActionStatus.Text="";
-            DashboardTabs.SelectedIndex=0;DashboardTabs.Focus();
+            if(DashboardTabs.SelectedIndex==4)DashboardTabs.SelectedIndex=0;
+            DashboardTabs.Focus();
         }
         ApplyDesktopMode();
+        RenderTriage(_renderedView);
+        RenderDetail();
+        foreach(var grid in new[]{HealthGrid,ServicesGrid,IncidentsGrid})grid.Items.Refresh();
         return true;
     }
 
@@ -207,6 +220,8 @@ public partial class MainWindow:Window
                 StatusBanner.Background=(Brush)FindResource("ErrorSurfaceBrush");
                 StatusText.Foreground=(Brush)FindResource("ErrorBrush");
                 CpuText.Text=MemoryText.Text=UptimeText.Text=IncidentCountText.Text="—";NetworkText.Text=T("NetworkDataUnavailable");
+                SystemCpuText.Text=SystemMemoryText.Text=SystemUptimeText.Text=SystemIncidentCountText.Text="—";
+                SystemEvidenceMetaText.Text=T("DesignEvidenceSourceUnavailable");
                 DisksGrid.ItemsSource=ProcessGrid.ItemsSource=HealthGrid.ItemsSource=IncidentsGrid.ItemsSource=ServicesGrid.ItemsSource=null;
                 SetEmptyStates(null);
                 _cpuHistory=[];_memoryHistory=[];DrawChart();RecommendationsPanel.Children.Clear();OperationButton.IsEnabled=false;
@@ -220,6 +235,9 @@ public partial class MainWindow:Window
             CpuText.Text=Percent(view.Cpu);MemoryText.Text=Percent(view.Memory);
             UptimeText.Text=view.Uptime is {} up?up.Value>=86400?T("UptimeDays",(int)(Math.Max(0,up.Value)/86400),(int)(Math.Max(0,up.Value)/3600)%24,(int)(Math.Max(0,up.Value)/60)%60):T("UptimeHours",(int)(Math.Max(0,up.Value)/3600),(int)(Math.Max(0,up.Value)/60)%60):"—";
             IncidentCountText.Text=view.Incidents.Count(x=>x.State!="Resolved").ToString(Localization.Culture);
+            SystemCpuText.Text=CpuText.Text;SystemMemoryText.Text=MemoryText.Text;SystemUptimeText.Text=UptimeText.Text;
+            SystemIncidentCountText.Text=IncidentCountText.Text;
+            SystemEvidenceMetaText.Text=T("DesignEvidenceSourceAndTime",view.GeneratedAtUtc.ToLocalTime());
             NetworkText.Text=view.ConnectedAdapters is {} count?T("NetworkActiveAdaptersThisDoesNotVerifyInternetAccess",count):T("NetworkDataUnavailable");
             if(replaceRows)
             {
@@ -232,13 +250,13 @@ public partial class MainWindow:Window
             var selected=(IncidentsGrid.SelectedItem as ViewIncident)?.Id;
             IncidentsGrid.ItemsSource=view.Incidents;
             if(selected is not null)IncidentsGrid.SelectedItem=view.Incidents.FirstOrDefault(x=>x.Id==selected);
+            RenderSelectedIncidentSummary();
             }
             SetEmptyStates(view);
-            OperationButton.IsEnabled=view.Mode=="Confirmation"&&!view.ReadOnly&&!view.KillSwitch&&!_observation.Pending;
-            OperationHintText.Text=_observation.Pending?T("WaitingForTheApprovalWindowToFinish"):view.KillSwitch?T("ActionsAreBlockedByTheEmergencySwitchKillSwitch"):view.Mode=="Shadow"?T("ShadowModeViewAndInvestigateTheStatusActionsAreBlocked"):view.ReadOnly?T("TheServiceIsInReadOnlyModeActionsAreBlocked"):T("ToPrepareAnActionSelectAnIncidentAndEnterARegisteredTargetExecutionR");
+            UpdateOperationReadiness();
             RenderRecommendations(view);
             DrawChart();
-            if(_refreshFailed){StatusText.Text=T("CouldNotRefreshTheDataAnotherAttemptWillRunAutomatically");OperationButton.IsEnabled=false;OperationHintText.Text=T("ActionsAreBlockedUntilTheStatusCanBeRefreshed");}
+            if(_refreshFailed){StatusText.Text=T("CouldNotRefreshTheDataAnotherAttemptWillRunAutomatically");UpdateOperationReadiness();}
     }
     private async void SmartClick(object sender, RoutedEventArgs e)
     {
@@ -286,7 +304,15 @@ public partial class MainWindow:Window
     {
         RecommendationsPanel.Children.Clear();
         var cards=new RecommendationEngine().Evaluate(view,DateTimeOffset.UtcNow);
-        if(cards.Count==0)RecommendationsPanel.Children.Add(Notice(T("TheCurrentEvidenceDoesNotCallForANewRecommendationMissingMeasurement")));
+        if(cards.Count==0)
+        {
+            var content=new StackPanel();
+            content.Children.Add(new TextBlock{Text=T("TheCurrentEvidenceDoesNotCallForANewRecommendationMissingMeasurement"),Style=(Style)FindResource("Caption"),TextWrapping=TextWrapping.Wrap});
+            var review=new Button{Content=T("ReviewSavedEvidence"),HorizontalAlignment=HorizontalAlignment.Left,Margin=new Thickness(0,12,0,0)};
+            review.Click+=async(_,_)=>await Investigate();
+            content.Children.Add(review);
+            RecommendationsPanel.Children.Add(new Border{Child=content,Style=(Style)FindResource("Card"),Margin=new Thickness(0,0,0,16)});
+        }
         foreach(var card in cards)
         {
             var textCard=RecommendationText.Localize(card,view,Localization);
@@ -295,9 +321,9 @@ public partial class MainWindow:Window
             foreach(var text in new[]{T("Evidence")+textCard.Evidence,T("Benefit")+textCard.Benefit,T("Impact")+textCard.Impact,T("Recovery")+textCard.Rollback})
                 panel.Children.Add(new TextBlock{Text=text,Style=(Style)FindResource("Caption"),Margin=new Thickness(0,0,0,8)});
             var disk=card.Code.StartsWith("disk_space:",StringComparison.Ordinal)?card.Code["disk_space:".Length..]:null;
-            var button=new Button{Content=disk is not null?T("DiskMaintenancePreview"):card.Action==GuidedAction.Investigate?T("ReviewSavedEvidence"):T("OpenRelevantSettings"),HorizontalAlignment=HorizontalAlignment.Left,Margin=new Thickness(0,10,0,0)};
+            var button=new Button{Content=disk is not null?T("DiskMaintenancePreview"):card.Action==GuidedAction.Investigate?T("ReviewSavedEvidence"):T("OpenWindowsManagement"),HorizontalAlignment=HorizontalAlignment.Left,Margin=new Thickness(0,10,0,0)};
             if(disk is not null)button.IsEnabled=MaintenanceWindow.MatchesDefaultVolume(disk);
-            button.Click+=async(_,_)=>{if(disk is not null)await OpenDiskCleanup(disk);else if(card.Action==GuidedAction.Investigate)await Investigate();else OpenSettings(card.Action);};
+            button.Click+=async(_,_)=>{if(disk is not null)await OpenDiskCleanup(disk);else if(card.Action==GuidedAction.Investigate)await Investigate();else OpenManagementArea(card.Action);};
             panel.Children.Add(button);RecommendationsPanel.Children.Add(new Border{Child=panel,Style=(Style)FindResource("Card"),Margin=new Thickness(0,0,0,16)});
         }
     }
@@ -308,11 +334,13 @@ public partial class MainWindow:Window
         _detailLoading=false;
         if(IncidentsGrid.SelectedItem is not ViewIncident incident)
         {
-            OperationIncident.Text="";
+            RenderSelectedIncidentSummary();
             DetailText.Text=T("SelectAnIncidentToViewTheAvailableCodesTimesAndNumericEvidence");
+            TechnicalDetailsExpander.Visibility=Visibility.Collapsed;
             return;
         }
-        OperationIncident.Text=incident.Id;_detailLoading=true;RenderDetail();
+        RenderSelectedIncidentSummary();
+        _detailLoading=true;RenderDetail();
         try
         {
             var detail=await _controller.ReadAsync<ViewIncidentDetail>("incident",new{incidentId=incident.Id},_closing.Token);
@@ -325,17 +353,35 @@ public partial class MainWindow:Window
     }
     private void RenderDetail()
     {
-            if(_hasRefreshed&&_renderedView is null){DetailText.Text=T("DetailsAreUnavailableAPreviousStatusIsNotCurrentEvidence");return;}
-            if(_detailLoading){DetailText.Text=T("LoadingLimitedEvidence");return;}
-            if(IncidentsGrid.SelectedItem is not ViewIncident){DetailText.Text=T("SelectAnIncidentToViewTheAvailableCodesTimesAndNumericEvidence");return;}
+            if(_hasRefreshed&&_renderedView is null){TechnicalDetailsExpander.Visibility=Visibility.Collapsed;DetailText.Text=T("DetailsAreUnavailableAPreviousStatusIsNotCurrentEvidence");return;}
+            if(_detailLoading){TechnicalDetailsExpander.Visibility=Visibility.Collapsed;DetailText.Text=T("LoadingLimitedEvidence");return;}
+            if(IncidentsGrid.SelectedItem is not ViewIncident){TechnicalDetailsExpander.Visibility=Visibility.Collapsed;DetailText.Text=T("SelectAnIncidentToViewTheAvailableCodesTimesAndNumericEvidence");return;}
             var detail=_selectedDetail;
-            if(detail is null){DetailText.Text=T("DetailsAreUnavailable");return;}
+            if(detail is null){TechnicalDetailsExpander.Visibility=Visibility.Collapsed;DetailText.Text=T("DetailsAreUnavailable");return;}
             var scope=detail.ConfidenceScope=="stop_code_classification_only"?T("ConfidenceRefersToTheStopCodeClassificationItDoesNotIdentifyAFaultyD"):T("ConfidenceIsAnEstimateOfTheLikelyCauseNotAGuaranteeOfTheCorrectRepai");
-            DetailText.Text=T("IncidentCodeStatusConfidence",detail.Incident.Id,detail.Incident.Code,TechnicalText.Format(detail.Incident.State,Localization.Culture),detail.Incident.Confidence)+
+            DetailText.Text=T("IncidentCodeStatusConfidence",T("IncidentSummary",TechnicalText.Format(detail.Incident.Code,Localization.Culture),detail.Incident.AtUtc.ToLocalTime().ToString("g",Localization.Culture)),TechnicalText.Format(detail.Incident.Code,Localization.Culture),TechnicalText.Format(detail.Incident.State,Localization.Culture),detail.Incident.Confidence)+
                 (detail.Incident.AffectedService is{} service?T("AffectedService",service):string.Empty)+
                 T("LimitedEvidenceSourceValueUTC",scope)+
                 string.Join("\n",detail.Evidence.Select(x=>T("EvidenceValues",x.Source,x.Value?.ToString(Localization.Culture)??"—",x.AtUtc)))+
                 (detail.Truncated?T("AdditionalEvidenceWasOmittedToLimitTheScope"):"")+T("ViewingThisInformationDoesNotApproveAnAutomaticRepair");
+            TechnicalDetailsExpander.Visibility=DeveloperFeaturesEnabled?Visibility.Visible:Visibility.Collapsed;
+            TechnicalIncidentCodeText.Text=T("TechnicalIncidentIdentifiers",detail.Incident.Id,detail.Incident.Code);
+    }
+
+    private void RenderSelectedIncidentSummary()
+    {
+        if(IncidentsGrid.SelectedItem is not ViewIncident incident)
+        {
+            _selectedOperationIncidentId=null;
+            OperationIncidentSummary.Text=T("NoIncidentSelected");
+        }
+        else
+        {
+            _selectedOperationIncidentId=incident.Id;
+            OperationIncidentSummary.Text=T("IncidentSummary",TechnicalText.Format(incident.Code,Localization.Culture),
+                incident.AtUtc.ToLocalTime().ToString("g",Localization.Culture));
+        }
+        UpdateOperationReadiness();
     }
     private async Task Investigate()
     {
@@ -363,20 +409,27 @@ public partial class MainWindow:Window
     {
         if(!RequireDeveloperMode())return;
         if(_controller.Snapshot is not {} view)return;
+        var readiness=OperationReadiness(view);
+        if(readiness is not null){OperationHintText.Text=T(readiness);return;}
+        if(OperationChoice.SelectedItem is not ComboBoxItem selectedAction || selectedAction.Tag is not string actionTag ||
+            !Enum.TryParse<HelperOperation>(actionTag,out var op))
+        {
+            OperationHintText.Text=T("SelectActionAfterReviewingEvidence");
+            return;
+        }
         try
         {
-            var op=Enum.Parse<HelperOperation>((string)((ComboBoxItem)OperationChoice.SelectedItem).Tag);
             var process=op==HelperOperation.TerminateProcess;
             int? pid=process&&int.TryParse(PidInput.Text,NumberStyles.None,CultureInfo.InvariantCulture,out var p)?p:null;
             long? ticks=process&&long.TryParse(TicksInput.Text,NumberStyles.None,CultureInfo.InvariantCulture,out var t)?t:null;
-            _=DashboardCommands.ProposalArguments(view,OperationIncident.Text,op,AliasInput.Text,pid,ticks);
+            _=DashboardCommands.ProposalArguments(view,_selectedOperationIncidentId!,op,AliasInput.Text,pid,ticks);
             if(Messages.Show(this,T("OpenAdministratorVerificationForThisExactActionEndingAProcessOrStopp"),T("ManualAction"),MessageBoxButton.OKCancel,MessageBoxImage.Warning)!=MessageBoxResult.OK)return;
             if(!RequireDeveloperMode())return;
             _observation.Begin(view);_comparisonText=null;ComparisonText.Text="";OperationButton.IsEnabled=false;
             _childWorkflowPending=true;
             try
             {
-                using var child=DashboardCommands.Propose(view,OperationIncident.Text,op,AliasInput.Text,pid,ticks);
+                using var child=DashboardCommands.Propose(view,_selectedOperationIncidentId!,op,AliasInput.Text,pid,ticks);
                 if(child is null)throw new InvalidOperationException();
                 await child.WaitForExitAsync(_closing.Token);
                 _observation.Complete(DateTimeOffset.UtcNow,child.ExitCode==0);
@@ -390,8 +443,46 @@ public partial class MainWindow:Window
         catch(OperationCanceledException) when(_closing.IsCancellationRequested){_observation.Complete(DateTimeOffset.UtcNow,false);}
         catch {_observation.Complete(DateTimeOffset.UtcNow,false);Messages.Show(this,T("CannotPrepareTheActionCheckTheModeInstalledCLIVersionRegisteredAlias"));}
     }
+    private string? OperationReadiness(DashboardSnapshot? view)
+    {
+        if(_observation.Pending||_childWorkflowPending)return "WaitingForTheApprovalWindowToFinish";
+        if(_refreshFailed)return "ActionsAreBlockedUntilTheStatusCanBeRefreshed";
+        if(view is null||!ViewFreshness.IsFresh(view.GeneratedAtUtc,DateTimeOffset.UtcNow))return "ActionsRequireFreshStatus";
+        if(view.KillSwitch)return "ActionsAreBlockedByTheEmergencySwitchKillSwitch";
+        if(view.Mode=="Shadow")return "ShadowModeViewAndInvestigateTheStatusActionsAreBlocked";
+        if(view.ReadOnly)return "TheServiceIsInReadOnlyModeActionsAreBlocked";
+        if(view.Mode!="Confirmation")return "ActionsAreNotAvailableYetWaitingForTheCurrentServiceMode";
+        if(_selectedOperationIncidentId is not { } incidentId||!Guid.TryParseExact(incidentId,"N",out var incident)||incident==Guid.Empty)
+            return "SelectIncidentBeforeAction";
+        if(OperationChoice.SelectedItem is not ComboBoxItem {Tag:string actionTag}||!Enum.TryParse<HelperOperation>(actionTag,out var operation))
+            return "SelectActionAfterReviewingEvidence";
+        var alias=AliasInput.Text;
+        if(alias.Length is <1 or >64||!alias.All(c=>char.IsAsciiLetterOrDigit(c)||c is '-' or '_' or '.'))
+            return "EnterRegisteredTargetAlias";
+        if(operation==HelperOperation.TerminateProcess&&
+            (!int.TryParse(PidInput.Text,NumberStyles.None,CultureInfo.InvariantCulture,out var pid)||pid<=0||
+             !long.TryParse(TicksInput.Text,NumberStyles.None,CultureInfo.InvariantCulture,out var ticks)||ticks<=0||ticks>DateTimeOffset.MaxValue.UtcTicks))
+            return "SelectProcessBeforeAction";
+        try{_ = DashboardCommands.ProposalArguments(view,incidentId,operation,alias,
+            operation==HelperOperation.TerminateProcess?int.Parse(PidInput.Text,CultureInfo.InvariantCulture):null,
+            operation==HelperOperation.TerminateProcess?long.Parse(TicksInput.Text,CultureInfo.InvariantCulture):null);}
+        catch{return "ActionTargetNotRegisteredOrRequestInvalid";}
+        return null;
+    }
+
+    private bool CanOfferOperation(DashboardSnapshot? view)=>OperationReadiness(view) is null;
+    private void UpdateOperationReadiness()
+    {
+        var key=OperationReadiness(_renderedView);
+        OperationButton.IsEnabled=key is null;
+        OperationHintText.Text=T(key??"ActionReadyRequiresSeparateApproval");
+    }
+    private void OperationFieldsChanged(object sender,TextChangedEventArgs e)=>UpdateOperationReadiness();
+    private void OperationChoiceChanged(object sender,SelectionChangedEventArgs e)
+    {UpdateProcessFields();UpdateOperationReadiness();}
     private async void KillSwitchClick(object sender,RoutedEventArgs e)
     {
+        if(!RequireDeveloperMode())return;
         if(_childWorkflowPending)return;
         if(Messages.Show(this,T("BlockRepairsInBothTheMonitorAndHelperTheCLIWillRequestUACAndAPPLYCon"),T("EmergencySwitch"),MessageBoxButton.OKCancel,MessageBoxImage.Warning)!=MessageBoxResult.OK)return;
         try
@@ -407,6 +498,7 @@ public partial class MainWindow:Window
     }
     private async void CompareClick(object sender,RoutedEventArgs e)
     {
+        if(!RequireDeveloperMode())return;
         await Refresh();var after=_controller.Snapshot;
         var state=_observation.Compare(after);
         var beforeCpu=_observation.Before?.Cpu;var beforeMemory=_observation.Before?.Memory;
@@ -449,15 +541,32 @@ public partial class MainWindow:Window
     private void TrayClick(object sender,RoutedEventArgs e){_tray.Visible=true;Hide();}
     private async void RefreshClick(object sender,RoutedEventArgs e)=>await Refresh();
     private async void InvestigateClick(object sender,RoutedEventArgs e)=>await Investigate();
-    private void OpenSettings(GuidedAction action)
-    {if(!RequireDeveloperMode())return;try {DashboardCommands.OpenSettings(action);}catch {Messages.Show(this,T("CouldNotOpenWindowsSettings"));}}
-    private void StorageClick(object sender,RoutedEventArgs e)=>OpenSettings(GuidedAction.StorageSettings);
-    private void AppsClick(object sender,RoutedEventArgs e)=>OpenSettings(GuidedAction.AppsSettings);
-    private void StartupClick(object sender,RoutedEventArgs e)=>OpenSettings(GuidedAction.StartupSettings);
+    private void OpenManagementArea(GuidedAction action)
+    {
+        var area=action switch
+        {
+            GuidedAction.Storage=>WindowsArea.Disks,
+            GuidedAction.Apps=>WindowsArea.Applications,
+            GuidedAction.Startup=>WindowsArea.Startup,
+            _=>(WindowsArea?)null
+        };
+        if(area is {} value)OpenManagementArea(value);
+    }
+
+    private void OpenManagementArea(WindowsArea area)
+    {
+        DashboardTabs.SelectedIndex=5;
+        WindowsInventoryArea.SelectedItem=WindowsInventoryArea.Items.OfType<ComboBoxItem>()
+            .FirstOrDefault(item=>string.Equals(item.Tag as string,area.ToString(),StringComparison.Ordinal));
+        WindowsAdministrationTab.Focus();
+    }
+
+    private void StorageClick(object sender,RoutedEventArgs e)=>OpenManagementArea(WindowsArea.Disks);
+    private void AppsClick(object sender,RoutedEventArgs e)=>OpenManagementArea(WindowsArea.Applications);
+    private void StartupClick(object sender,RoutedEventArgs e)=>OpenManagementArea(WindowsArea.Startup);
 
     private void WindowsAdministrationClick(object sender,RoutedEventArgs e)
     {
-        if(!RequireDeveloperMode())return;
         WindowsAdministrationTab.IsSelected=true;
         WindowsAdministrationTab.Focus();
     }
@@ -467,7 +576,7 @@ public partial class MainWindow:Window
         if(ReferenceEquals(e.Source,DashboardTabs))
         {
             var selected=DashboardTabs.SelectedIndex;
-            if(!DeveloperFeaturesEnabled&&DesktopModePolicy.IsDeveloperTab(selected))
+            if(!DesktopModePolicy.CanNavigateTo(selected,_desktopMode))
             {DashboardTabs.SelectedIndex=_lastStandardTab;return;}
             if(!DesktopModePolicy.IsDeveloperTab(selected))_lastStandardTab=selected;
         }
@@ -477,15 +586,13 @@ public partial class MainWindow:Window
 
     private async void WindowsAreaChanged(object sender,SelectionChangedEventArgs e)
     {
-        if(!DeveloperFeaturesEnabled)return;
         if(WindowsAdministrationTab?.IsSelected==true)await ReadWindowsInventory();
     }
 
-    private async void WindowsInventoryRefresh(object sender,RoutedEventArgs e){if(RequireDeveloperMode())await ReadWindowsInventory();}
+    private async void WindowsInventoryRefresh(object sender,RoutedEventArgs e)=>await ReadWindowsInventory();
 
     private async Task ReadWindowsInventory()
     {
-        if(!DeveloperFeaturesEnabled){_windowsInventory=null;WindowsInventoryGrid.ItemsSource=null;return;}
         if(WindowsInventoryArea.SelectedItem is not ComboBoxItem {Tag:string name} ||
             !Enum.TryParse<WindowsArea>(name,out var area))return;
         var request=++_windowsInventoryRequest;
@@ -497,9 +604,9 @@ public partial class MainWindow:Window
             await _windowsInventoryGate.WaitAsync(_closing.Token);
             try
             {
-                if(request!=_windowsInventoryRequest||!DeveloperFeaturesEnabled)return;
+                if(request!=_windowsInventoryRequest||!WindowsAdministrationTab.IsSelected)return;
                 var result=await Task.Run(()=>_readWindowsInventory(area),_closing.Token);
-                if(request!=_windowsInventoryRequest||_closing.IsCancellationRequested||!DeveloperFeaturesEnabled)return;
+                if(request!=_windowsInventoryRequest||_closing.IsCancellationRequested||!WindowsAdministrationTab.IsSelected)return;
                 _windowsInventory=result;
                 RenderWindowsInventory();
             }
@@ -529,9 +636,66 @@ public partial class MainWindow:Window
             field=>field.Contains(search,StringComparison.CurrentCultureIgnoreCase))).ToArray();
         WindowsInventoryGrid.ItemsSource=rows;
         SetInventoryStatus(inventory.Partial?"WinInventoryPartial":rows.Length==0?"WinInventoryEmpty":"WinInventoryLoaded");
+        WindowsAreaCapabilityText.Text=T(WindowsInventoryArea.SelectedItem is ComboBoxItem {Tag:"Applications"}?"WinInventoryApplicationsReadOnly":
+            WindowsInventoryArea.SelectedItem is ComboBoxItem {Tag:"Startup"}?"WinInventoryStartupReadOnly":
+            WindowsInventoryArea.SelectedItem is ComboBoxItem {Tag:"Services"}?"WinInventoryServicesCapability":
+            WindowsInventoryArea.SelectedItem is ComboBoxItem {Tag:"Processes"}?"WinInventoryProcessesCapability":
+            WindowsInventoryArea.SelectedItem is ComboBoxItem {Tag:"Disks"}?"WinInventoryDisksCapability":
+            WindowsInventoryArea.SelectedItem is ComboBoxItem {Tag:"Network"}?"WinInventoryNetworkCapability":"WinInventoryEventsCapability");
+        UpdateWindowsInventoryActionButtons();
+    }
+
+    private void UpdateWindowsInventoryActionButtons()
+    {
+        var process = WindowsInventoryArea.SelectedItem is ComboBoxItem {Tag:"Processes"};
+        var service = WindowsInventoryArea.SelectedItem is ComboBoxItem {Tag:"Services"};
+        PrepareProcessActionButton.Visibility=process&&WindowsInventoryGrid.SelectedItem is WindowsInventoryRow {ProcessId:not null,ProcessStartTimeUtcTicks:not null}
+            ?Visibility.Visible:Visibility.Collapsed;
+        PrepareServiceActionButton.Visibility=service&&WindowsInventoryGrid.SelectedItem is WindowsInventoryRow
+            ?Visibility.Visible:Visibility.Collapsed;
+        ManageSelectedDiskButton.Visibility=WindowsInventoryArea.SelectedItem is ComboBoxItem {Tag:"Disks"}
+            &&WindowsInventoryGrid.SelectedItem is WindowsInventoryRow {Name:var drive}
+            &&MaintenanceWindow.MatchesDefaultVolume(drive.TrimEnd('\\'))?Visibility.Visible:Visibility.Collapsed;
     }
 
     private void SetInventoryStatus(string key)=>WindowsToolStatus.SetResourceReference(TextBlock.TextProperty,"Loc."+key);
+
+    private void WindowsInventorySelectionChanged(object sender,SelectionChangedEventArgs e)
+    {
+        UpdateWindowsInventoryActionButtons();
+    }
+
+    private void PrepareProcessActionClick(object sender,RoutedEventArgs e)
+    {
+        if(WindowsInventoryGrid.SelectedItem is not WindowsInventoryRow {ProcessId:{} pid,ProcessStartTimeUtcTicks:{} ticks})return;
+        if(!RequireDeveloperMode())return;
+        DashboardTabs.SelectedIndex=4;
+        PidInput.Text=pid.ToString(CultureInfo.InvariantCulture);
+        TicksInput.Text=ticks.ToString(CultureInfo.InvariantCulture);
+        OperationChoice.SelectedIndex=3;
+        AliasInput.Focus();
+        UpdateOperationReadiness();
+    }
+
+    private void PrepareServiceActionClick(object sender,RoutedEventArgs e)
+    {
+        if(WindowsInventoryArea.SelectedItem is not ComboBoxItem {Tag:"Services"}
+            ||WindowsInventoryGrid.SelectedItem is not WindowsInventoryRow service)return;
+        if(!RequireDeveloperMode())return;
+        DashboardTabs.SelectedIndex=4;
+        OperationChoice.SelectedIndex=-1;
+        PidInput.Clear();TicksInput.Clear();
+        AliasInput.Text=service.Name;
+        AliasInput.Focus();
+        UpdateOperationReadiness();
+    }
+
+    private async void ManageSelectedDiskClick(object sender,RoutedEventArgs e)
+    {
+        if(!RequireDeveloperMode())return;
+        if(WindowsInventoryGrid.SelectedItem is not WindowsInventoryRow {Name:var drive})return;
+        await OpenDiskCleanup(drive.TrimEnd('\\'));
+    }
 
     private void RenderWindowsDiagnosis(DashboardSnapshot? view)
     {

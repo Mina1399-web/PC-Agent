@@ -117,7 +117,7 @@
     <comment>Source (cs-CZ): Zobrazeno {0} posledních záznamů. Jistota diagnózy neznamená záruku úspěšné opravy.</comment>
   </data>
   <data xml:space="preserve" name="TheCurrentEvidenceDoesNotCallForANewRecommendationMissingMeasurement">
-    <value>The current evidence does not call for a new recommendation. Missing measurements do not mean everything is working correctly.</value>
+    <value>Host Agent did not find a repair step supported by the available measurements. That does not prove the PC is problem-free. A safe next step is to review saved Windows events (read-only) or refresh the measurements.</value>
     <comment>Source (cs-CZ): Aktuální důkazy nevyžadují nové doporučení. Chybějící měření neznamená bezchybný stav.</comment>
   </data>
   <data xml:space="preserve" name="Evidence">
@@ -815,7 +815,7 @@ Graf se zobrazí po získání uložených měření.</comment>
     <comment>Source (cs-CZ): Porovnat stav po zásahu</comment>
   </data>
   <data xml:space="preserve" name="WindowsSettings">
-    <value>Windows Settings</value>
+    <value>Windows management in the app</value>
     <comment>Source (cs-CZ): Nastavení Windows</comment>
   </data>
   <data xml:space="preserve" name="ChooseWhatToManageConfirmYourFileAndApplicationSelectionsDirectlyInW">
@@ -895,7 +895,7 @@ Graf se zobrazí po získání uložených měření.</comment>
     <comment>Source (cs-CZ): Vypnutí automatického spuštění může odložit synchronizaci nebo jiné funkce aplikace.</comment>
   </data>
   <data xml:space="preserve" name="YouCanEnableTheItemAgainInStartupSettings">
-    <value>You can enable the item again in Startup settings.</value>
+    <value>Startup entries are read-only here; review an entry before changing it elsewhere.</value>
     <comment>Source (cs-CZ): Položku lze znovu povolit v nastavení Po spuštění.</comment>
   </data>
   <data xml:space="preserve" name="InvestigateMemoryPressure">
@@ -1477,6 +1477,23 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="DesignReviewRecordedEvidence" xml:space="preserve"><value>First open Incidents and review the evidence. A retained event does not prove a fault is happening now.</value></data>
   <data name="DesignReviewRecommendations" xml:space="preserve"><value>Open Recommendations for steps supported by the available measurements.</value></data>
   <data name="DesignLowDisk" xml:space="preserve"><value>Disk {0}: only {1:0.#}% free. Updates may lack space. Open Recommendations before choosing files.</value></data>
+  <data name="DesignNavSituation" xml:space="preserve"><value>Situation</value></data>
+  <data name="DesignNavEvents" xml:space="preserve"><value>Events</value></data>
+  <data name="DesignNavSystem" xml:space="preserve"><value>System</value></data>
+  <data name="DesignNavMaintenance" xml:space="preserve"><value>Maintenance</value></data>
+  <data name="DesignNavTools" xml:space="preserve"><value>Tools</value></data>
+  <data name="DesignModeStandardActive" xml:space="preserve"><value>Standard mode · enable Developer mode</value></data>
+  <data name="DesignModeDeveloperActive" xml:space="preserve"><value>Developer mode active · return to Standard</value></data>
+  <data name="DesignEvidenceSourceUnavailable" xml:space="preserve"><value>Measurement time and source are unavailable until the local service responds.</value></data>
+  <data name="DesignEvidenceSourceAndTime" xml:space="preserve"><value>Latest measurement from the local Host Agent service: {0:dd MMM yyyy, HH:mm:ss}.</value></data>
+  <data name="DesignSituationTitle" xml:space="preserve"><value>Current situation</value></data>
+  <data name="DesignSituationIntro" xml:space="preserve"><value>Start with the latest recorded issue, when it was observed, and a safe next step.</value></data>
+  <data name="DesignSystemTitle" xml:space="preserve"><value>System</value></data>
+  <data name="DesignSystemIntro" xml:space="preserve"><value>Current measurements and component state, with their observation time.</value></data>
+  <data name="DesignSystemReadings" xml:space="preserve"><value>Latest host readings</value></data>
+  <data name="DesignReviewEvidenceButton" xml:space="preserve"><value>Review saved event</value></data>
+  <data name="DesignReviewRecommendationsButton" xml:space="preserve"><value>View recommended steps</value></data>
+  <data name="DesignRefreshMeasurementsButton" xml:space="preserve"><value>Refresh measurements</value></data>
   <data name="DesignWindowsCrash" xml:space="preserve"><value>Windows crash</value></data>
   <data name="DesignWindowsCrashIrql" xml:space="preserve"><value>Windows crash: invalid kernel memory access</value></data>
   <data name="DesignMemoryPressure" xml:space="preserve"><value>Low available memory</value></data>
@@ -1503,4 +1520,36 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="ModeChangeBlockedWhileActionRuns" xml:space="preserve"><value>The current action or maintenance window is still open. Wait for its result and close that window before changing modes.</value></data>
   <data name="ModePreferenceSaveFailed" xml:space="preserve"><value>The interface mode could not be saved. The current mode remains active.</value></data>
   <data name="DeveloperModeActiveCloseToReturn" xml:space="preserve"><value>Developer mode is active. Close this maintenance window, then use the header button to return to Standard.</value></data>
+  <data name="DesignOtherDiagnosis" xml:space="preserve"><value>Other recorded condition</value></data>
+  <data name="UnclassifiedDiagnostic" xml:space="preserve"><value>Unclassified diagnostic item</value></data>
+  <data name="UnclassifiedCollectionLimitation" xml:space="preserve"><value>An additional collection limitation was reported.</value></data>
+  <data name="SomeCollectionDataIsUnavailable" xml:space="preserve"><value>Some measurements are unavailable.</value></data>
+  <data name="ActionIsNotRecommendedByIncident" xml:space="preserve"><value>This action list is not a repair recommendation. The incident does not confirm a cause. Check the current service and impact before choosing a specific action. Each action still needs separate approval.</value></data>
+  <data name="SelectActionAfterReviewingEvidence" xml:space="preserve"><value>Review the target and evidence first, then choose the exact action yourself.</value></data>
+  <data name="InAppWindowsManagementIntro" xml:space="preserve"><value>Read Windows state here. Supported service recovery, process actions and file cleanup stay in Host Agent and require individual approval. Installed applications and startup items are currently read-only.</value></data>
+  <data name="WinInventoryApplications" xml:space="preserve"><value>Installed applications</value></data>
+  <data name="WinInventoryStartup" xml:space="preserve"><value>Startup items</value></data>
+  <data name="WinInventoryApplicationsReadOnly" xml:space="preserve"><value>Read-only: install and uninstall actions are not yet available in Host Agent.</value></data>
+  <data name="WinInventoryStartupReadOnly" xml:space="preserve"><value>Read-only: enabling and disabling startup items are not yet available in Host Agent.</value></data>
+  <data name="WinInventoryProcessesCapability" xml:space="preserve"><value>Read-only inventory. Select a process to fill its identity for a typed action; a selected incident and registered target are still required.</value></data>
+  <data name="WinInventoryServicesCapability" xml:space="preserve"><value>Read-only inventory. Service recovery is offered only for fresh matching evidence and always needs separate approval.</value></data>
+  <data name="WinInventoryDisksCapability" xml:space="preserve"><value>Read-only inventory. An in-app cleanup preview is available only for the user profile volume with a current low-space finding.</value></data>
+  <data name="WinInventoryNetworkCapability" xml:space="preserve"><value>Read-only adapter inventory. Active network probes are separate and require Developer mode.</value></data>
+  <data name="WinInventoryEventsCapability" xml:space="preserve"><value>Read-only list of recent Windows system events.</value></data>
+  <data name="PrepareProcessAction" xml:space="preserve"><value>Prepare process action</value></data>
+  <data name="OpenWindowsManagement" xml:space="preserve"><value>Open Windows management in Host Agent</value></data>
+  <data name="NoIncidentSelected" xml:space="preserve"><value>No incident selected. Choose one from Incidents before preparing an action.</value></data>
+  <data name="IncidentSummary" xml:space="preserve"><value>{0} · recorded {1}</value></data>
+  <data name="TechnicalDetails" xml:space="preserve"><value>Technical details</value></data>
+  <data name="TechnicalIncidentIdentifiers" xml:space="preserve"><value>Incident ID: {0}\nInternal code: {1}</value></data>
+  <data name="SelectIncidentBeforeAction" xml:space="preserve"><value>Select an incident from Incidents before preparing an action.</value></data>
+  <data name="EnterRegisteredTargetAlias" xml:space="preserve"><value>Enter a registered target alias. Only targets in the approved allowlist can be used.</value></data>
+  <data name="SelectProcessBeforeAction" xml:space="preserve"><value>Select a process from the local inventory so its PID and start time are filled in.</value></data>
+  <data name="ActionReadyRequiresSeparateApproval" xml:space="preserve"><value>Required details are present. Review the exact target and approve it in the next prompt; nothing runs from this screen alone.</value></data>
+  <data name="ActionTargetNotRegisteredOrRequestInvalid" xml:space="preserve"><value>This target or action is not registered for approval. Check the target alias and choose an allowed operation.</value></data>
+  <data name="ActionsRequireFreshStatus" xml:space="preserve"><value>Refresh the local status before preparing an action.</value></data>
+  <data name="InAppStartupListCanHelpIdentifyPossibleCausesButIsReadOnly" xml:space="preserve"><value>The in-app startup list can help identify possible causes. It is read-only; this recommendation makes no changes.</value></data>
+  <data name="InAppAppListCanHelpReviewMemoryUseButIsReadOnly" xml:space="preserve"><value>The in-app application list can help review memory use. It is read-only; this recommendation closes no applications.</value></data>
+  <data name="PrepareServiceAction" xml:space="preserve"><value>Prepare service action</value></data>
+  <data name="WinPrepareServiceActionHelp" xml:space="preserve"><value>Copies the selected service identifier to the review form. It must match an administrator-approved alias; the helper validates it before any action.</value></data>
 </root>

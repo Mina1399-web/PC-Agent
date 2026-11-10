@@ -39,6 +39,22 @@ public sealed class WindowsAdministrationTests
             PumpUntil(() => grid.Items.Count == 1 && grid.Items[0] is WindowsInventoryRow { Name: "HostAgent" });
             language.SelectLanguage("de");
             Assert.Equal("Gestartet", Assert.Single(grid.Items.OfType<WindowsInventoryRow>()).State);
+            var area=(ComboBox)window.FindName("WindowsInventoryArea");
+            area.SelectedIndex=5;
+            PumpUntil(()=>((TextBlock)window.FindName("WindowsAreaCapabilityText")).Text.Contains("Installation",StringComparison.OrdinalIgnoreCase));
+            Assert.Contains("Installation",((TextBlock)window.FindName("WindowsAreaCapabilityText")).Text);
+            area.SelectedIndex=6;
+            PumpUntil(()=>((TextBlock)window.FindName("WindowsAreaCapabilityText")).Text.Contains("Autostarteinträge",StringComparison.OrdinalIgnoreCase));
+            Assert.Contains("Autostarteinträge",((TextBlock)window.FindName("WindowsAreaCapabilityText")).Text);
+            area.SelectedIndex=1;
+            PumpUntil(()=>grid.Items.Count==1&&grid.Items[0] is WindowsInventoryRow {Name:"HostAgent"});
+            grid.SelectedIndex=0;
+            var prepare=(Button)window.FindName("PrepareServiceActionButton");
+            Assert.Equal(Visibility.Visible,prepare.Visibility);
+            prepare.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Assert.Equal(4,((TabControl)window.FindName("DashboardTabs")).SelectedIndex);
+            Assert.Equal("HostAgent",((TextBox)window.FindName("AliasInput")).Text);
+            Assert.Equal(-1,((ComboBox)window.FindName("OperationChoice")).SelectedIndex);
         }
         finally { window.Close(); }
     });
