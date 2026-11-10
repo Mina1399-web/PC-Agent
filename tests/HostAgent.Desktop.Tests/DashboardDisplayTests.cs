@@ -27,6 +27,8 @@ public sealed class DashboardDisplayTests
     {
         Assert.Equal("—", new ByteSizeConverter().Convert(null!, typeof(string), null!, CultureInfo.InvariantCulture));
         Assert.Equal("Remediation in progress", new IncidentStateConverter().Convert("Remediating", typeof(string), null!, CultureInfo.InvariantCulture));
-        Assert.Equal("Technical code: new_state", new IncidentStateConverter().Convert("new_state", typeof(string), null!, CultureInfo.InvariantCulture));
+        var unknownState = (string)new IncidentStateConverter().Convert("new_state", typeof(string), null!, CultureInfo.InvariantCulture);
+        Assert.Contains("Unclassified", unknownState);
+        Assert.DoesNotContain("new_state", unknownState);
     }
 }

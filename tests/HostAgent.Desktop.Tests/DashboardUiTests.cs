@@ -49,14 +49,18 @@ public sealed class DashboardUiTests
                         _=>AdminProtocol.Reply(false,"view_unavailable")
                     });
                 });
-                window=new MainWindow(controller,TestLocalization.Czech());window.Show();
+                window=new MainWindow(controller,TestLocalization.Czech(),null,
+                    _=>new WindowsInventory([new("Ukázkový proces / Sample process", "42", "Running", "128 MiB") ]),()=>true);window.Show();
                 PumpUntil(()=>((TextBlock)window.FindName("CpuText")).Text.Contains("42"));
                 Assert.Contains("64",((TextBlock)window.FindName("MemoryText")).Text);
                 Assert.Equal("2 h 00 min",((TextBlock)window.FindName("UptimeText")).Text);
-                Assert.Equal(Color.FromRgb(0x14,0x24,0x3B),((SolidColorBrush)((TextBlock)window.FindName("CpuText")).Foreground).Color);
+                Assert.Equal(((SolidColorBrush)window.FindResource("InkBrush")).Color,((SolidColorBrush)((TextBlock)window.FindName("CpuText")).Foreground).Color);
                 Assert.False(((Button)window.FindName("OperationButton")).IsEnabled);
                 Assert.Contains("Shadow",((TextBlock)window.FindName("OperationHintText")).Text);
                 Assert.Equal("1",((TextBlock)window.FindName("IncidentCountText")).Text);
+                Assert.Equal(((TextBlock)window.FindName("CpuText")).Text,((TextBlock)window.FindName("SystemCpuText")).Text);
+                Assert.Equal(((TextBlock)window.FindName("MemoryText")).Text,((TextBlock)window.FindName("SystemMemoryText")).Text);
+                Assert.Contains("místní služby Host Agent",((TextBlock)window.FindName("SystemEvidenceMetaText")).Text);
                 Assert.Single(((DataGrid)window.FindName("DisksGrid")).Items.Cast<object>());
                 Assert.Single(((DataGrid)window.FindName("ServicesGrid")).Items.Cast<object>());
                 PumpUntil(()=>((Canvas)window.FindName("Chart")).Children.OfType<Polyline>().Count()==4);
@@ -72,12 +76,38 @@ public sealed class DashboardUiTests
                 Assert.Equal(1,tabs.SelectedIndex);
                 ((TabItem)tabs.Items[0]).Focus();
                 Assert.Equal(0,tabs.SelectedIndex);
-                foreach(var size in new[]{(1280d,880d),(1000d,760d),(850d,620d)})
+                Assert.True(window.RequestDesktopMode(DesktopMode.Standard));
+                foreach(var language in new[]{"cs-CZ","en","de"})
+                {
+                    window.Localization.SelectLanguage(language);
+                    foreach(var size in new[]{(1280d,800d),(850d,620d)})
+                    {
+                        window.Width=size.Item1;window.Height=size.Item2;window.UpdateLayout();
+                        Assert.Equal(Visibility.Visible,((Button)window.FindName("TriageActionButton")).Visibility);
+                        Assert.Equal(DesktopMode.Standard,window.CurrentDesktopMode);
+                        Capture(window,$"standard-{language}-{size.Item1:0}x{size.Item2:0}-synthetic");
+                    }
+                }
+                window.Localization.SelectLanguage("cs-CZ");
+                Assert.True(window.RequestDesktopMode(DesktopMode.Developer));
+                foreach(var size in new[]{(1280d,880d),(1280d,800d),(1000d,760d),(850d,620d)})
                 {
                     window.Width=size.Item1;window.Height=size.Item2;window.UpdateLayout();
                     Assert.Equal(window.ActualWidth<1050?2:4,((System.Windows.Controls.Primitives.UniformGrid)window.FindName("MetricsGrid")).Columns);
-                    Capture(window,$"overview-{size.Item1:0}-synthetic");
+                    Capture(window,$"developer-{size.Item1:0}x{size.Item2:0}-synthetic");
                 }
+                window.Width=1280;window.Height=880;
+                var theme=(Button)window.FindName("ThemeButton");
+                theme.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                Capture(window,"overview-light-synthetic");
+                theme.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                foreach(var language in new[]{"en","de"})
+                {
+                    window.Localization.SelectLanguage(language);
+                    window.Width=850;window.Height=620;
+                    Capture(window,$"overview-{language}-850-synthetic");
+                }
+                window.Localization.SelectLanguage("cs-CZ");
                 window.Width=1280;window.Height=880;
                 var overviewScroll=(ScrollViewer)((TabItem)tabs.Items[0]).Content;
                 overviewScroll.ScrollToBottom();Capture(window,"overview-tables-synthetic");overviewScroll.ScrollToTop();
@@ -88,11 +118,14 @@ public sealed class DashboardUiTests
                     {
                         ((DataGrid)window.FindName("IncidentsGrid")).SelectedIndex=0;
                         PumpUntil(()=>((TextBox)window.FindName("DetailText")).Text.Contains("stop kódu"));
-                        Assert.Equal(incident.Id,((TextBox)window.FindName("OperationIncident")).Text);
+                        var incidentSummary=((TextBlock)window.FindName("OperationIncidentSummary")).Text;
+                        Assert.DoesNotContain(incident.Id,incidentSummary);
+                        Assert.DoesNotContain("Není vybraná",incidentSummary);
                     }
                     Capture(window,$"section-{index}-synthetic");
                 }
-                window.Width=850;window.Height=620;Capture(window,"maintenance-850-synthetic");
+                window.Width=850;window.Height=620;Capture(window,"windows-administration-850-synthetic");
+                tabs.SelectedIndex=tabs.Items.Count-2;Capture(window,"maintenance-850-synthetic");
                 window.Width=1280;window.Height=880;
                 tabs.SelectedIndex=0;
                 online=false;
@@ -104,7 +137,7 @@ public sealed class DashboardUiTests
                 Assert.Empty(((DataGrid)window.FindName("ServicesGrid")).Items.Cast<object>());
                 Assert.Equal(Visibility.Visible,((TextBlock)window.FindName("ChartEmptyText")).Visibility);
                 Assert.Empty(((Canvas)window.FindName("Chart")).Children.OfType<Polyline>());
-                Assert.Equal("",((TextBox)window.FindName("OperationIncident")).Text);
+                Assert.Contains("Není vybraná",((TextBlock)window.FindName("OperationIncidentSummary")).Text);
                 Capture(window,"disconnected");
                 online=true;stale=true;
                 refresh.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));

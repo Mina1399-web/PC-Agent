@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using HostAgent.Core.Contracts;
+using HostAgent.Core.Dashboard;
 using HostAgent.Core.Models.Baseline;
 using HostAgent.Core.Models.Diagnosis;
 using HostAgent.Core.Models.Incidents;
@@ -317,13 +318,15 @@ public sealed class DiagnosticEngine : IDiagnosticEngine
         var services = evidence.ProcessServices ?? new ProcessServiceTelemetry([], [], []);
 
         var crashedEvents = evidence.EventLog?.Events
-            .Where(entry => entry.Provider.Contains("Service Control Manager", StringComparison.OrdinalIgnoreCase)
+            .Where(entry => entry.LogName.Equals("System", StringComparison.OrdinalIgnoreCase)
+                && entry.Provider.Equals("Service Control Manager", StringComparison.OrdinalIgnoreCase)
                 && entry.EventId is 7031 or 7034
                 && entry.OccurredAtUtc is { } occurredAt
                 && occurredAt <= evidence.SampledAtUtc
                 && evidence.SampledAtUtc - occurredAt <= EventCorrelationWindow
                 && (entry.Level.Equals("Error", StringComparison.OrdinalIgnoreCase)
                     || entry.Level.Equals("Critical", StringComparison.OrdinalIgnoreCase)))
+            .OrderByDescending(entry => entry.OccurredAtUtc)
             .ToArray() ?? [];
 
         string? ServiceName(EventLogEntryMetadata entry)
@@ -341,7 +344,7 @@ public sealed class DiagnosticEngine : IDiagnosticEngine
                 && change.ObservedAtUtc <= evidence.SampledAtUtc
                 && evidence.SampledAtUtc - change.ObservedAtUtc <= EventCorrelationWindow)
             .GroupBy(static change => change.ServiceName, StringComparer.OrdinalIgnoreCase)
-            .Select(static group => group.OrderByDescending(change => change.ObservedAtUtc).First());
+            .Select(static group => group.OrderByDescending(change => change.ObservedAtUtc).First()).ToArray();
 
         foreach (var change in failedChanges)
         {
@@ -373,7 +376,7 @@ public sealed class DiagnosticEngine : IDiagnosticEngine
                     $"Service {change.ServiceName} changed from {change.PreviousStatus} to {change.CurrentStatus}.",
                     null,
                     change.ObservedAtUtc)],
-                new ProbableRootCause("service_stopped", "A previously running service stopped unexpectedly", change.ServiceName),
+                new ProbableRootCause("service_stopped", "A previously running service stopped; the cause has not been established", change.ServiceName),
                 [],
                 new RemediationRecommendation("inspect_service_failure", "Review the service failure and its recent Event Log metadata.")));
         }
@@ -399,12 +402,24 @@ public sealed class DiagnosticEngine : IDiagnosticEngine
                 : "service_failure:" + name.ToUpperInvariant();
             if (!crashKeys.Add(key)) continue;
 
+            var eventAt = crash.OccurredAtUtc!.Value;
+            var corroboration = name is null || !services.Services.Any(service =>
+                service.ServiceName.Equals(name, StringComparison.OrdinalIgnoreCase)
+                && service is { Status:HostServiceStatus.Stopped, StartMode:HostServiceStartMode.Automatic, HasTriggers:false })
+                ? null
+                : failedChanges.FirstOrDefault(change =>
+                    change.ServiceName.Equals(name, StringComparison.OrdinalIgnoreCase)
+                    && ViewFreshness.IsFresh(eventAt, evidence.SampledAtUtc)
+                    && ViewFreshness.IsFresh(change.ObservedAtUtc, evidence.SampledAtUtc));
+            var crashEvidence = Evidence("eventlog.service-crash",
+                $"Service Control Manager event {crash.EventId} was recorded.", null, eventAt);
             diagnoses.Add(CreateDiagnosis(
                 key,
                 evidence.SampledAtUtc,
                 DiagnosisSeverity.High,
-                78,
-                [Evidence("eventlog.service-crash", $"Service Control Manager event {crash.EventId} was recorded.", null, crash.OccurredAtUtc ?? evidence.SampledAtUtc)],
+                corroboration is null ? 78 : 85,
+                corroboration is null ? [crashEvidence] :
+                    [crashEvidence, Evidence("service.state_change", "The same service changed from running to stopped.", null, corroboration.ObservedAtUtc)],
                 new ProbableRootCause("service_crash", "Windows recorded an unexpected service termination",
                     name ?? "Unidentified service; event " + eventIdentity),
                 [],

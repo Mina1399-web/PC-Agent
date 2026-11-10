@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -14,7 +16,10 @@ namespace HostAgent.Desktop;
 internal sealed class MaintenanceWindow : Window
 {
     private readonly DashboardController _controller;
-    private readonly UserMaintenance _maintenance;
+    private UserMaintenance _maintenance;
+    private readonly TextBox _deleteConfirmation = new() { MinWidth = 320 };
+    private readonly TextBlock _selectedFolder = new() { TextWrapping = TextWrapping.Wrap };
+    private readonly TextBlock _defaultScope = new() { Text = "ThePreviewScansOnlyFilesDirectlyInThisAccountSTemporaryFolderItInclu", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 12) };
     private readonly CancellationTokenSource _closing = new();
     private readonly DataGrid _previewGrid = new() { IsReadOnly = true, AutoGenerateColumns = false, Height = 210 };
     private readonly DataGrid _entriesGrid = new() { IsReadOnly = true, AutoGenerateColumns = false, Height = 180 };
@@ -22,24 +27,37 @@ internal sealed class MaintenanceWindow : Window
     private readonly TextBox _restoreConfirmation = new() { Name = "MaintenanceRestoreApproval", MinWidth = 320 };
     private readonly TextBlock _status = new() { Name = "MaintenanceStatus", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 10) };
     private readonly TextBlock _previewInfo = new() { Name = "MaintenancePreviewInfo", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 8) };
+    private readonly TextBlock _diskInfo = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 12) };
+    private readonly string? _targetDrive;
+    private long? _initialFreeBytes;
+    private bool _measuredAfterAction;
     private MaintenancePreview? _preview;
     private readonly DesktopLocalization _language;
+    private readonly Func<bool> _developerMode;
     private readonly System.Collections.Generic.List<(DataGridColumn Column,string Source)> _columns=[];
     private Func<string>? _statusText, _previewText;
+    private bool _actionInProgress;
     private string T(string source,params object?[] args)=>_language.Text(source,args);
     private void SetStatus(Func<string> text){_statusText=text;_status.Text=text();}
     internal MaintenancePreview? CurrentPreview => _preview;
 
     internal MaintenanceWindow(DashboardController controller) : this(controller, null) { }
 
-    internal MaintenanceWindow(DashboardController controller, UserMaintenance? maintenance, DesktopLocalization? language=null)
+    internal MaintenanceWindow(DashboardController controller, UserMaintenance? maintenance, DesktopLocalization? language=null,
+        string? targetDrive=null, Func<bool>? developerMode=null)
     {
         _language=language??DesktopLocalization.ForCurrentUser();
+        _developerMode=developerMode??(()=>true);
+        if(!_developerMode())throw new UnauthorizedAccessException("developer_mode_required");
         NameScope.SetNameScope(this, new NameScope());
         _controller = controller;
+        _targetDrive = targetDrive;
         _maintenance = maintenance ?? UserMaintenance.CreateForCurrentUser(ReadFreshStateAsync);
         Title = "HostAgentSafeMaintenance";
-        Width = 960; Height = 800; MinWidth = 760; MinHeight = 640;
+        var workArea=SystemParameters.WorkArea;
+        Width=Math.Min(1320,workArea.Width*.92);Height=Math.Min(920,workArea.Height*.90);
+        MinWidth=Math.Min(760,Width);MinHeight=Math.Min(620,Height);
+        FontFamily=new System.Windows.Media.FontFamily("Segoe UI");FontSize=16;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
         AddTextColumn(_previewGrid, "Name", nameof(MaintenanceItem.Name), 290);
@@ -58,15 +76,34 @@ internal sealed class MaintenanceWindow : Window
         RegisterName("MaintenancePreviewInfo", _previewInfo);
 
         var content = new StackPanel { Margin = new Thickness(22) };
-        content.Children.Add(new TextBlock { Text = "TemporaryFiles", FontSize = 24, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 10) });
-        content.Children.Add(new TextBlock
+        content.Children.Add(new TextBlock { Text = "DeveloperModeActiveCloseToReturn", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 12) });
+        var chooseFolder = new Button { Content = "ChooseMaintenanceFolder", HorizontalAlignment = HorizontalAlignment.Left };
+        RegisterName("MaintenanceFolderButton", chooseFolder);
+        chooseFolder.Click += async (_, _) => await RunActionAsync(async () =>
         {
-            Text = "ThePreviewScansOnlyFilesDirectlyInThisAccountSTemporaryFolderItInclu",
-            TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 12)
+            var dialog = new Microsoft.Win32.OpenFolderDialog { Multiselect = false };
+            if (dialog.ShowDialog(this) != true) return;
+            if(!EnsureDeveloperMode())return;
+            try
+            {
+                _maintenance = UserMaintenance.CreateForSelectedDirectory(dialog.FolderName, ReadFreshStateAsync);
+                _selectedFolder.Text = dialog.FolderName;
+                _defaultScope.Visibility = Visibility.Collapsed;
+                _preview = null; _previewGrid.ItemsSource = null; _previewInfo.Text = ""; _previewText = null;
+                _confirmation.Clear(); _restoreConfirmation.Clear(); _deleteConfirmation.Clear();
+                SetStatus(() => T("SelectedFolderMaintenanceScope"));
+                await RefreshListAsync();
+            }
+            catch { SetStatus(() => T("SelectedFolderUnavailable")); }
         });
+        if (_targetDrive is null) content.Children.Add(chooseFolder);
+        content.Children.Add(_selectedFolder);
+        content.Children.Add(new TextBlock { Text = "TemporaryFiles", FontSize = 24, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 10) });
+        content.Children.Add(_defaultScope);
+        if (_targetDrive is not null) content.Children.Add(_diskInfo);
         var previewButton = new Button { Name = "MaintenancePreviewButton", Content = "CreateSafePreview", HorizontalAlignment = HorizontalAlignment.Left };
         RegisterName("MaintenancePreviewButton", previewButton);
-        previewButton.Click += async (_, _) => await PreviewAsync();
+        previewButton.Click += async (_, _) => await RunActionAsync(PreviewAsync);
         content.Children.Add(previewButton);
         content.Children.Add(_previewInfo);
         content.Children.Add(_previewGrid);
@@ -75,39 +112,90 @@ internal sealed class MaintenanceWindow : Window
         content.Children.Add(_confirmation);
         var quarantineButton = new Button { Name = "MaintenanceQuarantineButton", Content = "MoveAllPreviewedFilesToQuarantine", HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 8, 0, 4) };
         RegisterName("MaintenanceQuarantineButton", quarantineButton);
-        quarantineButton.Click += async (_, _) => await QuarantineAsync();
+        quarantineButton.Click += async (_, _) => await RunActionAsync(QuarantineAsync);
         content.Children.Add(quarantineButton);
 
         content.Children.Add(new TextBlock { Text = "QuarantineAndRestore", FontSize = 19, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 20, 0, 8) });
         var listButton = new Button { Name = "MaintenanceListButton", Content = "RefreshList", HorizontalAlignment = HorizontalAlignment.Left };
         RegisterName("MaintenanceListButton", listButton);
-        listButton.Click += async (_, _) => await RefreshListAsync();
+        listButton.Click += async (_, _) => await RunActionAsync(RefreshListAsync);
         content.Children.Add(listButton);
         content.Children.Add(_entriesGrid);
         content.Children.Add(new TextBlock { Text = "EnterTheExactRestoreIDOfTheSelectedRecord", FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 8, 0, 4) });
         content.Children.Add(_restoreConfirmation);
         var restoreButton = new Button { Name = "MaintenanceRestoreButton", Content = "RestoreWithoutOverwritingAnExistingFile", HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 8, 0, 4) };
         RegisterName("MaintenanceRestoreButton", restoreButton);
-        restoreButton.Click += async (_, _) => await RestoreAsync();
+        restoreButton.Click += async (_, _) => await RunActionAsync(RestoreAsync);
         content.Children.Add(restoreButton);
+        content.Children.Add(new TextBlock { Text = "PermanentQuarantineDeletion", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 12, 0, 4) });
+        content.Children.Add(_deleteConfirmation);
+        RegisterName("MaintenanceDeleteApproval", _deleteConfirmation);
+        var deleteButton = new Button { Content = "DeleteSelectedQuarantineFile", HorizontalAlignment = HorizontalAlignment.Left };
+        RegisterName("MaintenanceDeleteButton", deleteButton);
+        deleteButton.Click += async (_, _) => await RunActionAsync(async () =>
+        {
+            if(!EnsureDeveloperMode())return;
+            if (_entriesGrid.SelectedItem is not QuarantineItem item) { SetStatus(() => T("SelectAnItemInQuarantine")); return; }
+            try
+            {
+                var result = await _maintenance.DeleteQuarantinedAsync(item.Id, _deleteConfirmation.Text, _closing.Token);
+                _deleteConfirmation.Clear();
+                SetStatus(() => T("PermanentDeleteResult", result.Code, result.Moved, result.Bytes));
+                if (result.Moved > 0) MeasureDiskAfterAction();
+                await RefreshListAsync();
+            }
+            catch (OperationCanceledException) when (_closing.IsCancellationRequested) { }
+            catch { SetStatus(() => T("QuarantineDeleteFailed")); }
+        });
+        content.Children.Add(deleteButton);
         content.Children.Add(_status);
 
         var scroll = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Content = content };
         Content = scroll;
-        _entriesGrid.SelectionChanged += (_, _) => _restoreConfirmation.Clear();
+        _entriesGrid.SelectionChanged += (_, _) => { _restoreConfirmation.Clear(); _deleteConfirmation.Clear(); };
         _language.Apply(this);_language.BindStaticText(this);
         System.Windows.Automation.AutomationProperties.SetName(_confirmation,T("ApprovalForThisExactPreview"));
         System.Windows.Automation.AutomationProperties.SetName(_restoreConfirmation,T("EnterTheExactRestoreIDOfTheSelectedRecord"));
         _language.Changed+=LanguageChanged;
         Closed += (_, _) => {_language.Changed-=LanguageChanged;_closing.Cancel();};
-        Loaded += async (_, _) => await RefreshListAsync();
+        Loaded += async (_, _) => await RunActionAsync(async () =>
+        {
+            if (_targetDrive is not null)
+            {
+                _initialFreeBytes = ReadFreeBytes(_targetDrive);
+                RenderDiskMeasurement(_initialFreeBytes);
+                await PreviewAsync();
+            }
+            await RefreshListAsync();
+        });
     }
+    private async Task RunActionAsync(Func<Task> action)
+    {
+        if(!EnsureDeveloperMode())return;
+        if (_actionInProgress) return;
+        _actionInProgress = true;
+        var content = Content as UIElement;
+        if (content is not null) content.IsEnabled = false;
+        try { await action(); }
+        finally { _actionInProgress = false; if (content is not null) content.IsEnabled = true; }
+    }
+
+    private bool EnsureDeveloperMode()
+    {
+        if(_developerMode())return true;
+        _preview=null;_previewGrid.ItemsSource=null;_previewInfo.Text="";_previewText=null;
+        _confirmation.Clear();_restoreConfirmation.Clear();_deleteConfirmation.Clear();
+        SetStatus(()=>T("DeveloperModeRequired"));
+        return false;
+    }
+
     private void LanguageChanged(object? sender,EventArgs e)
     {
         _language.Apply(this);
         foreach(var (column,source) in _columns)column.Header=source=="SHA-256"?source:T(source);
         if(_statusText is not null)_status.Text=_statusText();
         if(_previewText is not null)_previewInfo.Text=_previewText();
+        if(_targetDrive is not null)RenderDiskMeasurement(_lastFreeBytes);
         System.Windows.Automation.AutomationProperties.SetName(_confirmation,T("ApprovalForThisExactPreview"));
         System.Windows.Automation.AutomationProperties.SetName(_restoreConfirmation,T("EnterTheExactRestoreIDOfTheSelectedRecord"));
         _previewGrid.Items.Refresh();_entriesGrid.Items.Refresh();
@@ -115,12 +203,14 @@ internal sealed class MaintenanceWindow : Window
 
     private async ValueTask<DashboardSnapshot?> ReadFreshStateAsync(CancellationToken token)
     {
+        if(!EnsureDeveloperMode())return null;
         await _controller.RefreshAsync(token);
         return _controller.Snapshot;
     }
 
     private async Task PreviewAsync()
     {
+        if(!EnsureDeveloperMode())return;
         try
         {
             _preview = await _maintenance.PreviewAsync(_closing.Token);
@@ -137,11 +227,13 @@ internal sealed class MaintenanceWindow : Window
 
     private async Task QuarantineAsync()
     {
+        if(!EnsureDeveloperMode())return;
         if (_preview is null) { SetStatus(() => T("FirstCreateACurrentPreview")); return; }
         try
         {
             var result = await _maintenance.QuarantineAsync(_preview.Id, _confirmation.Text, _closing.Token);
             SetStatus(() => T("ResultMovedSkippedTotalBytesRecordsRequiringRecoveryQuarantineDoesNo",TechnicalText.Format(result.Code,_language.Culture,true),result.Moved,result.Skipped,result.Bytes,result.JournalWarnings));
+            if (result.Moved > 0) MeasureDiskAfterAction();
             _preview = null;
             _confirmation.Clear();
             await RefreshListAsync();
@@ -152,18 +244,27 @@ internal sealed class MaintenanceWindow : Window
 
     private async Task RefreshListAsync()
     {
-        try { _entriesGrid.ItemsSource = await _maintenance.ListAsync(_closing.Token); }
+        if(!EnsureDeveloperMode())return;
+        try
+        {
+            var selected = (_entriesGrid.SelectedItem as QuarantineItem)?.Id;
+            var entries = await _maintenance.ListAsync(_closing.Token);
+            _entriesGrid.ItemsSource = entries;
+            if (selected is not null) _entriesGrid.SelectedItem = entries.FirstOrDefault(item => item.Id == selected);
+        }
         catch (OperationCanceledException) when (_closing.IsCancellationRequested) { }
         catch { SetStatus(() => T("TheQuarantineListIsUnavailableOrItsRecordsRequireReview")); }
     }
 
     private async Task RestoreAsync()
     {
+        if(!EnsureDeveloperMode())return;
         if (_entriesGrid.SelectedItem is not QuarantineItem item) { SetStatus(() => T("SelectAnItemInQuarantine")); return; }
         try
         {
             var result = await _maintenance.RestoreAsync(item.Id, _restoreConfirmation.Text, _closing.Token);
             SetStatus(() => T("RestoreResultRestoredSizeBytesExistingFilesAreNotOverwritten",TechnicalText.Format(result.Code,_language.Culture,true),result.Moved,result.Bytes));
+            if (result.Moved > 0) MeasureDiskAfterAction();
             await RefreshListAsync();
         }
         catch (OperationCanceledException) when (_closing.IsCancellationRequested) { }
@@ -177,8 +278,40 @@ internal sealed class MaintenanceWindow : Window
         if(property==nameof(MaintenanceItem.Bytes))binding.Converter=new ByteSizeConverter();
         if(property==nameof(QuarantineItem.State))binding.Converter=new TechnicalTextConverter();
         if(grid==_entriesGrid&&property==nameof(QuarantineItem.Name)){binding=new Binding{Converter=new MaintenanceNameConverter()};}
-        var column=new DataGridTextColumn{Header=title=="SHA-256"?title:T(title),Binding=binding,Width=new DataGridLength(width)};
+        var column=new DataGridTextColumn{Header=title=="SHA-256"?title:T(title),Binding=binding,Width=new DataGridLength(width,DataGridLengthUnitType.Star)};
         _columns.Add((column,title));grid.Columns.Add(column);
+    }
+
+    private long? _lastFreeBytes;
+
+    internal static bool MatchesDefaultVolume(string drive)
+    {
+        if (drive.Length != 2 || !char.IsAsciiLetter(drive[0]) || drive[1] != ':') return false;
+        var root = Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+        return string.Equals(root?.TrimEnd('\\'), drive, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static long? ReadFreeBytes(string drive)
+    {
+        try { return new DriveInfo(drive).TotalFreeSpace; }
+        catch (IOException) { return null; }
+        catch (UnauthorizedAccessException) { return null; }
+    }
+
+    private void MeasureDiskAfterAction()
+    {
+        if (_targetDrive is null) return;
+        _measuredAfterAction = true;
+        RenderDiskMeasurement(ReadFreeBytes(_targetDrive));
+    }
+
+    private void RenderDiskMeasurement(long? free)
+    {
+        _lastFreeBytes = free;
+        string Format(long? bytes) => bytes is long value ? value.ToString("N0", _language.Culture) + " B" : "—";
+        _diskInfo.Text = _measuredAfterAction
+            ? T("DiskMaintenanceMeasured", _targetDrive, Format(_initialFreeBytes), Format(free))
+            : T("DiskMaintenanceBefore", _targetDrive, Format(_initialFreeBytes));
     }
 
     private void RegisterName(string name, FrameworkElement element) => RegisterName(name, (object)element);

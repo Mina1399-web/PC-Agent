@@ -29,6 +29,16 @@ until a separately tested hosted path is implemented.
 
 On 2026-10-11 the user explicitly authorized completing the V1 product, including installation, safe local administration and release packaging. This supersedes historical Task-4-only restrictions below. Follow docs/plans/2026-10-11-v1-product-completion.md; all existing VM/host/security boundaries remain in force. No dashboard/public API/new helper mutation capability or unattended approval.
 
+## Authorized expansion — 2026-10-30
+
+The owner explicitly requested active network probes and Confirmation mode in
+this rebuilt DEV VM, plus a manual selected-folder maintenance workflow and
+permanent deletion of an individually confirmed quarantined payload. This
+supersedes the earlier Temp-only/no-deletion product scope for these new
+features. Retain exact preview and deletion approval, file identity/integrity,
+private local scope, audit receipts, and OS security policies. The expansion
+does not authorize unattended arbitrary deletion or generic command execution.
+Read docs/operations/expanded-maintenance.md for actual capability limits.
 ## Source of truth
 
 Before changing code, inspect the current working tree and read:

@@ -10,20 +10,20 @@ public sealed class RecommendationEngine
                 "CPU alespoň 90 % po dobu nejméně 4 minut v posledních 6 minutách.",
                 "Omezení nepotřebných programů po spuštění může uvolnit výkon; přínos se musí změřit.",
                 "Vypnutí automatického spuštění může odložit synchronizaci nebo jiné funkce aplikace.",
-                "Položku lze znovu povolit v nastavení Po spuštění.", GuidedAction.StartupSettings));
+                "Položku lze znovu povolit v nastavení Po spuštění.", GuidedAction.Startup));
         if (Sustained(snapshot.RecentMemory, now))
             result.Add(new("sustained_memory", "Prověřit tlak na paměť",
                 "RAM alespoň 90 % po dobu nejméně 4 minut v posledních 6 minutách.",
                 "Zavření nepotřebné aplikace může uvolnit RAM. Neuloženou práci nejdřív uložte.",
                 "Odinstalace není nutná; nejdřív prověřte spotřebu aplikací v přehledu.",
-                "Zavřenou aplikaci lze znovu spustit; neuložená data nemusí být obnovitelná.", GuidedAction.AppsSettings));
+                "Zavřenou aplikaci lze znovu spustit; neuložená data nemusí být obnovitelná.", GuidedAction.Apps));
         foreach (var disk in snapshot.Disks.Take(8).Where(x => ViewFreshness.IsFresh(x.AtUtc,now)
             && x.CapacityBytes > 0 && x.FreeBytes >= 0 && x.FreeBytes <= x.CapacityBytes / 10))
             result.Add(new("disk_space:" + disk.Drive, "Prověřit místo na disku " + disk.Drive,
                 FormattableString.Invariant($"Volné místo {100d*disk.FreeBytes/disk.CapacityBytes:0.#} % ({disk.FreeBytes} B)."),
                 "Uvolnění místa může pomoci aplikacím a aktualizacím. Odhad zrychlení není k dispozici.",
                 "Nastavení úložiště zobrazí kandidáty; každý výběr ke smazání zkontrolujte. Osobní soubory se nemažou automaticky.",
-                "Některé odstranění je nevratné; osobní soubory nejdřív zálohujte.", GuidedAction.StorageSettings));
+                "Některé odstranění je nevratné; osobní soubory nejdřív zálohujte.", GuidedAction.Storage));
         var crash = snapshot.Incidents.FirstOrDefault(x => x.State is not ("Resolved" or "Failed")
             && x.AtUtc <= now && now-x.AtUtc <= TimeSpan.FromHours(24)
             && (x.Code == "windows_bugcheck" || x.Code.StartsWith("bugcheck_",StringComparison.Ordinal)));

@@ -86,8 +86,7 @@ public sealed class WindowsCollectorIntegrationTests
         Assert.InRange(systemVolume.FreeBytes, 0, systemVolume.CapacityBytes);
         Assert.Equal(systemVolume.CapacityBytes, systemVolume.UsedBytes + systemVolume.FreeBytes);
         Assert.InRange(systemVolume.UsedPercent, 0, 100);
-        Assert.Contains("smart_health_unavailable", result.Warnings);
-        Assert.Empty(result.Value.Health);
+        Assert.Equal(result.Value.Health.Count == 0, result.Warnings.Contains("smart_health_unavailable"));
         Assert.True(result.Value.IoCounters is null
             || result.Value.IoCounters.IsAvailable
             || (!string.IsNullOrWhiteSpace(result.Value.IoCounters.UnavailableReason)

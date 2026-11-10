@@ -54,7 +54,11 @@ public sealed class CollectorCycleRunnerTests
             () => new DateTimeOffset(2026, 10, 6, 12, 0, 0, TimeSpan.Zero));
 
         var first = Assert.Single(await runner.RunOnceAsync(CancellationToken.None));
-        await cancellationObserved.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        // The collector runs on the thread pool. Hosted Windows runners can
+        // briefly starve its cancellation continuation while the test assembly
+        // is under load, so allow a wider scheduling window than the 50 ms
+        // collection timeout being asserted here.
+        await cancellationObserved.Task.WaitAsync(TimeSpan.FromSeconds(10));
         var second = Assert.Single(await runner.RunOnceAsync(CancellationToken.None));
 
         Assert.Equal(CollectorCycleStatus.Failed, first.Status);

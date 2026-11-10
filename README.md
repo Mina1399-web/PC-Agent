@@ -21,13 +21,15 @@ Read the [download/functionality page](docs/operations/download.md),
 [announced installation changes](docs/operations/submission-preview.md).
 The [publication verification](docs/verification/signpath-publication-2026-10-26.md)
 records the immutable source, four independently downloaded assets and remaining
-account/provider checks. The
+account/provider checks. The owner reports that the SignPath Foundation
+application was submitted on 27 October 2026 and a response is pending. This
+does not mean the project has been accepted, sponsored or signed. The
 [application preparation](docs/operations/signpath-submission-draft-2026-10-25.md)
-has not been submitted.
+documents the submitted materials.
 
 ## Project status
 
-The current application includes the local Windows dashboard, evidence-based recommendations and bounded reversible maintenance. See the [dashboard guide](docs/operations/dashboard.md) and [predeployment checkpoint](docs/verification/predeployment-2026-10-18.md). The resilience records distinguish each tested candidate and its limits; an unsigned DEV package is not a production release.
+The current application includes the local Windows dashboard, evidence-based recommendations, bounded reversible maintenance, and a Windows administration tab that displays live system inventories inside the app. See the [dashboard guide](docs/operations/dashboard.md) and [predeployment checkpoint](docs/verification/predeployment-2026-10-18.md). The resilience records distinguish each tested candidate and its limits; an unsigned DEV package is not a production release.
 
 V1 product completion adds an elevated local CLI, authenticated administrator IPC, service-identity secret provisioning, safe configuration commands, and a self-contained Windows x64 MSI/release pipeline. Shadow/read-only remains the default. Start with the [operator guide](docs/operations/quickstart.md); the [current verification record](docs/verification/v1-release.md) distinguishes executed checks from live deployment prerequisites.
 
