@@ -113,11 +113,11 @@
     <comment>Source (cs-CZ): V posledních uložených záznamech nejsou incidenty.</comment>
   </data>
   <data xml:space="preserve" name="ShowingTheLatestRecordsDiagnosticConfidenceDoesNotGuaranteeASuccessf">
-    <value>Zobrazeno {0} posledních záznamů. Jistota diagnózy neznamená záruku úspěšné opravy.</value>
+    <value>Zobrazeno {0} posledních záznamů. Skóre je výstup pravidla, nikoli ověřená pravděpodobnost ani záruka opravy.</value>
     <comment>Source (cs-CZ): Zobrazeno {0} posledních záznamů. Jistota diagnózy neznamená záruku úspěšné opravy.</comment>
   </data>
   <data xml:space="preserve" name="TheCurrentEvidenceDoesNotCallForANewRecommendationMissingMeasurement">
-    <value>Aktuální důkazy nevyžadují nové doporučení. Chybějící měření neznamená bezchybný stav.</value>
+    <value>Host Agent z dostupných měření nenavrhl opravu. Neznamená to, že je počítač bez problémů. Bezpečný další krok: prohlédněte uložené události Windows (jen čtení) nebo obnovte měření.</value>
     <comment>Source (cs-CZ): Aktuální důkazy nevyžadují nové doporučení. Chybějící měření neznamená bezchybný stav.</comment>
   </data>
   <data xml:space="preserve" name="Evidence">
@@ -153,18 +153,18 @@
     <comment>Source (cs-CZ): Detail není dostupný.</comment>
   </data>
   <data xml:space="preserve" name="ConfidenceRefersToTheStopCodeClassificationItDoesNotIdentifyAFaultyD">
-    <value>Jistota určuje klasifikaci stop kódu. Neurčuje vadný ovladač.</value>
+    <value>Skóre slouží ke klasifikaci stop kódu; neurčuje vadný ovladač.</value>
     <comment>Source (cs-CZ): Confidence určuje klasifikaci stop kódu. Neurčuje vadný ovladač.</comment>
   </data>
   <data xml:space="preserve" name="ConfidenceIsAnEstimateOfTheLikelyCauseNotAGuaranteeOfTheCorrectRepai">
-    <value>Jistota je odhad pravděpodobné příčiny, nikoli záruka správné opravy.</value>
+    <value>Skóre je výstup diagnostického pravidla, nikoli ověřená pravděpodobnost příčiny ani záruka opravy.</value>
     <comment>Source (cs-CZ): Confidence je odhad pravděpodobné příčiny, nikoli záruka správné opravy.</comment>
   </data>
   <data xml:space="preserve" name="IncidentCodeStatusConfidence">
     <value>Incident: {0}
 Kód: {1}
 Stav: {2}
-Jistota: {3} %
+Skóre pravidla: {3} / 100
 </value>
     <comment>Source (cs-CZ): Incident: {0}
 Kód: {1}
@@ -643,7 +643,7 @@ Graf se zobrazí po získání uložených měření.</comment>
     <comment>Source (cs-CZ): Stav</comment>
   </data>
   <data xml:space="preserve" name="Confidence">
-    <value>Jistota %</value>
+    <value>Skóre / 100</value>
     <comment>Source (cs-CZ): Jistota %</comment>
   </data>
   <data xml:space="preserve" name="Occurrences">
@@ -815,7 +815,7 @@ Graf se zobrazí po získání uložených měření.</comment>
     <comment>Source (cs-CZ): Porovnat stav po zásahu</comment>
   </data>
   <data xml:space="preserve" name="WindowsSettings">
-    <value>Nastavení Windows</value>
+    <value>Správa Windows v aplikaci</value>
     <comment>Source (cs-CZ): Nastavení Windows</comment>
   </data>
   <data xml:space="preserve" name="ChooseWhatToManageConfirmYourFileAndApplicationSelectionsDirectlyInW">
@@ -895,7 +895,7 @@ Graf se zobrazí po získání uložených měření.</comment>
     <comment>Source (cs-CZ): Vypnutí automatického spuštění může odložit synchronizaci nebo jiné funkce aplikace.</comment>
   </data>
   <data xml:space="preserve" name="YouCanEnableTheItemAgainInStartupSettings">
-    <value>Položku lze znovu povolit v nastavení Po spuštění.</value>
+    <value>Seznam položek Po spuštění je v Host Agentu pouze pro čtení; změna zatím není podporována.</value>
     <comment>Source (cs-CZ): Položku lze znovu povolit v nastavení Po spuštění.</comment>
   </data>
   <data xml:space="preserve" name="InvestigateMemoryPressure">
@@ -923,7 +923,7 @@ Graf se zobrazí po získání uložených měření.</comment>
     <comment>Source (cs-CZ): Prověřit příčinu pádu Windows</comment>
   </data>
   <data xml:space="preserve" name="CodeConfidenceRefersToTheStopCodeClassificationNotTheIdentificationO">
-    <value>Kód {0}; jistota {1} % je klasifikace stop kódu, nikoli určení vadného ovladače.</value>
+    <value>Kód {0}; skóre pravidla {1} / 100 klasifikuje stop kód, nikoli vadný ovladač.</value>
     <comment>Source (cs-CZ): Kód {0}; confidence {1} % je klasifikace stop kódu, nikoli určení vadného ovladače.</comment>
   </data>
   <data xml:space="preserve" name="ComparingWEREventsWithTheDumpMayHelpNarrowDownTheCauseOfTheCrash">
@@ -951,7 +951,7 @@ Graf se zobrazí po získání uložených měření.</comment>
     <comment>Source (cs-CZ): Volné místo {0:0.#} % ({1} B).</comment>
   </data>
   <data xml:space="preserve" name="FreeingUpSpaceMayHelpAppsAndUpdatesAnEstimateOfTheSpeedImprovementIs">
-    <value>Uvolnění místa může pomoci aplikacím a aktualizacím. Odhad zrychlení není k dispozici.</value>
+    <value>Karanténa je vratné odložení na stejném disku; místo neuvolní. Prostor může uvolnit až zvlášť potvrzené trvalé smazání.</value>
     <comment>Source (cs-CZ): Uvolnění místa může pomoci aplikacím a aktualizacím. Odhad zrychlení není k dispozici.</comment>
   </data>
   <data xml:space="preserve" name="StorageSettingsWillShowCandidatesReviewEverySelectionForDeletionPers">
@@ -1414,4 +1414,142 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data xml:space="preserve" name="SmartNoFailurePredicted"><value>{0}: toto rozhraní nepředpovídá selhání. Nejde o úplnou kontrolu zdraví hardwaru.</value></data>
   <data xml:space="preserve" name="SmartNotRead"><value>SMART zatím nebyl v tomto okně dotázán.</value></data>
   <data xml:space="preserve" name="SmartPredictionUnavailable"><value>SMART predikce není pro tento disk, ovladač nebo účet dostupná. Zdraví disku tím není ověřené.</value></data>
+  <data name="WinAdminTitle" xml:space="preserve"><value>Správa Windows</value></data>
+  <data name="WinAdminIntro" xml:space="preserve"><value>Tady můžete prověřit procesy, služby, disky, síťové adaptéry a nedávné systémové chyby. Údržba souborů se otevře v Host Agentu.</value></data>
+  <data name="WinGroupNetwork" xml:space="preserve"><value>Síť</value></data>
+  <data name="WinToolServices" xml:space="preserve"><value>Služby</value></data>
+  <data name="WinToolEventViewer" xml:space="preserve"><value>Prohlížeč událostí</value></data>
+  <data name="WinInventoryArea" xml:space="preserve"><value>Oblast Windows</value></data>
+  <data name="WinInventoryProcesses" xml:space="preserve"><value>Procesy</value></data>
+  <data name="WinInventoryFilter" xml:space="preserve"><value>Filtrovat seznam</value></data>
+  <data name="WinInventoryDetail" xml:space="preserve"><value>Podrobnosti</value></data>
+  <data name="WinInventoryValue" xml:space="preserve"><value>Měření / čas</value></data>
+  <data name="WinInventoryLoading" xml:space="preserve"><value>Načítám živá data z tohoto počítače…</value></data>
+  <data name="WinInventoryUnavailable" xml:space="preserve"><value>Údaje nejsou dostupné.</value></data>
+  <data name="WinInventoryPartial" xml:space="preserve"><value>Některé údaje se nepodařilo načíst.</value></data>
+  <data name="WinInventoryEmpty" xml:space="preserve"><value>Žádné odpovídající záznamy.</value></data>
+  <data name="WinInventoryLoaded" xml:space="preserve"><value>Údaje jsou načtené z tohoto počítače. Pro nové načtení zvolte Obnovit.</value></data>
+  <data name="WinInventoryCritical" xml:space="preserve"><value>Kritická</value></data>
+  <data name="WinInventoryError" xml:space="preserve"><value>Chyba</value></data>
+  <data name="WinInventoryWarning" xml:space="preserve"><value>Varování</value></data>
+  <data name="WinDiagnosisTitle" xml:space="preserve"><value>Zjištění a doporučené kroky</value></data>
+  <data name="WinDiagnosisUnavailable" xml:space="preserve"><value>Monitor nedodal aktuální podklady pro doporučení.</value></data>
+  <data name="WinDiagnosisNone" xml:space="preserve"><value>Dostupné údaje teď nevedou k žádnému doporučení. To nevylučuje problém ve Windows.</value></data>
+  <data name="WinDiagnosisCrashes" xml:space="preserve"><value>Prověřit pády Windows</value></data>
+  <data name="DiskMaintenancePreview" xml:space="preserve"><value>Náhled úklidu</value></data>
+  <data name="DiskMaintenanceBefore" xml:space="preserve"><value>Disk {0} · Volné místo před zásahem: {1}. Přesunuté soubory zůstávají v karanténě na tomto disku.</value></data>
+  <data name="DiskMaintenanceMeasured" xml:space="preserve"><value>Disk {0} · Před zásahem: {1} · Po zásahu: {2}. Volné místo mohou měnit i jiné činnosti.</value></data>
+  <data name="DiskMaintenanceImpact" xml:space="preserve"><value>Zkontrolujte vhodné dočasné soubory na disku uživatelského adresáře Temp. Karanténa je ponechá na stejném disku.</value></data>
+  <data name="DiskMaintenanceRestore" xml:space="preserve"><value>Soubory můžete obnovit z karantény nebo zvlášť potvrdit smazání konkrétního souboru.</value></data>
+  <data name="ServiceCrashFinding" xml:space="preserve"><value>Windows zaznamenal neočekávané ukončení služby {0}. Prověřte čerstvé důkazy a aktuální stav služby.</value></data>
+  <data name="ServiceStopFinding" xml:space="preserve"><value>Služba {0} se zastavila. Samotné zastavení neprokazuje pád.</value></data>
+  <data name="ServiceRecoveryReview" xml:space="preserve"><value>Prověřit spuštění služby {0}</value></data>
+  <data name="ServiceRecoveryRunning" xml:space="preserve"><value>Služba {0} běžela při všech kontrolách během 10 sekund.</value></data>
+  <data name="ServiceRecoveryUnverified" xml:space="preserve"><value>Spuštění služby se nepodařilo ověřit. Zkontrolujte její stav a výsledek schválení.</value></data>
+  <data name="NetworkEnableChecks" xml:space="preserve"><value>Zapnout kontroly sítě</value></data>
+  <data name="NetworkDisableChecks" xml:space="preserve"><value>Vypnout kontroly sítě</value></data>
+  <data name="NetworkChecksDisabled" xml:space="preserve"><value>Aktivní kontroly sítě jsou vypnuté. Seznam adaptérů ukazuje jejich místní stav.</value></data>
+  <data name="NetworkChecksConfirm" xml:space="preserve"><value>{0}. Po schválení správcem se restartují služby Host Agentu. Aktivní kontroly oslovují bránu, 1.1.1.1 a nastavený DNS server.</value></data>
+  <data name="NetworkSettingVerified" xml:space="preserve"><value>Monitor potvrdil požadované nastavení kontrol sítě.</value></data>
+  <data name="NetworkSettingUnverified" xml:space="preserve"><value>Změnu nastavení se nepodařilo ověřit. Obnovte přehled a zkontrolujte hlášený stav.</value></data>
+  <data name="WinActionUnverified" xml:space="preserve"><value>Výsledek zásahu se nepodařilo ověřit.</value></data>
+  <data name="NetworkProbeSummary" xml:space="preserve"><value>Brána: {0} · Vnější IP: {1} · DNS: {2}</value></data>
+  <data name="NetworkProbePassed" xml:space="preserve"><value>odpověď</value></data>
+  <data name="NetworkProbeFailed" xml:space="preserve"><value>selhání</value></data>
+  <data name="NetworkProbeTimeout" xml:space="preserve"><value>bez odpovědi v limitu</value></data>
+  <data name="NetworkProbeMissing" xml:space="preserve"><value>nedostupné</value></data>
+  <data name="NetworkFindingAdapter" xml:space="preserve"><value>Monitor nevidí aktivní adaptér. Zkontrolujte Wi-Fi nebo kabelové připojení.</value></data>
+  <data name="NetworkFindingGateway" xml:space="preserve"><value>Kontrola brány neprošla. Prověřte místní připojení a router. Odpovědi ICMP mohou být blokované.</value></data>
+  <data name="NetworkFindingDns" xml:space="preserve"><value>Brána i vnější IP odpovídají, ale překlad názvů selhal. Prověřte nastavený DNS server.</value></data>
+  <data name="NetworkFindingExternal" xml:space="preserve"><value>Brána odpovídá, ale kontrola vnější IP selhala. Prověřte připojení routeru k internetu a případné blokování ICMP.</value></data>
+  <data name="NetworkFindingHealthy" xml:space="preserve"><value>Všechny tři kontroly v době měření prošly.</value></data>
+  <data name="NetworkFindingUnknown" xml:space="preserve"><value>Dostupné výsledky neurčují místo závady. Zkontrolujte adaptér a zopakujte měření.</value></data>
+  <data name="DesignLightTheme" xml:space="preserve"><value>Světlý motiv</value></data>
+  <data name="DesignDarkTheme" xml:space="preserve"><value>Tmavý motiv</value></data>
+  <data name="DesignTheme" xml:space="preserve"><value>Změnit vzhled</value></data>
+  <data name="DesignThemeSession" xml:space="preserve"><value>Vzhled tohoto okna. Nastavení monitorování se nemění.</value></data>
+  <data name="DesignAttention" xml:space="preserve"><value>Čemu věnovat pozornost</value></data>
+  <data name="DesignEvidenceUnavailable" xml:space="preserve"><value>Aktuální podklady nejsou dostupné.</value></data>
+  <data name="DesignRefreshFirst" xml:space="preserve"><value>Obnovte spojení s místní službou tlačítkem Obnovit.</value></data>
+  <data name="DesignNoOpenEvidence" xml:space="preserve"><value>V posledních uložených záznamech není nevyřešený incident. Nejde o úplnou kontrolu počítače.</value></data>
+  <data name="DesignRecordedIncident" xml:space="preserve"><value>Doložená událost: {0} · {1}
+{2:g} UTC · před {3} min</value></data>
+  <data name="DesignReviewRecordedEvidence" xml:space="preserve"><value>Nejdřív otevřete Incidenty a prohlédněte důkazy. Uložená událost neprokazuje, že problém právě trvá.</value></data>
+  <data name="DesignReviewRecommendations" xml:space="preserve"><value>V Doporučeních najdete kroky podložené dostupnými měřeními.</value></data>
+  <data name="DesignLowDisk" xml:space="preserve"><value>Disk {0}: jen {1:0.#} % volného místa. Aktualizacím může chybět prostor. Nejdřív otevřete Doporučení.</value></data>
+  <data name="DesignNavSituation" xml:space="preserve"><value>Situace</value></data>
+  <data name="DesignNavEvents" xml:space="preserve"><value>Události</value></data>
+  <data name="DesignNavSystem" xml:space="preserve"><value>Systém</value></data>
+  <data name="DesignNavMaintenance" xml:space="preserve"><value>Údržba</value></data>
+  <data name="DesignNavTools" xml:space="preserve"><value>Nástroje</value></data>
+  <data name="DesignModeStandardActive" xml:space="preserve"><value>Standardní režim · zapnout Vývojářský režim</value></data>
+  <data name="DesignModeDeveloperActive" xml:space="preserve"><value>Vývojářský režim zapnutý · návrat do Standardního</value></data>
+  <data name="DesignEvidenceSourceUnavailable" xml:space="preserve"><value>Čas a zdroj měření se zobrazí, až odpoví místní služba.</value></data>
+  <data name="DesignEvidenceSourceAndTime" xml:space="preserve"><value>Poslední měření z místní služby Host Agent: {0:dd.MM.yyyy HH:mm:ss}.</value></data>
+  <data name="DesignSituationTitle" xml:space="preserve"><value>Aktuální situace</value></data>
+  <data name="DesignSituationIntro" xml:space="preserve"><value>Začněte posledním zaznamenaným problémem, časem pozorování a bezpečným dalším krokem.</value></data>
+  <data name="DesignSystemTitle" xml:space="preserve"><value>Stav systému</value></data>
+  <data name="DesignSystemIntro" xml:space="preserve"><value>Aktuální měření a stav součástí včetně času jejich odečtu.</value></data>
+  <data name="DesignSystemReadings" xml:space="preserve"><value>Poslední údaje počítače</value></data>
+  <data name="DesignReviewEvidenceButton" xml:space="preserve"><value>Prohlédnout uloženou událost</value></data>
+  <data name="DesignReviewRecommendationsButton" xml:space="preserve"><value>Zobrazit doporučené kroky</value></data>
+  <data name="DesignRefreshMeasurementsButton" xml:space="preserve"><value>Obnovit měření</value></data>
+  <data name="DesignWindowsCrash" xml:space="preserve"><value>Pád Windows</value></data>
+  <data name="DesignWindowsCrashIrql" xml:space="preserve"><value>Pád Windows: neplatný přístup do paměti jádra</value></data>
+  <data name="DesignMemoryPressure" xml:space="preserve"><value>Nedostatek volné paměti</value></data>
+  <data name="DesignCpuLoad" xml:space="preserve"><value>Dlouhodobé vytížení procesoru</value></data>
+  <data name="DesignProcessCpuLoad" xml:space="preserve"><value>Vysoké vytížení procesorem aplikace</value></data>
+  <data name="DesignDiskCapacity" xml:space="preserve"><value>Nedostatek místa na disku</value></data>
+  <data name="DesignGatewayFailure" xml:space="preserve"><value>Síťová brána není dostupná</value></data>
+  <data name="DesignDnsFailure" xml:space="preserve"><value>Selhalo překládání síťových názvů</value></data>
+  <data name="DesignInternetFailure" xml:space="preserve"><value>Problém s připojením k internetu</value></data>
+  <data name="DesignServiceStopped" xml:space="preserve"><value>Služba se zastavila; příčina nepotvrzená</value></data>
+  <data name="DesignServiceCrash" xml:space="preserve"><value>Neočekávané ukončení služby</value></data>
+  <data name="DesignMetricDeviation" xml:space="preserve"><value>Měření se odchyluje od obvyklého stavu</value></data>
+  <data name="DesignCritical" xml:space="preserve"><value>Kritická</value></data>
+  <data name="DesignHigh" xml:space="preserve"><value>Vysoká</value></data>
+  <data name="DesignWarning" xml:space="preserve"><value>Varování</value></data>
+  <data name="DesignInfo" xml:space="preserve"><value>Informace</value></data>
+  <data name="DesignSeverity" xml:space="preserve"><value>Závažnost</value></data>
+  <data name="DesignClassification" xml:space="preserve"><value>Skóre / 100</value></data>
+  <data name="DesignAliasHelp" xml:space="preserve"><value>Pokročilé: použijte pouze alias zaregistrovaný správcem. Pokud jej nemáte, využijte důkazy a doporučení pouze pro čtení; název služby nehádejte.</value></data>
+  <data name="EnableDeveloperMode" xml:space="preserve"><value>Zapnout vývojářský režim</value></data>
+  <data name="ReturnToStandardMode" xml:space="preserve"><value>Vývojářský režim · zpět na standardní</value></data>
+  <data name="DeveloperModeConsent" xml:space="preserve"><value>Vývojářský režim zpřístupní podrobnější přehled Windows, diagnostiku služeb a sítě a řízenou údržbu. Neuděluje práva správce ani nemění bezpečnostní zásady služby. Každá podporovaná oprava stále vyžaduje vlastní přesnou kontrolu a schválení. Pokračovat?</value></data>
+  <data name="DeveloperModeRequired" xml:space="preserve"><value>Tato obrazovka nebo akce je dostupná ve vývojářském režimu. Zapněte jej tlačítkem v záhlaví.</value></data>
+  <data name="ModeChangeBlockedWhileActionRuns" xml:space="preserve"><value>Probíhá akce nebo je otevřené okno údržby. Před změnou režimu počkejte na výsledek a zavřete toto okno.</value></data>
+  <data name="ModePreferenceSaveFailed" xml:space="preserve"><value>Režim rozhraní se nepodařilo uložit. Dosavadní režim zůstává aktivní.</value></data>
+  <data name="DeveloperModeActiveCloseToReturn" xml:space="preserve"><value>Vývojářský režim je aktivní. Zavřete toto okno údržby a tlačítkem v záhlaví se vraťte ke standardnímu režimu.</value></data>
+  <data name="DesignOtherDiagnosis" xml:space="preserve"><value>Jiný zaznamenaný stav</value></data>
+  <data name="UnclassifiedDiagnostic" xml:space="preserve"><value>Nezařazený diagnostický stav</value></data>
+  <data name="UnclassifiedCollectionLimitation" xml:space="preserve"><value>Bylo hlášeno další omezení sběru dat.</value></data>
+  <data name="SomeCollectionDataIsUnavailable" xml:space="preserve"><value>Některá měření nejsou dostupná.</value></data>
+  <data name="ActionIsNotRecommendedByIncident" xml:space="preserve"><value>Tento seznam akcí není doporučením opravy. Událost nepotvrzuje její příčinu. Před volbou konkrétního zásahu ověřte aktuální stav služby a dopad; každý zásah vyžaduje samostatné schválení.</value></data>
+  <data name="SelectActionAfterReviewingEvidence" xml:space="preserve"><value>Nejdřív zkontrolujte cíl a důkazy, potom sami zvolte přesný zásah.</value></data>
+  <data name="InAppWindowsManagementIntro" xml:space="preserve"><value>Stav Windows zobrazíte přímo zde. Podporovaná obnova služeb, práce s procesy a čištění souborů zůstávají v Host Agentu a vyžadují samostatné schválení. Nainstalované aplikace a položky po spuštění jsou zatím pouze pro čtení.</value></data>
+  <data name="WinInventoryApplications" xml:space="preserve"><value>Nainstalované aplikace</value></data>
+  <data name="WinInventoryStartup" xml:space="preserve"><value>Položky po spuštění</value></data>
+  <data name="WinInventoryApplicationsReadOnly" xml:space="preserve"><value>Pouze pro čtení: instalace a odinstalace zatím nejsou v Host Agentu dostupné.</value></data>
+  <data name="WinInventoryStartupReadOnly" xml:space="preserve"><value>Pouze pro čtení: povolení a zakázání položek po spuštění zatím není dostupné.</value></data>
+  <data name="WinInventoryProcessesCapability" xml:space="preserve"><value>Seznam pouze pro čtení. Výběrem procesu předvyplníte jeho identitu pro typovaný zásah; stále je nutná vybraná událost a registrovaný cíl.</value></data>
+  <data name="WinInventoryServicesCapability" xml:space="preserve"><value>Seznam pouze pro čtení. Obnova služby se nabídne jen při aktuálních odpovídajících důkazech a vždy vyžaduje samostatné schválení.</value></data>
+  <data name="WinInventoryDisksCapability" xml:space="preserve"><value>Seznam pouze pro čtení. Náhled čištění v aplikaci je dostupný jen pro svazek uživatelského profilu při aktuálním nálezu nedostatku místa.</value></data>
+  <data name="WinInventoryNetworkCapability" xml:space="preserve"><value>Pouze seznam síťových adaptérů. Aktivní síťové testy jsou oddělené a vyžadují režim Vývojář.</value></data>
+  <data name="WinInventoryEventsCapability" xml:space="preserve"><value>Pouze seznam posledních systémových událostí Windows.</value></data>
+  <data name="PrepareProcessAction" xml:space="preserve"><value>Připravit zásah pro proces</value></data>
+  <data name="OpenWindowsManagement" xml:space="preserve"><value>Otevřít správu Windows v Host Agentu</value></data>
+  <data name="NoIncidentSelected" xml:space="preserve"><value>Není vybraná žádná událost. Před přípravou zásahu vyberte událost v části Události.</value></data>
+  <data name="IncidentSummary" xml:space="preserve"><value>{0} · zaznamenáno {1}</value></data>
+  <data name="TechnicalDetails" xml:space="preserve"><value>Technické podrobnosti</value></data>
+  <data name="TechnicalIncidentIdentifiers" xml:space="preserve"><value>ID události: {0}\nInterní kód: {1}</value></data>
+  <data name="SelectIncidentBeforeAction" xml:space="preserve"><value>Před přípravou zásahu vyberte událost v části Události.</value></data>
+  <data name="EnterRegisteredTargetAlias" xml:space="preserve"><value>Zadejte registrovaný alias cíle. Lze použít pouze cíle ve schváleném seznamu.</value></data>
+  <data name="SelectProcessBeforeAction" xml:space="preserve"><value>Vyberte proces z místního seznamu, aby se doplnilo jeho ID a čas spuštění.</value></data>
+  <data name="ActionReadyRequiresSeparateApproval" xml:space="preserve"><value>Požadované údaje jsou vyplněné. Zkontrolujte přesný cíl a schvalte jej v následujícím dialogu; samotná tato obrazovka nic nespouští.</value></data>
+  <data name="ActionTargetNotRegisteredOrRequestInvalid" xml:space="preserve"><value>Tento cíl nebo zásah není registrován ke schválení. Zkontrolujte alias a vyberte povolenou operaci.</value></data>
+  <data name="ActionsRequireFreshStatus" xml:space="preserve"><value>Před přípravou zásahu obnovte místní stav.</value></data>
+  <data name="InAppStartupListCanHelpIdentifyPossibleCausesButIsReadOnly" xml:space="preserve"><value>Seznam položek po spuštění v aplikaci může pomoci určit možné příčiny. Je pouze pro čtení; toto doporučení nic nemění.</value></data>
+  <data name="InAppAppListCanHelpReviewMemoryUseButIsReadOnly" xml:space="preserve"><value>Seznam aplikací v programu pomůže prohlédnout využití paměti. Je pouze pro čtení; toto doporučení žádnou aplikaci neukončí.</value></data>
+  <data name="PrepareServiceAction" xml:space="preserve"><value>Připravit zásah pro službu</value></data>
+  <data name="WinPrepareServiceActionHelp" xml:space="preserve"><value>Vybraný identifikátor služby se zkopíruje do formuláře k posouzení. Musí odpovídat aliasu schválenému správcem; pomocný proces jej před zásahem ověří.</value></data>
 </root>

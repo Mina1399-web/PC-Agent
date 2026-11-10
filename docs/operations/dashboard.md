@@ -44,6 +44,18 @@ se používají konzervativní minutová minima; krátká špička nestačí. Ka
 uvádí přínos, dopad a limity návratu. Instalace náhodného „optimalizátoru“,
 automatická změna ovladačů ani mazání osobních dat se nenavrhují.
 
+**Správa Windows** zobrazuje přímo v Host Agentu místní procesy (PID a
+working set), služby, pevné svazky, síťové adaptéry a až 50 nejnovějších
+systémových varování a chyb za posledních 24 hodin. Seznam lze filtrovat a
+obnovit. Čtení probíhá s právy přihlášeného uživatele a funguje i bez
+spojení s monitorem. Chybějící údaje se nevydávají za nulu.
+
+Pod seznamem jsou doporučení z aktuálních měření monitoru. **Prověřit pády
+Windows** zobrazí uložené diagnostické podklady. **Údržba souborů** otevře
+vestavěný náhled a karanténu s existujícím potvrzením. Samotné seznamy
+nemění nastavení Windows, neukončují procesy ani nezastavují služby.
+Ruční servisní zásahy dál používají schvalovací postup v části Údržba.
+
 Údržba otevře konkrétní nastavení Windows: úložiště, aplikace nebo programy
 po spuštění. Samostatné **Dočasné soubory** nabízí read-only náhled a po
 výslovném potvrzení přesune všechny způsobilé soubory z tohoto náhledu do

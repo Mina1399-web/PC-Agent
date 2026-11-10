@@ -75,7 +75,8 @@ public sealed class LocalizationSwitchTests
             window.Show();PumpUntil(()=>controller.Snapshot is not null);
             window.Width=850;
             var incidents=(DataGrid)window.FindName("IncidentsGrid");incidents.SelectedIndex=0;
-            PumpUntil(()=>((TextBox)window.FindName("DetailText")).Text.Contains(incident.Id));
+            PumpUntil(()=>((TextBox)window.FindName("DetailText")).Text.Contains("synthetic"));
+            Assert.DoesNotContain(incident.Id,((TextBox)window.FindName("DetailText")).Text);
             ((DataGrid)window.FindName("ProcessGrid")).SelectedIndex=0;
             ((TextBox)window.FindName("AliasInput")).Text="preserve-alias";
             ((TextBox)window.FindName("PidInput")).Text="4200";

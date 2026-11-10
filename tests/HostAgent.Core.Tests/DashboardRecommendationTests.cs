@@ -14,8 +14,8 @@ public sealed class DashboardRecommendationTests
     {
         var cards=new RecommendationEngine().Evaluate(Empty with{RecentCpu=Sustained(95),RecentMemory=Sustained(93)},Now);
         Assert.Equal(new[]{"sustained_cpu","sustained_memory"},cards.Select(x=>x.Code));
-        Assert.Equal(GuidedAction.StartupSettings,cards[0].Action);
-        Assert.Equal(GuidedAction.AppsSettings,cards[1].Action);
+        Assert.Equal(GuidedAction.Startup,cards[0].Action);
+        Assert.Equal(GuidedAction.Apps,cards[1].Action);
         Assert.All(cards,x=>{Assert.NotEmpty(x.Evidence);Assert.NotEmpty(x.Impact);Assert.NotEmpty(x.Rollback);});
     }
 
@@ -25,7 +25,7 @@ public sealed class DashboardRecommendationTests
         var cards=new RecommendationEngine().Evaluate(Empty with{Disks=[new("C:",5,100,Now)]},Now);
         var card=Assert.Single(cards);
         Assert.Equal("disk_space:C:",card.Code);
-        Assert.Equal(GuidedAction.StorageSettings,card.Action);
+        Assert.Equal(GuidedAction.Storage,card.Action);
         Assert.Contains("5",card.Evidence);
         Assert.Contains("záloh",card.Rollback);
     }

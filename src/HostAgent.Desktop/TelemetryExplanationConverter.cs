@@ -20,6 +20,7 @@ public sealed class TelemetryExplanationConverter : IValueConverter
         var key = reason switch
         {
             "some_process_metrics_access_denied" => "SomeProcessMetricsAccessDenied",
+            "collectors_partial" => "SomeCollectionDataIsUnavailable",
             "some_process_metrics_unavailable" => "SomeProcessMetricsUnavailable",
             "process_cpu_time_access_denied" => "ProcessCpuTimeAccessDenied",
             "process_identity_access_denied" => "ProcessIdentityAccessDenied",
@@ -40,7 +41,7 @@ public sealed class TelemetryExplanationConverter : IValueConverter
             _ => null
         };
         return key is null
-            ? DesktopLocalization.Text(culture, "AdditionalReportedReason", reason)
+            ? DesktopLocalization.Text(culture, "UnclassifiedCollectionLimitation")
             : DesktopLocalization.Text(culture, key);
     }
 
