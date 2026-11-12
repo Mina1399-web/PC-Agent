@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -346,26 +346,14 @@ CLI vyžádá UAC a potvrzení APPLY. Restartují se pouze služby Host Agent. O
     <value>Vytvořit bezpečný náhled</value>
     <comment>Source (cs-CZ): Vytvořit bezpečný náhled</comment>
   </data>
-  <data xml:space="preserve" name="ApprovalForThisExactPreview">
-    <value>Schválení přesně pro tento náhled</value>
-    <comment>Source (cs-CZ): Schválení přesně pro tento náhled</comment>
-  </data>
-  <data xml:space="preserve" name="CopyThePreviewIDShownAboveEachBatchRequiresANewPreviewAndItsExactID">
-    <value>Zkopírujte ID náhledu uvedené výše. Každá dávka vyžaduje nový náhled a přesné ID.</value>
-    <comment>Source (cs-CZ): Zkopírujte ID náhledu uvedené výše. Každá dávka vyžaduje nový náhled a přesné ID.</comment>
-  </data>
-  <data xml:space="preserve" name="MoveAllPreviewedFilesToQuarantine">
-    <value>Přesunout všechny soubory z náhledu do karantény</value>
-    <comment>Source (cs-CZ): Přesunout všechny soubory z náhledu do karantény</comment>
-  </data>
+
+
+
   <data xml:space="preserve" name="QuarantineAndRestore">
     <value>Karanténa a obnovení</value>
     <comment>Source (cs-CZ): Karanténa a obnovení</comment>
   </data>
-  <data xml:space="preserve" name="EnterTheExactRestoreIDOfTheSelectedRecord">
-    <value>Zadejte přesné ID obnovení vybraného záznamu</value>
-    <comment>Source (cs-CZ): Zadejte přesné ID obnovení vybraného záznamu</comment>
-  </data>
+
   <data xml:space="preserve" name="RestoreWithoutOverwritingAnExistingFile">
     <value>Obnovit bez přepsání existujícího souboru</value>
     <comment>Source (cs-CZ): Obnovit bez přepsání existujícího souboru</comment>
@@ -374,10 +362,7 @@ CLI vyžádá UAC a potvrzení APPLY. Restartují se pouze služby Host Agent. O
     <value>, dosažen limit náhledu</value>
     <comment>Source (cs-CZ): , dosažen limit náhledu</comment>
   </data>
-  <data xml:space="preserve" name="StatusSelectedSkippedPreviewIDValidUntil">
-    <value>Stav: {0}. Vybráno {1}, přeskočeno {2}{3}. ID náhledu: {4}. Platnost do: {5:g}.</value>
-    <comment>Source (cs-CZ): Stav: {0}. Vybráno {1}, přeskočeno {2}{3}. ID náhledu: {4}. Platnost do: {5:g}.</comment>
-  </data>
+
   <data xml:space="preserve" name="NoEligibleFilesWereFoundThePreviewMakesNoChanges">
     <value>Nebyly nalezeny vhodné soubory. Náhled nic nemění.</value>
     <comment>Source (cs-CZ): Nebyly nalezeny vhodné soubory. Náhled nic nemění.</comment>
@@ -1401,11 +1386,11 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data xml:space="preserve" name="SomeServiceStartModesUnavailable"><value>Způsob spouštění některých služeb není dostupný.</value></data>
   <data xml:space="preserve" name="SomeServiceStatesUnavailable"><value>Aktuální stav některých služeb není dostupný.</value></data>
   <data xml:space="preserve" name="AdditionalReportedReason"><value>Další hlášený důvod: {0}</value></data>
-  <data xml:space="preserve" name="DeleteSelectedQuarantineFile"><value>Trvale smazat vybraný soubor z karantény</value></data>
+
   <data xml:space="preserve" name="ChooseMaintenanceFolder"><value>Vybrat složku pro údržbu</value></data>
-  <data xml:space="preserve" name="PermanentDeleteResult"><value>Výsledek mazání: {0}; smazáno: {1}; bajtů: {2}.</value></data>
-  <data xml:space="preserve" name="PermanentQuarantineDeletion"><value>Trvalé smazání nelze vrátit. Vyberte jeden soubor v karanténě, ověřte jeho název a velikost a napište DELETE, mezeru a jeho přesné ID obnovy.</value></data>
-  <data xml:space="preserve" name="QuarantineDeleteFailed"><value>Mazání selhalo. Před dalším pokusem obnovte seznam karantény a zkontrolujte jeho stav.</value></data>
+
+
+
   <data xml:space="preserve" name="SelectedFolderMaintenanceScope"><value>Vybraná složka: pouze soubory přímo v ní, bez omezení stáří, do 1 GiB na soubor a 10 GiB v karanténě. Zkontrolujte každý soubor. Obnova je možná, dokud soubor zůstává v karanténě.</value></data>
   <data xml:space="preserve" name="SelectedFolderUnavailable"><value>Složka je nedostupná nebo chráněná. Vyberte vlastní místní složku na stejném svazku jako uživatelský profil.</value></data>
   <data xml:space="preserve" name="ReadSmartPrediction"><value>Přečíst SMART predikci selhání</value></data>
@@ -1438,13 +1423,15 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="WinDiagnosisCrashes" xml:space="preserve"><value>Prověřit pády Windows</value></data>
   <data name="DiskMaintenancePreview" xml:space="preserve"><value>Náhled úklidu</value></data>
   <data name="DiskMaintenanceBefore" xml:space="preserve"><value>Disk {0} · Volné místo před zásahem: {1}. Přesunuté soubory zůstávají v karanténě na tomto disku.</value></data>
-  <data name="DiskMaintenanceMeasured" xml:space="preserve"><value>Disk {0} · Před zásahem: {1} · Po zásahu: {2}. Volné místo mohou měnit i jiné činnosti.</value></data>
+
   <data name="DiskMaintenanceImpact" xml:space="preserve"><value>Zkontrolujte vhodné dočasné soubory na disku uživatelského adresáře Temp. Karanténa je ponechá na stejném disku.</value></data>
-  <data name="DiskMaintenanceRestore" xml:space="preserve"><value>Soubory můžete obnovit z karantény nebo zvlášť potvrdit smazání konkrétního souboru.</value></data>
+  <data name="DiskMaintenanceRestore" xml:space="preserve"><value>Obnovit jednu vybranou položku z karantény do přesné původní cesty. Soubor zůstává obnovitelný, dokud je dostupný jeho záznam v karanténě.</value></data>
   <data name="ServiceCrashFinding" xml:space="preserve"><value>Windows zaznamenal neočekávané ukončení služby {0}. Prověřte čerstvé důkazy a aktuální stav služby.</value></data>
   <data name="ServiceStopFinding" xml:space="preserve"><value>Služba {0} se zastavila. Samotné zastavení neprokazuje pád.</value></data>
   <data name="ServiceRecoveryReview" xml:space="preserve"><value>Prověřit spuštění služby {0}</value></data>
   <data name="ServiceRecoveryRunning" xml:space="preserve"><value>Služba {0} běžela při všech kontrolách během 10 sekund.</value></data>
+  <data name="ServiceRecoveryCancelled" xml:space="preserve"><value>Kontrola byla zrušena před odesláním požadavku na spuštění.</value></data>
+  <data name="ServiceRecoveryRejected" xml:space="preserve"><value>Helper nebo některá podmínka žádost odmítla; spuštění nebylo schváleno.</value></data>
   <data name="ServiceRecoveryUnverified" xml:space="preserve"><value>Spuštění služby se nepodařilo ověřit. Zkontrolujte její stav a výsledek schválení.</value></data>
   <data name="NetworkEnableChecks" xml:space="preserve"><value>Zapnout kontroly sítě</value></data>
   <data name="NetworkDisableChecks" xml:space="preserve"><value>Vypnout kontroly sítě</value></data>
@@ -1506,6 +1493,7 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="DesignServiceStopped" xml:space="preserve"><value>Služba se zastavila; příčina nepotvrzená</value></data>
   <data name="DesignServiceCrash" xml:space="preserve"><value>Neočekávané ukončení služby</value></data>
   <data name="DesignMetricDeviation" xml:space="preserve"><value>Měření se odchyluje od obvyklého stavu</value></data>
+<data name="BaselineDeviationAssessmentScope" xml:space="preserve"><value>Jde o míru spolehlivosti vyhodnocení baseline, nikoli o velikost odchylky ani pravděpodobnost příčiny. Záznam neobsahuje referenční hodnoty ani časové okno baseline.</value></data> <data name="UnclassifiedConfidenceScope" xml:space="preserve"><value>Kód není zařazen; záznam neurčuje příčinu ani její pravděpodobnost.</value></data> <data name="TargetedFollowUpUnavailable" xml:space="preserve"><value>Cílená navazující kontrola není dostupná.</value></data> <data name="IncidentBaselineAssessmentConfidence" xml:space="preserve"><value>Míra spolehlivosti vyhodnocení baseline: {3}/100 (nejde o velikost odchylky ani pravděpodobnost příčiny)</value></data> <data name="IncidentUnclassifiedStatus" xml:space="preserve"><value>{0} {1}. {2}. Nezařazený diagnostický stav; skóre příčiny není dostupné.</value></data>
   <data name="DesignCritical" xml:space="preserve"><value>Kritická</value></data>
   <data name="DesignHigh" xml:space="preserve"><value>Vysoká</value></data>
   <data name="DesignWarning" xml:space="preserve"><value>Varování</value></data>
@@ -1552,4 +1540,153 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="InAppAppListCanHelpReviewMemoryUseButIsReadOnly" xml:space="preserve"><value>Seznam aplikací v programu pomůže prohlédnout využití paměti. Je pouze pro čtení; toto doporučení žádnou aplikaci neukončí.</value></data>
   <data name="PrepareServiceAction" xml:space="preserve"><value>Připravit zásah pro službu</value></data>
   <data name="WinPrepareServiceActionHelp" xml:space="preserve"><value>Vybraný identifikátor služby se zkopíruje do formuláře k posouzení. Musí odpovídat aliasu schválenému správcem; pomocný proces jej před zásahem ověří.</value></data>
+  <data name="WinServiceStartRequiresGuidedReview" xml:space="preserve"><value>Spuštění a restart služby jsou nyní dostupné jen přes incidentní revizi, která zobrazí a zahrne do schválení celý seznam závislostí. Zastavení služby a akce s procesy zůstávají zde.</value></data>
+  <data name="ServiceReviewTitle" xml:space="preserve"><value>Posoudit obnovení jedné služby</value></data>
+  <data name="ServiceReviewSubtitle" xml:space="preserve"><value>Zvýšená kontrola Host Agentu</value></data>
+  <data name="ServiceReviewScope" xml:space="preserve"><value>Toto zvýšené okno je omezené na jednu službu Windows ze seznamu povolených. Windows může spustit také její požadované závislosti; jejich přesný seznam je zobrazen a zahrnut do schválení. Helper jej před spuštěním znovu ověří. Zrušením se nic nespustí.</value></data>
+  <data name="ServiceReviewIncident" xml:space="preserve"><value>Incident</value></data>
+  <data name="ServiceReviewTarget" xml:space="preserve"><value>Služba ze seznamu povolených</value></data>
+  <data name="ServiceReviewStatusLabel" xml:space="preserve"><value>Stav služby při posouzení</value></data>
+  <data name="ServiceReviewStatusAtPreview" xml:space="preserve"><value>{0}, ověřeno {1}</value></data>
+  <data name="ServiceReviewAction" xml:space="preserve"><value>Požadovaná akce</value></data>
+  <data name="ServiceReviewActionValue" xml:space="preserve"><value>Jednou spustit tuto službu</value></data>
+  <data name="ServiceReviewImpact" xml:space="preserve"><value>Očekávaný dopad</value></data>
+  <data name="ServiceReviewImpactPreparing" xml:space="preserve"><value>Čekám na ověření cíle a seznamu povolených.</value></data>
+  <data name="ServiceReviewImpactValue" xml:space="preserve"><value>Požádá o spuštění služby {0}. Správce řízení služeb může spustit také požadované závislosti uvedené níže; přesný seznam je součástí tohoto schválení.</value></data>
+  <data name="ServiceReviewDependencies" xml:space="preserve"><value>Požadované závislosti služby</value></data>
+  <data name="ServiceReviewDependenciesEmpty" xml:space="preserve"><value>Při této kontrole nebyly zjištěny žádné.</value></data>
+  <data name="ServiceReviewDependencyLine" xml:space="preserve"><value>{0} — {1}, kontrola {2}</value></data>
+  <data name="ServiceReviewRegistration" xml:space="preserve"><value>Schválená položka seznamu povolených</value></data>
+  <data name="ServiceReviewEvidence" xml:space="preserve"><value>Čerstvé zdroje důkazů</value></data>
+  <data name="ServiceReviewEvidenceEventLog" xml:space="preserve"><value>Záznam událostí Windows — pád služby</value></data>
+  <data name="ServiceReviewEvidenceServiceState" xml:space="preserve"><value>Správce řízení služeb — změna stavu služby</value></data>
+  <data name="ServiceReviewEvidenceUnknown" xml:space="preserve"><value>Neznámý zdroj důkazu</value></data>
+  <data name="ServiceReviewPhrasePrompt" xml:space="preserve"><value>Pro schválení této přesné akce a seznamu závislostí přesně zkopíruj nebo opiš anglickou frázi níže, včetně velkých písmen a mezer. Prázdné pole nebo volba Zrušit nic nespustí.</value></data>
+  <data name="ServiceReviewPhraseLabel" xml:space="preserve"><value>Fráze k zadání</value></data>
+  <data name="ServiceReviewPhraseCopyLabel" xml:space="preserve"><value>Fráze ke zkopírování</value></data>
+  <data name="ServiceReviewApprove" xml:space="preserve"><value>Schválit a spustit službu</value></data>
+  <data name="ServiceReviewCancel" xml:space="preserve"><value>Zrušit</value></data>
+  <data name="ServiceReviewClose" xml:space="preserve"><value>Zavřít</value></data>
+  <data name="ServiceReviewPreparing" xml:space="preserve"><value>Ověřuji aktuální incident, stav služby a zásady schválení…</value></data>
+  <data name="ServiceReviewReady" xml:space="preserve"><value>Kontrola je připravená. Služba se nespustí, dokud neopíšeš přesnou frázi a akci neschválíš.</value></data>
+  <data name="ServiceReviewUnavailable" xml:space="preserve"><value>Akci nelze provést: {0}. Žádná služba nebyla spuštěna.</value></data>
+  <data name="ServiceReviewReasonIncident" xml:space="preserve"><value>Důkazy incidentu chybí, nejsou aktuální nebo už neodpovídají této službě.</value></data>
+  <data name="ServiceReviewReasonStatus" xml:space="preserve"><value>Nepodařilo se potvrdit, že služba je právě zastavená.</value></data>
+  <data name="ServiceReviewReasonDependencies" xml:space="preserve"><value>Seznam závislostí není dostupný, změnil se nebo není celý výslovně povolen.</value></data>
+  <data name="ServiceReviewReasonStale" xml:space="preserve"><value>Údaje kontroly se změnily nebo vypršely. Zavři okno a připrav novou kontrolu.</value></data>
+  <data name="ServiceReviewReasonPolicy" xml:space="preserve"><value>Služba, Helper nebo zásady schválení tuto akci nepovolují.</value></data>
+  <data name="ServiceReviewReasonPermission" xml:space="preserve"><value>Aktuální účet Windows není schváleným správcem pro tuto akci.</value></data>
+  <data name="ServiceReviewReasonPhrase" xml:space="preserve"><value>Zadaná fráze přesně neodpovídá posouzené akci.</value></data>
+  <data name="ServiceReviewReasonHelper" xml:space="preserve"><value>Helper nedokázal žádost připravit nebo ověřit.</value></data>
+  <data name="ServiceReviewReasonUnavailable" xml:space="preserve"><value>Nepodařilo se dokončit některou z potřebných kontrol.</value></data>
+  <data name="ServiceReviewExecuting" xml:space="preserve"><value>Předávám schválenou žádost Helperu Host Agentu. Počkej na auditní záznam a ověření stavu služby.</value></data>
+  <data name="ServiceReviewReceiptTitle" xml:space="preserve"><value>Výsledek akce</value></data>
+  <data name="ServiceReviewVerified" xml:space="preserve"><value>Ověřeno: výsledek Helperu, odpovídající auditní záznam a nový stav Spuštěno souhlasí.</value></data>
+  <data name="ServiceReviewRejected" xml:space="preserve"><value>Odmítnuto: Helper akci neschválil ani neprovedl ({0}).</value></data>
+  <data name="ServiceReviewUnknown" xml:space="preserve"><value>Neznámý výsledek: žádost se mohla provést, ale dokončení se nepodařilo plně ověřit. Neopakuj ji automaticky.</value></data>
+  <data name="ServiceReviewCommand" xml:space="preserve"><value>Výsledek příkazu Helperu: {0}</value></data>
+  <data name="ServiceReviewNoReceipt" xml:space="preserve"><value>neobdrženo</value></data>
+  <data name="ServiceReviewAuditVerified" xml:space="preserve"><value>Auditní žurnál Helperu: odpovídající schválení a provedení jsou ověřeny.</value></data>
+  <data name="ServiceReviewAuditUnverified" xml:space="preserve"><value>Auditní žurnál Helperu: odpovídající dokončovací záznam se nepodařilo ověřit.</value></data>
+  <data name="ServiceReviewReadback" xml:space="preserve"><value>Aktuální stav Správce řízení služeb: {0} ({1})</value></data>
+  <data name="ServiceReviewFinished" xml:space="preserve"><value>Kontrola skončila. Potvrzení příkazu, audit a ověření stavu jsou uvedeny samostatně.</value></data>
+  <data name="ServiceReviewWaitBeforeClose" xml:space="preserve"><value>Počkej na výsledek. Po odeslání žádosti ji zavřením okna nelze zrušit.</value></data>
+  <data name="ServiceReviewRunning" xml:space="preserve"><value>Spuštěno</value></data>
+  <data name="ServiceReviewStopped" xml:space="preserve"><value>Zastaveno</value></data>
+  <data name="ServiceReviewStatusUnknown" xml:space="preserve"><value>Neznámý</value></data>
+  <data name="ServiceReviewTechnicalLabel" xml:space="preserve"><value>Technický detail</value></data>
+  <data name="ServiceReviewContinuePending" xml:space="preserve"><value>Obnovení čeká</value></data>
+  <data name="ServiceReviewPausePending" xml:space="preserve"><value>Pozastavení čeká</value></data>
+  <data name="ServiceReviewPaused" xml:space="preserve"><value>Pozastaveno</value></data>
+  <data name="ServiceReviewStartPending" xml:space="preserve"><value>Spuštění čeká</value></data>
+  <data name="ServiceReviewStopPending" xml:space="preserve"><value>Zastavení čeká</value></data>
+  <data name="MaintenanceReason_payload_unavailable" xml:space="preserve"><value>Soubor v karanténě není dostupný.</value></data>
+  <data name="MinimumAgeDays" xml:space="preserve"><value>minimální stáří {0} dní</value></data>
+  <data name="MaintenanceReason_unsafe_name" xml:space="preserve"><value>Název souboru není bezpečně rozpoznán.</value></data>
+  <data name="MaintenanceWindowIntro" xml:space="preserve"><value>Režim Standard umožňuje zobrazit náhled souborů přímo v Temp tohoto účtu, vratně přesunout vhodné soubory do karantény a obnovit jednu vybranou položku. Režim Developer navíc umožňuje vybrat jednu složku a zobrazuje technické identifikátory.</value></data>
+  <data name="MaintenanceReason_preview_expired" xml:space="preserve"><value>Náhled vypršel.</value></data>
+  <data name="MaintenanceReason_too_recent" xml:space="preserve"><value>Soubor je příliš nový.</value></data>
+  <data name="MaintenanceReason_preview_incomplete" xml:space="preserve"><value>Náhled není úplný.</value></data>
+  <data name="ReviewExactPreviewBeforeQuarantine" xml:space="preserve"><value>Před přesunem zkontrolujte přesný zdroj, cílovou karanténu, seznam položek a limity. Tlačítko spotřebuje tento jednorázový náhled.</value></data>
+  <data name="MaintenanceReason_source_hash_changed" xml:space="preserve"><value>Obsah souboru se od náhledu změnil.</value></data>
+  <data name="MaintenanceReason_payload_verification_failed" xml:space="preserve"><value>U souboru v karanténě se nepodařilo ověřit identitu.</value></data>
+  <data name="MaintenanceActionResultSummary" xml:space="preserve"><value>Počty výsledků: přesunuto {0}; obnoveno {1}; přeskočeno {2}; blokováno {3}; selhalo {4}; zrušeno {5}; neznámý výsledek {6}; záznamy k obnově {7}. Karanténa neuvolnila místo.{8}</value></data>
+  <data name="RestoreFileToOriginalPath" xml:space="preserve"><value>Obnovit {0} do {1}</value></data>
+  <data name="MaintenanceReason_file_too_large" xml:space="preserve"><value>Soubor překračuje limit velikosti.</value></data>
+  <data name="PreviewDeveloperTechnicalDetails" xml:space="preserve"><value>ID náhledu: {0}; ID svazku: {1}.</value></data>
+  <data name="MaintenanceReason_quarantine_lock_unavailable" xml:space="preserve"><value>Nelze získat zámek karantény.</value></data>
+  <data name="RecursiveScope" xml:space="preserve"><value>včetně podsložek</value></data>
+  <data name="MaintenanceReason_verification_failed" xml:space="preserve"><value>Nepodařilo se ověřit identitu souboru.</value></data>
+  <data name="MaintenanceReason_cancelled" xml:space="preserve"><value>Operace byla zrušena.</value></data>
+  <data name="MaintenanceReason_read_only" xml:space="preserve"><value>Soubor je pouze pro čtení.</value></data>
+  <data name="CreatePreviewBeforeQuarantine" xml:space="preserve"><value>Před přesunem vytvořte aktuální náhled.</value></data>
+  <data name="MovePreviewToQuarantine" xml:space="preserve"><value>Přesunout soubory z náhledu do karantény</value></data>
+  <data name="MaintenanceReason_preview_time_limit" xml:space="preserve"><value>Náhled dosáhl časového limitu.</value></data>
+  <data name="MaintenanceReason_volume_mismatch" xml:space="preserve"><value>Zdroj a karanténa nejsou na stejném svazku.</value></data>
+  <data name="NoMinimumAge" xml:space="preserve"><value>bez minimálního stáří</value></data>
+  <data name="TopLevelFilesOnly" xml:space="preserve"><value>pouze přímé soubory</value></data>
+  <data name="MaintenanceReason_multiple_links" xml:space="preserve"><value>Soubor má více pevných odkazů.</value></data>
+  <data name="MaintenanceReason_access_denied" xml:space="preserve"><value>Přístup k souboru byl odepřen.</value></data>
+  <data name="MaintenanceOperationCancelled" xml:space="preserve"><value>Akce byla zrušena. Před opakováním zkontrolujte výsledky jednotlivých položek.</value></data>
+  <data name="MaintenanceCancellationRequested" xml:space="preserve"><value>Požadavek na zastavení byl odeslán. Již přesunuté soubory zůstávají v karanténě; výsledek uvede stav každé položky.</value></data>
+  <data name="MaintenanceReason_source_identity_changed" xml:space="preserve"><value>Identita souboru se od náhledu změnila.</value></data>
+  <data name="MaintenanceUnknownReason" xml:space="preserve"><value>Důvod se nepodařilo bezpečně určit.</value></data>
+  <data name="ActionReceipts" xml:space="preserve"><value>Výsledky jednotlivých položek</value></data>
+  <data name="MaintenanceReason_destination_already_exists" xml:space="preserve"><value>Cíl již existuje; nic nebylo přepsáno.</value></data>
+  <data name="MovePreviewedFilesToQuarantine" xml:space="preserve"><value>Přesunout {0} způsobilých souborů do karantény</value></data>
+  <data name="MaintenanceReason_quarantine_root_unavailable" xml:space="preserve"><value>Složka karantény není dostupná.</value></data>
+  <data name="MaintenanceReason_source_metadata_changed" xml:space="preserve"><value>Metadata souboru se od náhledu změnila.</value></data>
+  <data name="MaintenanceReason_outcome_unverified" xml:space="preserve"><value>Výsledek se nepodařilo ověřit.</value></data>
+  <data name="MaintenanceReason_scope_byte_limit" xml:space="preserve"><value>Náhled by překročil celkový limit velikosti.</value></data>
+  <data name="PreviewIncomplete" xml:space="preserve"><value>neúplný — přesun do karantény je zablokován</value></data>
+  <data name="SelectedQuarantineEntryNeedsReview" xml:space="preserve"><value>Tento záznam vyžaduje kontrolu a nelze jej obnovit.</value></data>
+  <data name="MaintenanceReason_unsupported_file" xml:space="preserve"><value>Tento typ položky není podporován.</value></data>
+  <data name="MaintenanceReason_operation_failed" xml:space="preserve"><value>Operace selhala.</value></data>
+  <data name="MaintenanceReason_quarantine_limit_reached" xml:space="preserve"><value>Byl dosažen limit karantény.</value></data>
+  <data name="MaintenanceReason_file_locked" xml:space="preserve"><value>Soubor je uzamčen nebo používán.</value></data>
+  <data name="MaintenanceReason_file_unavailable" xml:space="preserve"><value>Soubor již není dostupný.</value></data>
+  <data name="MaintenancePreviewStatus" xml:space="preserve"><value>Stav: {0}. Způsobilé: {1}; přeskočeno: {2}{3}. Platí do: {4:g}.{5}</value></data>
+  <data name="MaintenanceReason_quarantine_busy" xml:space="preserve"><value>Karanténu používá jiná údržbová akce.</value></data>
+  <data name="NoEligibleFilesToQuarantine" xml:space="preserve"><value>Není co přesunout do karantény.</value></data>
+  <data name="QuarantineDoesNotFreeDiskSpace" xml:space="preserve"><value>Karanténa je vratná a ponechá soubory na stejném disku. Neuvolní místo.</value></data>
+  <data name="PreviewComplete" xml:space="preserve"><value>úplný</value></data>
+  <data name="MaintenanceReason_service_not_approved" xml:space="preserve"><value>Aktuální stav služby změny nepovoluje.</value></data>
+  <data name="MaintenanceScopeResetToDefault" xml:space="preserve"><value>Režim Developer skončil. Vybraná složka byla vyřazena; nový náhled použije pouze Temp tohoto účtu.</value></data>
+  <data name="SkippedItemsAndReasons" xml:space="preserve"><value>Přeskočené položky a důvody</value></data>
+  <data name="RestoreDestinationPath" xml:space="preserve"><value>Přesný cíl obnovy: {0}. Existující soubor se nikdy nepřepíše.</value></data>
+  <data name="MaintenanceReason_journal_recovery_required" xml:space="preserve"><value>Soubor byl obnoven, ale jeho záznam vyžaduje kontrolu.</value></data>
+  <data name="IncompletePreviewBlocksQuarantine" xml:space="preserve"><value>Náhled není úplný. Přesun do karantény je zablokován; zúžte rozsah a vytvořte nový náhled.</value></data>
+  <data name="MaintenanceReasonDeveloperDetails" xml:space="preserve"><value>{0} (technický kód: {1})</value></data>
+  <data name="ExpiredPreviewBlocksQuarantine" xml:space="preserve"><value>Platnost náhledu skončila. Před přesunem vytvořte nový náhled.</value></data>
+  <data name="MaintenancePreviewDetails" xml:space="preserve"><value>Zkontrolováno: {0}; způsobilé: {1}; přeskočeno: {2}; výpis: {3}; rozsah: {4}.
+Limity: {5}; nejvýše {6} na soubor a {7} celkem; nejvýše {8} záznamů karantény; kontrola nejvýše {9} souborů a {10} kandidátů do {11} sekund.</value></data>
+  <data name="SelectAQuarantineEntryToRestore" xml:space="preserve"><value>Vyberte položku karantény k obnovení</value></data>
+  <data name="MaintenanceReason_source_root_unavailable" xml:space="preserve"><value>Zdrojová složka není dostupná.</value></data>
+  <data name="ShowExactLocation" xml:space="preserve"><value>Zobrazit přesné umístění</value></data>
+  <data name="MaintenanceReason_journal_unavailable" xml:space="preserve"><value>Záznamy karantény se nepodařilo přečíst.</value></data>
+  <data name="RestoreToOriginalLocation" xml:space="preserve"><value>Obnovit vybraný soubor do původního umístění. Existující soubory se nepřepisují.</value></data>
+  <data name="MaintenanceReason_journal_integrity" xml:space="preserve"><value>Záznamy karantény neprošly kontrolou integrity.</value></data>
+  <data name="Unknown" xml:space="preserve"><value>neznámý</value></data>
+  <data name="MaintenancePreviewLocationDetails" xml:space="preserve"><value>Zdrojová složka: {0}
+Složka karantény: {1}</value></data>
+  <data name="CancelMaintenanceAction" xml:space="preserve"><value>Zrušit probíhající akci</value></data>
+  <data name="HideExactLocation" xml:space="preserve"><value>Skrýt přesné umístění</value></data>
+  <data name="OriginalLocation" xml:space="preserve"><value>do původního umístění</value></data>
+  <data name="Source" xml:space="preserve"><value>Zdroj</value></data>
+  <data name="Reason" xml:space="preserve"><value>Důvod</value></data>
+  <data name="Destination" xml:space="preserve"><value>Cíl</value></data>
+  <data name="MaintenanceResultPartialFailure" xml:space="preserve"><value>Některé soubory byly přesunuty, jiná operace selhala. Před opakováním zkontrolujte všechny položky.</value></data>
+  <data name="MaintenanceResultFailed" xml:space="preserve"><value>Přesun do karantény selhal. Před opakováním zkontrolujte výsledky položek.</value></data>
+  <data name="MaintenanceResultStateUnavailable" xml:space="preserve"><value>Oprávnění nebo stav údržby se nepodařilo ověřit; akce nebyla provedena.</value></data>
+  <data name="MaintenanceActionResultDeveloperDetails" xml:space="preserve"><value>Technický kód výsledku: {0}.</value></data>
+  <data name="MaintenanceActionBlocked" xml:space="preserve"><value>Blokováno</value></data>
+  <data name="MaintenanceResultOutcomeUnknown" xml:space="preserve"><value>Konečný výsledek se nepodařilo ověřit. Před opakováním zkontrolujte každou položku.</value></data>
+  <data name="MaintenanceActionMoved" xml:space="preserve"><value>Přesunuto</value></data>
+  <data name="MaintenanceResultCancelledPartial" xml:space="preserve"><value>Akce byla zrušena po přesunu některých souborů. Zkontrolujte výsledek každé položky.</value></data>
+  <data name="MaintenanceResultPartialBlocked" xml:space="preserve"><value>Některé soubory byly přesunuty, další byly zablokovány. Zkontrolujte výsledky všech položek.</value></data>
+  <data name="MaintenanceResultCancelled" xml:space="preserve"><value>Akce byla zrušena. Před opakováním zkontrolujte výsledky položek.</value></data>
+  <data name="MaintenanceActionSkipped" xml:space="preserve"><value>Přeskočeno</value></data>
+  <data name="MaintenanceResultBlocked" xml:space="preserve"><value>Přesun do karantény byl zablokován. Před opakováním zkontrolujte výsledky položek.</value></data>
+  <data name="MaintenanceActionCancelled" xml:space="preserve"><value>Zrušeno</value></data>
+  <data name="MaintenanceResultPartialBlockedRecovery" xml:space="preserve"><value>Některé soubory byly přesunuty a záznamy pro obnovu vyžadují kontrolu. Před opakováním zkontrolujte všechny položky.</value></data>
 </root>

@@ -277,7 +277,6 @@ public partial class MainWindow:Window
 
     private void MaintenanceClick(object sender,RoutedEventArgs e)
     {
-        if(!RequireDeveloperMode())return;
         _maintenanceWindowOpen=true;
         try
         {
