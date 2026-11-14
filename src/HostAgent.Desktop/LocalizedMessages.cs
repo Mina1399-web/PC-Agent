@@ -12,6 +12,7 @@ internal sealed class LocalizedMessages(DesktopLocalization localization)
     public MessageBoxResult Show(Window? owner, string text, string title="Host Agent", MessageBoxButton buttons=MessageBoxButton.OK, MessageBoxImage image=MessageBoxImage.None)
     {
         var window=Create(owner,title);
+        OrbitTheme.ApplyToDialog(window, owner);
         localization.Apply(window);
         var panel=new DockPanel {Margin=new Thickness(24),LastChildFill=true};
         var actions=new StackPanel{Orientation=Orientation.Horizontal,HorizontalAlignment=HorizontalAlignment.Right};
@@ -39,6 +40,7 @@ internal sealed class LocalizedMessages(DesktopLocalization localization)
     public static string? ChooseReportPath(Window owner, DesktopLocalization localization,string fileName)
     {
         var window=Create(owner,localization.Text("ExportIncident"));
+        OrbitTheme.ApplyToDialog(window, owner);
         localization.Apply(window);
         var panel=new StackPanel{Margin=new Thickness(24)};
         panel.Children.Add(new TextBlock{Text=localization.Text("FullPathToJSONFile"),TextWrapping=TextWrapping.Wrap});
