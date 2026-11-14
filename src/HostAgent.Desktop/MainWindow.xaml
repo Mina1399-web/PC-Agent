@@ -4,26 +4,11 @@
  Title="{DynamicResource Loc.HostAgentComputerStatus}" Width="1280" Height="880" MinWidth="850" MinHeight="620"
  Background="{DynamicResource CanvasBrush}" Foreground="{DynamicResource InkBrush}" FontFamily="Segoe UI" FontSize="16" UseLayoutRounding="True" SnapsToDevicePixels="True">
  <Window.Resources>
-  <SolidColorBrush x:Key="CanvasBrush" Color="#EEECE5"/>
-  <SolidColorBrush x:Key="CardBrush" Color="#FAF9F4"/>
-  <SolidColorBrush x:Key="InkBrush" Color="#172722"/>
-  <SolidColorBrush x:Key="MutedBrush" Color="#53635B"/>
-  <SolidColorBrush x:Key="AccentBrush" Color="#17674E"/>
-  <SolidColorBrush x:Key="AccentInkBrush" Color="#FAF9F4"/>
-  <SolidColorBrush x:Key="LineBrush" Color="#B9BDB3"/>
-  <SolidColorBrush x:Key="InputBorderBrush" Color="#7E897F"/>
-  <SolidColorBrush x:Key="RailBrush" Color="#183A32"/>
-  <SolidColorBrush x:Key="RailTextBrush" Color="#E3EBE4"/>
-  <SolidColorBrush x:Key="SelectedBrush" Color="#31564B"/>
-  <SolidColorBrush x:Key="HoverBrush" Color="#24493E"/>
-  <SolidColorBrush x:Key="AlternateBrush" Color="#F0EFE8"/>
-  <SolidColorBrush x:Key="GreenBrush" Color="#17674E"/>
-  <SolidColorBrush x:Key="GreenSurfaceBrush" Color="#DFEEE7"/>
-  <SolidColorBrush x:Key="WarningBrush" Color="#9A591C"/>
-  <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#F5E8D2"/>
-  <SolidColorBrush x:Key="ErrorBrush" Color="#A7432A"/>
-  <SolidColorBrush x:Key="ErrorSurfaceBrush" Color="#F2DFD9"/>
-  <SolidColorBrush x:Key="RamBrush" Color="#58639A"/>
+  <ResourceDictionary>
+   <ResourceDictionary.MergedDictionaries>
+    <ResourceDictionary Source="Themes/OrbitLight.xaml"/>
+    <ResourceDictionary Source="Themes/OrbitControls.xaml"/>
+   </ResourceDictionary.MergedDictionaries>
   <local:ByteSizeConverter x:Key="Bytes"/>
   <local:IncidentStateConverter x:Key="IncidentState"/>
   <local:TechnicalTextConverter x:Key="TechnicalText"/>
@@ -44,28 +29,12 @@
   <Style x:Key="Caption" TargetType="TextBlock"><Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/><Setter Property="FontSize" Value="16"/><Setter Property="TextWrapping" Value="Wrap"/><Setter Property="LineHeight" Value="24"/></Style>
   <Style x:Key="SectionTitle" TargetType="TextBlock"><Setter Property="FontSize" Value="20"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Margin" Value="0,0,0,8"/></Style>
   <Style x:Key="Card" TargetType="Border"><Setter Property="Background" Value="{DynamicResource CardBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="12"/><Setter Property="Padding" Value="20"/></Style>
-  <Style x:Key="FocusRing" TargetType="Control"><Setter Property="Template"><Setter.Value><ControlTemplate><Rectangle Margin="-3" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" StrokeDashArray="2 1" RadiusX="6" RadiusY="6"/></ControlTemplate></Setter.Value></Setter></Style>
-  <Style TargetType="Button">
-   <Setter Property="Padding" Value="16,10"/><Setter Property="Margin" Value="0,0,8,8"/><Setter Property="Background" Value="{DynamicResource CardBrush}"/>
-   <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/><Setter Property="BorderThickness" Value="1"/>
-   <Setter Property="Cursor" Value="Hand"/><Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
-   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
-    <Border x:Name="Surface" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True"/>
-    </Border><ControlTemplate.Triggers>
-     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Surface" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/></Trigger>
-     <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Surface" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/><Setter TargetName="Surface" Property="BorderThickness" Value="2"/></Trigger>
-     <Trigger Property="IsEnabled" Value="False"><Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/><Setter Property="Background" Value="{DynamicResource AlternateBrush}"/><Setter Property="Cursor" Value="Arrow"/></Trigger>
-    </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
-  </Style>
-  <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}"><Setter Property="Background" Value="{DynamicResource AccentBrush}"/><Setter Property="Foreground" Value="{DynamicResource AccentInkBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/></Style>
-  <Style TargetType="TextBox"><Setter Property="Padding" Value="10,8"/><Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/><Setter Property="Foreground" Value="{DynamicResource InkBrush}"/><Setter Property="Background" Value="{DynamicResource CardBrush}"/><Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/></Style>
   <Style TargetType="ComboBoxItem">
    <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/><Setter Property="Padding" Value="12,8"/>
-   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBoxItem"><Border x:Name="Item" Background="{DynamicResource CardBrush}" Padding="{TemplateBinding Padding}"><ContentPresenter/></Border><ControlTemplate.Triggers><Trigger Property="IsHighlighted" Value="True"><Setter TargetName="Item" Property="Background" Value="{DynamicResource SelectedBrush}"/></Trigger><Trigger Property="IsSelected" Value="True"><Setter TargetName="Item" Property="Background" Value="{DynamicResource SelectedBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBoxItem"><Border x:Name="Item" Background="{DynamicResource CardBrush}" Padding="{TemplateBinding Padding}"><ContentPresenter/></Border><ControlTemplate.Triggers><Trigger Property="IsHighlighted" Value="True"><Setter TargetName="Item" Property="Background" Value="{DynamicResource AlternateBrush}"/></Trigger><Trigger Property="IsSelected" Value="True"><Setter TargetName="Item" Property="Background" Value="{DynamicResource AlternateBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
   </Style>
   <Style TargetType="ComboBox">
-   <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/><Setter Property="Background" Value="{DynamicResource CardBrush}"/><Setter Property="Padding" Value="12,8"/><Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
+   <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/><Setter Property="Background" Value="{DynamicResource CardBrush}"/><Setter Property="Padding" Value="12,8"/><Setter Property="FocusVisualStyle" Value="{DynamicResource FocusRing}"/>
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBox"><Grid>
     <ToggleButton Focusable="False" IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" ClickMode="Press">
      <ToggleButton.Template><ControlTemplate TargetType="ToggleButton"><Border x:Name="ComboSurface" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="6"><TextBlock Text="⌄" Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Right" Margin="0,0,10,0" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ComboSurface" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></ToggleButton.Template>
@@ -82,13 +51,13 @@
    <Setter Property="SelectionMode" Value="Single"/><Setter Property="SelectionUnit" Value="FullRow"/>
   </Style>
   <Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="{DynamicResource CanvasBrush}"/><Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/><Setter Property="Padding" Value="12,10"/><Setter Property="FontSize" Value="12"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="BorderThickness" Value="0"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Content}"/></Style>
-  <Style TargetType="DataGridCell"><Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="{DynamicResource SelectedBrush}"/><Setter Property="Foreground" Value="{DynamicResource InkBrush}"/></Trigger></Style.Triggers><Setter Property="Padding" Value="12,0"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="DataGridCell"><Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}"><ContentPresenter VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter Property="Background" Value="{DynamicResource SelectedBrush}"/><Setter Property="Foreground" Value="{DynamicResource InkBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
+  <Style TargetType="DataGridCell"><Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="{DynamicResource SelectedBrush}"/><Setter Property="Foreground" Value="{DynamicResource RailTextBrush}"/></Trigger></Style.Triggers><Setter Property="Padding" Value="12,0"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="DataGridCell"><Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}"><ContentPresenter VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter Property="Background" Value="{DynamicResource SelectedBrush}"/><Setter Property="Foreground" Value="{DynamicResource RailTextBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
   <Style TargetType="Label"><Setter Property="Foreground" Value="{DynamicResource InkBrush}"/></Style>
   <Style TargetType="Expander"><Setter Property="Foreground" Value="{DynamicResource InkBrush}"/></Style>
   <Style TargetType="ToolTip"><Setter Property="Background" Value="{DynamicResource CardBrush}"/><Setter Property="Foreground" Value="{DynamicResource InkBrush}"/><Setter Property="Padding" Value="12,8"/></Style>
   <Style TargetType="DataGridRow">
    <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
-   <Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="{DynamicResource SelectedBrush}"/><Setter Property="Foreground" Value="{DynamicResource InkBrush}"/></Trigger></Style.Triggers>
+   <Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="{DynamicResource SelectedBrush}"/><Setter Property="Foreground" Value="{DynamicResource RailTextBrush}"/></Trigger></Style.Triggers>
   </Style>
   <Style TargetType="ProgressBar">
    <Setter Property="Height" Value="4"/><Setter Property="Maximum" Value="100"/><Setter Property="Focusable" Value="False"/><Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/><Setter Property="Background" Value="{DynamicResource LineBrush}"/>
@@ -104,6 +73,7 @@
      <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Nav" Property="Opacity" Value="0.62"/></Trigger>
    </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
   </Style>
+  </ResourceDictionary>
  </Window.Resources>
  <Grid Background="{DynamicResource CanvasBrush}">
   <Grid.ColumnDefinitions><ColumnDefinition Width="176"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -119,7 +89,7 @@
     <StackPanel MinWidth="90"><TextBlock x:Name="WorkspaceTitle" Text="{DynamicResource Loc.Workspace}" FontWeight="SemiBold" FontSize="14" TextWrapping="Wrap"/><TextBlock Text="{DynamicResource Loc.ThisComputer}" Style="{StaticResource Caption}" Margin="0,4,0,0"/></StackPanel>
    </DockPanel>
     <WrapPanel Margin="0,8,0,0"><Button x:Name="RefreshButton" ToolTip="F5" Content="{DynamicResource Loc.Refresh}" Click="RefreshClick"/><Button x:Name="DesktopModeButton" Content="{DynamicResource Loc.DesignModeStandardActive}" Click="DesktopModeClick" AutomationProperties.Name="{DynamicResource Loc.DesignModeStandardActive}"/></WrapPanel>
-   <Border x:Name="StatusBanner" Background="{DynamicResource SelectedBrush}" CornerRadius="6" Padding="12,10" Margin="0,8,0,0"><TextBlock x:Name="StatusText" Text="{DynamicResource Loc.ConnectingToTheLocalService}" TextWrapping="Wrap" FontSize="12" AutomationProperties.LiveSetting="Polite"/></Border>
+   <Border x:Name="StatusBanner" Background="{DynamicResource SelectedBrush}" CornerRadius="6" Padding="12,10" Margin="0,8,0,0"><TextBlock x:Name="StatusText" Foreground="{DynamicResource RailTextBrush}" Text="{DynamicResource Loc.ConnectingToTheLocalService}" TextWrapping="Wrap" FontSize="12" AutomationProperties.LiveSetting="Polite"/></Border>
   </StackPanel>
    <TabControl x:Name="DashboardTabs" SelectionChanged="WindowsDashboardTabChanged" Grid.Row="1" Grid.ColumnSpan="2" Background="Transparent" BorderThickness="0" TabStripPlacement="Left">
    <TabControl.Template><ControlTemplate TargetType="TabControl"><Grid>
@@ -159,7 +129,7 @@
       </Grid>
       <Grid Margin="38,10,0,0"><TextBlock Text="{DynamicResource Loc.Text24HAgo}" Style="{StaticResource Caption}" FontSize="11"/><TextBlock Text="{DynamicResource Loc.Text12HAgo}" Style="{StaticResource Caption}" FontSize="11" HorizontalAlignment="Center"/><TextBlock Text="{DynamicResource Loc.Now}" Style="{StaticResource Caption}" FontSize="11" HorizontalAlignment="Right"/></Grid>
      </StackPanel></Border>
-     <Border Background="{DynamicResource SelectedBrush}" CornerRadius="6" Padding="14,12" Margin="0,0,0,16"><TextBlock x:Name="NetworkText" Text="{DynamicResource Loc.NetworkWaitingForMeasurements}" TextWrapping="Wrap" FontSize="13"/></Border>
+     <Border Background="{DynamicResource SelectedBrush}" CornerRadius="6" Padding="14,12" Margin="0,0,0,16"><TextBlock x:Name="NetworkText" Foreground="{DynamicResource RailTextBrush}" Text="{DynamicResource Loc.NetworkWaitingForMeasurements}" TextWrapping="Wrap" FontSize="13"/></Border>
      <Border Style="{StaticResource Card}" Margin="0,0,0,16"><StackPanel><TextBlock Text="{DynamicResource Loc.Storage}" Style="{StaticResource SectionTitle}"/><TextBlock x:Name="DisksEmptyText" Text="{DynamicResource Loc.DiskCapacitiesAreNotAvailableYet}" Style="{StaticResource Caption}" Margin="0,0,0,12"/>
       <DataGrid x:Name="DisksGrid" MaxHeight="210" AutomationProperties.Name="{DynamicResource Loc.DiskCapacityAndFreeSpace}"><DataGrid.Columns><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="Disk" Binding="{Binding Drive}" Width="*"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="FreeSpace" Binding="{Binding FreeBytes, Converter={StaticResource Bytes}}" Width="*"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="TotalCapacity" Binding="{Binding CapacityBytes, Converter={StaticResource Bytes}}" Width="*"/></DataGrid.Columns></DataGrid>
       <Button x:Name="SmartReadButton" Content="{DynamicResource Loc.ReadSmartPrediction}" Click="SmartClick" HorizontalAlignment="Left" Margin="0,10,0,4"/>

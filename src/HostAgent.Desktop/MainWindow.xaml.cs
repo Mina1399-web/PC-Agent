@@ -281,6 +281,7 @@ public partial class MainWindow:Window
         try
         {
             var window=new MaintenanceWindow(_controller,null,Localization,developerMode:()=>DeveloperFeaturesEnabled){Owner=this};
+            OrbitTheme.ApplyToDialog(window, this);
             window.ShowDialog();
         }
         finally{_maintenanceWindowOpen=false;}
@@ -764,6 +765,7 @@ public partial class MainWindow:Window
         {
             _maintenanceWindowOpen=true;
             var window=new MaintenanceWindow(_controller,null,Localization,drive,()=>DeveloperFeaturesEnabled){Owner=this};
+            OrbitTheme.ApplyToDialog(window, this);
             window.ShowDialog();
             _maintenanceWindowOpen=false;
             await Refresh();

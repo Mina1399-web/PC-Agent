@@ -72,9 +72,7 @@ public partial class MainWindow
     private void ThemeClick(object sender, RoutedEventArgs e)
     {
         _darkTheme = !_darkTheme;
-        // Only window-local presentation resources change. No service settings or data writes.
-        foreach (var (key, dark, light) in ThemeColors)
-            Resources[key] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_darkTheme ? dark : light));
+        OrbitTheme.SetPalette(this, _darkTheme);
         UpdateThemeLabel();
         if (_hasRefreshed) RenderSnapshot(_renderedView, false);
         DrawChart();
@@ -133,28 +131,4 @@ public partial class MainWindow
         meter.Visibility = available ? Visibility.Visible : Visibility.Hidden;
         meter.Value = available ? Math.Clamp(metric!.Value, 0, 100) : 0;
     }
-
-    private static readonly (string Key, string Dark, string Light)[] ThemeColors =
-    [
-        ("CanvasBrush", "#101722", "#EEECE5"),
-        ("CardBrush", "#192331", "#FAF9F4"),
-        ("InkBrush", "#F1F5FC", "#172722"),
-        ("MutedBrush", "#B3C1D5", "#53635B"),
-        ("AccentBrush", "#9AC4FF", "#17674E"),
-        ("AccentInkBrush", "#101722", "#FAF9F4"),
-        ("LineBrush", "#344358", "#B9BDB3"),
-        ("InputBorderBrush", "#718198", "#7E897F"),
-        ("RailBrush", "#0C121C", "#183A32"),
-        ("RailTextBrush", "#D5DFEF", "#E3EBE4"),
-        ("SelectedBrush", "#263E60", "#31564B"),
-        ("HoverBrush", "#28374B", "#24493E"),
-        ("AlternateBrush", "#1E2B3B", "#F0EFE8"),
-        ("GreenBrush", "#83DCB8", "#17674E"),
-        ("GreenSurfaceBrush", "#17372F", "#DFEEE7"),
-        ("WarningBrush", "#F3CF8B", "#9A591C"),
-        ("WarningSurfaceBrush", "#3C3020", "#F5E8D2"),
-        ("ErrorBrush", "#FFB4B4", "#A7432A"),
-        ("ErrorSurfaceBrush", "#43282E", "#F2DFD9"),
-        ("RamBrush", "#C6AEFF", "#58639A")
-    ];
 }
