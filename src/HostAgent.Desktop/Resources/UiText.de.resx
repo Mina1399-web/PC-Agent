@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -346,26 +346,14 @@ CLI vyžádá UAC a potvrzení APPLY. Restartují se pouze služby Host Agent. O
     <value>Sichere Vorschau erstellen</value>
     <comment>Source (cs-CZ): Vytvořit bezpečný náhled</comment>
   </data>
-  <data xml:space="preserve" name="ApprovalForThisExactPreview">
-    <value>Genehmigung genau für diese Vorschau</value>
-    <comment>Source (cs-CZ): Schválení přesně pro tento náhled</comment>
-  </data>
-  <data xml:space="preserve" name="CopyThePreviewIDShownAboveEachBatchRequiresANewPreviewAndItsExactID">
-    <value>Kopieren Sie die oben angegebene Vorschau-ID. Jeder Stapel erfordert eine neue Vorschau und die genaue ID.</value>
-    <comment>Source (cs-CZ): Zkopírujte ID náhledu uvedené výše. Každá dávka vyžaduje nový náhled a přesné ID.</comment>
-  </data>
-  <data xml:space="preserve" name="MoveAllPreviewedFilesToQuarantine">
-    <value>Alle Dateien aus der Vorschau in die Quarantäne verschieben</value>
-    <comment>Source (cs-CZ): Přesunout všechny soubory z náhledu do karantény</comment>
-  </data>
+
+
+
   <data xml:space="preserve" name="QuarantineAndRestore">
     <value>Quarantäne und Wiederherstellung</value>
     <comment>Source (cs-CZ): Karanténa a obnovení</comment>
   </data>
-  <data xml:space="preserve" name="EnterTheExactRestoreIDOfTheSelectedRecord">
-    <value>Genaue Wiederherstellungs-ID des ausgewählten Eintrags eingeben</value>
-    <comment>Source (cs-CZ): Zadejte přesné ID obnovení vybraného záznamu</comment>
-  </data>
+
   <data xml:space="preserve" name="RestoreWithoutOverwritingAnExistingFile">
     <value>Wiederherstellen, ohne eine vorhandene Datei zu überschreiben</value>
     <comment>Source (cs-CZ): Obnovit bez přepsání existujícího souboru</comment>
@@ -374,10 +362,7 @@ CLI vyžádá UAC a potvrzení APPLY. Restartují se pouze služby Host Agent. O
     <value>, Vorschaugrenze erreicht</value>
     <comment>Source (cs-CZ): , dosažen limit náhledu</comment>
   </data>
-  <data xml:space="preserve" name="StatusSelectedSkippedPreviewIDValidUntil">
-    <value>Status: {0}. Ausgewählt {1}, übersprungen {2}{3}. Vorschau-ID: {4}. Gültig bis: {5:g}.</value>
-    <comment>Source (cs-CZ): Stav: {0}. Vybráno {1}, přeskočeno {2}{3}. ID náhledu: {4}. Platnost do: {5:g}.</comment>
-  </data>
+
   <data xml:space="preserve" name="NoEligibleFilesWereFoundThePreviewMakesNoChanges">
     <value>Keine geeigneten Dateien gefunden. Die Vorschau ändert nichts.</value>
     <comment>Source (cs-CZ): Nebyly nalezeny vhodné soubory. Náhled nic nemění.</comment>
@@ -1401,12 +1386,12 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data xml:space="preserve" name="SomeServiceStartModesUnavailable"><value>Der Starttyp einiger Dienste ist nicht verfügbar.</value></data>
   <data xml:space="preserve" name="SomeServiceStatesUnavailable"><value>Der aktuelle Status einiger Dienste ist nicht verfügbar.</value></data>
   <data xml:space="preserve" name="AdditionalReportedReason"><value>Zusätzlicher gemeldeter Grund: {0}</value></data>
-  <data xml:space="preserve" name="DeleteSelectedQuarantineFile"><value>Ausgewählte Quarantänedatei endgültig löschen</value></data>
+
   <data xml:space="preserve" name="ChooseMaintenanceFolder"><value>Ordner zur Wartung auswählen</value></data>
-  <data xml:space="preserve" name="PermanentDeleteResult"><value>Löschergebnis: {0}; gelöscht: {1}; Bytes: {2}.</value></data>
-  <data xml:space="preserve" name="PermanentQuarantineDeletion"><value>Endgültiges Löschen kann nicht rückgängig gemacht werden. Eine Datei in Quarantäne auswählen, Name und Größe prüfen, dann DELETE, ein Leerzeichen und die genaue Wiederherstellungs-ID eingeben.</value></data>
-  <data xml:space="preserve" name="QuarantineDeleteFailed"><value>Löschen fehlgeschlagen. Vor einem erneuten Versuch Quarantäneliste aktualisieren und Zustand prüfen.</value></data>
-  <data xml:space="preserve" name="SelectedFolderMaintenanceScope"><value>Ausgewählter Ordner: nur direkte Dateien, kein Mindestalter, bis 1 GiB pro Datei und 10 GiB in Quarantäne. Jede Datei prüfen. Wiederherstellung ist möglich, solange die Datei in Quarantäne bleibt.</value></data>
+
+
+
+  <data xml:space="preserve" name="SelectedFolderMaintenanceScope"><value>Entwicklerbereich: nur direkte Dateien, kein Mindestalter, höchstens 1 GiB pro Datei und 10 GiB in Quarantäne. Prüfen Sie jede Datei. Eine Wiederherstellung ist möglich, solange die Datei in Quarantäne bleibt.</value></data>
   <data xml:space="preserve" name="SelectedFolderUnavailable"><value>Dieser Ordner ist nicht verfügbar oder geschützt. Wählen Sie einen eigenen lokalen Ordner auf demselben Volume wie Ihr Benutzerprofil.</value></data>
   <data xml:space="preserve" name="ReadSmartPrediction"><value>SMART-Ausfallprognose lesen</value></data>
   <data xml:space="preserve" name="SmartDeviceUnavailable"><value>{0}: SMART-Prognose ist nicht verfügbar.</value></data>
@@ -1437,14 +1422,16 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="WinDiagnosisNone" xml:space="preserve"><value>Die aktuellen Daten lösen keine Empfehlung aus. Das schließt Probleme in Windows nicht aus.</value></data>
   <data name="WinDiagnosisCrashes" xml:space="preserve"><value>Windows-Abstürze untersuchen</value></data>
   <data name="DiskMaintenancePreview" xml:space="preserve"><value>Bereinigungsvorschau</value></data>
-  <data name="DiskMaintenanceBefore" xml:space="preserve"><value>Laufwerk {0} · Frei vor dem Eingriff: {1}. Dateien in Quarantäne bleiben auf diesem Laufwerk.</value></data>
-  <data name="DiskMaintenanceMeasured" xml:space="preserve"><value>Laufwerk {0} · Vorher: {1} · Nachher: {2}. Andere Aktivitäten können den freien Speicher ebenfalls ändern.</value></data>
-  <data name="DiskMaintenanceImpact" xml:space="preserve"><value>Prüfen Sie geeignete temporäre Dateien auf dem Laufwerk des Benutzertempordners. Die Quarantäne behält sie dort.</value></data>
-  <data name="DiskMaintenanceRestore" xml:space="preserve"><value>Stellen Sie Dateien aus der Quarantäne wieder her oder bestätigen Sie das Löschen einer einzelnen Datei separat.</value></data>
+  <data name="DiskMaintenanceBefore" xml:space="preserve"><value>Laufwerk {0} · freier Speicher gemessen {2:g}: {1}. Die Quarantäne belässt Dateien auf diesem Laufwerk und gibt keinen Speicher frei.</value></data>
+
+  <data name="DiskMaintenanceImpact" xml:space="preserve"><value>Geeignete Dateien im Temp-Ordner des Benutzers prüfen. Die Quarantäne belässt sie auf demselben Laufwerk und gibt keinen Speicher frei.</value></data>
+  <data name="DiskMaintenanceRestore" xml:space="preserve"><value>Eine ausgewählte Datei aus der Quarantäne an ihren genauen ursprünglichen Pfad wiederherstellen. Die Datei bleibt wiederherstellbar, solange ihr Quarantäneeintrag verfügbar ist.</value></data>
   <data name="ServiceCrashFinding" xml:space="preserve"><value>Windows hat einen unerwarteten Abbruch des Dienstes {0} erfasst. Prüfen Sie aktuelle Belege und den Dienststatus.</value></data>
   <data name="ServiceStopFinding" xml:space="preserve"><value>Der Dienst {0} wurde beendet. Diese Beobachtung allein belegt keinen Absturz.</value></data>
   <data name="ServiceRecoveryReview" xml:space="preserve"><value>Start von {0} prüfen</value></data>
   <data name="ServiceRecoveryRunning" xml:space="preserve"><value>Dienst {0} lief bei allen Prüfungen über 10 Sekunden.</value></data>
+  <data name="ServiceRecoveryCancelled" xml:space="preserve"><value>Die Prüfung wurde abgebrochen, bevor eine Startanfrage gesendet wurde.</value></data>
+  <data name="ServiceRecoveryRejected" xml:space="preserve"><value>Der Helper oder eine Vorbedingung hat die Anfrage abgelehnt; der Start wurde nicht genehmigt.</value></data>
   <data name="ServiceRecoveryUnverified" xml:space="preserve"><value>Der Dienststart wurde nicht bestätigt. Prüfen Sie Status und Genehmigungsergebnis.</value></data>
   <data name="NetworkEnableChecks" xml:space="preserve"><value>Netzwerkprüfungen aktivieren</value></data>
   <data name="NetworkDisableChecks" xml:space="preserve"><value>Netzwerkprüfungen deaktivieren</value></data>
@@ -1506,6 +1493,7 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="DesignServiceStopped" xml:space="preserve"><value>Dienst beendet; Ursache unbestätigt</value></data>
   <data name="DesignServiceCrash" xml:space="preserve"><value>Unerwartetes Dienstende</value></data>
   <data name="DesignMetricDeviation" xml:space="preserve"><value>Messwert weicht vom üblichen Zustand ab</value></data>
+<data name="BaselineDeviationAssessmentScope" xml:space="preserve"><value>Dies ist ein Vertrauenswert der Baselinebewertung, weder die Größe der Abweichung noch die Wahrscheinlichkeit für eine Ursache. Der Datensatz enthält weder Referenzwerte noch das Zeitfenster der Baseline.</value></data> <data name="UnclassifiedConfidenceScope" xml:space="preserve"><value>Dieser Diagnosecode ist nicht klassifiziert; der Datensatz belegt weder eine Ursache noch deren Wahrscheinlichkeit.</value></data> <data name="TargetedFollowUpUnavailable" xml:space="preserve"><value>Keine gezielte Anschlussprüfung ist derzeit verfügbar.</value></data> <data name="IncidentBaselineAssessmentConfidence" xml:space="preserve"><value>Konfidenzwert der Baselinebewertung: {3}/100 (weder Abweichungsgröße noch Ursache-Wahrscheinlichkeit)</value></data> <data name="IncidentUnclassifiedStatus" xml:space="preserve"><value>{0} {1}. {2}. Nicht klassifizierter Diagnosezustand; ein Ursachenwert ist nicht verfügbar.</value></data>
   <data name="DesignCritical" xml:space="preserve"><value>Kritisch</value></data>
   <data name="DesignHigh" xml:space="preserve"><value>Hoch</value></data>
   <data name="DesignWarning" xml:space="preserve"><value>Warnung</value></data>
@@ -1552,4 +1540,153 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="InAppAppListCanHelpReviewMemoryUseButIsReadOnly" xml:space="preserve"><value>Die App-Liste kann helfen, den Speicherverbrauch zu prüfen. Sie ist schreibgeschützt; diese Empfehlung schließt keine Apps.</value></data>
   <data name="PrepareServiceAction" xml:space="preserve"><value>Dienstaktion vorbereiten</value></data>
   <data name="WinPrepareServiceActionHelp" xml:space="preserve"><value>Die ausgewählte Dienstkennung wird in das Prüfungsformular übernommen. Sie muss einem vom Administrator genehmigten Alias entsprechen; der Helper prüft dies vor jeder Aktion.</value></data>
+  <data name="WinServiceStartRequiresGuidedReview" xml:space="preserve"><value>Dienststart und Neustart sind derzeit nur über die Vorfallprüfung verfügbar, die die vollständige Abhängigkeitsliste anzeigt und in die Genehmigung aufnimmt. Dienststopp und Prozessaktionen bleiben hier verfügbar.</value></data>
+  <data name="ServiceReviewTitle" xml:space="preserve"><value>Wiederherstellung eines Dienstes prüfen</value></data>
+  <data name="ServiceReviewSubtitle" xml:space="preserve"><value>Erhöhte Prüfung durch Host Agent</value></data>
+  <data name="ServiceReviewScope" xml:space="preserve"><value>Dieses erhöhte Fenster ist auf einen freigegebenen Windows-Dienst beschränkt. Windows kann auch erforderliche Abhängigkeiten starten; ihre genaue Liste wird angezeigt und in die Genehmigung aufgenommen. Der Helper prüft sie unmittelbar vor dem Start erneut. Bei Abbruch geschieht nichts.</value></data>
+  <data name="ServiceReviewIncident" xml:space="preserve"><value>Vorfall</value></data>
+  <data name="ServiceReviewTarget" xml:space="preserve"><value>Freigegebener Dienst</value></data>
+  <data name="ServiceReviewStatusLabel" xml:space="preserve"><value>Dienststatus während der Prüfung</value></data>
+  <data name="ServiceReviewStatusAtPreview" xml:space="preserve"><value>{0}, geprüft {1}</value></data>
+  <data name="ServiceReviewAction" xml:space="preserve"><value>Angeforderte Aktion</value></data>
+  <data name="ServiceReviewActionValue" xml:space="preserve"><value>Diesen Dienst einmal starten</value></data>
+  <data name="ServiceReviewImpact" xml:space="preserve"><value>Erwartete Auswirkung</value></data>
+  <data name="ServiceReviewImpactPreparing" xml:space="preserve"><value>Warte auf Prüfung von Ziel und Freigabeliste.</value></data>
+  <data name="ServiceReviewImpactValue" xml:space="preserve"><value>Fordert den Start von {0} an. Der Dienststeuerungs-Manager kann auch erforderliche Abhängigkeiten starten; die genaue Liste steht unten und ist Teil dieser Genehmigung.</value></data>
+  <data name="ServiceReviewDependencies" xml:space="preserve"><value>Erforderliche Dienstabhängigkeiten</value></data>
+  <data name="ServiceReviewDependenciesEmpty" xml:space="preserve"><value>Bei dieser Prüfung wurden keine gefunden.</value></data>
+  <data name="ServiceReviewDependencyLine" xml:space="preserve"><value>{0} — {1}, geprüft {2}</value></data>
+  <data name="ServiceReviewRegistration" xml:space="preserve"><value>Freigegebener Eintrag</value></data>
+  <data name="ServiceReviewEvidence" xml:space="preserve"><value>Aktuelle Belegquellen</value></data>
+  <data name="ServiceReviewEvidenceEventLog" xml:space="preserve"><value>Windows-Ereignisprotokoll — Dienstausfall</value></data>
+  <data name="ServiceReviewEvidenceServiceState" xml:space="preserve"><value>Dienststeuerungs-Manager — Statusänderung</value></data>
+  <data name="ServiceReviewEvidenceUnknown" xml:space="preserve"><value>Unbekannte Belegquelle</value></data>
+  <data name="ServiceReviewPhrasePrompt" xml:space="preserve"><value>Kopiere oder tippe die auswählbare englische Phrase unten exakt ab, einschließlich Großschreibung und Leerzeichen, um diese Aktion und Abhängigkeitsliste zu genehmigen. Ein leeres Feld oder Abbrechen startet nichts.</value></data>
+  <data name="ServiceReviewPhraseLabel" xml:space="preserve"><value>Einzugebende Phrase</value></data>
+  <data name="ServiceReviewPhraseCopyLabel" xml:space="preserve"><value>Phrase zum Kopieren</value></data>
+  <data name="ServiceReviewApprove" xml:space="preserve"><value>Genehmigen und Dienst starten</value></data>
+  <data name="ServiceReviewCancel" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="ServiceReviewClose" xml:space="preserve"><value>Schließen</value></data>
+  <data name="ServiceReviewPreparing" xml:space="preserve"><value>Aktuellen Vorfall, Dienststatus und Genehmigungsrichtlinie prüfen…</value></data>
+  <data name="ServiceReviewReady" xml:space="preserve"><value>Prüfung bereit. Der Dienst startet erst nach Eingabe der exakten Phrase und Genehmigung.</value></data>
+  <data name="ServiceReviewUnavailable" xml:space="preserve"><value>Diese Aktion kann nicht fortgesetzt werden: {0}. Es wurde kein Dienst gestartet.</value></data>
+  <data name="ServiceReviewReasonIncident" xml:space="preserve"><value>Die Vorfallbelege fehlen, sind veraltet oder passen nicht mehr zu diesem Dienst.</value></data>
+  <data name="ServiceReviewReasonStatus" xml:space="preserve"><value>Der aktuelle Dienststatus konnte nicht als Beendet bestätigt werden.</value></data>
+  <data name="ServiceReviewReasonDependencies" xml:space="preserve"><value>Die Abhängigkeitsliste ist nicht verfügbar, hat sich geändert oder ist nicht vollständig genehmigt.</value></data>
+  <data name="ServiceReviewReasonStale" xml:space="preserve"><value>Die Prüfungsdaten haben sich geändert oder sind abgelaufen. Schließen Sie dieses Fenster und starten Sie eine neue Prüfung.</value></data>
+  <data name="ServiceReviewReasonPolicy" xml:space="preserve"><value>Dienst, Helper oder Genehmigungsrichtlinie erlauben diese Aktion nicht.</value></data>
+  <data name="ServiceReviewReasonPermission" xml:space="preserve"><value>Das aktuelle Windows-Konto ist kein zugelassener Administrator für diese Aktion.</value></data>
+  <data name="ServiceReviewReasonPhrase" xml:space="preserve"><value>Die eingegebene Phrase stimmt nicht genau mit der geprüften Aktion überein.</value></data>
+  <data name="ServiceReviewReasonHelper" xml:space="preserve"><value>Der Helper konnte diese Anfrage nicht vorbereiten oder bestätigen.</value></data>
+  <data name="ServiceReviewReasonUnavailable" xml:space="preserve"><value>Eine erforderliche Prüfung konnte nicht abgeschlossen werden.</value></data>
+  <data name="ServiceReviewExecuting" xml:space="preserve"><value>Genehmigte Anfrage wird an den Host Agent Helper gesendet. Warte auf Audit und Statusrückmeldung.</value></data>
+  <data name="ServiceReviewReceiptTitle" xml:space="preserve"><value>Ergebnis der Aktion</value></data>
+  <data name="ServiceReviewVerified" xml:space="preserve"><value>Verifiziert: Helper-Ergebnis, passender Audit-Eintrag und der aktuelle Status Gestartet stimmen überein.</value></data>
+  <data name="ServiceReviewRejected" xml:space="preserve"><value>Abgelehnt: Der Helper hat diese Aktion nicht genehmigt oder ausgeführt ({0}).</value></data>
+  <data name="ServiceReviewUnknown" xml:space="preserve"><value>Unbekannt: Die Anfrage könnte ausgeführt worden sein, aber der Abschluss ließ sich nicht vollständig prüfen. Nicht automatisch erneut versuchen.</value></data>
+  <data name="ServiceReviewCommand" xml:space="preserve"><value>Ergebnis des Helper-Befehls: {0}</value></data>
+  <data name="ServiceReviewNoReceipt" xml:space="preserve"><value>nicht empfangen</value></data>
+  <data name="ServiceReviewAuditVerified" xml:space="preserve"><value>Helper-Auditjournal: passende Genehmigung und Ausführung verifiziert.</value></data>
+  <data name="ServiceReviewAuditUnverified" xml:space="preserve"><value>Helper-Auditjournal: kein passender Abschluss konnte verifiziert werden.</value></data>
+  <data name="ServiceReviewReadback" xml:space="preserve"><value>Aktueller Status des Dienststeuerungs-Managers: {0} ({1})</value></data>
+  <data name="ServiceReviewFinished" xml:space="preserve"><value>Prüfung abgeschlossen. Befehlsbestätigung, Audit und Statusrückmeldung sind getrennt aufgeführt.</value></data>
+  <data name="ServiceReviewWaitBeforeClose" xml:space="preserve"><value>Warte auf das Ergebnis. Nach dem Senden kann das Schließen die Anfrage nicht abbrechen.</value></data>
+  <data name="ServiceReviewRunning" xml:space="preserve"><value>Gestartet</value></data>
+  <data name="ServiceReviewStopped" xml:space="preserve"><value>Beendet</value></data>
+  <data name="ServiceReviewStatusUnknown" xml:space="preserve"><value>Unbekannt</value></data>
+  <data name="ServiceReviewTechnicalLabel" xml:space="preserve"><value>Technische Details</value></data>
+  <data name="ServiceReviewContinuePending" xml:space="preserve"><value>Fortsetzen ausstehend</value></data>
+  <data name="ServiceReviewPausePending" xml:space="preserve"><value>Pause ausstehend</value></data>
+  <data name="ServiceReviewPaused" xml:space="preserve"><value>Angehalten</value></data>
+  <data name="ServiceReviewStartPending" xml:space="preserve"><value>Start ausstehend</value></data>
+  <data name="ServiceReviewStopPending" xml:space="preserve"><value>Stopp ausstehend</value></data>
+  <data name="MaintenanceReason_payload_unavailable" xml:space="preserve"><value>Die quarantänisierte Datei ist nicht verfügbar.</value></data>
+  <data name="MinimumAgeDays" xml:space="preserve"><value>Mindestalter {0} Tage</value></data>
+  <data name="MaintenanceReason_unsafe_name" xml:space="preserve"><value>Der Dateiname ist unsicher oder nicht eindeutig.</value></data>
+  <data name="MaintenanceWindowIntro" xml:space="preserve"><value>Im Standardmodus können Sie Dateien direkt im Temp-Ordner dieses Kontos prüfen, geeignete Dateien umkehrbar in Quarantäne verschieben und eine ausgewählte Datei wiederherstellen. Der Entwicklermodus erlaubt zusätzlich einen ausgewählten Ordner und zeigt technische Kennungen.</value></data>
+  <data name="MaintenanceReason_preview_expired" xml:space="preserve"><value>Die Vorschau ist abgelaufen.</value></data>
+  <data name="MaintenanceReason_too_recent" xml:space="preserve"><value>Die Datei ist neuer als zulässig.</value></data>
+  <data name="MaintenanceReason_preview_incomplete" xml:space="preserve"><value>Die Vorschau ist unvollständig.</value></data>
+  <data name="ReviewExactPreviewBeforeQuarantine" xml:space="preserve"><value>Prüfen Sie die genaue Quelle, das Quarantäneziel, die Dateiliste und die Grenzen. Die Schaltfläche unten verwendet genau diese einmalige Vorschau.</value></data>
+  <data name="MaintenanceReason_source_hash_changed" xml:space="preserve"><value>Der Dateiinhalt hat sich seit der Vorschau geändert.</value></data>
+  <data name="MaintenanceReason_payload_verification_failed" xml:space="preserve"><value>Die Identität der quarantänisierten Datei konnte nicht bestätigt werden.</value></data>
+  <data name="MaintenanceActionResultSummary" xml:space="preserve"><value>Ergebniszahlen: verschoben {0}; wiederhergestellt {1}; übersprungen {2}; blockiert {3}; fehlgeschlagen {4}; abgebrochen {5}; unbekannt {6}; Wiederherstellungseinträge {7}. Die Quarantäne hat keinen Speicherplatz freigegeben.{8}</value></data>
+  <data name="RestoreFileToOriginalPath" xml:space="preserve"><value>{0} nach {1} wiederherstellen</value></data>
+  <data name="MaintenanceReason_file_too_large" xml:space="preserve"><value>Die Datei überschreitet die Größenbegrenzung.</value></data>
+  <data name="PreviewDeveloperTechnicalDetails" xml:space="preserve"><value>Vorschau-ID: {0}; Volume-ID des Bereichs: {1}.</value></data>
+  <data name="MaintenanceReason_quarantine_lock_unavailable" xml:space="preserve"><value>Die Quarantänesperre konnte nicht erworben werden.</value></data>
+  <data name="RecursiveScope" xml:space="preserve"><value>einschließlich Unterordnern</value></data>
+  <data name="MaintenanceReason_verification_failed" xml:space="preserve"><value>Die Dateiidentität konnte nicht überprüft werden.</value></data>
+  <data name="MaintenanceReason_cancelled" xml:space="preserve"><value>Der Vorgang wurde abgebrochen.</value></data>
+  <data name="MaintenanceReason_read_only" xml:space="preserve"><value>Die Datei ist schreibgeschützt.</value></data>
+  <data name="CreatePreviewBeforeQuarantine" xml:space="preserve"><value>Erstellen Sie vor dem Verschieben eine aktuelle Vorschau.</value></data>
+  <data name="MovePreviewToQuarantine" xml:space="preserve"><value>Dateien aus der Vorschau in Quarantäne verschieben</value></data>
+  <data name="MaintenanceReason_preview_time_limit" xml:space="preserve"><value>Die Zeitbegrenzung der Vorschau wurde erreicht.</value></data>
+  <data name="MaintenanceReason_volume_mismatch" xml:space="preserve"><value>Quelle und Quarantäne liegen nicht auf demselben Volume.</value></data>
+  <data name="NoMinimumAge" xml:space="preserve"><value>kein Mindestalter</value></data>
+  <data name="TopLevelFilesOnly" xml:space="preserve"><value>nur Dateien im ausgewählten Ordner</value></data>
+  <data name="MaintenanceReason_multiple_links" xml:space="preserve"><value>Die Datei hat mehrere feste Verknüpfungen.</value></data>
+  <data name="MaintenanceReason_access_denied" xml:space="preserve"><value>Der Zugriff auf die Datei wurde verweigert.</value></data>
+  <data name="MaintenanceOperationCancelled" xml:space="preserve"><value>Aktion abgebrochen. Prüfen Sie vor einem erneuten Versuch die Einzelbelege.</value></data>
+  <data name="MaintenanceCancellationRequested" xml:space="preserve"><value>Abbruch angefordert. Bereits verschobene Dateien bleiben in Quarantäne; der Beleg zeigt den Status jeder Datei.</value></data>
+  <data name="MaintenanceReason_source_identity_changed" xml:space="preserve"><value>Die Dateiidentität hat sich seit der Vorschau geändert.</value></data>
+  <data name="MaintenanceUnknownReason" xml:space="preserve"><value>Der Grund konnte nicht sicher festgestellt werden.</value></data>
+  <data name="ActionReceipts" xml:space="preserve"><value>Ergebnis je Datei</value></data>
+  <data name="MaintenanceReason_destination_already_exists" xml:space="preserve"><value>Das Ziel ist bereits vorhanden; nichts wurde überschrieben.</value></data>
+  <data name="MovePreviewedFilesToQuarantine" xml:space="preserve"><value>{0} geeignete Dateien in Quarantäne verschieben</value></data>
+  <data name="MaintenanceReason_quarantine_root_unavailable" xml:space="preserve"><value>Der Quarantäneordner ist nicht verfügbar.</value></data>
+  <data name="MaintenanceReason_source_metadata_changed" xml:space="preserve"><value>Die Dateimetadaten haben sich seit der Vorschau geändert.</value></data>
+  <data name="MaintenanceReason_outcome_unverified" xml:space="preserve"><value>Das Ergebnis konnte nicht überprüft werden.</value></data>
+  <data name="MaintenanceReason_scope_byte_limit" xml:space="preserve"><value>Die Vorschau würde die Gesamtgrößenbegrenzung überschreiten.</value></data>
+  <data name="PreviewIncomplete" xml:space="preserve"><value>unvollständig — Quarantäneaktion gesperrt</value></data>
+  <data name="SelectedQuarantineEntryNeedsReview" xml:space="preserve"><value>Dieser Eintrag muss geprüft werden und kann nicht wiederhergestellt werden.</value></data>
+  <data name="MaintenanceReason_unsupported_file" xml:space="preserve"><value>Dieser Elementtyp wird nicht unterstützt.</value></data>
+  <data name="MaintenanceReason_operation_failed" xml:space="preserve"><value>Der Vorgang ist fehlgeschlagen.</value></data>
+  <data name="MaintenanceReason_quarantine_limit_reached" xml:space="preserve"><value>Die Quarantänegrenze wurde erreicht.</value></data>
+  <data name="MaintenanceReason_file_locked" xml:space="preserve"><value>Die Datei ist gesperrt oder wird verwendet.</value></data>
+  <data name="MaintenanceReason_file_unavailable" xml:space="preserve"><value>Die Datei ist nicht mehr verfügbar.</value></data>
+  <data name="MaintenancePreviewStatus" xml:space="preserve"><value>Status: {0}. Geeignet: {1}; übersprungen: {2}{3}. Gültig bis: {4:g}.{5}</value></data>
+  <data name="MaintenanceReason_quarantine_busy" xml:space="preserve"><value>Ein anderer Wartungsvorgang verwendet die Quarantäne.</value></data>
+  <data name="NoEligibleFilesToQuarantine" xml:space="preserve"><value>Es gibt keine geeigneten Dateien zum Verschieben.</value></data>
+  <data name="QuarantineDoesNotFreeDiskSpace" xml:space="preserve"><value>Die Quarantäne ist umkehrbar und belässt Dateien auf demselben Laufwerk. Sie gibt keinen Speicherplatz frei.</value></data>
+  <data name="PreviewComplete" xml:space="preserve"><value>vollständig</value></data>
+  <data name="MaintenanceReason_service_not_approved" xml:space="preserve"><value>Der aktuelle Dienststatus erlaubt keine Änderungen.</value></data>
+  <data name="MaintenanceScopeResetToDefault" xml:space="preserve"><value>Der Entwicklermodus wurde beendet. Der ausgewählte Ordner wurde verworfen; eine neue Vorschau verwendet nur den Temp-Ordner dieses Kontos.</value></data>
+  <data name="SkippedItemsAndReasons" xml:space="preserve"><value>Übersprungene Dateien und Gründe</value></data>
+  <data name="RestoreDestinationPath" xml:space="preserve"><value>Genauer Wiederherstellungspfad: {0}. Vorhandene Dateien werden nie überschrieben.</value></data>
+  <data name="MaintenanceReason_journal_recovery_required" xml:space="preserve"><value>Die Datei wurde wiederhergestellt, aber ihr Journal muss geprüft werden.</value></data>
+  <data name="IncompletePreviewBlocksQuarantine" xml:space="preserve"><value>Die Vorschau ist unvollständig. Die Quarantäneaktion ist gesperrt; erstellen Sie eine neue Vorschau für einen engeren Bereich.</value></data>
+  <data name="MaintenanceReasonDeveloperDetails" xml:space="preserve"><value>{0} (technischer Code: {1})</value></data>
+  <data name="ExpiredPreviewBlocksQuarantine" xml:space="preserve"><value>Die Vorschau ist abgelaufen. Erstellen Sie vor dem Verschieben eine neue Vorschau.</value></data>
+  <data name="MaintenancePreviewDetails" xml:space="preserve"><value>Geprüft: {0}; geeignet: {1}; übersprungen: {2}; Auflistung: {3}; Bereich: {4}.
+Grenzen: {5}; höchstens {6} pro Datei und {7} insgesamt; maximal {8} Quarantäneeinträge; höchstens {9} Dateien und {10} Kandidaten innerhalb von {11} Sekunden prüfen.</value></data>
+  <data name="SelectAQuarantineEntryToRestore" xml:space="preserve"><value>Wählen Sie einen Quarantäneeintrag zur Wiederherstellung.</value></data>
+  <data name="MaintenanceReason_source_root_unavailable" xml:space="preserve"><value>Der Quellordner ist nicht verfügbar.</value></data>
+  <data name="ShowExactLocation" xml:space="preserve"><value>Genauen Speicherort anzeigen</value></data>
+  <data name="MaintenanceReason_journal_unavailable" xml:space="preserve"><value>Das Quarantänejournal konnte nicht gelesen werden.</value></data>
+  <data name="RestoreToOriginalLocation" xml:space="preserve"><value>Die ausgewählte Datei am ursprünglichen Speicherort wiederherstellen. Vorhandene Dateien werden nie überschrieben.</value></data>
+  <data name="MaintenanceReason_journal_integrity" xml:space="preserve"><value>Die Quarantäneeinträge haben die Integritätsprüfung nicht bestanden.</value></data>
+  <data name="Unknown" xml:space="preserve"><value>unbekannt</value></data>
+  <data name="MaintenancePreviewLocationDetails" xml:space="preserve"><value>Quellordner: {0}
+Quarantäneordner: {1}</value></data>
+  <data name="CancelMaintenanceAction" xml:space="preserve"><value>Aktuellen Vorgang abbrechen</value></data>
+  <data name="HideExactLocation" xml:space="preserve"><value>Genauen Speicherort ausblenden</value></data>
+  <data name="OriginalLocation" xml:space="preserve"><value>an den ursprünglichen Speicherort</value></data>
+  <data name="Source" xml:space="preserve"><value>Quelle</value></data>
+  <data name="Reason" xml:space="preserve"><value>Grund</value></data>
+  <data name="Destination" xml:space="preserve"><value>Ziel</value></data>
+  <data name="MaintenanceResultPartialFailure" xml:space="preserve"><value>Einige Dateien wurden verschoben, ein weiterer Vorgang ist fehlgeschlagen. Prüfen Sie alle Dateien, bevor Sie es erneut versuchen.</value></data>
+  <data name="MaintenanceResultFailed" xml:space="preserve"><value>Die Quarantäneaktion ist fehlgeschlagen. Prüfen Sie die Einzelergebnisse, bevor Sie es erneut versuchen.</value></data>
+  <data name="MaintenanceResultStateUnavailable" xml:space="preserve"><value>Die Wartungsfreigabe oder der Status konnte nicht geprüft werden; es wurde keine Aktion ausgeführt.</value></data>
+  <data name="MaintenanceActionResultDeveloperDetails" xml:space="preserve"><value>Technischer Ergebnisscode: {0}.</value></data>
+  <data name="MaintenanceActionBlocked" xml:space="preserve"><value>Blockiert</value></data>
+  <data name="MaintenanceResultOutcomeUnknown" xml:space="preserve"><value>Das Endergebnis konnte nicht bestätigt werden. Prüfen Sie jede Datei, bevor Sie es erneut versuchen.</value></data>
+  <data name="MaintenanceActionMoved" xml:space="preserve"><value>Verschoben</value></data>
+  <data name="MaintenanceResultCancelledPartial" xml:space="preserve"><value>Der Vorgang wurde abgebrochen, nachdem einige Dateien verschoben wurden. Prüfen Sie jedes Einzelergebnis.</value></data>
+  <data name="MaintenanceResultPartialBlocked" xml:space="preserve"><value>Einige Dateien wurden verschoben, weitere wurden blockiert. Prüfen Sie alle Einzelergebnisse.</value></data>
+  <data name="MaintenanceResultCancelled" xml:space="preserve"><value>Der Vorgang wurde abgebrochen. Prüfen Sie die Einzelergebnisse, bevor Sie es erneut versuchen.</value></data>
+  <data name="MaintenanceActionSkipped" xml:space="preserve"><value>Übersprungen</value></data>
+  <data name="MaintenanceResultBlocked" xml:space="preserve"><value>Die Quarantäneaktion wurde blockiert. Prüfen Sie die Einzelergebnisse, bevor Sie es erneut versuchen.</value></data>
+  <data name="MaintenanceActionCancelled" xml:space="preserve"><value>Abgebrochen</value></data>
+  <data name="MaintenanceResultPartialBlockedRecovery" xml:space="preserve"><value>Einige Dateien wurden verschoben und Wiederherstellungseinträge müssen geprüft werden. Prüfen Sie alle Dateien, bevor Sie es erneut versuchen.</value></data>
 </root>

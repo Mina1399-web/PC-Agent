@@ -524,7 +524,13 @@ public sealed class CounterReadFixtureGuardTests_ReleaseToolingTests
             $scope=[pscustomobject]@{Id=$RunId;Root=$root;Name=('HostAgentFixture_'+$RunId);
                 Registry=('SOFTWARE\HostAgent.CounterReadFixture.'+$RunId);
                 ProgramFiles=('C:\Program Files\HostAgentCounterFixture-'+$RunId)}
-            $build=Build-CounterFixture $scope 'S-1-5-80-1-2-3-4-5' 'S-1-5-21-1-2-3-1000' $null
+            $build = Build-CounterFixture $scope 'S-1-5-80-1-2-3-4-5' 'S-1-5-21-1-2-3-1000' $null 3>&1 | ForEach-Object {
+                if ($_ -is [System.Management.Automation.WarningRecord]) {
+                    [Console]::Error.WriteLine($_.Message)
+                } else {
+                    $_
+                }
+            }
             $installer=New-Object -ComObject WindowsInstaller.Installer
             $db=$installer.OpenDatabase($build.Msi,0)
             function ReadRows([string]$Sql,[int]$Count){
@@ -552,7 +558,7 @@ public sealed class CounterReadFixtureGuardTests_ReleaseToolingTests
             "-PackagePath", fixture.Path, "-PreparationScript", Path.Combine(sourceRoot, "scripts", "diagnostics", "Prepare-CounterReadMsiFixture.ps1"),
             "-RunId", Guid.NewGuid().ToString("N"));
         Assert.True(result.Exit == 0, result.Error + result.Out);
-        using var receipt = JsonDocument.Parse(result.Out);
+        using var receipt = ParsePrivateBuildReceipt(result.Out, result.Error);
         Assert.True(receipt.RootElement.GetProperty("built").GetBoolean());
         Assert.Equal(4, receipt.RootElement.GetProperty("substitutionCount").GetInt32());
         Assert.True(receipt.RootElement.GetProperty("controllerExists").GetBoolean());
@@ -603,6 +609,20 @@ public sealed class CounterReadFixtureGuardTests_ReleaseToolingTests
         var path = Path.Combine(source, "scripts", "diagnostics", script);
         Assert.True(File.Exists(path), "The fixture boundary script is missing.");
         return await RunChild("pwsh.exe", new[] { "-NoProfile", "-NonInteractive", "-File", path }.Concat(arguments).ToArray());
+    }
+
+    private static JsonDocument ParsePrivateBuildReceipt(string stdout, string stderr)
+    {
+        try
+        {
+            return JsonDocument.Parse(stdout);
+        }
+        catch (JsonException error)
+        {
+            throw new InvalidDataException(
+                $"Invalid private fixture receipt. stdout={JsonSerializer.Serialize(stdout)} stderr={JsonSerializer.Serialize(stderr)}",
+                error);
+        }
     }
 
     private static async Task<(int Exit, string Out, string Error)> RunChild(string executable, params string[] arguments)
