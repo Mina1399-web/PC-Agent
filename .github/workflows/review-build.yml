@@ -4,7 +4,7 @@ on:
     branches: ['codex/**']
     paths-ignore: ['docs/**', '**.md', 'LICENSE']
   pull_request:
-    branches: ['codex/signpath-submission-prep']
+    branches: ['codex/**']
     paths-ignore: ['docs/**', '**.md', 'LICENSE']
   workflow_dispatch:
 permissions:
