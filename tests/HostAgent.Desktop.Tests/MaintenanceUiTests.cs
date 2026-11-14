@@ -40,7 +40,7 @@ public sealed class MaintenanceUiTests
                 Assert.DoesNotContain(preview.Id, previewInfo);
                 Assert.DoesNotContain(fixture.Source, scopeInfo);
                 Assert.DoesNotContain(fixture.Quarantine, scopeInfo);
-                Assert.Contains("neuvolní", ((TextBlock)window.FindName("MaintenanceNoSpaceWarning")).Text);
+                Assert.Contains("neuvolní", ((TextBlock)window.FindName("MaintenanceNoSpaceWarning")).Text, StringComparison.OrdinalIgnoreCase);
                 Assert.Equal(Visibility.Collapsed, folderButton.Visibility);
                 Assert.Equal(Visibility.Visible, exactLocationButton.Visibility);
                 Assert.Equal("Zobrazit přesné umístění", exactLocationButton.Content);
@@ -284,6 +284,65 @@ public sealed class MaintenanceUiTests
                 PumpUntil(() => File.Exists(original));
                 Assert.Equal("synthetic payload", File.ReadAllText(original));
                 Assert.Equal(MaintenanceActionStates.Restored, ((MaintenanceActionItem)resultGrid.Items[0]).State);
+                Assert.Contains("obnoveno 1", ((TextBlock)window.FindName("MaintenanceStatus")).Text, StringComparison.OrdinalIgnoreCase);
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    [Fact]
+    public async Task Standard_mode_quarantines_and_restores_fixed_temp_file_with_item_receipts()
+    {
+        using var fixture = new Fixture();
+        var original = fixture.File("synthetic-standard.tmp", "synthetic payload");
+        var tempRoot = Path.GetFullPath(Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp")) + Path.DirectorySeparatorChar;
+        var source = Path.GetFullPath(fixture.Source) + Path.DirectorySeparatorChar;
+        Assert.StartsWith(tempRoot, source, StringComparison.OrdinalIgnoreCase);
+
+        await RunSta(() =>
+        {
+            var window = new MaintenanceWindow(Controller(Snapshot("Confirmation")), fixture.Service("Confirmation"),
+                TestLocalization.Czech(), developerMode: () => false);
+            window.Show();
+            try
+            {
+                Assert.Equal(Visibility.Collapsed, ((Button)window.FindName("MaintenanceFolderButton")).Visibility);
+                Assert.Null(window.FindName("MaintenanceDeleteButton"));
+                Assert.Null(window.FindName("MaintenanceApproval"));
+                Assert.Null(window.FindName("MaintenanceRestoreApproval"));
+
+                Click(window, "MaintenancePreviewButton");
+                PumpUntil(() => window.CurrentPreview is { Items.Count: 1 });
+                Assert.DoesNotContain(fixture.Source, ((TextBlock)window.FindName("MaintenanceScopeInfo")).Text);
+                Assert.Equal(Visibility.Collapsed, ((DataGrid)window.FindName("MaintenancePreviewGrid")).Columns[3].Visibility);
+
+                Click(window, "MaintenanceQuarantineButton");
+                PumpUntil(() => !File.Exists(original));
+                var resultGrid = (DataGrid)window.FindName("MaintenanceResultGrid");
+                Assert.Single(resultGrid.Items);
+                var move = Assert.IsType<MaintenanceActionItem>(resultGrid.Items[0]);
+                Assert.Equal(MaintenanceActionStates.Moved, move.State);
+                Assert.Equal("synthetic-standard.tmp", move.Name);
+                Assert.Equal(Path.GetFullPath(original), Path.GetFullPath(move.SourcePath));
+                Assert.Equal(Path.GetFullPath(Path.Combine(fixture.Quarantine, move.Id + ".payload")), Path.GetFullPath(move.DestinationPath));
+
+                Click(window, "MaintenanceListButton");
+                var entries = (DataGrid)window.FindName("MaintenanceEntriesGrid");
+                PumpUntil(() => entries.Items.Count == 1);
+                Assert.Equal(Visibility.Collapsed, entries.Columns[3].Visibility);
+                entries.SelectedIndex = 0;
+                var restoreTarget = ((TextBlock)window.FindName("MaintenanceRestoreTarget")).Text;
+                Assert.DoesNotContain(fixture.Source, restoreTarget);
+                Assert.DoesNotContain(fixture.Quarantine, restoreTarget);
+                Click(window, "MaintenanceRestoreButton");
+                PumpUntil(() => File.Exists(original));
+                Assert.Equal("synthetic payload", File.ReadAllText(original));
+
+                var restore = Assert.IsType<MaintenanceActionItem>(resultGrid.Items[0]);
+                Assert.Equal(MaintenanceActionStates.Restored, restore.State);
+                Assert.Equal(Path.GetFullPath(Path.Combine(fixture.Quarantine, move.Id + ".payload")), Path.GetFullPath(restore.SourcePath));
+                Assert.Equal(Path.GetFullPath(original), Path.GetFullPath(restore.DestinationPath));
                 Assert.Contains("obnoveno 1", ((TextBlock)window.FindName("MaintenanceStatus")).Text, StringComparison.OrdinalIgnoreCase);
             }
             finally { window.Close(); }

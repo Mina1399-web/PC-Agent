@@ -1391,7 +1391,7 @@ Graf se zobrazí po získání uložených měření.</comment>
 
 
 
-  <data xml:space="preserve" name="SelectedFolderMaintenanceScope"><value>Vybraná složka: pouze soubory přímo v ní, bez omezení stáří, do 1 GiB na soubor a 10 GiB v karanténě. Zkontrolujte každý soubor. Obnova je možná, dokud soubor zůstává v karanténě.</value></data>
+  <data xml:space="preserve" name="SelectedFolderMaintenanceScope"><value>Rozsah Developeru: pouze přímé soubory, bez minimálního stáří, nejvýše 1 GiB na soubor a 10 GiB v karanténě. Zkontrolujte každou položku. Obnova je možná, dokud položka zůstává v karanténě.</value></data>
   <data xml:space="preserve" name="SelectedFolderUnavailable"><value>Složka je nedostupná nebo chráněná. Vyberte vlastní místní složku na stejném svazku jako uživatelský profil.</value></data>
   <data xml:space="preserve" name="ReadSmartPrediction"><value>Přečíst SMART predikci selhání</value></data>
   <data xml:space="preserve" name="SmartDeviceUnavailable"><value>{0}: SMART predikce není dostupná.</value></data>
@@ -1422,9 +1422,9 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="WinDiagnosisNone" xml:space="preserve"><value>Dostupné údaje teď nevedou k žádnému doporučení. To nevylučuje problém ve Windows.</value></data>
   <data name="WinDiagnosisCrashes" xml:space="preserve"><value>Prověřit pády Windows</value></data>
   <data name="DiskMaintenancePreview" xml:space="preserve"><value>Náhled úklidu</value></data>
-  <data name="DiskMaintenanceBefore" xml:space="preserve"><value>Disk {0} · Volné místo před zásahem: {1}. Přesunuté soubory zůstávají v karanténě na tomto disku.</value></data>
+  <data name="DiskMaintenanceBefore" xml:space="preserve"><value>Disk {0} · volné místo změřeno {2:g}: {1}. Karanténa ponechá soubory na tomto disku a místo neuvolní.</value></data>
 
-  <data name="DiskMaintenanceImpact" xml:space="preserve"><value>Zkontrolujte vhodné dočasné soubory na disku uživatelského adresáře Temp. Karanténa je ponechá na stejném disku.</value></data>
+  <data name="DiskMaintenanceImpact" xml:space="preserve"><value>Zkontrolujte vhodné soubory v uživatelském Temp. Karanténa je ponechá na stejném disku a místo neuvolní.</value></data>
   <data name="DiskMaintenanceRestore" xml:space="preserve"><value>Obnovit jednu vybranou položku z karantény do přesné původní cesty. Soubor zůstává obnovitelný, dokud je dostupný jeho záznam v karanténě.</value></data>
   <data name="ServiceCrashFinding" xml:space="preserve"><value>Windows zaznamenal neočekávané ukončení služby {0}. Prověřte čerstvé důkazy a aktuální stav služby.</value></data>
   <data name="ServiceStopFinding" xml:space="preserve"><value>Služba {0} se zastavila. Samotné zastavení neprokazuje pád.</value></data>

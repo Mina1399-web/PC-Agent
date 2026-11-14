@@ -1391,7 +1391,7 @@ Graf se zobrazí po získání uložených měření.</comment>
 
 
 
-  <data xml:space="preserve" name="SelectedFolderMaintenanceScope"><value>Ausgewählter Ordner: nur direkte Dateien, kein Mindestalter, bis 1 GiB pro Datei und 10 GiB in Quarantäne. Jede Datei prüfen. Wiederherstellung ist möglich, solange die Datei in Quarantäne bleibt.</value></data>
+  <data xml:space="preserve" name="SelectedFolderMaintenanceScope"><value>Entwicklerbereich: nur direkte Dateien, kein Mindestalter, höchstens 1 GiB pro Datei und 10 GiB in Quarantäne. Prüfen Sie jede Datei. Eine Wiederherstellung ist möglich, solange die Datei in Quarantäne bleibt.</value></data>
   <data xml:space="preserve" name="SelectedFolderUnavailable"><value>Dieser Ordner ist nicht verfügbar oder geschützt. Wählen Sie einen eigenen lokalen Ordner auf demselben Volume wie Ihr Benutzerprofil.</value></data>
   <data xml:space="preserve" name="ReadSmartPrediction"><value>SMART-Ausfallprognose lesen</value></data>
   <data xml:space="preserve" name="SmartDeviceUnavailable"><value>{0}: SMART-Prognose ist nicht verfügbar.</value></data>
@@ -1422,9 +1422,9 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="WinDiagnosisNone" xml:space="preserve"><value>Die aktuellen Daten lösen keine Empfehlung aus. Das schließt Probleme in Windows nicht aus.</value></data>
   <data name="WinDiagnosisCrashes" xml:space="preserve"><value>Windows-Abstürze untersuchen</value></data>
   <data name="DiskMaintenancePreview" xml:space="preserve"><value>Bereinigungsvorschau</value></data>
-  <data name="DiskMaintenanceBefore" xml:space="preserve"><value>Laufwerk {0} · Frei vor dem Eingriff: {1}. Dateien in Quarantäne bleiben auf diesem Laufwerk.</value></data>
+  <data name="DiskMaintenanceBefore" xml:space="preserve"><value>Laufwerk {0} · freier Speicher gemessen {2:g}: {1}. Die Quarantäne belässt Dateien auf diesem Laufwerk und gibt keinen Speicher frei.</value></data>
 
-  <data name="DiskMaintenanceImpact" xml:space="preserve"><value>Prüfen Sie geeignete temporäre Dateien auf dem Laufwerk des Benutzertempordners. Die Quarantäne behält sie dort.</value></data>
+  <data name="DiskMaintenanceImpact" xml:space="preserve"><value>Geeignete Dateien im Temp-Ordner des Benutzers prüfen. Die Quarantäne belässt sie auf demselben Laufwerk und gibt keinen Speicher frei.</value></data>
   <data name="DiskMaintenanceRestore" xml:space="preserve"><value>Eine ausgewählte Datei aus der Quarantäne an ihren genauen ursprünglichen Pfad wiederherstellen. Die Datei bleibt wiederherstellbar, solange ihr Quarantäneeintrag verfügbar ist.</value></data>
   <data name="ServiceCrashFinding" xml:space="preserve"><value>Windows hat einen unerwarteten Abbruch des Dienstes {0} erfasst. Prüfen Sie aktuelle Belege und den Dienststatus.</value></data>
   <data name="ServiceStopFinding" xml:space="preserve"><value>Der Dienst {0} wurde beendet. Diese Beobachtung allein belegt keinen Absturz.</value></data>

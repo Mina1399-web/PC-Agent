@@ -1391,7 +1391,7 @@ Graf se zobrazí po získání uložených měření.</comment>
 
 
 
-  <data xml:space="preserve" name="SelectedFolderMaintenanceScope"><value>Selected folder: direct files only, no minimum age, up to 1 GiB per file and 10 GiB in quarantine. Review every file. Restore works while the file remains in quarantine.</value></data>
+  <data xml:space="preserve" name="SelectedFolderMaintenanceScope"><value>Developer scope: direct files only, no minimum age, up to 1 GiB per file and 10 GiB in quarantine. Review each file. Restore is available while the file remains quarantined.</value></data>
   <data xml:space="preserve" name="SelectedFolderUnavailable"><value>This folder is unavailable or protected. Choose a local folder you own, on the same volume as your user profile.</value></data>
   <data xml:space="preserve" name="ReadSmartPrediction"><value>Read SMART failure prediction</value></data>
   <data xml:space="preserve" name="SmartDeviceUnavailable"><value>{0}: SMART prediction is unavailable.</value></data>
@@ -1422,9 +1422,9 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="WinDiagnosisNone" xml:space="preserve"><value>Current evidence does not trigger a recommendation. This does not prove that Windows has no problems.</value></data>
   <data name="WinDiagnosisCrashes" xml:space="preserve"><value>Investigate Windows crashes</value></data>
   <data name="DiskMaintenancePreview" xml:space="preserve"><value>Preview cleanup</value></data>
-  <data name="DiskMaintenanceBefore" xml:space="preserve"><value>Drive {0} · Free before: {1}. Moving files into quarantine keeps them on this drive.</value></data>
+  <data name="DiskMaintenanceBefore" xml:space="preserve"><value>Drive {0} · free space measured {2:g}: {1}. Quarantine keeps files on this drive and frees no space.</value></data>
 
-  <data name="DiskMaintenanceImpact" xml:space="preserve"><value>Review eligible temporary files on the user’s temporary drive. Quarantine keeps them on that drive.</value></data>
+  <data name="DiskMaintenanceImpact" xml:space="preserve"><value>Review eligible files in the user Temp folder. Quarantine keeps them on the same drive and frees no space.</value></data>
   <data name="DiskMaintenanceRestore" xml:space="preserve"><value>Restore one selected file from quarantine to its exact original path. A file remains recoverable while its quarantine record is available.</value></data>
   <data name="ServiceCrashFinding" xml:space="preserve"><value>Windows recorded an unexpected termination of service {0}. Review recent evidence and the service’s current state.</value></data>
   <data name="ServiceStopFinding" xml:space="preserve"><value>Service {0} stopped. This observation alone does not establish a crash.</value></data>
