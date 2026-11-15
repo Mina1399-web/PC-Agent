@@ -101,7 +101,8 @@ internal sealed class ScopedGuidWindowsApi : IWindowsOperationApi
         _expectedExeHash = Digest(Environment.ProcessPath ?? throw new InvalidOperationException("missing_executable"));
     }
 
-    public async ValueTask SetServiceRunningAsync(string serviceName, bool running, CancellationToken token)
+    public async ValueTask SetServiceRunningAsync(string serviceName, bool running, CancellationToken token,
+        IReadOnlyCollection<string>? expectedDependencies = null)
     {
         token.ThrowIfCancellationRequested();
         CompleteProbeGuard.CheckLimits();
@@ -126,7 +127,7 @@ internal sealed class ScopedGuidWindowsApi : IWindowsOperationApi
                     throw new UnauthorizedAccessException("isolated_target_process_mismatch");
             }
             Interlocked.Increment(ref _calls);
-            await _native.SetServiceRunningAsync(serviceName, running, token);
+            await _native.SetServiceRunningAsync(serviceName, running, token, expectedDependencies);
             return;
         }
         if (serviceName != CompleteHelperScope.Name(_missing) || !running)
@@ -136,7 +137,7 @@ internal sealed class ScopedGuidWindowsApi : IWindowsOperationApi
             throw new UnauthorizedAccessException("missing_target_is_not_absent");
         Interlocked.Increment(ref _calls);
         // A real lookup of an absent GUID service is the native failure fixture.
-        await _native.SetServiceRunningAsync(serviceName, true, token);
+        await _native.SetServiceRunningAsync(serviceName, true, token, expectedDependencies);
     }
 
     public IProcessLease OpenProcess(int pid) => throw new UnauthorizedAccessException("process_capability_absent");

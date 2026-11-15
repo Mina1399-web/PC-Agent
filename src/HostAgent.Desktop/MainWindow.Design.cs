@@ -10,7 +10,7 @@ namespace HostAgent.Desktop;
 
 public partial class MainWindow
 {
-    private bool _darkTheme;
+    private bool _darkTheme=true;
     private string? _triageIncidentId;
 
     private void InitializeDesign()
@@ -21,6 +21,7 @@ public partial class MainWindow
         OperationChoice.SelectionChanged += (_, _) => UpdateProcessFields();
         UpdateProcessFields();
         UpdateThemeLabel();
+        UpdateWorkspaceTitle();
     }
 
     private void UpdateDesignLayout()
@@ -131,4 +132,6 @@ public partial class MainWindow
         meter.Visibility = available ? Visibility.Visible : Visibility.Hidden;
         meter.Value = available ? Math.Clamp(metric!.Value, 0, 100) : 0;
     }
+
+
 }

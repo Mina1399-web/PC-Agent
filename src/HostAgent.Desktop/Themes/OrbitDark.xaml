@@ -10,6 +10,7 @@
     <SolidColorBrush x:Key="RailBrush" Color="#10172B"/>
     <SolidColorBrush x:Key="RailTextBrush" Color="#EBEEFF"/>
     <SolidColorBrush x:Key="SelectedBrush" Color="#303255"/>
+    <SolidColorBrush x:Key="SelectedInkBrush" Color="#EBEEFF"/>
     <SolidColorBrush x:Key="HoverBrush" Color="#2B3656"/>
     <SolidColorBrush x:Key="AlternateBrush" Color="#19243E"/>
     <SolidColorBrush x:Key="GreenBrush" Color="#72DBB5"/>

@@ -33,6 +33,27 @@ public static class HostAgentDataDirectory
         return fullPath;
     }
 
+    public static string ValidateSecureExisting(string directoryPath, SecurityIdentifier serviceSid)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(directoryPath);
+        ArgumentNullException.ThrowIfNull(serviceSid);
+
+        var fullPath = Path.GetFullPath(directoryPath);
+        var directory = new DirectoryInfo(fullPath);
+        if (!directory.Exists)
+        {
+            throw new DirectoryNotFoundException("The Host Agent data directory must already exist.");
+        }
+
+        if ((directory.Attributes & FileAttributes.ReparsePoint) != 0)
+        {
+            throw new UnauthorizedAccessException("The Host Agent data directory cannot be a reparse point.");
+        }
+
+        ValidateSecurity(directory, serviceSid);
+        return fullPath;
+    }
+
     private static DirectorySecurity CreateSecurity(SecurityIdentifier serviceSid)
     {
         var security = new DirectorySecurity();

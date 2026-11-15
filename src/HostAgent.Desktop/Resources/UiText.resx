@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -14,7 +14,7 @@
   </resheader>
   <data xml:space="preserve" name="OpenDashboard">
     <value>Open dashboard</value>
-    <comment>Source (cs-CZ): Otevřít přehled</comment>
+    <comment>Source (cs-CZ): Historie CPU a RAM za 24 hodin, počet uložených bodů: {0}.</comment>
   </data>
   <data xml:space="preserve" name="ExitDashboard">
     <value>Exit dashboard</value>
@@ -310,9 +310,9 @@ CLI vyžádá UAC a potvrzení APPLY. Restartují se pouze služby Host Agent. O
     <value>CPU and RAM history is unavailable</value>
     <comment>Source (cs-CZ): Historie CPU a RAM není dostupná</comment>
   </data>
-  <data xml:space="preserve" name="CPUAndRAMHistoryOver24HoursSavedPointsCPUInBlueRAMInPurple">
-    <value>CPU and RAM history over 24 hours, {0} saved points. CPU in blue, RAM in purple.</value>
-    <comment>Source (cs-CZ): Historie CPU a RAM za 24 hodin, {0} uložených bodů. CPU modře, RAM fialově.</comment>
+  <data xml:space="preserve" name="CPUAndRAMHistoryOver24HoursSavedPoints">
+    <value>CPU and RAM history over 24 hours, {0} saved points.</value>
+    <comment>Source (cs-CZ): Historie CPU a RAM za 24 hodin, počet uložených bodů: {0}.</comment>
   </data>
   <data xml:space="preserve" name="CouldNotOpenWindowsSettings">
     <value>Could not open Windows Settings.</value>
@@ -346,14 +346,26 @@ CLI vyžádá UAC a potvrzení APPLY. Restartují se pouze služby Host Agent. O
     <value>Create safe preview</value>
     <comment>Source (cs-CZ): Vytvořit bezpečný náhled</comment>
   </data>
-
-
-
+  <data xml:space="preserve" name="ApprovalForThisExactPreview">
+    <value>Approval for this exact preview</value>
+    <comment>Source (cs-CZ): Schválení přesně pro tento náhled</comment>
+  </data>
+  <data xml:space="preserve" name="CopyThePreviewIDShownAboveEachBatchRequiresANewPreviewAndItsExactID">
+    <value>Copy the preview ID shown above. Each batch requires a new preview and its exact ID.</value>
+    <comment>Source (cs-CZ): Zkopírujte ID náhledu uvedené výše. Každá dávka vyžaduje nový náhled a přesné ID.</comment>
+  </data>
+  <data xml:space="preserve" name="MoveAllPreviewedFilesToQuarantine">
+    <value>Move all previewed files to quarantine</value>
+    <comment>Source (cs-CZ): Přesunout všechny soubory z náhledu do karantény</comment>
+  </data>
   <data xml:space="preserve" name="QuarantineAndRestore">
     <value>Quarantine and restore</value>
     <comment>Source (cs-CZ): Karanténa a obnovení</comment>
   </data>
-
+  <data xml:space="preserve" name="EnterTheExactRestoreIDOfTheSelectedRecord">
+    <value>Enter the exact restore ID of the selected record</value>
+    <comment>Source (cs-CZ): Zadejte přesné ID obnovení vybraného záznamu</comment>
+  </data>
   <data xml:space="preserve" name="RestoreWithoutOverwritingAnExistingFile">
     <value>Restore without overwriting an existing file</value>
     <comment>Source (cs-CZ): Obnovit bez přepsání existujícího souboru</comment>
@@ -362,7 +374,10 @@ CLI vyžádá UAC a potvrzení APPLY. Restartují se pouze služby Host Agent. O
     <value>, preview limit reached</value>
     <comment>Source (cs-CZ): , dosažen limit náhledu</comment>
   </data>
-
+  <data xml:space="preserve" name="StatusSelectedSkippedPreviewIDValidUntil">
+    <value>Status: {0}. Selected {1}, skipped {2}{3}. Preview ID: {4}. Valid until: {5:g}.</value>
+    <comment>Source (cs-CZ): Stav: {0}. Vybráno {1}, přeskočeno {2}{3}. ID náhledu: {4}. Platnost do: {5:g}.</comment>
+  </data>
   <data xml:space="preserve" name="NoEligibleFilesWereFoundThePreviewMakesNoChanges">
     <value>No eligible files were found. The preview makes no changes.</value>
     <comment>Source (cs-CZ): Nebyly nalezeny vhodné soubory. Náhled nic nemění.</comment>
@@ -1386,11 +1401,11 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data xml:space="preserve" name="SomeServiceStartModesUnavailable"><value>The startup mode of some services is unavailable.</value></data>
   <data xml:space="preserve" name="SomeServiceStatesUnavailable"><value>The current state of some services is unavailable.</value></data>
   <data xml:space="preserve" name="AdditionalReportedReason"><value>Additional reported reason: {0}</value></data>
-
+  <data xml:space="preserve" name="DeleteSelectedQuarantineFile"><value>Permanently delete selected quarantined file</value></data>
   <data xml:space="preserve" name="ChooseMaintenanceFolder"><value>Choose a folder for maintenance</value></data>
-
-
-
+  <data xml:space="preserve" name="PermanentDeleteResult"><value>Deletion result: {0}; deleted: {1}; bytes: {2}.</value></data>
+  <data xml:space="preserve" name="PermanentQuarantineDeletion"><value>Permanent deletion cannot be undone. Select one quarantined file, review its name and size, then type DELETE followed by a space and its exact Restore ID.</value></data>
+  <data xml:space="preserve" name="QuarantineDeleteFailed"><value>Deletion failed. Reload the quarantine list and review its state before retrying.</value></data>
   <data xml:space="preserve" name="SelectedFolderMaintenanceScope"><value>Developer scope: direct files only, no minimum age, up to 1 GiB per file and 10 GiB in quarantine. Review each file. Restore is available while the file remains quarantined.</value></data>
   <data xml:space="preserve" name="SelectedFolderUnavailable"><value>This folder is unavailable or protected. Choose a local folder you own, on the same volume as your user profile.</value></data>
   <data xml:space="preserve" name="ReadSmartPrediction"><value>Read SMART failure prediction</value></data>
@@ -1423,16 +1438,16 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="WinDiagnosisCrashes" xml:space="preserve"><value>Investigate Windows crashes</value></data>
   <data name="DiskMaintenancePreview" xml:space="preserve"><value>Preview cleanup</value></data>
   <data name="DiskMaintenanceBefore" xml:space="preserve"><value>Drive {0} · free space measured {2:g}: {1}. Quarantine keeps files on this drive and frees no space.</value></data>
-
+  <data name="DiskMaintenanceMeasured" xml:space="preserve"><value>Drive {0} · Before: {1} · After: {2}. Other activity can also change free space.</value></data>
   <data name="DiskMaintenanceImpact" xml:space="preserve"><value>Review eligible files in the user Temp folder. Quarantine keeps them on the same drive and frees no space.</value></data>
   <data name="DiskMaintenanceRestore" xml:space="preserve"><value>Restore one selected file from quarantine to its exact original path. A file remains recoverable while its quarantine record is available.</value></data>
   <data name="ServiceCrashFinding" xml:space="preserve"><value>Windows recorded an unexpected termination of service {0}. Review recent evidence and the service’s current state.</value></data>
   <data name="ServiceStopFinding" xml:space="preserve"><value>Service {0} stopped. This observation alone does not establish a crash.</value></data>
   <data name="ServiceRecoveryReview" xml:space="preserve"><value>Review starting {0}</value></data>
-  <data name="ServiceRecoveryRunning" xml:space="preserve"><value>Service {0} was running at every check during 10 seconds.</value></data>
+  <data name="ServiceRecoveryRunning" xml:space="preserve"><value>A fresh Service Control Manager readback confirms that {0} is running.</value></data>
   <data name="ServiceRecoveryCancelled" xml:space="preserve"><value>The review was cancelled before a start request was sent.</value></data>
   <data name="ServiceRecoveryRejected" xml:space="preserve"><value>The Helper or a precondition rejected the request; no start was authorized.</value></data>
-  <data name="ServiceRecoveryUnverified" xml:space="preserve"><value>Starting the service was not verified. Review its status and the approval result.</value></data>
+  <data name="ServiceRecoveryUnverified" xml:space="preserve"><value>The request may have run, but completion is unknown. Check the service before taking action; do not retry automatically.</value></data>
   <data name="NetworkEnableChecks" xml:space="preserve"><value>Enable network checks</value></data>
   <data name="NetworkDisableChecks" xml:space="preserve"><value>Disable network checks</value></data>
   <data name="NetworkChecksDisabled" xml:space="preserve"><value>Active network checks are disabled. The adapter list shows local state.</value></data>
@@ -1469,6 +1484,7 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="DesignNavSystem" xml:space="preserve"><value>System</value></data>
   <data name="DesignNavMaintenance" xml:space="preserve"><value>Maintenance</value></data>
   <data name="DesignNavTools" xml:space="preserve"><value>Tools</value></data>
+  <data name="DesignNavRecommendationsCompact" xml:space="preserve"><value>Advice</value></data>
   <data name="DesignModeStandardActive" xml:space="preserve"><value>Standard mode · enable Developer mode</value></data>
   <data name="DesignModeDeveloperActive" xml:space="preserve"><value>Developer mode active · return to Standard</value></data>
   <data name="DesignEvidenceSourceUnavailable" xml:space="preserve"><value>Measurement time and source are unavailable until the local service responds.</value></data>
@@ -1492,7 +1508,7 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="DesignInternetFailure" xml:space="preserve"><value>Internet connectivity problem</value></data>
   <data name="DesignServiceStopped" xml:space="preserve"><value>Service stopped; cause unconfirmed</value></data>
   <data name="DesignServiceCrash" xml:space="preserve"><value>Unexpected service termination</value></data>
-  <data name="DesignMetricDeviation" xml:space="preserve"><value>Measurement differs from baseline</value></data>
+  <data name="DesignMetricDeviation" xml:space="preserve"><value>Measured metric differs from its recent robust baseline</value></data>
 <data name="BaselineDeviationAssessmentScope" xml:space="preserve"><value>This reflects confidence in the baseline assessment, not the size of the deviation or the likelihood of a cause. The record does not contain the baseline reference values or time window.</value></data> <data name="UnclassifiedConfidenceScope" xml:space="preserve"><value>This diagnostic code is unclassified; the record does not establish a cause or its likelihood.</value></data> <data name="TargetedFollowUpUnavailable" xml:space="preserve"><value>No targeted follow-up check is currently available.</value></data> <data name="IncidentBaselineAssessmentConfidence" xml:space="preserve"><value>Baseline assessment confidence: {3}/100 (not deviation magnitude or likelihood of cause)</value></data> <data name="IncidentUnclassifiedStatus" xml:space="preserve"><value>{0} {1}. {2}. Unclassified diagnostic status; cause score is unavailable.</value></data>
   <data name="DesignCritical" xml:space="preserve"><value>Critical</value></data>
   <data name="DesignHigh" xml:space="preserve"><value>High</value></data>
@@ -1539,7 +1555,7 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="InAppStartupListCanHelpIdentifyPossibleCausesButIsReadOnly" xml:space="preserve"><value>The in-app startup list can help identify possible causes. It is read-only; this recommendation makes no changes.</value></data>
   <data name="InAppAppListCanHelpReviewMemoryUseButIsReadOnly" xml:space="preserve"><value>The in-app application list can help review memory use. It is read-only; this recommendation closes no applications.</value></data>
   <data name="PrepareServiceAction" xml:space="preserve"><value>Prepare service action</value></data>
-  <data name="WinPrepareServiceActionHelp" xml:space="preserve"><value>Copies the selected service identifier to the review form. It must match an administrator-approved alias; the helper validates it before any action.</value></data>
+  <data name="WinPrepareServiceActionHelp" xml:space="preserve"><value>Copies the selected service identifier to the review form. Generic service start/restart remains disabled until this form can display and bind its complete dependency impact.</value></data>
   <data name="WinServiceStartRequiresGuidedReview" xml:space="preserve"><value>Service start and restart are currently available only through the incident review, which displays and binds the full dependency list. Stop and process actions remain here.</value></data>
   <data name="ServiceReviewTitle" xml:space="preserve"><value>Review one service recovery</value></data>
   <data name="ServiceReviewSubtitle" xml:space="preserve"><value>Elevated Host Agent review</value></data>
@@ -1600,6 +1616,54 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="ServiceReviewPaused" xml:space="preserve"><value>Paused</value></data>
   <data name="ServiceReviewStartPending" xml:space="preserve"><value>Start pending</value></data>
   <data name="ServiceReviewStopPending" xml:space="preserve"><value>Stop pending</value></data>
+  <data name="OrbitAdapterTimeUnknown" xml:space="preserve"><value>The adapter count has no separate measurement time.</value></data>
+  <data name="OrbitAvailable" xml:space="preserve"><value>Data available</value></data>
+  <data name="OrbitCloseDetail" xml:space="preserve"><value>Close subsystem details</value></data>
+  <data name="OrbitDescription" xml:space="preserve"><value>Select a subsystem to open its details. The map groups information by topic.</value></data>
+  <data name="OrbitDiskSpace" xml:space="preserve"><value>{0} · {1} free of {2} · {3:G}</value></data>
+  <data name="OrbitInventoryTimeUnknown" xml:space="preserve"><value>The service inventory has no separate measurement time.</value></data>
+  <data name="OrbitLastOverviewAt" xml:space="preserve"><value>Last known local Host Agent overview: {0:g}</value></data>
+  <data name="OrbitLimited" xml:space="preserve"><value>Collection limited</value></data>
+  <data name="OrbitMeasuredAt" xml:space="preserve"><value>Measured: {0:G}</value></data>
+  <data name="OrbitMissing" xml:space="preserve"><value>Data unavailable</value></data>
+  <data name="OrbitOffline" xml:space="preserve"><value>Local service unavailable</value></data>
+  <data name="OrbitOverviewAt" xml:space="preserve"><value>Local Host Agent service overview: {0:g}</value></data>
+  <data name="OrbitPartial" xml:space="preserve"><value>Partial data</value></data>
+  <data name="OrbitProbeDnsResolutionFailed" xml:space="preserve"><value>DNS resolution failed</value></data>
+  <data name="OrbitProbeDnsResolutionSucceeded" xml:space="preserve"><value>DNS name resolved</value></data>
+  <data name="OrbitProbeDnsResolutionTimedOut" xml:space="preserve"><value>DNS resolution timed out</value></data>
+  <data name="OrbitProbeDnsResolutionUnavailable" xml:space="preserve"><value>DNS resolution unavailable</value></data>
+  <data name="OrbitProbeGatewayFailed" xml:space="preserve"><value>Gateway did not respond</value></data>
+  <data name="OrbitProbeGatewaySucceeded" xml:space="preserve"><value>Gateway responded</value></data>
+  <data name="OrbitProbeGatewayTimedOut" xml:space="preserve"><value>Gateway check timed out</value></data>
+  <data name="OrbitProbeGatewayUnavailable" xml:space="preserve"><value>Gateway check unavailable</value></data>
+  <data name="OrbitProbeInternetIpFailed" xml:space="preserve"><value>Public IP did not respond</value></data>
+  <data name="OrbitProbeInternetIpSucceeded" xml:space="preserve"><value>Public IP responded</value></data>
+  <data name="OrbitProbeInternetIpTimedOut" xml:space="preserve"><value>Public IP check timed out</value></data>
+  <data name="OrbitProbeInternetIpUnavailable" xml:space="preserve"><value>Public IP check unavailable</value></data>
+  <data name="OrbitProbeKindDnsResolution" xml:space="preserve"><value>DNS</value></data>
+  <data name="OrbitProbeKindGateway" xml:space="preserve"><value>Gateway</value></data>
+  <data name="OrbitProbeKindInternetIp" xml:space="preserve"><value>Public IP</value></data>
+  <data name="OrbitProbeStatusFailed" xml:space="preserve"><value>did not respond</value></data>
+  <data name="OrbitProbeStatusSucceeded" xml:space="preserve"><value>responded</value></data>
+  <data name="OrbitProbeStatusTimedOut" xml:space="preserve"><value>timed out</value></data>
+  <data name="OrbitProbeStatusUnavailable" xml:space="preserve"><value>unavailable</value></data>
+  <data name="OrbitProbeTime" xml:space="preserve"><value>Network checks measured: {0:G}</value></data>
+  <data name="OrbitProbeUnknownKind" xml:space="preserve"><value>Unrecognized network check ({0})</value></data>
+  <data name="OrbitProbeUnknownStatus" xml:space="preserve"><value>Unrecognized result ({0})</value></data>
+  <data name="OrbitProbesStale" xml:space="preserve"><value>Network check results are out of date.</value></data>
+  <data name="OrbitProbesUnavailable" xml:space="preserve"><value>Network check results are unavailable.</value></data>
+  <data name="OrbitSelected" xml:space="preserve"><value>Selected</value></data>
+  <data name="OrbitServices" xml:space="preserve"><value>Services</value></data>
+  <data name="OrbitShownCount" xml:space="preserve"><value>Entries shown: {0}</value></data>
+  <data name="OrbitStale" xml:space="preserve"><value>Data out of date</value></data>
+  <data name="OrbitTextList" xml:space="preserve"><value>Subsystems in a text list</value></data>
+  <data name="OrbitTitle" xml:space="preserve"><value>Subsystem map</value></data>
+  <data name="OrbitSelectNode" xml:space="preserve"><value>Select a system area on the map to view its details.</value></data>
+  <data xml:space="preserve" name="CPUAndRAMHistoryOver24HoursSavedPointsCPUInBlueRAMInPurple">
+    <value>CPU and RAM history over 24 hours, {0} saved points. CPU in blue, RAM in purple.</value>
+    <comment>Source (cs-CZ): Historie CPU a RAM za 24 hodin, {0} uložených bodů. CPU modře, RAM fialově.</comment>
+  </data>
   <data name="MaintenanceReason_payload_unavailable" xml:space="preserve"><value>The quarantined file is unavailable.</value></data>
   <data name="MinimumAgeDays" xml:space="preserve"><value>minimum age {0} days</value></data>
   <data name="MaintenanceReason_unsafe_name" xml:space="preserve"><value>The filename is unsafe or cannot be identified.</value></data>

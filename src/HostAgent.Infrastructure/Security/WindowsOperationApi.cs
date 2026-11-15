@@ -9,13 +9,21 @@ namespace HostAgent.Infrastructure.Security;
 
 public sealed class WindowsOperationApi : IWindowsOperationApi
 {
-    public async ValueTask SetServiceRunningAsync(string serviceName, bool running, CancellationToken cancellationToken)
+    public async ValueTask SetServiceRunningAsync(string serviceName, bool running, CancellationToken cancellationToken,
+        IReadOnlyCollection<string>? expectedDependencies = null)
     {
         cancellationToken.ThrowIfCancellationRequested();
         using var service = new ServiceController(serviceName, ".");
         service.Refresh();
         var desired = running ? ServiceControllerStatus.Running : ServiceControllerStatus.Stopped;
         if (service.Status == desired) return;
+        if (running && expectedDependencies is not null)
+        {
+            var current = WindowsServiceDependencyReader.ReadClosure(serviceName).Select(item => item.ServiceName).ToArray();
+            if (!current.OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
+                    .SequenceEqual(expectedDependencies.OrderBy(name => name, StringComparer.OrdinalIgnoreCase), StringComparer.OrdinalIgnoreCase))
+                throw new UnauthorizedAccessException("service_dependency_set_changed");
+        }
         cancellationToken.ThrowIfCancellationRequested();
         if (running) service.Start(); else service.Stop(stopDependentServices: false);
         while (true)
@@ -26,6 +34,7 @@ public sealed class WindowsOperationApi : IWindowsOperationApi
             await Task.Delay(TimeSpan.FromMilliseconds(200), cancellationToken);
         }
     }
+
     public IProcessLease OpenProcess(int pid)
     {
         if (pid <= 4 || pid == Environment.ProcessId) throw new UnauthorizedAccessException("protected_process");

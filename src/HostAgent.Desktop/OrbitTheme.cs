@@ -22,11 +22,11 @@ internal static class OrbitTheme
         dictionaries.Insert(0, palette);
     }
 
-    internal static void ApplyToDialog(Window dialog, Window? owner)
+    internal static void ApplyToDialog(Window dialog, Window? owner, bool? darkOverride = null)
     {
-        var dark = owner?.Resources.MergedDictionaries is { } dictionaries &&
+        var dark = darkOverride ?? (owner?.Resources.MergedDictionaries is { } dictionaries &&
             System.Linq.Enumerable.Any(dictionaries, dictionary =>
-                dictionary.Source?.OriginalString.EndsWith("/OrbitDark.xaml", StringComparison.Ordinal) == true);
+                dictionary.Source?.OriginalString.EndsWith("/OrbitDark.xaml", StringComparison.Ordinal) == true));
         SetPalette(dialog, dark);
         dialog.Resources.MergedDictionaries.Add(Load("OrbitControls"));
         dialog.SetResourceReference(Control.BackgroundProperty, "CanvasBrush");

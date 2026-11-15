@@ -171,6 +171,7 @@ internal static class TestLocalization
 {
     internal static DesktopLocalization Czech()=>new(new MemoryPreferences(DesktopMode.Developer),CultureInfo.GetCultureInfo("cs-CZ"));
     internal static DesktopLocalization CzechStandard()=>new(new MemoryPreferences(DesktopMode.Standard),CultureInfo.GetCultureInfo("cs-CZ"));
+    internal static DesktopLocalization ForLanguage(string code)=>new(new MemoryPreferences(DesktopMode.Developer),CultureInfo.GetCultureInfo(code));
     private sealed class MemoryPreferences(DesktopMode initialMode):IDesktopPreferences
     {
         public DesktopMode Mode {get;private set;}=initialMode;

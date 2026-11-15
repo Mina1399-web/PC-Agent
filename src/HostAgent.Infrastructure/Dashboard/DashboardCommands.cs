@@ -35,12 +35,24 @@ public static class DashboardCommands
             &&incident.AffectedService is {Length:>0 and <=128} service
             &&service.All(c=>char.IsAsciiLetterOrDigit(c)||c is '.' or '-' or '_');
 
-    public static Process? ReviewServiceRecovery(DashboardSnapshot snapshot,ViewIncident incident)
+    public static string[] ServiceRecoveryReviewArguments(DashboardSnapshot snapshot, ViewIncident incident, bool darkTheme = false)
     {
         if(!CanReviewServiceRecovery(snapshot,incident,DateTimeOffset.UtcNow))
             throw new UnauthorizedAccessException("desktop_service_recovery_disabled");
-        return LaunchCli(["review-service-crash",incident.Id,incident.AffectedService!]);
+        return darkTheme
+            ? ["--review-service-crash", incident.Id, incident.AffectedService!, "--dark-theme"]
+            : ["--review-service-crash", incident.Id, incident.AffectedService!];
     }
+
+    public static Process? ReviewServiceRecovery(DashboardSnapshot snapshot,ViewIncident incident,bool darkTheme=false)
+        => LaunchDesktopReview(ServiceRecoveryReviewArguments(snapshot, incident, darkTheme));
+
+    public static string ServiceRecoveryExitStatusKey(int exitCode) => exitCode switch
+    {
+        1 => "ServiceRecoveryCancelled",
+        2 => "ServiceRecoveryRejected",
+        _ => "ServiceRecoveryUnverified"
+    };
 
     public static Process? ConfigureNetworkProbes(bool enabled)=>LaunchCli(["network-probes",enabled?"on":"off"]);
     private static Process? LaunchCli(string[] args)
@@ -52,6 +64,17 @@ public static class DashboardCommands
         var start=new ProcessStartInfo(path){UseShellExecute=true,Verb="runas",WorkingDirectory=Path.GetDirectoryName(path)!};
         // All values are already restricted to ASCII non-whitespace tokens, no shell is started.
         start.Arguments=string.Join(" ",args);
+        return Process.Start(start);
+    }
+
+    private static Process? LaunchDesktopReview(string[] args)
+    {
+        var root=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),"HostAgent");
+        InstallationTreeSecurity.Validate(root,["S-1-5-18","S-1-5-32-544","S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464"]);
+        var path=Path.Combine(root,"Desktop","HostAgent.Desktop.exe");
+        if(!File.Exists(path))throw new InvalidDataException("desktop_installed_review_required");
+        var start=new ProcessStartInfo(path){UseShellExecute=true,Verb="runas",WorkingDirectory=Path.GetDirectoryName(path)!};
+        foreach(var argument in args)start.ArgumentList.Add(argument);
         return Process.Start(start);
     }
 }

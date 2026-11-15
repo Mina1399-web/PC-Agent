@@ -10,7 +10,8 @@ public interface IProcessLease : IDisposable
 }
 public interface IWindowsOperationApi
 {
-    ValueTask SetServiceRunningAsync(string serviceName, bool running, CancellationToken cancellationToken);
+    ValueTask SetServiceRunningAsync(string serviceName, bool running, CancellationToken cancellationToken,
+        IReadOnlyCollection<string>? expectedDependencies = null);
     IProcessLease OpenProcess(int pid);
 }
 public sealed class WindowsOperationExecutor(IWindowsOperationApi api) : IOperationExecutor
@@ -37,12 +38,23 @@ public sealed class WindowsOperationExecutor(IWindowsOperationApi api) : IOperat
             throw new UnauthorizedAccessException("invalid_service_binding");
         switch (request.Operation)
         {
-            case HelperOperation.StartService: await api.SetServiceRunningAsync(service, true, cancellationToken); break;
+            case HelperOperation.StartService:
+                var startParameters = (ServiceParameters)request.Parameters;
+                if (startParameters.ExpectedDependencyIds is not null && binding.ApprovedDependencyNames is null)
+                    throw new UnauthorizedAccessException("service_dependency_policy_mismatch");
+                await api.SetServiceRunningAsync(service, true, cancellationToken,
+                    startParameters.ExpectedDependencyIds is null ? null : binding.ApprovedDependencyNames);
+                break;
             case HelperOperation.StopService: await api.SetServiceRunningAsync(service, false, cancellationToken); break;
             case HelperOperation.RestartService:
+                var restartParameters = (ServiceParameters)request.Parameters;
+                if (restartParameters.ExpectedDependencyIds is not null && binding.ApprovedDependencyNames is null)
+                    throw new UnauthorizedAccessException("service_dependency_policy_mismatch");
                 await api.SetServiceRunningAsync(service, false, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
-                await api.SetServiceRunningAsync(service, true, cancellationToken); break;
+                await api.SetServiceRunningAsync(service, true, cancellationToken,
+                    restartParameters.ExpectedDependencyIds is null ? null : binding.ApprovedDependencyNames);
+                break;
             default: throw new UnauthorizedAccessException("unsupported_operation");
         }
     }

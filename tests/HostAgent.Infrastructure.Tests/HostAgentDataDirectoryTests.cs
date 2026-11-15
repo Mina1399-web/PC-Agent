@@ -8,6 +8,41 @@ namespace HostAgent.Infrastructure.Tests;
 public sealed class HostAgentDataDirectoryTests
 {
     [Fact]
+    public void Read_only_validation_does_not_create_a_missing_directory()
+    {
+        using var identity = WindowsIdentity.GetCurrent();
+        var currentSid = Assert.IsType<SecurityIdentifier>(identity.User);
+        var directoryPath = CreateDirectoryPath();
+
+        Assert.Throws<DirectoryNotFoundException>(
+            () => HostAgentDataDirectory.ValidateSecureExisting(directoryPath, currentSid));
+        Assert.False(Directory.Exists(directoryPath));
+    }
+
+    [Fact]
+    public void Read_only_validation_keeps_existing_acl_bytes_unchanged()
+    {
+        using var identity = WindowsIdentity.GetCurrent();
+        var currentSid = Assert.IsType<SecurityIdentifier>(identity.User);
+        var directoryPath = CreateDirectoryPath();
+        try
+        {
+            _ = HostAgentDataDirectory.EnsureSecure(directoryPath, currentSid);
+            var directory = new DirectoryInfo(directoryPath);
+            var before = directory.GetAccessControl(AccessControlSections.Access | AccessControlSections.Owner)
+                .GetSecurityDescriptorSddlForm(AccessControlSections.Access | AccessControlSections.Owner);
+            Assert.Equal(Path.GetFullPath(directoryPath), HostAgentDataDirectory.ValidateSecureExisting(directoryPath, currentSid));
+            var after = directory.GetAccessControl(AccessControlSections.Access | AccessControlSections.Owner)
+                .GetSecurityDescriptorSddlForm(AccessControlSections.Access | AccessControlSections.Owner);
+            Assert.Equal(before, after);
+        }
+        finally
+        {
+            if (Directory.Exists(directoryPath)) Directory.Delete(directoryPath);
+        }
+    }
+
+    [Fact]
     public void Creates_directory_with_protected_service_system_and_administrator_acl()
     {
         using var identity = WindowsIdentity.GetCurrent();

@@ -4,7 +4,8 @@ using System.Text.RegularExpressions;
 namespace HostAgent.Infrastructure.Security;
 public sealed record ServiceRegistration(string Id, string ServiceName, HelperOperation[] EnabledOperations);
 public sealed record ProcessRegistration(string Id, string ExecutablePath, string Sha256, bool Enabled);
-public sealed record OperationBinding(string TargetKey, string? ServiceName, string? ExecutablePath, string? Sha256);
+public sealed record OperationBinding(string TargetKey, string? ServiceName, string? ExecutablePath, string? Sha256,
+    string[]? ApprovedDependencyNames = null);
 public sealed class HelperAllowlist
 {
     private readonly Dictionary<string, ServiceRegistration> _services;
@@ -32,7 +33,24 @@ public sealed class HelperAllowlist
             return new(HelperProtocol.TargetKey(request), null, Path.GetFullPath(registration.ExecutablePath), registration.Sha256);
         if (request.Operation != HelperOperation.TerminateProcess && Enum.IsDefined(request.Operation) &&
             request.Parameters is ServiceParameters service && _services.TryGetValue(service.ServiceId, out var local) && local.EnabledOperations.Contains(request.Operation))
-            return new(HelperProtocol.TargetKey(request), local.ServiceName, null, null);
+        {
+            string[]? approvedDependencies = null;
+            if (service.ExpectedDependencyIds is { } dependencyIds)
+            {
+                if (dependencyIds.Length > 32 || dependencyIds.Distinct(StringComparer.Ordinal).Count() != dependencyIds.Length ||
+                    dependencyIds.Contains(local.Id, StringComparer.Ordinal)) return null;
+                var resolved = new List<string>(dependencyIds.Length);
+                foreach (var dependencyId in dependencyIds)
+                {
+                    if (!_services.TryGetValue(dependencyId, out var dependency) ||
+                        !dependency.EnabledOperations.Contains(HelperOperation.StartService)) return null;
+                    resolved.Add(dependency.ServiceName);
+                }
+                if (resolved.Distinct(StringComparer.OrdinalIgnoreCase).Count() != resolved.Count) return null;
+                approvedDependencies = resolved.ToArray();
+            }
+            return new(HelperProtocol.TargetKey(request), local.ServiceName, null, null, approvedDependencies);
+        }
         return null;
     }
     private static bool SafeId(string value) => Regex.IsMatch(value, "\\A[A-Za-z0-9][A-Za-z0-9_.-]{0,127}\\z",

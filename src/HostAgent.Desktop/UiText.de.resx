@@ -1,0 +1,1692 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms</value>
+  </resheader>
+  <data xml:space="preserve" name="OpenDashboard">
+    <value>Übersicht öffnen</value>
+    <comment>Source (cs-CZ): Otevřít přehled</comment>
+  </data>
+  <data xml:space="preserve" name="ExitDashboard">
+    <value>Übersicht beenden</value>
+    <comment>Source (cs-CZ): Ukončit přehled</comment>
+  </data>
+  <data xml:space="preserve" name="ServiceDataIsOutOfDateTheCurrentStatusIsUnavailableTryRefresh">
+    <value>Die Dienstdaten sind veraltet. Der aktuelle Status ist nicht verfügbar. Versuchen Sie es mit „Aktualisieren“.</value>
+    <comment>Source (cs-CZ): Data služby jsou zastaralá. Čerstvý stav není dostupný. Zkuste Obnovit.</comment>
+  </data>
+  <data xml:space="preserve" name="TheLocalServiceIsUnavailableMakeSureAVersionOfHostAgentThatSupportsT">
+    <value>Der lokale Dienst ist nicht verfügbar. Prüfen Sie, ob eine Version von Host Agent mit Unterstützung für die Übersicht ausgeführt wird, und versuchen Sie es mit „Aktualisieren“.</value>
+    <comment>Source (cs-CZ): Místní služba není dostupná. Ověřte, že běží verze Host Agent podporující přehled, a zkuste Obnovit.</comment>
+  </data>
+  <data xml:space="preserve" name="NetworkDataUnavailable">
+    <value>Netzwerk: Daten nicht verfügbar</value>
+    <comment>Source (cs-CZ): Síť: nedostupná data</comment>
+  </data>
+  <data xml:space="preserve" name="RecommendationsAreUnavailableWithoutCurrentMeasurementsCheckTheLocal">
+    <value>Ohne aktuelle Messungen sind keine Empfehlungen verfügbar. Prüfen Sie den lokalen Dienst und aktualisieren Sie die Daten.</value>
+    <comment>Source (cs-CZ): Doporučení nejsou dostupná bez aktuálních měření. Ověřte místní službu a obnovte data.</comment>
+  </data>
+  <data xml:space="preserve" name="ActionsAreBlockedTheCurrentServiceStatusIsUnavailable">
+    <value>Eingriffe sind gesperrt: Der aktuelle Dienststatus ist nicht verfügbar.</value>
+    <comment>Source (cs-CZ): Zásahy jsou zablokované: aktuální stav služby není dostupný.</comment>
+  </data>
+  <data xml:space="preserve" name="DetailsAreUnavailableAPreviousStatusIsNotCurrentEvidence">
+    <value>Details sind nicht verfügbar. Ein früherer Status ist kein aktueller Nachweis.</value>
+    <comment>Source (cs-CZ): Detail není dostupný. Dřívější stav není aktuální důkaz.</comment>
+  </data>
+  <data xml:space="preserve" name="PartialTelemetryLimitations">
+    <value>Teilweise Telemetrie / Einschränkungen</value>
+    <comment>Source (cs-CZ): Částečná telemetrie / omezení</comment>
+  </data>
+  <data xml:space="preserve" name="MonitoringIsRunning">
+    <value>Überwachung läuft</value>
+    <comment>Source (cs-CZ): Monitorování běží</comment>
+  </data>
+  <data xml:space="preserve" name="ReadOnly">
+    <value>Schreibgeschützt</value>
+    <comment>Source (cs-CZ): Jen čtení</comment>
+  </data>
+  <data xml:space="preserve" name="ActionsRequireApproval">
+    <value>Eingriffe nur mit Genehmigung</value>
+    <comment>Source (cs-CZ): Zásahy pouze se schválením</comment>
+  </data>
+  <data xml:space="preserve" name="On">
+    <value>ein</value>
+    <comment>Source (cs-CZ): zapnutý</comment>
+  </data>
+  <data xml:space="preserve" name="Off">
+    <value>aus</value>
+    <comment>Source (cs-CZ): vypnutý</comment>
+  </data>
+  <data xml:space="preserve" name="KillSwitch">
+    <value>{0}  •  {1}  •  {2}  •  Not-Aus: {3}  •  {4:HH:mm:ss}</value>
+    <comment>Source (cs-CZ): {0}  •  {1}  •  {2}  •  Kill switch: {3}  •  {4:HH:mm:ss}</comment>
+  </data>
+  <data xml:space="preserve" name="NetworkActiveAdaptersThisDoesNotVerifyInternetAccess">
+    <value>Netzwerk: {0} aktive Adapter. Die Internetverfügbarkeit ist damit nicht bestätigt.</value>
+    <comment>Source (cs-CZ): Síť: {0} aktivních adaptérů. Dostupnost internetu tím není ověřena.</comment>
+  </data>
+  <data xml:space="preserve" name="WaitingForTheApprovalWindowToFinish">
+    <value>Warten auf den Abschluss im Genehmigungsfenster.</value>
+    <comment>Source (cs-CZ): Čekám na dokončení schvalovacího okna.</comment>
+  </data>
+  <data xml:space="preserve" name="ActionsAreBlockedByTheEmergencySwitchKillSwitch">
+    <value>Eingriffe sind durch den Not-Aus-Schalter (kill switch) gesperrt.</value>
+    <comment>Source (cs-CZ): Zásahy jsou zablokované nouzovým vypínačem (kill switch).</comment>
+  </data>
+  <data xml:space="preserve" name="ShadowModeViewAndInvestigateTheStatusActionsAreBlocked">
+    <value>Shadow-Modus: Sie beobachten und prüfen den Status. Eingriffe sind gesperrt.</value>
+    <comment>Source (cs-CZ): Režim Shadow: sledujete a prověřujete stav. Zásahy jsou zablokované.</comment>
+  </data>
+  <data xml:space="preserve" name="TheServiceIsInReadOnlyModeActionsAreBlocked">
+    <value>Der Dienst ist schreibgeschützt. Eingriffe sind gesperrt.</value>
+    <comment>Source (cs-CZ): Služba je v režimu jen pro čtení. Zásahy jsou zablokované.</comment>
+  </data>
+  <data xml:space="preserve" name="ToPrepareAnActionSelectAnIncidentAndEnterARegisteredTargetExecutionR">
+    <value>Nach Auswahl eines Vorfalls und Eingabe eines registrierten Ziels können Sie einen Eingriff vorbereiten. Die Ausführung erfordert eine separate Genehmigung.</value>
+    <comment>Source (cs-CZ): Zásah můžete připravit po výběru incidentu a zadání registrovaného cíle. Provedení vyžaduje samostatné schválení.</comment>
+  </data>
+  <data xml:space="preserve" name="CouldNotRefreshTheDataAnotherAttemptWillRunAutomatically">
+    <value>Die Daten konnten nicht aktualisiert werden. Ein weiterer Versuch erfolgt automatisch.</value>
+    <comment>Source (cs-CZ): Obnovení dat se nepodařilo. Další pokus proběhne automaticky.</comment>
+  </data>
+  <data xml:space="preserve" name="ActionsAreBlockedUntilTheStatusCanBeRefreshed">
+    <value>Eingriffe bleiben gesperrt, bis der Status aktualisiert werden kann.</value>
+    <comment>Source (cs-CZ): Zásahy jsou zablokované, dokud se nepodaří obnovit stav.</comment>
+  </data>
+  <data xml:space="preserve" name="IncidentsAreUnavailableWithoutAConnectionToTheService">
+    <value>Ohne Verbindung zum Dienst sind keine Vorfälle verfügbar.</value>
+    <comment>Source (cs-CZ): Incidenty nejsou dostupné bez spojení se službou.</comment>
+  </data>
+  <data xml:space="preserve" name="ThereAreNoIncidentsInTheLatestSavedRecords">
+    <value>Die zuletzt gespeicherten Einträge enthalten keine Vorfälle.</value>
+    <comment>Source (cs-CZ): V posledních uložených záznamech nejsou incidenty.</comment>
+  </data>
+  <data xml:space="preserve" name="ShowingTheLatestRecordsDiagnosticConfidenceDoesNotGuaranteeASuccessf">
+    <value>Die letzten {0} Einträge. Der Wert ist eine Regelausgabe, keine validierte Wahrscheinlichkeit oder Reparaturgarantie.</value>
+    <comment>Source (cs-CZ): Zobrazeno {0} posledních záznamů. Jistota diagnózy neznamená záruku úspěšné opravy.</comment>
+  </data>
+  <data xml:space="preserve" name="TheCurrentEvidenceDoesNotCallForANewRecommendationMissingMeasurement">
+    <value>Host Agent hat anhand der verfügbaren Messwerte keinen Reparaturschritt vorgeschlagen. Das beweist nicht, dass der PC fehlerfrei ist. Ein sicherer nächster Schritt: gespeicherte Windows-Ereignisse schreibgeschützt prüfen oder Messwerte aktualisieren.</value>
+    <comment>Source (cs-CZ): Aktuální důkazy nevyžadují nové doporučení. Chybějící měření neznamená bezchybný stav.</comment>
+  </data>
+  <data xml:space="preserve" name="Evidence">
+    <value>Nachweis: </value>
+    <comment>Source (cs-CZ): Důkaz:</comment>
+  </data>
+  <data xml:space="preserve" name="Benefit">
+    <value>Nutzen: </value>
+    <comment>Source (cs-CZ): Přínos:</comment>
+  </data>
+  <data xml:space="preserve" name="Recovery">
+    <value>Rückgängig machen: </value>
+    <comment>Source (cs-CZ): Návrat:</comment>
+  </data>
+  <data xml:space="preserve" name="ReviewSavedEvidence">
+    <value>Gespeicherte Nachweise prüfen</value>
+    <comment>Source (cs-CZ): Prověřit uložené důkazy</comment>
+  </data>
+  <data xml:space="preserve" name="OpenRelevantSettings">
+    <value>Zugehörige Einstellungen öffnen…</value>
+    <comment>Source (cs-CZ): Otevřít příslušné nastavení…</comment>
+  </data>
+  <data xml:space="preserve" name="SelectAnIncidentToViewTheAvailableCodesTimesAndNumericEvidence">
+    <value>Wählen Sie einen Vorfall aus. Verfügbare Codes, Zeiten und numerische Nachweise werden angezeigt.</value>
+    <comment>Source (cs-CZ): Vyberte incident. Zobrazí se dostupné kódy, časy a číselné důkazy.</comment>
+  </data>
+  <data xml:space="preserve" name="LoadingLimitedEvidence">
+    <value>Begrenzte Nachweise werden geladen…</value>
+    <comment>Source (cs-CZ): Načítám omezené důkazy…</comment>
+  </data>
+  <data xml:space="preserve" name="DetailsAreUnavailable">
+    <value>Details sind nicht verfügbar.</value>
+    <comment>Source (cs-CZ): Detail není dostupný.</comment>
+  </data>
+  <data xml:space="preserve" name="ConfidenceRefersToTheStopCodeClassificationItDoesNotIdentifyAFaultyD">
+    <value>Der Wert klassifiziert den Stoppcode; er identifiziert keinen fehlerhaften Treiber.</value>
+    <comment>Source (cs-CZ): Confidence určuje klasifikaci stop kódu. Neurčuje vadný ovladač.</comment>
+  </data>
+  <data xml:space="preserve" name="ConfidenceIsAnEstimateOfTheLikelyCauseNotAGuaranteeOfTheCorrectRepai">
+    <value>Der Wert ist eine diagnostische Regelausgabe, keine validierte Ursachenwahrscheinlichkeit oder Reparaturgarantie.</value>
+    <comment>Source (cs-CZ): Confidence je odhad pravděpodobné příčiny, nikoli záruka správné opravy.</comment>
+  </data>
+  <data xml:space="preserve" name="IncidentCodeStatusConfidence">
+    <value>Vorfall: {0}
+Code: {1}
+Status: {2}
+Regelwert: {3} / 100
+</value>
+    <comment>Source (cs-CZ): Incident: {0}
+Kód: {1}
+Stav: {2}
+Confidence: {3} %
+</comment>
+  </data>
+  <data xml:space="preserve" name="AffectedService">
+    <value>Betroffener Dienst: {0}
+</value>
+    <comment>Source (cs-CZ): Dotčená služba: {0}
+</comment>
+  </data>
+  <data xml:space="preserve" name="LimitedEvidenceSourceValueUTC">
+    <value>{0}
+
+Begrenzte Nachweise (Quelle / Wert / UTC):
+</value>
+    <comment>Source (cs-CZ): {0}
+
+Omezené důkazy (zdroj / hodnota / UTC):
+</comment>
+  </data>
+  <data xml:space="preserve" name="EvidenceValues">
+    <value>{0} / {1} / {2:g}</value>
+    <comment>Source (cs-CZ): {0} / {1} / {2:g}</comment>
+  </data>
+  <data xml:space="preserve" name="AdditionalEvidenceWasOmittedToLimitTheScope">
+    <value>
+Weitere Nachweise wurden aufgrund der Umfangsbegrenzung ausgelassen.</value>
+    <comment>Source (cs-CZ):
+Další důkazy byly kvůli omezení rozsahu vynechány.</comment>
+  </data>
+  <data xml:space="preserve" name="ViewingThisInformationDoesNotApproveAnAutomaticRepair">
+    <value>
+
+Diese Ansicht erteilt keine Genehmigung für eine automatische Reparatur.</value>
+    <comment>Source (cs-CZ):
+
+Automatická oprava není tímto zobrazením schválena.</comment>
+  </data>
+  <data xml:space="preserve" name="EvidenceIsUnavailable">
+    <value>Nachweise sind nicht verfügbar.</value>
+    <comment>Source (cs-CZ): Důkazy nejsou dostupné.</comment>
+  </data>
+  <data xml:space="preserve" name="InvestigateProblem">
+    <value>Problem untersuchen</value>
+    <comment>Source (cs-CZ): Prověřit problém</comment>
+  </data>
+  <data xml:space="preserve" name="ReadingSavedMetadataFromTheLast24HoursUpToThe256LatestSamplesEventLo">
+    <value>Lesen der gespeicherten Metadaten der letzten 24 Stunden, höchstens der letzten 256 Messwerte. Event Log und Prüfpunkte bleiben unverändert.
+
+</value>
+    <comment>Source (cs-CZ): Čtení uložených metadat za 24 hodin, nejvýše 256 posledních vzorků. Event Log ani checkpointy se nemění.
+
+</comment>
+  </data>
+  <data xml:space="preserve" name="EventRecordIDStop0x">
+    <value>{0:g} | Ereignis {1} | RecordID {2} | Stopp 0x{3:X} | {4}</value>
+    <comment>Source (cs-CZ): {0:g} | Event {1} | RecordID {2} | Stop 0x{3:X} | {4}</comment>
+  </data>
+  <data xml:space="preserve" name="NoMatchingSavedEventsWereFoundThisDoesNotProveThereAreNoneInEventLog">
+    <value>Keine passenden gespeicherten Ereignisse gefunden. Das beweist nicht, dass im Event Log keine vorhanden sind.</value>
+    <comment>Source (cs-CZ): Nejsou nalezeny odpovídající uložené události. To nedokazuje, že v Event Logu žádné nejsou.</comment>
+  </data>
+  <data xml:space="preserve" name="TheseMetadataCannotIdentifyASpecificFaultyDriverDumpsAreNotSentAnywh">
+    <value>
+
+Aus diesen Metadaten lässt sich kein bestimmter fehlerhafter Treiber ermitteln. Dumps werden nirgendwohin gesendet.</value>
+    <comment>Source (cs-CZ):
+
+Konkrétní vadný ovladač nelze určit z těchto metadat. Dumpy se nikam neposílají.</comment>
+  </data>
+  <data xml:space="preserve" name="InvestigateProblemReadOnly">
+    <value>Problem untersuchen • schreibgeschützt</value>
+    <comment>Source (cs-CZ): Prověřit problém • jen čtení</comment>
+  </data>
+  <data xml:space="preserve" name="FirstSelectAnIncidentWithAvailableDetails">
+    <value>Wählen Sie zuerst verfügbare Details eines Vorfalls aus.</value>
+    <comment>Source (cs-CZ): Nejdřív vyberte dostupný detail incidentu.</comment>
+  </data>
+  <data xml:space="preserve" name="CouldNotSaveTheReport">
+    <value>Der Bericht konnte nicht gespeichert werden.</value>
+    <comment>Source (cs-CZ): Report se nepodařilo uložit.</comment>
+  </data>
+  <data xml:space="preserve" name="OpenAdministratorVerificationForThisExactActionEndingAProcessOrStopp">
+    <value>Administratorprüfung für den genauen Eingriff öffnen?
+Das Beenden eines Prozesses oder Anhalten eines Dienstes kann Ihre Arbeit unterbrechen. Speichern Sie Ihre Daten. Zur Ausführung müssen Sie die GUID in der CLI eingeben.</value>
+    <comment>Source (cs-CZ): Otevřít administrátorské ověření přesného zásahu?
+Ukončení procesu nebo zastavení služby může přerušit práci. Uložte svá data. K provedení bude potřeba opsat GUID v CLI.</comment>
+  </data>
+  <data xml:space="preserve" name="ManualAction">
+    <value>Manueller Eingriff</value>
+    <comment>Source (cs-CZ): Ruční zásah</comment>
+  </data>
+  <data xml:space="preserve" name="CLIFinishedWaitForANewMeasurementAndUseTheComparisonImprovementHasNo">
+    <value>CLI abgeschlossen. Warten Sie auf eine neue Messung und verwenden Sie den Vergleich; eine Verbesserung ist noch nicht bestätigt.</value>
+    <comment>Source (cs-CZ): CLI dokončeno. Počkejte na nové měření a použijte porovnání; zlepšení zatím není ověřeno.</comment>
+  </data>
+  <data xml:space="preserve" name="TheCLIDidNotConfirmTheActionOrRejectedItASuccessfulRepairHasNotBeenE">
+    <value>Die CLI hat den Eingriff nicht bestätigt oder abgelehnt. Eine erfolgreiche Reparatur ist nicht belegt.</value>
+    <comment>Source (cs-CZ): CLI zásah nepotvrdilo nebo jej odmítlo. Úspěšná oprava není doložena.</comment>
+  </data>
+  <data xml:space="preserve" name="CannotPrepareTheActionCheckTheModeInstalledCLIVersionRegisteredAlias">
+    <value>Der Eingriff kann nicht vorbereitet werden. Prüfen Sie den Modus, die installierte CLI-Version, den registrierten Alias, den Vorfall und die genaue Prozessidentität.</value>
+    <comment>Source (cs-CZ): Zásah nelze připravit. Ověřte režim, instalovanou verzi CLI, registrovaný alias, incident a přesnou identitu procesu.</comment>
+  </data>
+  <data xml:space="preserve" name="BlockRepairsInBothTheMonitorAndHelperTheCLIWillRequestUACAndAPPLYCon">
+    <value>Reparaturen in Monitor und Helper sperren?
+Die CLI fordert UAC und die Bestätigung APPLY an. Nur die Dienste von Host Agent werden neu gestartet. Benachrichtigungen bleiben unverändert.</value>
+    <comment>Source (cs-CZ): Zablokovat opravy v monitoru i helperu?
+CLI vyžádá UAC a potvrzení APPLY. Restartují se pouze služby Host Agent. Oznámení se nemění.</comment>
+  </data>
+  <data xml:space="preserve" name="TheCLIDidNotConfirmTheChangeTheKillSwitchHasNotBeenVerifiedAsOn">
+    <value>Die CLI hat die Änderung nicht bestätigt; der eingeschaltete Zustand des Not-Aus ist nicht nachgewiesen.</value>
+    <comment>Source (cs-CZ): CLI změnu nepotvrdilo; kill switch není ověřen jako zapnutý.</comment>
+  </data>
+  <data xml:space="preserve" name="CouldNotVerifyTheKillSwitchDoNotPerformAnyFurtherActions">
+    <value>Der Not-Aus konnte nicht überprüft werden. Führen Sie keine weiteren Eingriffe durch.</value>
+    <comment>Source (cs-CZ): Kill switch se nepodařilo ověřit. Neprovádějte další zásahy.</comment>
+  </data>
+  <data xml:space="preserve" name="TheApprovalWindowIsStillOpenCompletionOfTheActionIsUnconfirmed">
+    <value>Das Genehmigungsfenster ist noch geöffnet. Der Abschluss des Eingriffs ist nicht bestätigt.</value>
+    <comment>Source (cs-CZ): Schvalovací okno je stále otevřené. Dokončení zásahu není potvrzeno.</comment>
+  </data>
+  <data xml:space="preserve" name="TheCLIDidNotConfirmSuccessLowerUtilizationAloneDoesNotProveThatARepa">
+    <value>Die CLI hat keinen Erfolg bestätigt. Eine geringere Auslastung allein beweist keine durchgeführte Reparatur.</value>
+    <comment>Source (cs-CZ): CLI nepotvrdilo úspěch. Nižší vytížení samo nedokazuje provedení opravy.</comment>
+  </data>
+  <data xml:space="preserve" name="MeasurementsAfterCLICompletionCPURAMTheSymbolMeansThereIsNoNewSample">
+    <value>Messung nach Abschluss der CLI: CPU {0} → {1}; RAM {2} → {3}. Das Symbol — bedeutet, dass noch kein neuer Messwert für die betreffende Metrik vorliegt. Die Änderung allein beweist weder eine Reparatur noch einen ursächlichen Zusammenhang.</value>
+    <comment>Source (cs-CZ): Měření po dokončení CLI: CPU {0} → {1}; RAM {2} → {3}. Symbol — znamená, že dosud není nový vzorek dané metriky. Samotná změna nedokazuje opravu ani příčinnou souvislost.</comment>
+  </data>
+  <data xml:space="preserve" name="ThereIsNoMeasurementNewerThanCLICompletionYetTheResultOfTheActionIsU">
+    <value>Es liegt noch keine Messung nach Abschluss der CLI vor. Das Ergebnis des Eingriffs ist nicht bestätigt.</value>
+    <comment>Source (cs-CZ): Zatím není měření novější než dokončení CLI. Výsledek zásahu není ověřen.</comment>
+  </data>
+  <data xml:space="preserve" name="TheStatusBeforeOrAfterTheActionIsMissing">
+    <value>Der Status vor oder nach dem Eingriff fehlt.</value>
+    <comment>Source (cs-CZ): Chybí stav před nebo po zásahu.</comment>
+  </data>
+  <data xml:space="preserve" name="CPUAndRAMHistoryIsUnavailable">
+    <value>CPU- und RAM-Verlauf nicht verfügbar</value>
+    <comment>Source (cs-CZ): Historie CPU a RAM není dostupná</comment>
+  </data>
+  <data xml:space="preserve" name="CPUAndRAMHistoryOver24HoursSavedPointsCPUInBlueRAMInPurple">
+    <value>CPU- und RAM-Verlauf der letzten 24 Stunden, {0} gespeicherte Punkte. CPU blau, RAM violett.</value>
+    <comment>Source (cs-CZ): Historie CPU a RAM za 24 hodin, {0} uložených bodů. CPU modře, RAM fialově.</comment>
+  </data>
+  <data xml:space="preserve" name="CouldNotOpenWindowsSettings">
+    <value>Die Windows-Einstellungen konnten nicht geöffnet werden.</value>
+    <comment>Source (cs-CZ): Nastavení Windows se nepodařilo otevřít.</comment>
+  </data>
+  <data xml:space="preserve" name="HostAgentSafeMaintenance">
+    <value>Host Agent • Sichere Wartung</value>
+    <comment>Source (cs-CZ): Host Agent • Bezpečná údržba</comment>
+  </data>
+  <data xml:space="preserve" name="Name">
+    <value>Name</value>
+    <comment>Source (cs-CZ): Název</comment>
+  </data>
+  <data xml:space="preserve" name="Modified">
+    <value>Geändert</value>
+    <comment>Source (cs-CZ): Změněno</comment>
+  </data>
+  <data xml:space="preserve" name="RestoreID">
+    <value>Wiederherstellungs-ID</value>
+    <comment>Source (cs-CZ): ID obnovení</comment>
+  </data>
+  <data xml:space="preserve" name="TemporaryFiles">
+    <value>Temporäre Dateien</value>
+    <comment>Source (cs-CZ): Dočasné soubory</comment>
+  </data>
+  <data xml:space="preserve" name="ThePreviewScansOnlyFilesDirectlyInThisAccountSTemporaryFolderItInclu">
+    <value>Die Vorschau durchsucht nur Dateien direkt im temporären Ordner dieses Kontos. Sie umfasst reguläre Dateien, die älter als 7 Tage und höchstens 16 MiB groß sind; maximal 100 Dateien. Das Verschieben in die Quarantäne gibt keinen Speicherplatz frei. Dateien werden nicht automatisch gelöscht und können manuell wiederhergestellt werden, sofern der ursprüngliche Pfad weiterhin frei ist.</value>
+    <comment>Source (cs-CZ): Náhled prohledá pouze soubory přímo v dočasné složce tohoto účtu. Zahrne běžné soubory starší 7 dnů do 16 MiB; maximálně 100 souborů. Přesun do karantény neuvolní místo. Soubory se nemažou automaticky a lze je ručně obnovit, pokud původní cesta zůstala volná.</comment>
+  </data>
+  <data xml:space="preserve" name="CreateSafePreview">
+    <value>Sichere Vorschau erstellen</value>
+    <comment>Source (cs-CZ): Vytvořit bezpečný náhled</comment>
+  </data>
+  
+  
+  
+  <data xml:space="preserve" name="QuarantineAndRestore">
+    <value>Quarantäne und Wiederherstellung</value>
+    <comment>Source (cs-CZ): Karanténa a obnovení</comment>
+  </data>
+  
+  <data xml:space="preserve" name="RestoreWithoutOverwritingAnExistingFile">
+    <value>Wiederherstellen, ohne eine vorhandene Datei zu überschreiben</value>
+    <comment>Source (cs-CZ): Obnovit bez přepsání existujícího souboru</comment>
+  </data>
+  <data xml:space="preserve" name="PreviewLimitReached">
+    <value>, Vorschaugrenze erreicht</value>
+    <comment>Source (cs-CZ): , dosažen limit náhledu</comment>
+  </data>
+  
+  <data xml:space="preserve" name="NoEligibleFilesWereFoundThePreviewMakesNoChanges">
+    <value>Keine geeigneten Dateien gefunden. Die Vorschau ändert nichts.</value>
+    <comment>Source (cs-CZ): Nebyly nalezeny vhodné soubory. Náhled nic nemění.</comment>
+  </data>
+  <data xml:space="preserve" name="ThePreviewMadeNoChangesReviewEveryListedFileBeforeMovingIt">
+    <value>Die Vorschau hat nichts geändert. Prüfen Sie vor dem Verschieben jede aufgeführte Datei.</value>
+    <comment>Source (cs-CZ): Náhled nic nezměnil. Před přesunem zkontrolujte každý uvedený soubor.</comment>
+  </data>
+  <data xml:space="preserve" name="CouldNotCreateThePreviewFilesWereNotChanged">
+    <value>Die Vorschau konnte nicht erstellt werden. Dateien wurden nicht verändert.</value>
+    <comment>Source (cs-CZ): Náhled se nepodařilo vytvořit. Soubory nebyly změněny.</comment>
+  </data>
+  <data xml:space="preserve" name="FirstCreateACurrentPreview">
+    <value>Erstellen Sie zuerst eine aktuelle Vorschau.</value>
+    <comment>Source (cs-CZ): Nejprve vytvořte aktuální náhled.</comment>
+  </data>
+  <data xml:space="preserve" name="ResultMovedSkippedTotalBytesRecordsRequiringRecoveryQuarantineDoesNo">
+    <value>Ergebnis: {0}. Verschoben {1}, übersprungen {2}, insgesamt {3} Byte. Einträge, die eine Wiederherstellung erfordern: {4}. Die Quarantäne gibt keinen Speicherplatz frei.</value>
+    <comment>Source (cs-CZ): Výsledek: {0}. Přesunuto {1}, přeskočeno {2}, celkem {3} bajtů. Záznamy vyžadující obnovu: {4}. Karanténa neuvolňuje místo.</comment>
+  </data>
+  <data xml:space="preserve" name="CouldNotCompleteTheRequestedMoveReloadThePreviewAndServiceStatus">
+    <value>Der angeforderte Verschiebevorgang konnte nicht abgeschlossen werden. Laden Sie die Vorschau und den Dienststatus erneut.</value>
+    <comment>Source (cs-CZ): Požadovaný přesun se nepodařilo dokončit. Znovu načtěte náhled a stav služby.</comment>
+  </data>
+  <data xml:space="preserve" name="TheQuarantineListIsUnavailableOrItsRecordsRequireReview">
+    <value>Die Quarantäneliste ist nicht verfügbar oder ihre Einträge müssen geprüft werden.</value>
+    <comment>Source (cs-CZ): Seznam karantény není dostupný nebo jeho záznamy vyžadují kontrolu.</comment>
+  </data>
+  <data xml:space="preserve" name="SelectAnItemInQuarantine">
+    <value>Wählen Sie einen Eintrag aus der Quarantäne aus.</value>
+    <comment>Source (cs-CZ): Vyberte položku z karantény.</comment>
+  </data>
+  <data xml:space="preserve" name="RestoreResultRestoredSizeBytesExistingFilesAreNotOverwritten">
+    <value>Wiederherstellungsergebnis: {0}. Wiederhergestellt {1}, Größe {2} Byte. Eine vorhandene Datei wird nicht überschrieben.</value>
+    <comment>Source (cs-CZ): Výsledek obnovení: {0}. Obnoveno {1}, velikost {2} bajtů. Existující soubor se nepřepisuje.</comment>
+  </data>
+  <data xml:space="preserve" name="CouldNotRestoreTheFileReloadTheListAndCheckTheDestinationPath">
+    <value>Die Wiederherstellung ist fehlgeschlagen. Laden Sie die Liste erneut und prüfen Sie den Zielpfad.</value>
+    <comment>Source (cs-CZ): Obnovení se nepodařilo. Znovu načtěte seznam a ověřte cílovou cestu.</comment>
+  </data>
+  <data xml:space="preserve" name="HostAgentIsUnavailableCheckTheServiceInstallationInThisDEVVM">
+    <value>Host Agent ist nicht verfügbar. Prüfen Sie die Dienstinstallation in dieser DEV VM.</value>
+    <comment>Source (cs-CZ): Host Agent není dostupný. Ověřte instalaci služby v této DEV VM.</comment>
+  </data>
+  <data xml:space="preserve" name="HostAgentComputerStatus">
+    <value>Host Agent • Computerstatus</value>
+    <comment>Source (cs-CZ): Host Agent • Stav počítače</comment>
+  </data>
+  <data xml:space="preserve" name="LOCALMONITOR">
+    <value>LOKALER MONITOR</value>
+    <comment>Source (cs-CZ): MÍSTNÍ MONITOR</comment>
+  </data>
+  <data xml:space="preserve" name="Refresh">
+    <value>Aktualisieren</value>
+    <comment>Source (cs-CZ): Obnovit</comment>
+  </data>
+  <data xml:space="preserve" name="TemporaryFileMaintenance">
+    <value>Wartung temporärer Dateien</value>
+    <comment>Source (cs-CZ): Údržba dočasných souborů</comment>
+  </data>
+  <data xml:space="preserve" name="Hide">
+    <value>Ausblenden</value>
+    <comment>Source (cs-CZ): Skrýt</comment>
+  </data>
+  <data xml:space="preserve" name="HideToSystemTray">
+    <value>In den Infobereich ausblenden</value>
+    <comment>Source (cs-CZ): Skrýt do systémové lišty</comment>
+  </data>
+  <data xml:space="preserve" name="Workspace">
+    <value>Arbeitsbereich</value>
+    <comment>Source (cs-CZ): Pracovní prostor</comment>
+  </data>
+  <data xml:space="preserve" name="ThisComputer">
+    <value>Dieser Computer</value>
+    <comment>Source (cs-CZ): Tento počítač</comment>
+  </data>
+  <data xml:space="preserve" name="ConnectingToTheLocalService">
+    <value>Verbindung zum lokalen Dienst wird hergestellt…</value>
+    <comment>Source (cs-CZ): Připojuji se k místní službě…</comment>
+  </data>
+  <data xml:space="preserve" name="UnderYourControl">
+    <value>Unter Ihrer Kontrolle</value>
+    <comment>Source (cs-CZ): Pod vaší kontrolou</comment>
+  </data>
+  <data xml:space="preserve" name="ActionsRequireApprovalTheDashboardDoesNotStopServices">
+    <value>Eingriffe erfordern eine Genehmigung.
+Die Übersicht hält keine Dienste an.</value>
+    <comment>Source (cs-CZ): Zásahy vyžadují schválení.
+Přehled služby nezastavuje.</comment>
+  </data>
+  <data xml:space="preserve" name="Dashboard">
+    <value>Übersicht</value>
+    <comment>Source (cs-CZ): Přehled</comment>
+  </data>
+  <data xml:space="preserve" name="DashboardText0107">
+    <value>▦   Übersicht</value>
+    <comment>Source (cs-CZ): ▦   Přehled</comment>
+  </data>
+  <data xml:space="preserve" name="ComputerStatus">
+    <value>Computerstatus</value>
+    <comment>Source (cs-CZ): Stav počítače</comment>
+  </data>
+  <data xml:space="preserve" name="CurrentMeasurementsAndContextToHelpYouDecide">
+    <value>Aktuelle Messungen und Zusammenhänge als Entscheidungshilfe.</value>
+    <comment>Source (cs-CZ): Aktuální měření a souvislosti, které pomáhají rozhodnout.</comment>
+  </data>
+  <data xml:space="preserve" name="Processor">
+    <value>Prozessor</value>
+    <comment>Source (cs-CZ): Procesor</comment>
+  </data>
+  <data xml:space="preserve" name="TotalCPUUtilization">
+    <value>CPU-Gesamtauslastung</value>
+    <comment>Source (cs-CZ): Celkové vytížení CPU</comment>
+  </data>
+  <data xml:space="preserve" name="RAM">
+    <value>Arbeitsspeicher</value>
+    <comment>Source (cs-CZ): Paměť RAM</comment>
+  </data>
+  <data xml:space="preserve" name="PhysicalMemoryUsage">
+    <value>Auslastung des physischen Speichers</value>
+    <comment>Source (cs-CZ): Využití fyzické paměti</comment>
+  </data>
+  <data xml:space="preserve" name="Uptime">
+    <value>Betriebszeit</value>
+    <comment>Source (cs-CZ): Doba běhu</comment>
+  </data>
+  <data xml:space="preserve" name="SinceWindowsStarted">
+    <value>Seit dem Windows-Start</value>
+    <comment>Source (cs-CZ): Od spuštění Windows</comment>
+  </data>
+  <data xml:space="preserve" name="OpenIncidents">
+    <value>Offene Vorfälle</value>
+    <comment>Source (cs-CZ): Otevřené incidenty</comment>
+  </data>
+  <data xml:space="preserve" name="InTheLatest20Records">
+    <value>In den letzten 20 Einträgen</value>
+    <comment>Source (cs-CZ): V posledních 20 záznamech</comment>
+  </data>
+  <data xml:space="preserve" name="PerformanceHistory">
+    <value>Leistungsverlauf</value>
+    <comment>Source (cs-CZ): Historie výkonu</comment>
+  </data>
+  <data xml:space="preserve" name="Text24Hours">
+    <value>24 Stunden</value>
+    <comment>Source (cs-CZ): 24 hodin</comment>
+  </data>
+  <data xml:space="preserve" name="Text15MinuteAveragesGapsInMeasurementsRemainVisible">
+    <value>Durchschnittswerte je 15 Minuten • Messlücken bleiben sichtbar</value>
+    <comment>Source (cs-CZ): Průměry po 15 minutách • mezery v měření zůstávají viditelné</comment>
+  </data>
+  <data xml:space="preserve" name="CPUAndRAMHistoryOver24Hours">
+    <value>CPU- und RAM-Verlauf der letzten 24 Stunden</value>
+    <comment>Source (cs-CZ): Historie CPU a RAM za 24 hodin</comment>
+  </data>
+  <data xml:space="preserve" name="HistoryIsNotAvailableYetTheChartWillAppearWhenSavedMeasurementsAreAv">
+    <value>Der Verlauf ist noch nicht verfügbar.
+Das Diagramm erscheint, sobald gespeicherte Messungen vorliegen.</value>
+    <comment>Source (cs-CZ): Historie zatím není dostupná.
+Graf se zobrazí po získání uložených měření.</comment>
+  </data>
+  <data xml:space="preserve" name="Text24HAgo">
+    <value>Vor 24 h</value>
+    <comment>Source (cs-CZ): Před 24 h</comment>
+  </data>
+  <data xml:space="preserve" name="Text12HAgo">
+    <value>Vor 12 h</value>
+    <comment>Source (cs-CZ): Před 12 h</comment>
+  </data>
+  <data xml:space="preserve" name="Now">
+    <value>Jetzt</value>
+    <comment>Source (cs-CZ): Nyní</comment>
+  </data>
+  <data xml:space="preserve" name="NetworkWaitingForMeasurements">
+    <value>Netzwerk: Warten auf Messung.</value>
+    <comment>Source (cs-CZ): Síť: čekám na měření.</comment>
+  </data>
+  <data xml:space="preserve" name="Storage">
+    <value>Speicher</value>
+    <comment>Source (cs-CZ): Úložiště</comment>
+  </data>
+  <data xml:space="preserve" name="DiskCapacitiesAreNotAvailableYet">
+    <value>Laufwerkskapazitäten sind noch nicht verfügbar.</value>
+    <comment>Source (cs-CZ): Kapacity disků zatím nejsou dostupné.</comment>
+  </data>
+  <data xml:space="preserve" name="DiskCapacityAndFreeSpace">
+    <value>Kapazität und freier Speicherplatz der Laufwerke</value>
+    <comment>Source (cs-CZ): Kapacita a volné místo disků</comment>
+  </data>
+  <data xml:space="preserve" name="Disk">
+    <value>Laufwerk</value>
+    <comment>Source (cs-CZ): Disk</comment>
+  </data>
+  <data xml:space="preserve" name="FreeSpace">
+    <value>Freier Speicherplatz</value>
+    <comment>Source (cs-CZ): Volné místo</comment>
+  </data>
+  <data xml:space="preserve" name="TotalCapacity">
+    <value>Gesamtkapazität</value>
+    <comment>Source (cs-CZ): Celková kapacita</comment>
+  </data>
+  <data xml:space="preserve" name="ProcessesUsingTheMostRAM">
+    <value>Prozesse mit dem höchsten RAM-Verbrauch</value>
+    <comment>Source (cs-CZ): Procesy s největší spotřebou RAM</comment>
+  </data>
+  <data xml:space="preserve" name="SelectingAProcessFillsInItsExactIdentityForTheManualAction">
+    <value>Die Auswahl eines Prozesses trägt seine genaue Identität für den manuellen Eingriff ein.</value>
+    <comment>Source (cs-CZ): Výběr procesu doplní jeho přesnou identitu do ručního zásahu.</comment>
+  </data>
+  <data xml:space="preserve" name="ProcessDataIsNotAvailableYet">
+    <value>Prozessdaten sind noch nicht verfügbar.</value>
+    <comment>Source (cs-CZ): Data procesů zatím nejsou dostupná.</comment>
+  </data>
+  <data xml:space="preserve" name="ProcessesByMemoryUsage">
+    <value>Prozesse nach Speicherverbrauch</value>
+    <comment>Source (cs-CZ): Procesy podle spotřeby paměti</comment>
+  </data>
+  <data xml:space="preserve" name="Process">
+    <value>Prozess</value>
+    <comment>Source (cs-CZ): Proces</comment>
+  </data>
+  <data xml:space="preserve" name="Memory">
+    <value>Speicher</value>
+    <comment>Source (cs-CZ): Paměť</comment>
+  </data>
+  <data xml:space="preserve" name="Incidents">
+    <value>Vorfälle</value>
+    <comment>Source (cs-CZ): Incidenty</comment>
+  </data>
+  <data xml:space="preserve" name="IncidentsText0140">
+    <value>⚑   Vorfälle</value>
+    <comment>Source (cs-CZ): ⚑   Incidenty</comment>
+  </data>
+  <data xml:space="preserve" name="IncidentsAndEvidence">
+    <value>Vorfälle und Nachweise</value>
+    <comment>Source (cs-CZ): Incidenty a důkazy</comment>
+  </data>
+  <data xml:space="preserve" name="TheLatest20RecordsSelectAnIncidentToReviewItsEvidence">
+    <value>Die letzten 20 Einträge. Wählen Sie einen Vorfall aus und prüfen Sie die zugehörigen Nachweise.</value>
+    <comment>Source (cs-CZ): Posledních 20 záznamů. Vyberte incident a prohlédněte jeho podklady.</comment>
+  </data>
+  <data xml:space="preserve" name="WaitingForSavedIncidents">
+    <value>Warten auf gespeicherte Vorfälle.</value>
+    <comment>Source (cs-CZ): Čekám na uložené incidenty.</comment>
+  </data>
+  <data xml:space="preserve" name="RecentIncidents">
+    <value>Letzte Vorfälle</value>
+    <comment>Source (cs-CZ): Poslední incidenty</comment>
+  </data>
+  <data xml:space="preserve" name="UTCTime">
+    <value>Zeit UTC</value>
+    <comment>Source (cs-CZ): Čas UTC</comment>
+  </data>
+  <data xml:space="preserve" name="CauseCode">
+    <value>Ursache / Code</value>
+    <comment>Source (cs-CZ): Příčina / kód</comment>
+  </data>
+  <data xml:space="preserve" name="Service">
+    <value>Dienst</value>
+    <comment>Source (cs-CZ): Služba</comment>
+  </data>
+  <data xml:space="preserve" name="Status">
+    <value>Status</value>
+    <comment>Source (cs-CZ): Stav</comment>
+  </data>
+  <data xml:space="preserve" name="Confidence">
+    <value>Wert / 100</value>
+    <comment>Source (cs-CZ): Jistota %</comment>
+  </data>
+  <data xml:space="preserve" name="Occurrences">
+    <value>Vorkommen</value>
+    <comment>Source (cs-CZ): Výskyty</comment>
+  </data>
+  <data xml:space="preserve" name="ExportIncident">
+    <value>Vorfall exportieren…</value>
+    <comment>Source (cs-CZ): Exportovat incident…</comment>
+  </data>
+  <data xml:space="preserve" name="SaveALocalJSONFileWithLimitedEvidence">
+    <value>Lokale JSON-Datei mit begrenzten Nachweisen speichern</value>
+    <comment>Source (cs-CZ): Uložit lokální JSON s omezenými důkazy</comment>
+  </data>
+  <data xml:space="preserve" name="IncidentDetailsAndLimitedEvidence">
+    <value>Details und begrenzte Nachweise des Vorfalls</value>
+    <comment>Source (cs-CZ): Detail a omezené důkazy incidentu</comment>
+  </data>
+  <data xml:space="preserve" name="Recommendations">
+    <value>Empfehlungen</value>
+    <comment>Source (cs-CZ): Doporučení</comment>
+  </data>
+  <data xml:space="preserve" name="RecommendationsText0155">
+    <value>◇   Empfehlungen</value>
+    <comment>Source (cs-CZ): ◇   Doporučení</comment>
+  </data>
+  <data xml:space="preserve" name="RecommendedSteps">
+    <value>Empfohlene Schritte</value>
+    <comment>Source (cs-CZ): Doporučené kroky</comment>
+  </data>
+  <data xml:space="preserve" name="SuggestionsAreBasedOnMeasurementsEachIncludesTheReasonBenefitAndImpa">
+    <value>Die Vorschläge beruhen auf Messungen. Zu jedem werden Grund, Nutzen und Auswirkungen angezeigt.</value>
+    <comment>Source (cs-CZ): Návrhy vycházejí z měření. U každého uvidíte důvod, přínos i dopad.</comment>
+  </data>
+  <data xml:space="preserve" name="Components">
+    <value>Komponenten</value>
+    <comment>Source (cs-CZ): Komponenty</comment>
+  </data>
+  <data xml:space="preserve" name="ComponentsText0159">
+    <value>⊞   Komponenten</value>
+    <comment>Source (cs-CZ): ⊞   Komponenty</comment>
+  </data>
+  <data xml:space="preserve" name="MonitoringStatus">
+    <value>Überwachungsstatus</value>
+    <comment>Source (cs-CZ): Stav monitorování</comment>
+  </data>
+  <data xml:space="preserve" name="AvailabilityOfIndividualComponentsAndTheLatestSavedServiceStatuses">
+    <value>Verfügbarkeit der einzelnen Komponenten und zuletzt gespeicherte Dienststatus.</value>
+    <comment>Source (cs-CZ): Dostupnost jednotlivých komponent a poslední uložené stavy služeb.</comment>
+  </data>
+  <data xml:space="preserve" name="AgentComponents">
+    <value>Agent-Komponenten</value>
+    <comment>Source (cs-CZ): Komponenty agenta</comment>
+  </data>
+  <data xml:space="preserve" name="ComponentStatusIsNotAvailableYet">
+    <value>Der Komponentenstatus ist noch nicht verfügbar.</value>
+    <comment>Source (cs-CZ): Stav komponent zatím není dostupný.</comment>
+  </data>
+  <data xml:space="preserve" name="AgentComponentStatus">
+    <value>Status der Agent-Komponenten</value>
+    <comment>Source (cs-CZ): Stav komponent agenta</comment>
+  </data>
+  <data xml:space="preserve" name="Component">
+    <value>Komponente</value>
+    <comment>Source (cs-CZ): Komponenta</comment>
+  </data>
+  <data xml:space="preserve" name="HealthCode">
+    <value>Zustandscode</value>
+    <comment>Source (cs-CZ): Health kód</comment>
+  </data>
+  <data xml:space="preserve" name="LimitedReasons">
+    <value>Begrenzte Ursachenangaben</value>
+    <comment>Source (cs-CZ): Omezené důvody</comment>
+  </data>
+  <data xml:space="preserve" name="Limitations">
+    <value>Einschränkungen</value>
+    <comment>Source (cs-CZ): Omezení</comment>
+  </data>
+  <data xml:space="preserve" name="MonitoredServices">
+    <value>Überwachte Dienste</value>
+    <comment>Source (cs-CZ): Sledované služby</comment>
+  </data>
+  <data xml:space="preserve" name="ServiceStatusesAreNotAvailableYet">
+    <value>Dienststatus sind noch nicht verfügbar.</value>
+    <comment>Source (cs-CZ): Stavy služeb zatím nejsou dostupné.</comment>
+  </data>
+  <data xml:space="preserve" name="SavedServiceStatuses">
+    <value>Gespeicherte Dienststatus</value>
+    <comment>Source (cs-CZ): Uložené stavy služeb</comment>
+  </data>
+  <data xml:space="preserve" name="Maintenance">
+    <value>Wartung</value>
+    <comment>Source (cs-CZ): Údržba</comment>
+  </data>
+  <data xml:space="preserve" name="MaintenanceText0173">
+    <value>⚙   Wartung</value>
+    <comment>Source (cs-CZ): ⚙   Údržba</comment>
+  </data>
+  <data xml:space="preserve" name="MaintenanceUnderYourControl">
+    <value>Wartung unter Ihrer Kontrolle</value>
+    <comment>Source (cs-CZ): Údržba pod kontrolou</comment>
+  </data>
+  <data xml:space="preserve" name="ASpecificTargetTraceableEvidenceAndYourApprovalBeforeEveryAction">
+    <value>Ein konkretes Ziel, nachvollziehbare Nachweise und Ihre Genehmigung vor jedem Eingriff.</value>
+    <comment>Source (cs-CZ): Konkrétní cíl, dohledatelné důkazy a vaše schválení před každým zásahem.</comment>
+  </data>
+  <data xml:space="preserve" name="ActionsAreNotAvailableYetWaitingForTheCurrentServiceMode">
+    <value>Eingriffe sind noch nicht verfügbar. Warten auf den aktuellen Dienstmodus.</value>
+    <comment>Source (cs-CZ): Zásahy zatím nejsou dostupné. Čekám na aktuální režim služby.</comment>
+  </data>
+  <data xml:space="preserve" name="AnAdministratorApprovalWindowWillOpenReviewTheExactTargetAndTypeTheC">
+    <value>Ein Genehmigungsfenster mit Administratorrechten wird geöffnet. Prüfen Sie das genaue Ziel und geben Sie die Bestätigungs-GUID ein. Das Anhalten eines Dienstes oder Beenden eines Prozesses kann Ihre Arbeit unterbrechen; speichern Sie sie zuerst.</value>
+    <comment>Source (cs-CZ): Otevře se schvalovací okno správce. Zkontrolujete přesný cíl a opíšete potvrzovací GUID. Zastavení služby nebo ukončení procesu může přerušit práci; nejdříve ji uložte.</comment>
+  </data>
+  <data xml:space="preserve" name="IncidentSelectInTheIncidentsSection">
+    <value>Vorfall (im Bereich „Vorfälle“ auswählen)</value>
+    <comment>Source (cs-CZ): Incident (vyberte v sekci Incidenty)</comment>
+  </data>
+  <data xml:space="preserve" name="SelectedIncident">
+    <value>Ausgewählter Vorfall</value>
+    <comment>Source (cs-CZ): Vybraný incident</comment>
+  </data>
+  <data xml:space="preserve" name="RegisteredTargetAlias">
+    <value>Registrierter Zielalias</value>
+    <comment>Source (cs-CZ): Registrovaný alias cíle</comment>
+  </data>
+  <data xml:space="preserve" name="RequestedAction">
+    <value>Angeforderter Eingriff</value>
+    <comment>Source (cs-CZ): Požadovaný zásah</comment>
+  </data>
+  <data xml:space="preserve" name="RestartService">
+    <value>Dienst neu starten</value>
+    <comment>Source (cs-CZ): Restart služby</comment>
+  </data>
+  <data xml:space="preserve" name="StartService">
+    <value>Dienst starten</value>
+    <comment>Source (cs-CZ): Spustit službu</comment>
+  </data>
+  <data xml:space="preserve" name="StopService">
+    <value>Dienst anhalten</value>
+    <comment>Source (cs-CZ): Zastavit službu</comment>
+  </data>
+  <data xml:space="preserve" name="EndProcess">
+    <value>Prozess beenden</value>
+    <comment>Source (cs-CZ): Ukončit proces</comment>
+  </data>
+  <data xml:space="preserve" name="ForAProcessPIDAndUTCStartTimeInTicksSelectingItOnTheDashboardFillsTh">
+    <value>Für einen Prozess: PID und UTC-Startzeit in Ticks. Diese werden bei Auswahl in der Übersicht eingetragen.</value>
+    <comment>Source (cs-CZ): Pro proces: PID a čas spuštění UTC v ticks. Výběr v přehledu je doplní.</comment>
+  </data>
+  <data xml:space="preserve" name="ProcessPID">
+    <value>Prozess-PID</value>
+    <comment>Source (cs-CZ): PID procesu</comment>
+  </data>
+  <data xml:space="preserve" name="ProcessStartTimeInUTCTicks">
+    <value>Prozessstartzeit in UTC-Ticks</value>
+    <comment>Source (cs-CZ): Čas spuštění procesu v UTC ticks</comment>
+  </data>
+  <data xml:space="preserve" name="ReviewAction">
+    <value>Eingriff prüfen…</value>
+    <comment>Source (cs-CZ): Zkontrolovat zásah…</comment>
+  </data>
+  <data xml:space="preserve" name="BlockAllRepairs">
+    <value>Alle Reparaturen sperren…</value>
+    <comment>Source (cs-CZ): Zablokovat všechny opravy…</comment>
+  </data>
+  <data xml:space="preserve" name="CompareStatusAfterAction">
+    <value>Status nach dem Eingriff vergleichen</value>
+    <comment>Source (cs-CZ): Porovnat stav po zásahu</comment>
+  </data>
+  <data xml:space="preserve" name="WindowsSettings">
+    <value>Windows-Verwaltung in der App</value>
+    <comment>Source (cs-CZ): Nastavení Windows</comment>
+  </data>
+  <data xml:space="preserve" name="ChooseWhatToManageConfirmYourFileAndApplicationSelectionsDirectlyInW">
+    <value>Wählen Sie aus, was Sie verwalten möchten. Die Auswahl von Dateien und Anwendungen bestätigen Sie direkt in Windows.</value>
+    <comment>Source (cs-CZ): Vyberte, co chcete spravovat. Výběr souborů a aplikací potvrzujete přímo ve Windows.</comment>
+  </data>
+  <data xml:space="preserve" name="StorageAndCleanup">
+    <value>Speicher und Bereinigung…</value>
+    <comment>Source (cs-CZ): Úložiště a vyčištění…</comment>
+  </data>
+  <data xml:space="preserve" name="AppsAndUninstall">
+    <value>Apps und Deinstallation…</value>
+    <comment>Source (cs-CZ): Aplikace a odinstalace…</comment>
+  </data>
+  <data xml:space="preserve" name="StartupApps">
+    <value>Autostart-Programme…</value>
+    <comment>Source (cs-CZ): Programy po spuštění…</comment>
+  </data>
+  <data xml:space="preserve" name="Confirm">
+    <value>Bestätigen</value>
+    <comment>Source (cs-CZ): Potvrdit</comment>
+  </data>
+  <data xml:space="preserve" name="Cancel">
+    <value>Abbrechen</value>
+    <comment>Source (cs-CZ): Zrušit</comment>
+  </data>
+  <data xml:space="preserve" name="FullPathToJSONFile">
+    <value>Vollständiger Pfad zur JSON-Datei</value>
+    <comment>Source (cs-CZ): Úplná cesta k souboru JSON</comment>
+  </data>
+  <data xml:space="preserve" name="Save">
+    <value>Speichern</value>
+    <comment>Source (cs-CZ): Uložit</comment>
+  </data>
+  <data xml:space="preserve" name="EnterTheFullPathToAFileWithTheJsonExtension">
+    <value>Geben Sie den vollständigen Pfad zu einer Datei mit der Erweiterung .json ein.</value>
+    <comment>Source (cs-CZ): Zadejte úplnou cestu k souboru s příponou .json.</comment>
+  </data>
+  <data xml:space="preserve" name="TheFileAlreadyExistsDoYouWantToOverwriteIt">
+    <value>Die Datei ist bereits vorhanden. Möchten Sie sie überschreiben?</value>
+    <comment>Source (cs-CZ): Soubor již existuje. Chcete jej přepsat?</comment>
+  </data>
+  <data xml:space="preserve" name="CouldNotSaveTheLanguageThePreviousSelectionRemainsInEffect">
+    <value>Die Sprache konnte nicht gespeichert werden. Die bisherige Auswahl bleibt gültig.</value>
+    <comment>Source (cs-CZ): Jazyk se nepodařilo uložit. Dosavadní volba zůstává platná.</comment>
+  </data>
+  <data xml:space="preserve" name="DaysHMin">
+    <value>{0} Tage {1} h {2} min</value>
+    <comment>Source (cs-CZ): {0} dnů {1} h {2} min</comment>
+  </data>
+  <data xml:space="preserve" name="Impact">
+    <value>Auswirkungen: </value>
+    <comment>Source (cs-CZ): Dopad:</comment>
+  </data>
+  <data xml:space="preserve" name="NoDumpReference">
+    <value>ohne Dump-Verweis</value>
+    <comment>Source (cs-CZ): bez reference dumpu</comment>
+  </data>
+  <data xml:space="preserve" name="EmergencySwitch">
+    <value>Not-Aus-Schalter</value>
+    <comment>Source (cs-CZ): Nouzový vypínač</comment>
+  </data>
+  <data xml:space="preserve" name="InvestigateSustainedCPUUtilization">
+    <value>Anhaltende CPU-Auslastung prüfen</value>
+    <comment>Source (cs-CZ): Prověřit dlouhodobé vytížení CPU</comment>
+  </data>
+  <data xml:space="preserve" name="CPUAtLeast90ForAtLeast4MinutesWithinTheLast6Minutes">
+    <value>CPU mindestens 90 % für mindestens 4 Minuten innerhalb der letzten 6 Minuten.</value>
+    <comment>Source (cs-CZ): CPU alespoň 90 % po dobu nejméně 4 minut v posledních 6 minutách.</comment>
+  </data>
+  <data xml:space="preserve" name="ReducingUnnecessaryStartupAppsMayFreeUpProcessingCapacityTheBenefitM">
+    <value>Weniger unnötige Autostart-Programme können Leistung freigeben; der Nutzen muss gemessen werden.</value>
+    <comment>Source (cs-CZ): Omezení nepotřebných programů po spuštění může uvolnit výkon; přínos se musí změřit.</comment>
+  </data>
+  <data xml:space="preserve" name="DisablingAutomaticStartupMayDelaySynchronizationOrOtherAppFeatures">
+    <value>Das Deaktivieren des automatischen Starts kann die Synchronisierung oder andere App-Funktionen verzögern.</value>
+    <comment>Source (cs-CZ): Vypnutí automatického spuštění může odložit synchronizaci nebo jiné funkce aplikace.</comment>
+  </data>
+  <data xml:space="preserve" name="YouCanEnableTheItemAgainInStartupSettings">
+    <value>Die Autostartliste ist in Host Agent schreibgeschützt; Änderungen werden noch nicht unterstützt.</value>
+    <comment>Source (cs-CZ): Položku lze znovu povolit v nastavení Po spuštění.</comment>
+  </data>
+  <data xml:space="preserve" name="InvestigateMemoryPressure">
+    <value>Speicherdruck prüfen</value>
+    <comment>Source (cs-CZ): Prověřit tlak na paměť</comment>
+  </data>
+  <data xml:space="preserve" name="RAMAtLeast90ForAtLeast4MinutesWithinTheLast6Minutes">
+    <value>RAM mindestens 90 % für mindestens 4 Minuten innerhalb der letzten 6 Minuten.</value>
+    <comment>Source (cs-CZ): RAM alespoň 90 % po dobu nejméně 4 minut v posledních 6 minutách.</comment>
+  </data>
+  <data xml:space="preserve" name="ClosingAnUnnecessaryAppMayFreeUpRAMSaveAnyUnsavedWorkFirst">
+    <value>Das Schließen einer unnötigen Anwendung kann RAM freigeben. Speichern Sie zuerst Ihre Arbeit.</value>
+    <comment>Source (cs-CZ): Zavření nepotřebné aplikace může uvolnit RAM. Neuloženou práci nejdřív uložte.</comment>
+  </data>
+  <data xml:space="preserve" name="UninstallingIsNotRequiredFirstReviewAppUsageOnTheDashboard">
+    <value>Eine Deinstallation ist nicht erforderlich; prüfen Sie zuerst den App-Verbrauch in der Übersicht.</value>
+    <comment>Source (cs-CZ): Odinstalace není nutná; nejdřív prověřte spotřebu aplikací v přehledu.</comment>
+  </data>
+  <data xml:space="preserve" name="YouCanReopenAClosedAppUnsavedDataMayNotBeRecoverable">
+    <value>Eine geschlossene Anwendung kann erneut gestartet werden; ungespeicherte Daten lassen sich möglicherweise nicht wiederherstellen.</value>
+    <comment>Source (cs-CZ): Zavřenou aplikaci lze znovu spustit; neuložená data nemusí být obnovitelná.</comment>
+  </data>
+  <data xml:space="preserve" name="InvestigateTheCauseOfAWindowsCrash">
+    <value>Ursache des Windows-Absturzes untersuchen</value>
+    <comment>Source (cs-CZ): Prověřit příčinu pádu Windows</comment>
+  </data>
+  <data xml:space="preserve" name="CodeConfidenceRefersToTheStopCodeClassificationNotTheIdentificationO">
+    <value>Code {0}; Regelwert {1} / 100 klassifiziert den Stoppcode, nicht einen fehlerhaften Treiber.</value>
+    <comment>Source (cs-CZ): Kód {0}; confidence {1} % je klasifikace stop kódu, nikoli určení vadného ovladače.</comment>
+  </data>
+  <data xml:space="preserve" name="ComparingWEREventsWithTheDumpMayHelpNarrowDownTheCauseOfTheCrash">
+    <value>Der Vergleich von WER-Ereignissen und Dump kann die Absturzursache eingrenzen.</value>
+    <comment>Source (cs-CZ): Porovnání WER událostí a dumpu může zúžit příčinu pádu.</comment>
+  </data>
+  <data xml:space="preserve" name="AutomaticDriverChangesAreUnavailableThisEvidenceDoesNotIdentifyASpec">
+    <value>Eine automatische Treiberänderung ist nicht verfügbar; dieser Nachweis identifiziert keinen bestimmten Treiber.</value>
+    <comment>Source (cs-CZ): Automatická změna ovladačů není dostupná; konkrétní ovladač není tímto důkazem určen.</comment>
+  </data>
+  <data xml:space="preserve" name="ThisDiagnosticCheckIsReadOnlyAndDoesNotChangeWindows">
+    <value>Diese Diagnose ist schreibgeschützt und verändert Windows nicht.</value>
+    <comment>Source (cs-CZ): Tato diagnostika je pouze pro čtení a nemění Windows.</comment>
+  </data>
+  <data xml:space="preserve" name="DetailsForThisRecommendationAreUnavailable">
+    <value>Details zu dieser Empfehlung sind nicht verfügbar.</value>
+    <comment>Source (cs-CZ): Podrobnosti tohoto doporučení nejsou dostupné.</comment>
+  </data>
+  <data xml:space="preserve" name="CheckSpaceOnDisk">
+    <value>Speicherplatz auf Laufwerk {0} prüfen</value>
+    <comment>Source (cs-CZ): Prověřit místo na disku {0}</comment>
+  </data>
+  <data xml:space="preserve" name="FreeSpaceB">
+    <value>Freier Speicherplatz {0:0.#} % ({1} B).</value>
+    <comment>Source (cs-CZ): Volné místo {0:0.#} % ({1} B).</comment>
+  </data>
+  <data xml:space="preserve" name="FreeingUpSpaceMayHelpAppsAndUpdatesAnEstimateOfTheSpeedImprovementIs">
+    <value>Quarantäne ist rückgängig machbare Ablage auf demselben Laufwerk; sie schafft keinen Platz. Erst separat bestätigtes endgültiges Löschen kann Platz freigeben.</value>
+    <comment>Source (cs-CZ): Uvolnění místa může pomoci aplikacím a aktualizacím. Odhad zrychlení není k dispozici.</comment>
+  </data>
+  <data xml:space="preserve" name="StorageSettingsWillShowCandidatesReviewEverySelectionForDeletionPers">
+    <value>Die Speichereinstellungen zeigen mögliche Kandidaten an; prüfen Sie jede Auswahl zum Löschen. Persönliche Dateien werden nicht automatisch gelöscht.</value>
+    <comment>Source (cs-CZ): Nastavení úložiště zobrazí kandidáty; každý výběr ke smazání zkontrolujte. Osobní soubory se nemažou automaticky.</comment>
+  </data>
+  <data xml:space="preserve" name="SomeDeletionsAreIrreversibleBackUpPersonalFilesFirst">
+    <value>Manche Löschvorgänge sind unumkehrbar; sichern Sie zuerst Ihre persönlichen Dateien.</value>
+    <comment>Source (cs-CZ): Některé odstranění je nevratné; osobní soubory nejdřív zálohujte.</comment>
+  </data>
+  <data xml:space="preserve" name="TechnicalCode">
+    <value>Technischer Code: {0}</value>
+    <comment>Source (cs-CZ): Technický kód: {0}</comment>
+  </data>
+  <data xml:space="preserve" name="CorruptQuarantineRecord">
+    <value>Beschädigter Quarantäneeintrag</value>
+    <comment>Source (cs-CZ): Poškozený záznam karantény</comment>
+  </data>
+  <data xml:space="preserve" name="ShadowObservationOnly">
+    <value>Shadow — nur Beobachtung</value>
+    <comment>Source (cs-CZ): Shadow — pouze pozorování</comment>
+  </data>
+  <data xml:space="preserve" name="ActionConfirmation">
+    <value>Eingriffe mit Bestätigung</value>
+    <comment>Source (cs-CZ): Potvrzování zásahů</comment>
+  </data>
+  <data xml:space="preserve" name="Detected">
+    <value>Erkannt</value>
+    <comment>Source (cs-CZ): Zjištěno</comment>
+  </data>
+  <data xml:space="preserve" name="Active">
+    <value>Aktiv</value>
+    <comment>Source (cs-CZ): Aktivní</comment>
+  </data>
+  <data xml:space="preserve" name="Acknowledged">
+    <value>Zur Kenntnis genommen</value>
+    <comment>Source (cs-CZ): Vzato na vědomí</comment>
+  </data>
+  <data xml:space="preserve" name="ActionProposed">
+    <value>Eingriff vorgeschlagen</value>
+    <comment>Source (cs-CZ): Navržen zásah</comment>
+  </data>
+  <data xml:space="preserve" name="AwaitingApproval">
+    <value>Wartet auf Genehmigung</value>
+    <comment>Source (cs-CZ): Čeká na schválení</comment>
+  </data>
+  <data xml:space="preserve" name="RemediationInProgress">
+    <value>Behebung läuft</value>
+    <comment>Source (cs-CZ): Probíhá řešení</comment>
+  </data>
+  <data xml:space="preserve" name="Resolved">
+    <value>Behoben</value>
+    <comment>Source (cs-CZ): Vyřešeno</comment>
+  </data>
+  <data xml:space="preserve" name="ActionFailed">
+    <value>Eingriff fehlgeschlagen</value>
+    <comment>Source (cs-CZ): Zásah selhal</comment>
+  </data>
+  <data xml:space="preserve" name="RequiresAttention">
+    <value>Erfordert Aufmerksamkeit</value>
+    <comment>Source (cs-CZ): Vyžaduje pozornost</comment>
+  </data>
+  <data xml:space="preserve" name="Running">
+    <value>Gestartet</value>
+    <comment>Source (cs-CZ): Spuštěno</comment>
+  </data>
+  <data xml:space="preserve" name="Stopped">
+    <value>Angehalten</value>
+    <comment>Source (cs-CZ): Zastaveno</comment>
+  </data>
+  <data xml:space="preserve" name="Paused">
+    <value>Pausiert</value>
+    <comment>Source (cs-CZ): Pozastaveno</comment>
+  </data>
+  <data xml:space="preserve" name="Starting">
+    <value>Wird gestartet</value>
+    <comment>Source (cs-CZ): Spouštění</comment>
+  </data>
+  <data xml:space="preserve" name="Stopping">
+    <value>Wird angehalten</value>
+    <comment>Source (cs-CZ): Zastavování</comment>
+  </data>
+  <data xml:space="preserve" name="Pausing">
+    <value>Wird pausiert</value>
+    <comment>Source (cs-CZ): Pozastavování</comment>
+  </data>
+  <data xml:space="preserve" name="Resuming">
+    <value>Wird fortgesetzt</value>
+    <comment>Source (cs-CZ): Obnovování</comment>
+  </data>
+  <data xml:space="preserve" name="UnknownStatus">
+    <value>Unbekannter Status</value>
+    <comment>Source (cs-CZ): Neznámý stav</comment>
+  </data>
+  <data xml:space="preserve" name="Quarantined">
+    <value>In Quarantäne</value>
+    <comment>Source (cs-CZ): V karanténě</comment>
+  </data>
+  <data xml:space="preserve" name="RequiresReview">
+    <value>Prüfung erforderlich</value>
+    <comment>Source (cs-CZ): Vyžaduje kontrolu</comment>
+  </data>
+  <data xml:space="preserve" name="NotMoved">
+    <value>Nicht verschoben</value>
+    <comment>Source (cs-CZ): Nepřesunuto</comment>
+  </data>
+  <data xml:space="preserve" name="Restored">
+    <value>Wiederhergestellt</value>
+    <comment>Source (cs-CZ): Obnoveno</comment>
+  </data>
+  <data xml:space="preserve" name="IncompleteMove">
+    <value>Unvollständiger Verschiebevorgang</value>
+    <comment>Source (cs-CZ): Nedokončený přesun</comment>
+  </data>
+  <data xml:space="preserve" name="IncompleteRestore">
+    <value>Unvollständige Wiederherstellung</value>
+    <comment>Source (cs-CZ): Nedokončené obnovení</comment>
+  </data>
+  <data xml:space="preserve" name="Administration">
+    <value>Verwaltung</value>
+    <comment>Source (cs-CZ): Správa</comment>
+  </data>
+  <data xml:space="preserve" name="CollectionScheduler">
+    <value>Erfassungsplanung</value>
+    <comment>Source (cs-CZ): Plánovač sběru</comment>
+  </data>
+  <data xml:space="preserve" name="DataCollection">
+    <value>Datenerfassung</value>
+    <comment>Source (cs-CZ): Sběr dat</comment>
+  </data>
+  <data xml:space="preserve" name="CPUAndMemory">
+    <value>CPU und Speicher</value>
+    <comment>Source (cs-CZ): CPU a paměť</comment>
+  </data>
+  <data xml:space="preserve" name="Diagnostics">
+    <value>Diagnose</value>
+    <comment>Source (cs-CZ): Diagnostika</comment>
+  </data>
+  <data xml:space="preserve" name="Disks">
+    <value>Laufwerke</value>
+    <comment>Source (cs-CZ): Disky</comment>
+  </data>
+  <data xml:space="preserve" name="EventLog">
+    <value>Ereignisprotokoll</value>
+    <comment>Source (cs-CZ): Protokol událostí</comment>
+  </data>
+  <data xml:space="preserve" name="Network">
+    <value>Netzwerk</value>
+    <comment>Source (cs-CZ): Síť</comment>
+  </data>
+  <data xml:space="preserve" name="ProcessesAndServices">
+    <value>Prozesse und Dienste</value>
+    <comment>Source (cs-CZ): Procesy a služby</comment>
+  </data>
+  <data xml:space="preserve" name="Publishing">
+    <value>Veröffentlichung</value>
+    <comment>Source (cs-CZ): Publikace</comment>
+  </data>
+  <data xml:space="preserve" name="System">
+    <value>System</value>
+    <comment>Source (cs-CZ): Systém</comment>
+  </data>
+  <data xml:space="preserve" name="ApplicationRuntime">
+    <value>Anwendungslaufzeit</value>
+    <comment>Source (cs-CZ): Běh aplikace</comment>
+  </data>
+  <data xml:space="preserve" name="Healthy">
+    <value>In Ordnung</value>
+    <comment>Source (cs-CZ): V pořádku</comment>
+  </data>
+  <data xml:space="preserve" name="CollectionIsHealthy">
+    <value>Erfassung in Ordnung</value>
+    <comment>Source (cs-CZ): Sběr je v pořádku</comment>
+  </data>
+  <data xml:space="preserve" name="PartialData">
+    <value>Teilweise Daten</value>
+    <comment>Source (cs-CZ): Částečná data</comment>
+  </data>
+  <data xml:space="preserve" name="CollectionUnavailable">
+    <value>Erfassung nicht verfügbar</value>
+    <comment>Source (cs-CZ): Sběr není dostupný</comment>
+  </data>
+  <data xml:space="preserve" name="CollectionFailed">
+    <value>Erfassung fehlgeschlagen</value>
+    <comment>Source (cs-CZ): Sběr selhal</comment>
+  </data>
+  <data xml:space="preserve" name="CollectionTimedOut">
+    <value>Zeitüberschreitung bei der Erfassung</value>
+    <comment>Source (cs-CZ): Vypršel čas sběru</comment>
+  </data>
+  <data xml:space="preserve" name="CollectionError">
+    <value>Erfassungsfehler</value>
+    <comment>Source (cs-CZ): Chyba sběru</comment>
+  </data>
+  <data xml:space="preserve" name="WaitingBeforeRetry">
+    <value>Warten vor dem nächsten Versuch</value>
+    <comment>Source (cs-CZ): Čekání před dalším pokusem</comment>
+  </data>
+  <data xml:space="preserve" name="PreviousCollectionIsStillRunning">
+    <value>Vorherige Erfassung läuft noch</value>
+    <comment>Source (cs-CZ): Předchozí sběr stále běží</comment>
+  </data>
+  <data xml:space="preserve" name="OptionalSMARTUnavailable">
+    <value>Optionale SMART-Daten nicht verfügbar</value>
+    <comment>Source (cs-CZ): Volitelné SMART není dostupné</comment>
+  </data>
+  <data xml:space="preserve" name="OptionalProcessPathsUnavailable">
+    <value>Optionale Prozesspfade nicht verfügbar</value>
+    <comment>Source (cs-CZ): Volitelné cesty procesů nejsou dostupné</comment>
+  </data>
+  <data xml:space="preserve" name="VolumeNotReady">
+    <value>Volume nicht bereit</value>
+    <comment>Source (cs-CZ): Svazek není připraven</comment>
+  </data>
+  <data xml:space="preserve" name="VolumeMetricsUnavailable">
+    <value>Volume-Metriken nicht verfügbar</value>
+    <comment>Source (cs-CZ): Metriky svazku nejsou dostupné</comment>
+  </data>
+  <data xml:space="preserve" name="DiskIOCountersUnavailable">
+    <value>Datenträger-I/O-Zähler nicht verfügbar</value>
+    <comment>Source (cs-CZ): Čítače diskového I/O nejsou dostupné</comment>
+  </data>
+  <data xml:space="preserve" name="SomeDiskIOCountersUnavailable">
+    <value>Einige Datenträger-I/O-Zähler nicht verfügbar</value>
+    <comment>Source (cs-CZ): Některé čítače diskového I/O nejsou dostupné</comment>
+  </data>
+  <data xml:space="preserve" name="SMARTUnavailable">
+    <value>SMART-Daten nicht verfügbar</value>
+    <comment>Source (cs-CZ): SMART není dostupné</comment>
+  </data>
+  <data xml:space="preserve" name="TotalCPUUtilizationUnavailable">
+    <value>CPU-Gesamtauslastung nicht verfügbar</value>
+    <comment>Source (cs-CZ): Celkové vytížení CPU není dostupné</comment>
+  </data>
+  <data xml:space="preserve" name="WaitingForSecondCPUSample">
+    <value>Warten auf zweiten CPU-Messwert</value>
+    <comment>Source (cs-CZ): Čekání na druhý vzorek CPU</comment>
+  </data>
+  <data xml:space="preserve" name="ProcessListUnavailable">
+    <value>Prozessliste nicht verfügbar</value>
+    <comment>Source (cs-CZ): Seznam procesů není dostupný</comment>
+  </data>
+  <data xml:space="preserve" name="SomeProcessMetricsUnavailable">
+    <value>Einige Prozessmetriken nicht verfügbar</value>
+    <comment>Source (cs-CZ): Některé metriky procesů nejsou dostupné</comment>
+  </data>
+  <data xml:space="preserve" name="AccessToSomeProcessMetricsDenied">
+    <value>Zugriff auf einige Prozessmetriken verweigert</value>
+    <comment>Source (cs-CZ): Přístup k některým metrikám procesů byl odepřen</comment>
+  </data>
+  <data xml:space="preserve" name="SomeProcessStartTimesUnavailable">
+    <value>Einige Prozessstartzeiten nicht verfügbar</value>
+    <comment>Source (cs-CZ): Některé časy spuštění procesů nejsou dostupné</comment>
+  </data>
+  <data xml:space="preserve" name="ProcessListWasLimited">
+    <value>Prozessliste wurde begrenzt</value>
+    <comment>Source (cs-CZ): Seznam procesů byl omezen</comment>
+  </data>
+  <data xml:space="preserve" name="AccessToProcessIdentityDenied">
+    <value>Zugriff auf Prozessidentität verweigert</value>
+    <comment>Source (cs-CZ): Přístup k identitě procesu byl odepřen</comment>
+  </data>
+  <data xml:space="preserve" name="AccessToProcessNameDenied">
+    <value>Zugriff auf Prozessname verweigert</value>
+    <comment>Source (cs-CZ): Přístup k názvu procesu byl odepřen</comment>
+  </data>
+  <data xml:space="preserve" name="AccessToProcessCPUTimeDenied">
+    <value>Zugriff auf CPU-Zeit des Prozesses verweigert</value>
+    <comment>Source (cs-CZ): Přístup k času CPU procesu byl odepřen</comment>
+  </data>
+  <data xml:space="preserve" name="AccessToProcessMemoryDenied">
+    <value>Zugriff auf Prozessspeicher verweigert</value>
+    <comment>Source (cs-CZ): Přístup k paměti procesu byl odepřen</comment>
+  </data>
+  <data xml:space="preserve" name="AccessToProcessStartTimeDenied">
+    <value>Zugriff auf Prozessstartzeit verweigert</value>
+    <comment>Source (cs-CZ): Přístup k času spuštění procesu byl odepřen</comment>
+  </data>
+  <data xml:space="preserve" name="ServiceListUnavailable">
+    <value>Dienstliste nicht verfügbar</value>
+    <comment>Source (cs-CZ): Seznam služeb není dostupný</comment>
+  </data>
+  <data xml:space="preserve" name="SomeServiceStatusesUnavailable">
+    <value>Einige Dienststatus nicht verfügbar</value>
+    <comment>Source (cs-CZ): Některé stavy služeb nejsou dostupné</comment>
+  </data>
+  <data xml:space="preserve" name="SomeExecutablePathsUnavailable">
+    <value>Einige Programmpfade nicht verfügbar</value>
+    <comment>Source (cs-CZ): Některé cesty programů nejsou dostupné</comment>
+  </data>
+  <data xml:space="preserve" name="SomeServiceStartupModesUnavailable">
+    <value>Einige Dienststartmodi nicht verfügbar</value>
+    <comment>Source (cs-CZ): Některé režimy spouštění služeb nejsou dostupné</comment>
+  </data>
+  <data xml:space="preserve" name="SomeServiceTriggersUnavailable">
+    <value>Einige Dienstauslöser nicht verfügbar</value>
+    <comment>Source (cs-CZ): Některé spouštěče služeb nejsou dostupné</comment>
+  </data>
+  <data xml:space="preserve" name="SomeAdapterDetailsUnavailable">
+    <value>Einige Adapterdetails nicht verfügbar</value>
+    <comment>Source (cs-CZ): Některé podrobnosti adaptérů nejsou dostupné</comment>
+  </data>
+  <data xml:space="preserve" name="NoNetworkAdapterAvailable">
+    <value>Kein Netzwerkadapter verfügbar</value>
+    <comment>Source (cs-CZ): Žádný síťový adaptér není dostupný</comment>
+  </data>
+  <data xml:space="preserve" name="WindowsVersionUnavailable">
+    <value>Windows-Version nicht verfügbar</value>
+    <comment>Source (cs-CZ): Verze Windows není dostupná</comment>
+  </data>
+  <data xml:space="preserve" name="ShutdownHistoryUnavailable">
+    <value>Herunterfahrverlauf nicht verfügbar</value>
+    <comment>Source (cs-CZ): Historie vypnutí není dostupná</comment>
+  </data>
+  <data xml:space="preserve" name="PreviewReady">
+    <value>Vorschau bereit</value>
+    <comment>Source (cs-CZ): Náhled je připraven</comment>
+  </data>
+  <data xml:space="preserve" name="MaintenanceAlreadyInProgress">
+    <value>Wartung läuft bereits</value>
+    <comment>Source (cs-CZ): Údržba již probíhá</comment>
+  </data>
+  <data xml:space="preserve" name="ExactConfirmationRequired">
+    <value>Genaue Bestätigung erforderlich</value>
+    <comment>Source (cs-CZ): Je nutné přesné potvrzení</comment>
+  </data>
+  <data xml:space="preserve" name="RecordUnavailable">
+    <value>Eintrag nicht verfügbar</value>
+    <comment>Source (cs-CZ): Záznam není dostupný</comment>
+  </data>
+  <data xml:space="preserve" name="MaintenanceRecordsRequireReview">
+    <value>Wartungseinträge müssen geprüft werden</value>
+    <comment>Source (cs-CZ): Záznamy údržby vyžadují kontrolu</comment>
+  </data>
+  <data xml:space="preserve" name="RecordLimitReached">
+    <value>Eintragsgrenze erreicht</value>
+    <comment>Source (cs-CZ): Dosažen limit záznamů</comment>
+  </data>
+  <data xml:space="preserve" name="CouldNotWriteRecord">
+    <value>Schreiben des Eintrags fehlgeschlagen</value>
+    <comment>Source (cs-CZ): Zápis záznamu selhal</comment>
+  </data>
+  <data xml:space="preserve" name="MaintenanceNotApproved">
+    <value>Wartung nicht genehmigt</value>
+    <comment>Source (cs-CZ): Údržba není schválena</comment>
+  </data>
+  <data xml:space="preserve" name="FileChanged">
+    <value>Datei wurde geändert</value>
+    <comment>Source (cs-CZ): Soubor se změnil</comment>
+  </data>
+  <data xml:space="preserve" name="PreviewNoLongerValid">
+    <value>Vorschau nicht mehr gültig</value>
+    <comment>Source (cs-CZ): Náhled již není platný</comment>
+  </data>
+  <data xml:space="preserve" name="MaintenanceQuotaReached">
+    <value>Wartungskontingent erreicht</value>
+    <comment>Source (cs-CZ): Dosažena kvóta údržby</comment>
+  </data>
+  <data xml:space="preserve" name="MaintenanceFolderUnavailable">
+    <value>Wartungsordner nicht verfügbar</value>
+    <comment>Source (cs-CZ): Složka údržby není dostupná</comment>
+  </data>
+  <data xml:space="preserve" name="TargetOutsideAllowedScope">
+    <value>Ziel außerhalb des erlaubten Bereichs</value>
+    <comment>Source (cs-CZ): Cíl je mimo povolený rozsah</comment>
+  </data>
+  <data xml:space="preserve" name="TargetOnADifferentVolume">
+    <value>Ziel auf einem anderen Volume</value>
+    <comment>Source (cs-CZ): Cíl je na jiném svazku</comment>
+  </data>
+  <data xml:space="preserve" name="MoveToQuarantineCompleted">
+    <value>Verschieben in die Quarantäne abgeschlossen</value>
+    <comment>Source (cs-CZ): Přesun do karantény byl dokončen</comment>
+  </data>
+  <data xml:space="preserve" name="QuarantineIsEmpty">
+    <value>Quarantäne ist leer</value>
+    <comment>Source (cs-CZ): Karanténa je prázdná</comment>
+  </data>
+  <data xml:space="preserve" name="NoFilesWereMoved">
+    <value>Keine Datei verschoben</value>
+    <comment>Source (cs-CZ): Žádný soubor nebyl přesunut</comment>
+  </data>
+  <data xml:space="preserve" name="MovePartiallyCompleted">
+    <value>Verschiebevorgang teilweise abgeschlossen</value>
+    <comment>Source (cs-CZ): Přesun byl dokončen částečně</comment>
+  </data>
+  <data xml:space="preserve" name="MoveRequiresRecovery">
+    <value>Verschiebevorgang erfordert Wiederherstellung</value>
+    <comment>Source (cs-CZ): Přesun vyžaduje obnovu</comment>
+  </data>
+  <data xml:space="preserve" name="RestoreCompleted">
+    <value>Wiederherstellung abgeschlossen</value>
+    <comment>Source (cs-CZ): Obnovení bylo dokončeno</comment>
+  </data>
+  <data xml:space="preserve" name="DestinationFileAlreadyExists">
+    <value>Zieldatei bereits vorhanden</value>
+    <comment>Source (cs-CZ): Cílový soubor již existuje</comment>
+  </data>
+  <data xml:space="preserve" name="RestoreFailed">
+    <value>Wiederherstellung fehlgeschlagen</value>
+    <comment>Source (cs-CZ): Obnovení selhalo</comment>
+  </data>
+  <data xml:space="preserve" name="RestoreRequiresReview">
+    <value>Wiederherstellung erfordert Prüfung</value>
+    <comment>Source (cs-CZ): Obnovení vyžaduje kontrolu</comment>
+  </data>
+  <data xml:space="preserve" name="InterfaceLanguage">
+    <value>Sprache der Benutzeroberfläche</value>
+    <comment>Source (cs-CZ): Jazyk rozhraní</comment>
+  </data>
+  <data xml:space="preserve" name="Size">
+    <value>Größe</value>
+    <comment>Source (cs-CZ): Velikost</comment>
+  </data>
+  <data xml:space="preserve" name="UptimeDays">
+    <value>{0} T. {1} Std. {2} Min.</value>
+    <comment>Source (cs-CZ): {0} d {1} h {2} min</comment>
+  </data>
+  <data xml:space="preserve" name="UptimeHours">
+    <value>{0} Std. {1:00} Min.</value>
+    <comment>Source (cs-CZ): {0} h {1:00} min</comment>
+  </data>
+  <data xml:space="preserve" name="RefreshList">
+    <value>Liste aktualisieren</value>
+    <comment>Source (cs-CZ): Obnovit seznam</comment>
+  </data>
+  <data xml:space="preserve" name="HealthSummaryConnecting"><value>Verbindung zum Dienst wird hergestellt…</value></data>
+  <data xml:space="preserve" name="HealthSummaryUnavailable"><value>Die aktuelle Zusammenfassung ist nicht verfügbar. Stellen Sie die Verbindung zum Dienst wieder her; Details finden Sie unter Komponenten.</value></data>
+  <data xml:space="preserve" name="HealthSummaryComponentsMissing"><value>Der Komponentenstatus wurde noch nicht bereitgestellt.</value></data>
+  <data xml:space="preserve" name="HealthSummaryComponentsLimited"><value>Komponenten mit gemeldeten Einschränkungen: {0} von {1}.</value></data>
+  <data xml:space="preserve" name="HealthSummaryDegradedWithoutReasons"><value> Der Dienst meldet Einschränkungen ohne detaillierte Gründe.</value></data>
+  <data xml:space="preserve" name="HealthSummaryMissingCpu"><value> Die aktuelle Gesamt-CPU-Messung fehlt.</value></data>
+  <data xml:space="preserve" name="HealthSummaryMissingMemory"><value> Die aktuelle Gesamtspeichermessung fehlt.</value></data>
+  <data xml:space="preserve" name="HealthSummaryDetails"><value> Details und technische Codes finden Sie unter Komponenten.</value></data>
+  <data xml:space="preserve" name="NoDetailedReasonsProvided"><value>Detaillierte Gründe wurden nicht angegeben.</value></data>
+  <data xml:space="preserve" name="SomeProcessMetricsAccessDenied"><value>Windows hat den Zugriff auf einige Prozessdaten verweigert.</value></data>
+  <data xml:space="preserve" name="ProcessCpuTimeAccessDenied"><value>Die CPU-Zeit einiger Prozesse kann aufgrund fehlender Berechtigungen nicht gelesen werden.</value></data>
+  <data xml:space="preserve" name="ProcessIdentityAccessDenied"><value>Die Identität einiger Prozesse kann aufgrund fehlender Berechtigungen nicht gelesen werden.</value></data>
+  <data xml:space="preserve" name="ProcessNameAccessDenied"><value>Die Namen einiger Prozesse können aufgrund fehlender Berechtigungen nicht gelesen werden.</value></data>
+  <data xml:space="preserve" name="ProcessStartTimeAccessDenied"><value>Die Startzeit einiger Prozesse kann aufgrund fehlender Berechtigungen nicht gelesen werden.</value></data>
+  <data xml:space="preserve" name="ProcessWorkingSetAccessDenied"><value>Die Speichernutzung einiger Prozesse kann aufgrund fehlender Berechtigungen nicht gelesen werden.</value></data>
+  <data xml:space="preserve" name="ProcessListTruncated"><value>Die Prozessliste wurde begrenzt und enthält nicht alle Prozesse.</value></data>
+  <data xml:space="preserve" name="CpuBaselineNotReady"><value>Zur Berechnung der CPU-Auslastung fehlt noch eine vorherige Messung.</value></data>
+  <data xml:space="preserve" name="SystemCpuCounterUnavailable"><value>Die gesamte CPU-Auslastung konnte nicht gemessen werden.</value></data>
+  <data xml:space="preserve" name="GlobalMemoryStatusUnavailable"><value>Die gesamte Speichernutzung konnte nicht gemessen werden.</value></data>
+  <data xml:space="preserve" name="ServiceCatalogUnavailable"><value>Die Windows-Dienstliste konnte nicht geladen werden.</value></data>
+  <data xml:space="preserve" name="SomeServiceStartModesUnavailable"><value>Der Starttyp einiger Dienste ist nicht verfügbar.</value></data>
+  <data xml:space="preserve" name="SomeServiceStatesUnavailable"><value>Der aktuelle Status einiger Dienste ist nicht verfügbar.</value></data>
+  <data xml:space="preserve" name="AdditionalReportedReason"><value>Zusätzlicher gemeldeter Grund: {0}</value></data>
+  
+  <data xml:space="preserve" name="ChooseMaintenanceFolder"><value>Ordner zur Wartung auswählen</value></data>
+  
+  
+  
+  <data xml:space="preserve" name="SelectedFolderMaintenanceScope"><value>Entwicklerbereich: nur direkte Dateien, kein Mindestalter, höchstens 1 GiB pro Datei und 10 GiB in Quarantäne. Prüfen Sie jede Datei. Eine Wiederherstellung ist möglich, solange die Datei in Quarantäne bleibt.</value></data>
+  <data xml:space="preserve" name="SelectedFolderUnavailable"><value>Dieser Ordner ist nicht verfügbar oder geschützt. Wählen Sie einen eigenen lokalen Ordner auf demselben Volume wie Ihr Benutzerprofil.</value></data>
+  <data xml:space="preserve" name="ReadSmartPrediction"><value>SMART-Ausfallprognose lesen</value></data>
+  <data xml:space="preserve" name="SmartDeviceUnavailable"><value>{0}: SMART-Prognose ist nicht verfügbar.</value></data>
+  <data xml:space="preserve" name="SmartFailurePredicted"><value>{0}: Das Gerät meldet einen erwarteten Ausfall. Wichtige Daten sichern und den physischen Datenträger prüfen.</value></data>
+  <data xml:space="preserve" name="SmartNoFailurePredicted"><value>{0}: Diese Schnittstelle meldet keinen erwarteten Ausfall. Dies ist keine vollständige Hardwareprüfung.</value></data>
+  <data xml:space="preserve" name="SmartNotRead"><value>SMART wurde in dieser Sitzung noch nicht abgefragt.</value></data>
+  <data xml:space="preserve" name="SmartPredictionUnavailable"><value>SMART-Prognose ist für dieses Gerät, diesen Treiber oder dieses Konto nicht verfügbar. Der Zustand des Datenträgers ist damit nicht bestätigt.</value></data>
+  <data name="WinAdminTitle" xml:space="preserve"><value>Windows-Verwaltung</value></data>
+  <data name="WinAdminIntro" xml:space="preserve"><value>Hier können Sie Prozesse, Dienste, Datenträger, Netzwerkadapter und aktuelle Systemfehler prüfen. Die Dateiwartung wird in Host Agent geöffnet.</value></data>
+  <data name="WinGroupNetwork" xml:space="preserve"><value>Netzwerk</value></data>
+  <data name="WinToolServices" xml:space="preserve"><value>Dienste</value></data>
+  <data name="WinToolEventViewer" xml:space="preserve"><value>Ereignisanzeige</value></data>
+  <data name="WinInventoryArea" xml:space="preserve"><value>Windows-Bereich</value></data>
+  <data name="WinInventoryProcesses" xml:space="preserve"><value>Prozesse</value></data>
+  <data name="WinInventoryFilter" xml:space="preserve"><value>Liste filtern</value></data>
+  <data name="WinInventoryDetail" xml:space="preserve"><value>Details</value></data>
+  <data name="WinInventoryValue" xml:space="preserve"><value>Messwert / Zeit</value></data>
+  <data name="WinInventoryLoading" xml:space="preserve"><value>Aktuelle Daten dieses PCs werden gelesen…</value></data>
+  <data name="WinInventoryUnavailable" xml:space="preserve"><value>Daten sind nicht verfügbar.</value></data>
+  <data name="WinInventoryPartial" xml:space="preserve"><value>Einige Daten konnten nicht gelesen werden.</value></data>
+  <data name="WinInventoryEmpty" xml:space="preserve"><value>Keine passenden Einträge.</value></data>
+  <data name="WinInventoryLoaded" xml:space="preserve"><value>Daten dieses PCs wurden gelesen. Zum erneuten Lesen Aktualisieren wählen.</value></data>
+  <data name="WinInventoryCritical" xml:space="preserve"><value>Kritisch</value></data>
+  <data name="WinInventoryError" xml:space="preserve"><value>Fehler</value></data>
+  <data name="WinInventoryWarning" xml:space="preserve"><value>Warnung</value></data>
+  <data name="WinDiagnosisTitle" xml:space="preserve"><value>Befunde und empfohlene Schritte</value></data>
+  <data name="WinDiagnosisUnavailable" xml:space="preserve"><value>Der Monitor hat keine aktuellen Daten für Empfehlungen geliefert.</value></data>
+  <data name="WinDiagnosisNone" xml:space="preserve"><value>Die aktuellen Daten lösen keine Empfehlung aus. Das schließt Probleme in Windows nicht aus.</value></data>
+  <data name="WinDiagnosisCrashes" xml:space="preserve"><value>Windows-Abstürze untersuchen</value></data>
+  <data name="DiskMaintenancePreview" xml:space="preserve"><value>Bereinigungsvorschau</value></data>
+  <data name="DiskMaintenanceBefore" xml:space="preserve"><value>Laufwerk {0} · freier Speicher gemessen {2:g}: {1}. Die Quarantäne belässt Dateien auf diesem Laufwerk und gibt keinen Speicher frei.</value></data>
+  
+  <data name="DiskMaintenanceImpact" xml:space="preserve"><value>Geeignete Dateien im Temp-Ordner des Benutzers prüfen. Die Quarantäne belässt sie auf demselben Laufwerk und gibt keinen Speicher frei.</value></data>
+  <data name="DiskMaintenanceRestore" xml:space="preserve"><value>Eine ausgewählte Datei aus der Quarantäne an ihren genauen ursprünglichen Pfad wiederherstellen. Die Datei bleibt wiederherstellbar, solange ihr Quarantäneeintrag verfügbar ist.</value></data>
+  <data name="ServiceCrashFinding" xml:space="preserve"><value>Windows hat einen unerwarteten Abbruch des Dienstes {0} erfasst. Prüfen Sie aktuelle Belege und den Dienststatus.</value></data>
+  <data name="ServiceStopFinding" xml:space="preserve"><value>Der Dienst {0} wurde beendet. Diese Beobachtung allein belegt keinen Absturz.</value></data>
+  <data name="ServiceRecoveryReview" xml:space="preserve"><value>Start von {0} prüfen</value></data>
+  <data name="ServiceRecoveryRunning" xml:space="preserve"><value>Eine aktuelle Abfrage des Dienststeuerungs-Managers bestätigt, dass {0} gestartet ist.</value></data>
+  <data name="ServiceRecoveryCancelled" xml:space="preserve"><value>Die Prüfung wurde abgebrochen, bevor eine Startanfrage gesendet wurde.</value></data>
+  <data name="ServiceRecoveryRejected" xml:space="preserve"><value>Der Helper oder eine Vorbedingung hat die Anfrage abgelehnt; der Start wurde nicht genehmigt.</value></data>
+  <data name="ServiceRecoveryUnverified" xml:space="preserve"><value>Die Anfrage wurde möglicherweise ausgeführt, aber das Ergebnis ist unbekannt. Prüfen Sie den Dienststatus, bevor Sie etwas unternehmen; nicht automatisch erneut versuchen.</value></data>
+  <data name="NetworkEnableChecks" xml:space="preserve"><value>Netzwerkprüfungen aktivieren</value></data>
+  <data name="NetworkDisableChecks" xml:space="preserve"><value>Netzwerkprüfungen deaktivieren</value></data>
+  <data name="NetworkChecksDisabled" xml:space="preserve"><value>Aktive Netzwerkprüfungen sind deaktiviert. Die Adapterliste zeigt den lokalen Zustand.</value></data>
+  <data name="NetworkChecksConfirm" xml:space="preserve"><value>{0}. Nach Administratorbestätigung starten die Host-Agent-Dienste neu. Aktive Prüfungen kontaktieren Gateway, 1.1.1.1 und den eingestellten DNS-Resolver.</value></data>
+  <data name="NetworkSettingVerified" xml:space="preserve"><value>Der Monitor hat die gewünschte Einstellung für Netzwerkprüfungen gemeldet.</value></data>
+  <data name="NetworkSettingUnverified" xml:space="preserve"><value>Die neue Einstellung konnte nicht bestätigt werden. Aktualisieren Sie die Ansicht und prüfen Sie den gemeldeten Zustand.</value></data>
+  <data name="WinActionUnverified" xml:space="preserve"><value>Das Ergebnis des Vorgangs konnte nicht bestätigt werden.</value></data>
+  <data name="NetworkProbeSummary" xml:space="preserve"><value>Gateway: {0} · Externe IP: {1} · DNS: {2}</value></data>
+  <data name="NetworkProbePassed" xml:space="preserve"><value>antwortet</value></data>
+  <data name="NetworkProbeFailed" xml:space="preserve"><value>fehlgeschlagen</value></data>
+  <data name="NetworkProbeTimeout" xml:space="preserve"><value>Zeitüberschreitung</value></data>
+  <data name="NetworkProbeMissing" xml:space="preserve"><value>nicht verfügbar</value></data>
+  <data name="NetworkFindingAdapter" xml:space="preserve"><value>Kein aktiver Adapter gemeldet. Prüfen Sie WLAN oder die Ethernet-Verbindung.</value></data>
+  <data name="NetworkFindingGateway" xml:space="preserve"><value>Die Gateway-Prüfung schlug fehl. Prüfen Sie die lokale Verbindung und den Router. ICMP kann gefiltert werden.</value></data>
+  <data name="NetworkFindingDns" xml:space="preserve"><value>Gateway und externe IP antworten, aber die Namensauflösung schlug fehl. Prüfen Sie den DNS-Resolver.</value></data>
+  <data name="NetworkFindingExternal" xml:space="preserve"><value>Das Gateway antwortet, aber die externe IP-Prüfung schlug fehl. Prüfen Sie den Internetzugang des Routers und mögliche ICMP-Filter.</value></data>
+  <data name="NetworkFindingHealthy" xml:space="preserve"><value>Alle drei Prüfungen waren zum Messzeitpunkt erfolgreich.</value></data>
+  <data name="NetworkFindingUnknown" xml:space="preserve"><value>Die verfügbaren Ergebnisse grenzen den Fehler nicht ein. Prüfen Sie den Adapter und wiederholen Sie die Messung.</value></data>
+  <data name="DesignLightTheme" xml:space="preserve"><value>Heller Modus</value></data>
+  <data name="DesignDarkTheme" xml:space="preserve"><value>Dunkler Modus</value></data>
+  <data name="DesignTheme" xml:space="preserve"><value>Darstellung ändern</value></data>
+  <data name="DesignThemeSession" xml:space="preserve"><value>Darstellung dieses Fensters. Überwachungseinstellungen bleiben unverändert.</value></data>
+  <data name="DesignAttention" xml:space="preserve"><value>Was als Nächstes prüfen</value></data>
+  <data name="DesignEvidenceUnavailable" xml:space="preserve"><value>Aktuelle Nachweise sind nicht verfügbar.</value></data>
+  <data name="DesignRefreshFirst" xml:space="preserve"><value>Mit Aktualisieren erneut mit dem lokalen Dienst verbinden.</value></data>
+  <data name="DesignNoOpenEvidence" xml:space="preserve"><value>In den letzten gespeicherten Einträgen ist kein ungelöster Vorfall. Dies ist keine vollständige Prüfung.</value></data>
+  <data name="DesignRecordedIncident" xml:space="preserve"><value>Gespeichertes Ereignis: {0} · {1}
+{2:g} UTC · vor {3} Min.</value></data>
+  <data name="DesignReviewRecordedEvidence" xml:space="preserve"><value>Zuerst Vorfälle öffnen und die Nachweise prüfen. Ein gespeichertes Ereignis belegt keinen aktuell anhaltenden Fehler.</value></data>
+  <data name="DesignReviewRecommendations" xml:space="preserve"><value>Unter Empfehlungen stehen Schritte auf Grundlage der verfügbaren Messungen.</value></data>
+  <data name="DesignLowDisk" xml:space="preserve"><value>Laufwerk {0}: nur {1:0.#} % frei. Updates können Platz benötigen. Zuerst Empfehlungen öffnen.</value></data>
+  <data name="DesignNavSituation" xml:space="preserve"><value>Lage</value></data>
+  <data name="DesignNavEvents" xml:space="preserve"><value>Ereignisse</value></data>
+  <data name="DesignNavSystem" xml:space="preserve"><value>System</value></data>
+  <data name="DesignNavMaintenance" xml:space="preserve"><value>Wartung</value></data>
+  <data name="DesignNavTools" xml:space="preserve"><value>Werkzeuge</value></data>
+  <data name="DesignModeStandardActive" xml:space="preserve"><value>Standardmodus · Entwicklermodus aktivieren</value></data>
+  <data name="DesignModeDeveloperActive" xml:space="preserve"><value>Entwicklermodus aktiv · zurück zu Standard</value></data>
+  <data name="DesignEvidenceSourceUnavailable" xml:space="preserve"><value>Messzeit und Quelle sind nicht verfügbar, bis der lokale Dienst antwortet.</value></data>
+  <data name="DesignEvidenceSourceAndTime" xml:space="preserve"><value>Letzte Messung vom lokalen Host Agent-Dienst: {0:dd.MM.yyyy HH:mm:ss}.</value></data>
+  <data name="DesignSituationTitle" xml:space="preserve"><value>Aktuelle Lage</value></data>
+  <data name="DesignSituationIntro" xml:space="preserve"><value>Beginnen Sie mit dem letzten erfassten Problem, dem Beobachtungszeitpunkt und einem sicheren nächsten Schritt.</value></data>
+  <data name="DesignSystemTitle" xml:space="preserve"><value>Systemstatus</value></data>
+  <data name="DesignSystemIntro" xml:space="preserve"><value>Aktuelle Messwerte und Komponentenstatus mit ihrem Beobachtungszeitpunkt.</value></data>
+  <data name="DesignSystemReadings" xml:space="preserve"><value>Letzte Host-Messwerte</value></data>
+  <data name="DesignReviewEvidenceButton" xml:space="preserve"><value>Gespeichertes Ereignis prüfen</value></data>
+  <data name="DesignReviewRecommendationsButton" xml:space="preserve"><value>Empfohlene Schritte anzeigen</value></data>
+  <data name="DesignRefreshMeasurementsButton" xml:space="preserve"><value>Messwerte aktualisieren</value></data>
+  <data name="DesignWindowsCrash" xml:space="preserve"><value>Windows-Absturz</value></data>
+  <data name="DesignWindowsCrashIrql" xml:space="preserve"><value>Windows-Absturz: ungültiger Kernel-Speicherzugriff</value></data>
+  <data name="DesignMemoryPressure" xml:space="preserve"><value>Wenig verfügbarer Arbeitsspeicher</value></data>
+  <data name="DesignCpuLoad" xml:space="preserve"><value>Anhaltende CPU-Auslastung</value></data>
+  <data name="DesignProcessCpuLoad" xml:space="preserve"><value>Hohe CPU-Auslastung durch einen Prozess</value></data>
+  <data name="DesignDiskCapacity" xml:space="preserve"><value>Wenig Speicherplatz</value></data>
+  <data name="DesignGatewayFailure" xml:space="preserve"><value>Gateway nicht erreichbar</value></data>
+  <data name="DesignDnsFailure" xml:space="preserve"><value>Namensauflösung fehlgeschlagen</value></data>
+  <data name="DesignInternetFailure" xml:space="preserve"><value>Problem mit der Internetverbindung</value></data>
+  <data name="DesignServiceStopped" xml:space="preserve"><value>Dienst beendet; Ursache unbestätigt</value></data>
+  <data name="DesignServiceCrash" xml:space="preserve"><value>Unerwartetes Dienstende</value></data>
+  <data name="DesignMetricDeviation" xml:space="preserve"><value>Der Messwert weicht von seiner jüngsten robusten Basis ab</value></data>
+<data name="BaselineDeviationAssessmentScope" xml:space="preserve"><value>Dies ist ein Vertrauenswert der Baselinebewertung, weder die Größe der Abweichung noch die Wahrscheinlichkeit für eine Ursache. Der Datensatz enthält weder Referenzwerte noch das Zeitfenster der Baseline.</value></data> <data name="UnclassifiedConfidenceScope" xml:space="preserve"><value>Dieser Diagnosecode ist nicht klassifiziert; der Datensatz belegt weder eine Ursache noch deren Wahrscheinlichkeit.</value></data> <data name="TargetedFollowUpUnavailable" xml:space="preserve"><value>Keine gezielte Anschlussprüfung ist derzeit verfügbar.</value></data> <data name="IncidentBaselineAssessmentConfidence" xml:space="preserve"><value>Konfidenzwert der Baselinebewertung: {3}/100 (weder Abweichungsgröße noch Ursache-Wahrscheinlichkeit)</value></data> <data name="IncidentUnclassifiedStatus" xml:space="preserve"><value>{0} {1}. {2}. Nicht klassifizierter Diagnosezustand; ein Ursachenwert ist nicht verfügbar.</value></data>
+  <data name="DesignCritical" xml:space="preserve"><value>Kritisch</value></data>
+  <data name="DesignHigh" xml:space="preserve"><value>Hoch</value></data>
+  <data name="DesignWarning" xml:space="preserve"><value>Warnung</value></data>
+  <data name="DesignInfo" xml:space="preserve"><value>Information</value></data>
+  <data name="DesignSeverity" xml:space="preserve"><value>Schweregrad</value></data>
+  <data name="DesignClassification" xml:space="preserve"><value>Wert / 100</value></data>
+  <data name="DesignAliasHelp" xml:space="preserve"><value>Erweitert: Nur einen vom Administrator registrierten Alias verwenden. Ohne Alias die Nachweise und Empfehlungen lesen; keinen Dienstnamen erraten.</value></data>
+  <data name="EnableDeveloperMode" xml:space="preserve"><value>Entwicklermodus aktivieren</value></data>
+  <data name="ReturnToStandardMode" xml:space="preserve"><value>Entwicklermodus · zurück zu Standard</value></data>
+  <data name="DeveloperModeConsent" xml:space="preserve"><value>Der Entwicklermodus zeigt eine detailliertere Windows-Übersicht, Dienst- und Netzwerkdiagnosen sowie geführte Wartung. Er gewährt keine Administratorrechte und ändert keine Sicherheitsrichtlinien des Dienstes. Jede unterstützte Reparatur erfordert weiterhin eine genaue Prüfung und eigene Zustimmung. Fortfahren?</value></data>
+  <data name="DeveloperModeRequired" xml:space="preserve"><value>Diese Ansicht oder Aktion ist im Entwicklermodus verfügbar. Aktivieren Sie ihn mit der Schaltfläche im Kopfbereich.</value></data>
+  <data name="ModeChangeBlockedWhileActionRuns" xml:space="preserve"><value>Eine Aktion läuft noch oder das Wartungsfenster ist geöffnet. Warten Sie auf das Ergebnis und schließen Sie das Fenster, bevor Sie den Modus ändern.</value></data>
+  <data name="ModePreferenceSaveFailed" xml:space="preserve"><value>Der Oberflächenmodus konnte nicht gespeichert werden. Der aktuelle Modus bleibt aktiv.</value></data>
+  <data name="DeveloperModeActiveCloseToReturn" xml:space="preserve"><value>Der Entwicklermodus ist aktiv. Schließen Sie dieses Wartungsfenster und wechseln Sie über die Schaltfläche im Kopfbereich zurück zu Standard.</value></data>
+  <data name="DesignOtherDiagnosis" xml:space="preserve"><value>Anderer erfasster Zustand</value></data>
+  <data name="UnclassifiedDiagnostic" xml:space="preserve"><value>Nicht zugeordneter Diagnosestatus</value></data>
+  <data name="UnclassifiedCollectionLimitation" xml:space="preserve"><value>Es wurde eine weitere Einschränkung der Datenerfassung gemeldet.</value></data>
+  <data name="SomeCollectionDataIsUnavailable" xml:space="preserve"><value>Einige Messwerte sind nicht verfügbar.</value></data>
+  <data name="ActionIsNotRecommendedByIncident" xml:space="preserve"><value>Diese Aktionsliste ist keine Reparaturempfehlung. Das Ereignis bestätigt keine Ursache. Prüfen Sie den aktuellen Dienststatus und die Auswirkungen, bevor Sie eine konkrete Aktion auswählen. Jede Aktion benötigt eine eigene Bestätigung.</value></data>
+  <data name="SelectActionAfterReviewingEvidence" xml:space="preserve"><value>Prüfen Sie zuerst Ziel und Nachweise, und wählen Sie dann selbst die genaue Aktion.</value></data>
+  <data name="InAppWindowsManagementIntro" xml:space="preserve"><value>Windows-Status wird hier angezeigt. Unterstützte Dienstwiederherstellung, Prozessaktionen und Dateibereinigung bleiben in Host Agent und erfordern eine separate Freigabe. Installierte Apps und Autostarteinträge sind derzeit schreibgeschützt.</value></data>
+  <data name="WinInventoryApplications" xml:space="preserve"><value>Installierte Apps</value></data>
+  <data name="WinInventoryStartup" xml:space="preserve"><value>Autostarteinträge</value></data>
+  <data name="WinInventoryApplicationsReadOnly" xml:space="preserve"><value>Schreibgeschützt: Installation und Deinstallation sind in Host Agent noch nicht verfügbar.</value></data>
+  <data name="WinInventoryStartupReadOnly" xml:space="preserve"><value>Schreibgeschützt: Autostarteinträge können derzeit nicht aktiviert oder deaktiviert werden.</value></data>
+  <data name="WinInventoryProcessesCapability" xml:space="preserve"><value>Schreibgeschützte Liste. Wählen Sie einen Prozess aus, um seine Identität für eine typisierte Aktion zu übernehmen; ein ausgewählter Vorfall und ein registriertes Ziel sind weiterhin erforderlich.</value></data>
+  <data name="WinInventoryServicesCapability" xml:space="preserve"><value>Schreibgeschützte Liste. Eine Dienstwiederherstellung wird nur bei aktuellen passenden Nachweisen angeboten und benötigt stets eine separate Freigabe.</value></data>
+  <data name="WinInventoryDisksCapability" xml:space="preserve"><value>Schreibgeschützte Liste. Eine Bereinigungsvorschau in der App ist nur für das Benutzerprofil-Laufwerk bei einem aktuellen Speicherplatzmangel verfügbar.</value></data>
+  <data name="WinInventoryNetworkCapability" xml:space="preserve"><value>Schreibgeschützte Adapterliste. Aktive Netzwerktests sind getrennt und erfordern den Entwicklermodus.</value></data>
+  <data name="WinInventoryEventsCapability" xml:space="preserve"><value>Schreibgeschützte Liste der letzten Windows-Systemereignisse.</value></data>
+  <data name="PrepareProcessAction" xml:space="preserve"><value>Prozessaktion vorbereiten</value></data>
+  <data name="OpenWindowsManagement" xml:space="preserve"><value>Windows-Verwaltung in Host Agent öffnen</value></data>
+  <data name="NoIncidentSelected" xml:space="preserve"><value>Kein Vorfall ausgewählt. Wählen Sie unter Vorfälle einen Eintrag aus, bevor Sie eine Aktion vorbereiten.</value></data>
+  <data name="IncidentSummary" xml:space="preserve"><value>{0} · erfasst {1}</value></data>
+  <data name="TechnicalDetails" xml:space="preserve"><value>Technische Details</value></data>
+  <data name="TechnicalIncidentIdentifiers" xml:space="preserve"><value>Vorfall-ID: {0}\nInterner Code: {1}</value></data>
+  <data name="SelectIncidentBeforeAction" xml:space="preserve"><value>Wählen Sie unter Vorfälle einen Eintrag aus, bevor Sie eine Aktion vorbereiten.</value></data>
+  <data name="EnterRegisteredTargetAlias" xml:space="preserve"><value>Geben Sie einen registrierten Zielalias ein. Nur Ziele aus der genehmigten Liste sind zulässig.</value></data>
+  <data name="SelectProcessBeforeAction" xml:space="preserve"><value>Wählen Sie einen Prozess aus der lokalen Liste aus, damit PID und Startzeit übernommen werden.</value></data>
+  <data name="ActionReadyRequiresSeparateApproval" xml:space="preserve"><value>Die erforderlichen Angaben sind vorhanden. Prüfen und genehmigen Sie das genaue Ziel im nächsten Dialog; allein auf diesem Bildschirm wird nichts ausgeführt.</value></data>
+  <data name="ActionTargetNotRegisteredOrRequestInvalid" xml:space="preserve"><value>Dieses Ziel oder diese Aktion ist nicht für eine Freigabe registriert. Prüfen Sie den Zielalias und wählen Sie einen zulässigen Vorgang.</value></data>
+  <data name="ActionsRequireFreshStatus" xml:space="preserve"><value>Aktualisieren Sie den lokalen Status, bevor Sie eine Aktion vorbereiten.</value></data>
+  <data name="InAppStartupListCanHelpIdentifyPossibleCausesButIsReadOnly" xml:space="preserve"><value>Die Autostartliste in der App kann bei der Ursachenprüfung helfen. Sie ist schreibgeschützt; diese Empfehlung ändert nichts.</value></data>
+  <data name="InAppAppListCanHelpReviewMemoryUseButIsReadOnly" xml:space="preserve"><value>Die App-Liste kann helfen, den Speicherverbrauch zu prüfen. Sie ist schreibgeschützt; diese Empfehlung schließt keine Apps.</value></data>
+  <data name="PrepareServiceAction" xml:space="preserve"><value>Dienstaktion vorbereiten</value></data>
+  <data name="WinPrepareServiceActionHelp" xml:space="preserve"><value>Die ausgewählte Dienstkennung wird in das Prüfungsformular übernommen. Ein allgemeiner Dienststart oder Neustart bleibt deaktiviert, bis das Formular alle Abhängigkeiten anzeigen und binden kann.</value></data>
+  <data name="WinServiceStartRequiresGuidedReview" xml:space="preserve"><value>Dienststart und Neustart sind derzeit nur über die Vorfallprüfung verfügbar, die die vollständige Abhängigkeitsliste anzeigt und in die Genehmigung aufnimmt. Dienststopp und Prozessaktionen bleiben hier verfügbar.</value></data>
+  <data name="ServiceReviewTitle" xml:space="preserve"><value>Wiederherstellung eines Dienstes prüfen</value></data>
+  <data name="ServiceReviewSubtitle" xml:space="preserve"><value>Erhöhte Prüfung durch Host Agent</value></data>
+  <data name="ServiceReviewScope" xml:space="preserve"><value>Dieses erhöhte Fenster ist auf einen freigegebenen Windows-Dienst beschränkt. Windows kann auch erforderliche Abhängigkeiten starten; ihre genaue Liste wird angezeigt und in die Genehmigung aufgenommen. Der Helper prüft sie unmittelbar vor dem Start erneut. Bei Abbruch geschieht nichts.</value></data>
+  <data name="ServiceReviewIncident" xml:space="preserve"><value>Vorfall</value></data>
+  <data name="ServiceReviewTarget" xml:space="preserve"><value>Freigegebener Dienst</value></data>
+  <data name="ServiceReviewStatusLabel" xml:space="preserve"><value>Dienststatus während der Prüfung</value></data>
+  <data name="ServiceReviewStatusAtPreview" xml:space="preserve"><value>{0}, geprüft {1}</value></data>
+  <data name="ServiceReviewAction" xml:space="preserve"><value>Angeforderte Aktion</value></data>
+  <data name="ServiceReviewActionValue" xml:space="preserve"><value>Diesen Dienst einmal starten</value></data>
+  <data name="ServiceReviewImpact" xml:space="preserve"><value>Erwartete Auswirkung</value></data>
+  <data name="ServiceReviewImpactPreparing" xml:space="preserve"><value>Warte auf Prüfung von Ziel und Freigabeliste.</value></data>
+  <data name="ServiceReviewImpactValue" xml:space="preserve"><value>Fordert den Start von {0} an. Der Dienststeuerungs-Manager kann auch erforderliche Abhängigkeiten starten; die genaue Liste steht unten und ist Teil dieser Genehmigung.</value></data>
+  <data name="ServiceReviewDependencies" xml:space="preserve"><value>Erforderliche Dienstabhängigkeiten</value></data>
+  <data name="ServiceReviewDependenciesEmpty" xml:space="preserve"><value>Bei dieser Prüfung wurden keine gefunden.</value></data>
+  <data name="ServiceReviewDependencyLine" xml:space="preserve"><value>{0} — {1}, geprüft {2}</value></data>
+  <data name="ServiceReviewRegistration" xml:space="preserve"><value>Freigegebener Eintrag</value></data>
+  <data name="ServiceReviewEvidence" xml:space="preserve"><value>Aktuelle Belegquellen</value></data>
+  <data name="ServiceReviewEvidenceEventLog" xml:space="preserve"><value>Windows-Ereignisprotokoll — Dienstausfall</value></data>
+  <data name="ServiceReviewEvidenceServiceState" xml:space="preserve"><value>Dienststeuerungs-Manager — Statusänderung</value></data>
+  <data name="ServiceReviewEvidenceUnknown" xml:space="preserve"><value>Unbekannte Belegquelle</value></data>
+  <data name="ServiceReviewPhrasePrompt" xml:space="preserve"><value>Kopiere oder tippe die auswählbare englische Phrase unten exakt ab, einschließlich Großschreibung und Leerzeichen, um diese Aktion und Abhängigkeitsliste zu genehmigen. Ein leeres Feld oder Abbrechen startet nichts.</value></data>
+  <data name="ServiceReviewPhraseLabel" xml:space="preserve"><value>Einzugebende Phrase</value></data>
+  <data name="ServiceReviewPhraseCopyLabel" xml:space="preserve"><value>Phrase zum Kopieren</value></data>
+  <data name="ServiceReviewApprove" xml:space="preserve"><value>Genehmigen und Dienst starten</value></data>
+  <data name="ServiceReviewCancel" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="ServiceReviewClose" xml:space="preserve"><value>Schließen</value></data>
+  <data name="ServiceReviewPreparing" xml:space="preserve"><value>Aktuellen Vorfall, Dienststatus und Genehmigungsrichtlinie prüfen…</value></data>
+  <data name="ServiceReviewReady" xml:space="preserve"><value>Prüfung bereit. Der Dienst startet erst nach Eingabe der exakten Phrase und Genehmigung.</value></data>
+  <data name="ServiceReviewUnavailable" xml:space="preserve"><value>Diese Aktion kann nicht fortgesetzt werden: {0}. Es wurde kein Dienst gestartet.</value></data>
+  <data name="ServiceReviewReasonIncident" xml:space="preserve"><value>Die Vorfallbelege fehlen, sind veraltet oder passen nicht mehr zu diesem Dienst.</value></data>
+  <data name="ServiceReviewReasonStatus" xml:space="preserve"><value>Der aktuelle Dienststatus konnte nicht als Beendet bestätigt werden.</value></data>
+  <data name="ServiceReviewReasonDependencies" xml:space="preserve"><value>Die Abhängigkeitsliste ist nicht verfügbar, hat sich geändert oder ist nicht vollständig genehmigt.</value></data>
+  <data name="ServiceReviewReasonStale" xml:space="preserve"><value>Die Prüfungsdaten haben sich geändert oder sind abgelaufen. Schließen Sie dieses Fenster und starten Sie eine neue Prüfung.</value></data>
+  <data name="ServiceReviewReasonPolicy" xml:space="preserve"><value>Dienst, Helper oder Genehmigungsrichtlinie erlauben diese Aktion nicht.</value></data>
+  <data name="ServiceReviewReasonPermission" xml:space="preserve"><value>Das aktuelle Windows-Konto ist kein zugelassener Administrator für diese Aktion.</value></data>
+  <data name="ServiceReviewReasonPhrase" xml:space="preserve"><value>Die eingegebene Phrase stimmt nicht genau mit der geprüften Aktion überein.</value></data>
+  <data name="ServiceReviewReasonHelper" xml:space="preserve"><value>Der Helper konnte diese Anfrage nicht vorbereiten oder bestätigen.</value></data>
+  <data name="ServiceReviewReasonUnavailable" xml:space="preserve"><value>Eine erforderliche Prüfung konnte nicht abgeschlossen werden.</value></data>
+  <data name="ServiceReviewExecuting" xml:space="preserve"><value>Genehmigte Anfrage wird an den Host Agent Helper gesendet. Warte auf Audit und Statusrückmeldung.</value></data>
+  <data name="ServiceReviewReceiptTitle" xml:space="preserve"><value>Ergebnis der Aktion</value></data>
+  <data name="ServiceReviewVerified" xml:space="preserve"><value>Verifiziert: Helper-Ergebnis, passender Audit-Eintrag und der aktuelle Status Gestartet stimmen überein.</value></data>
+  <data name="ServiceReviewRejected" xml:space="preserve"><value>Abgelehnt: Der Helper hat diese Aktion nicht genehmigt oder ausgeführt ({0}).</value></data>
+  <data name="ServiceReviewUnknown" xml:space="preserve"><value>Unbekannt: Die Anfrage könnte ausgeführt worden sein, aber der Abschluss ließ sich nicht vollständig prüfen. Nicht automatisch erneut versuchen.</value></data>
+  <data name="ServiceReviewCommand" xml:space="preserve"><value>Ergebnis des Helper-Befehls: {0}</value></data>
+  <data name="ServiceReviewNoReceipt" xml:space="preserve"><value>nicht empfangen</value></data>
+  <data name="ServiceReviewAuditVerified" xml:space="preserve"><value>Helper-Auditjournal: passende Genehmigung und Ausführung verifiziert.</value></data>
+  <data name="ServiceReviewAuditUnverified" xml:space="preserve"><value>Helper-Auditjournal: kein passender Abschluss konnte verifiziert werden.</value></data>
+  <data name="ServiceReviewReadback" xml:space="preserve"><value>Aktueller Status des Dienststeuerungs-Managers: {0} ({1})</value></data>
+  <data name="ServiceReviewFinished" xml:space="preserve"><value>Prüfung abgeschlossen. Befehlsbestätigung, Audit und Statusrückmeldung sind getrennt aufgeführt.</value></data>
+  <data name="ServiceReviewWaitBeforeClose" xml:space="preserve"><value>Warte auf das Ergebnis. Nach dem Senden kann das Schließen die Anfrage nicht abbrechen.</value></data>
+  <data name="ServiceReviewRunning" xml:space="preserve"><value>Gestartet</value></data>
+  <data name="ServiceReviewStopped" xml:space="preserve"><value>Beendet</value></data>
+  <data name="ServiceReviewStatusUnknown" xml:space="preserve"><value>Unbekannt</value></data>
+  <data name="ServiceReviewTechnicalLabel" xml:space="preserve"><value>Technische Details</value></data>
+  <data name="ServiceReviewContinuePending" xml:space="preserve"><value>Fortsetzen ausstehend</value></data>
+  <data name="ServiceReviewPausePending" xml:space="preserve"><value>Pause ausstehend</value></data>
+  <data name="ServiceReviewPaused" xml:space="preserve"><value>Angehalten</value></data>
+  <data name="ServiceReviewStartPending" xml:space="preserve"><value>Start ausstehend</value></data>
+  <data name="ServiceReviewStopPending" xml:space="preserve"><value>Stopp ausstehend</value></data>
+  <data name="MaintenanceReason_payload_unavailable" xml:space="preserve"><value>Die quarantänisierte Datei ist nicht verfügbar.</value></data>
+  <data name="MinimumAgeDays" xml:space="preserve"><value>Mindestalter {0} Tage</value></data>
+  <data name="MaintenanceReason_unsafe_name" xml:space="preserve"><value>Der Dateiname ist unsicher oder nicht eindeutig.</value></data>
+  <data name="MaintenanceWindowIntro" xml:space="preserve"><value>Im Standardmodus können Sie Dateien direkt im Temp-Ordner dieses Kontos prüfen, geeignete Dateien umkehrbar in Quarantäne verschieben und eine ausgewählte Datei wiederherstellen. Der Entwicklermodus erlaubt zusätzlich einen ausgewählten Ordner und zeigt technische Kennungen.</value></data>
+  <data name="MaintenanceReason_preview_expired" xml:space="preserve"><value>Die Vorschau ist abgelaufen.</value></data>
+  <data name="MaintenanceReason_too_recent" xml:space="preserve"><value>Die Datei ist neuer als zulässig.</value></data>
+  <data name="MaintenanceReason_preview_incomplete" xml:space="preserve"><value>Die Vorschau ist unvollständig.</value></data>
+  <data name="ReviewExactPreviewBeforeQuarantine" xml:space="preserve"><value>Prüfen Sie die genaue Quelle, das Quarantäneziel, die Dateiliste und die Grenzen. Die Schaltfläche unten verwendet genau diese einmalige Vorschau.</value></data>
+  <data name="MaintenanceReason_source_hash_changed" xml:space="preserve"><value>Der Dateiinhalt hat sich seit der Vorschau geändert.</value></data>
+  <data name="MaintenanceReason_payload_verification_failed" xml:space="preserve"><value>Die Identität der quarantänisierten Datei konnte nicht bestätigt werden.</value></data>
+  <data name="MaintenanceActionResultSummary" xml:space="preserve"><value>Ergebniszahlen: verschoben {0}; wiederhergestellt {1}; übersprungen {2}; blockiert {3}; fehlgeschlagen {4}; abgebrochen {5}; unbekannt {6}; Wiederherstellungseinträge {7}. Die Quarantäne hat keinen Speicherplatz freigegeben.{8}</value></data>
+  <data name="RestoreFileToOriginalPath" xml:space="preserve"><value>{0} nach {1} wiederherstellen</value></data>
+  <data name="MaintenanceReason_file_too_large" xml:space="preserve"><value>Die Datei überschreitet die Größenbegrenzung.</value></data>
+  <data name="PreviewDeveloperTechnicalDetails" xml:space="preserve"><value>Vorschau-ID: {0}; Volume-ID des Bereichs: {1}.</value></data>
+  <data name="MaintenanceReason_quarantine_lock_unavailable" xml:space="preserve"><value>Die Quarantänesperre konnte nicht erworben werden.</value></data>
+  <data name="RecursiveScope" xml:space="preserve"><value>einschließlich Unterordnern</value></data>
+  <data name="MaintenanceReason_verification_failed" xml:space="preserve"><value>Die Dateiidentität konnte nicht überprüft werden.</value></data>
+  <data name="MaintenanceReason_cancelled" xml:space="preserve"><value>Der Vorgang wurde abgebrochen.</value></data>
+  <data name="MaintenanceReason_read_only" xml:space="preserve"><value>Die Datei ist schreibgeschützt.</value></data>
+  <data name="CreatePreviewBeforeQuarantine" xml:space="preserve"><value>Erstellen Sie vor dem Verschieben eine aktuelle Vorschau.</value></data>
+  <data name="MovePreviewToQuarantine" xml:space="preserve"><value>Dateien aus der Vorschau in Quarantäne verschieben</value></data>
+  <data name="MaintenanceReason_preview_time_limit" xml:space="preserve"><value>Die Zeitbegrenzung der Vorschau wurde erreicht.</value></data>
+  <data name="MaintenanceReason_volume_mismatch" xml:space="preserve"><value>Quelle und Quarantäne liegen nicht auf demselben Volume.</value></data>
+  <data name="NoMinimumAge" xml:space="preserve"><value>kein Mindestalter</value></data>
+  <data name="TopLevelFilesOnly" xml:space="preserve"><value>nur Dateien im ausgewählten Ordner</value></data>
+  <data name="MaintenanceReason_multiple_links" xml:space="preserve"><value>Die Datei hat mehrere feste Verknüpfungen.</value></data>
+  <data name="MaintenanceReason_access_denied" xml:space="preserve"><value>Der Zugriff auf die Datei wurde verweigert.</value></data>
+  <data name="MaintenanceOperationCancelled" xml:space="preserve"><value>Aktion abgebrochen. Prüfen Sie vor einem erneuten Versuch die Einzelbelege.</value></data>
+  <data name="MaintenanceCancellationRequested" xml:space="preserve"><value>Abbruch angefordert. Bereits verschobene Dateien bleiben in Quarantäne; der Beleg zeigt den Status jeder Datei.</value></data>
+  <data name="MaintenanceReason_source_identity_changed" xml:space="preserve"><value>Die Dateiidentität hat sich seit der Vorschau geändert.</value></data>
+  <data name="MaintenanceUnknownReason" xml:space="preserve"><value>Der Grund konnte nicht sicher festgestellt werden.</value></data>
+  <data name="ActionReceipts" xml:space="preserve"><value>Ergebnis je Datei</value></data>
+  <data name="MaintenanceReason_destination_already_exists" xml:space="preserve"><value>Das Ziel ist bereits vorhanden; nichts wurde überschrieben.</value></data>
+  <data name="MovePreviewedFilesToQuarantine" xml:space="preserve"><value>{0} geeignete Dateien in Quarantäne verschieben</value></data>
+  <data name="MaintenanceReason_quarantine_root_unavailable" xml:space="preserve"><value>Der Quarantäneordner ist nicht verfügbar.</value></data>
+  <data name="MaintenanceReason_source_metadata_changed" xml:space="preserve"><value>Die Dateimetadaten haben sich seit der Vorschau geändert.</value></data>
+  <data name="MaintenanceReason_outcome_unverified" xml:space="preserve"><value>Das Ergebnis konnte nicht überprüft werden.</value></data>
+  <data name="MaintenanceReason_scope_byte_limit" xml:space="preserve"><value>Die Vorschau würde die Gesamtgrößenbegrenzung überschreiten.</value></data>
+  <data name="PreviewIncomplete" xml:space="preserve"><value>unvollständig — Quarantäneaktion gesperrt</value></data>
+  <data name="SelectedQuarantineEntryNeedsReview" xml:space="preserve"><value>Dieser Eintrag muss geprüft werden und kann nicht wiederhergestellt werden.</value></data>
+  <data name="MaintenanceReason_unsupported_file" xml:space="preserve"><value>Dieser Elementtyp wird nicht unterstützt.</value></data>
+  <data name="MaintenanceReason_operation_failed" xml:space="preserve"><value>Der Vorgang ist fehlgeschlagen.</value></data>
+  <data name="MaintenanceReason_quarantine_limit_reached" xml:space="preserve"><value>Die Quarantänegrenze wurde erreicht.</value></data>
+  <data name="MaintenanceReason_file_locked" xml:space="preserve"><value>Die Datei ist gesperrt oder wird verwendet.</value></data>
+  <data name="MaintenanceReason_file_unavailable" xml:space="preserve"><value>Die Datei ist nicht mehr verfügbar.</value></data>
+  <data name="MaintenancePreviewStatus" xml:space="preserve"><value>Status: {0}. Geeignet: {1}; übersprungen: {2}{3}. Gültig bis: {4:g}.{5}</value></data>
+  <data name="MaintenanceReason_quarantine_busy" xml:space="preserve"><value>Ein anderer Wartungsvorgang verwendet die Quarantäne.</value></data>
+  <data name="NoEligibleFilesToQuarantine" xml:space="preserve"><value>Es gibt keine geeigneten Dateien zum Verschieben.</value></data>
+  <data name="QuarantineDoesNotFreeDiskSpace" xml:space="preserve"><value>Die Quarantäne ist umkehrbar und belässt Dateien auf demselben Laufwerk. Sie gibt keinen Speicherplatz frei.</value></data>
+  <data name="PreviewComplete" xml:space="preserve"><value>vollständig</value></data>
+  <data name="MaintenanceReason_service_not_approved" xml:space="preserve"><value>Der aktuelle Dienststatus erlaubt keine Änderungen.</value></data>
+  <data name="MaintenanceScopeResetToDefault" xml:space="preserve"><value>Der Entwicklermodus wurde beendet. Der ausgewählte Ordner wurde verworfen; eine neue Vorschau verwendet nur den Temp-Ordner dieses Kontos.</value></data>
+  <data name="SkippedItemsAndReasons" xml:space="preserve"><value>Übersprungene Dateien und Gründe</value></data>
+  <data name="RestoreDestinationPath" xml:space="preserve"><value>Genauer Wiederherstellungspfad: {0}. Vorhandene Dateien werden nie überschrieben.</value></data>
+  <data name="MaintenanceReason_journal_recovery_required" xml:space="preserve"><value>Die Datei wurde wiederhergestellt, aber ihr Journal muss geprüft werden.</value></data>
+  <data name="IncompletePreviewBlocksQuarantine" xml:space="preserve"><value>Die Vorschau ist unvollständig. Die Quarantäneaktion ist gesperrt; erstellen Sie eine neue Vorschau für einen engeren Bereich.</value></data>
+  <data name="MaintenanceReasonDeveloperDetails" xml:space="preserve"><value>{0} (technischer Code: {1})</value></data>
+  <data name="ExpiredPreviewBlocksQuarantine" xml:space="preserve"><value>Die Vorschau ist abgelaufen. Erstellen Sie vor dem Verschieben eine neue Vorschau.</value></data>
+  <data name="MaintenancePreviewDetails" xml:space="preserve"><value>Geprüft: {0}; geeignet: {1}; übersprungen: {2}; Auflistung: {3}; Bereich: {4}.
+Grenzen: {5}; höchstens {6} pro Datei und {7} insgesamt; maximal {8} Quarantäneeinträge; höchstens {9} Dateien und {10} Kandidaten innerhalb von {11} Sekunden prüfen.</value></data>
+  <data name="SelectAQuarantineEntryToRestore" xml:space="preserve"><value>Wählen Sie einen Quarantäneeintrag zur Wiederherstellung.</value></data>
+  <data name="MaintenanceReason_source_root_unavailable" xml:space="preserve"><value>Der Quellordner ist nicht verfügbar.</value></data>
+  <data name="ShowExactLocation" xml:space="preserve"><value>Genauen Speicherort anzeigen</value></data>
+  <data name="MaintenanceReason_journal_unavailable" xml:space="preserve"><value>Das Quarantänejournal konnte nicht gelesen werden.</value></data>
+  <data name="RestoreToOriginalLocation" xml:space="preserve"><value>Die ausgewählte Datei am ursprünglichen Speicherort wiederherstellen. Vorhandene Dateien werden nie überschrieben.</value></data>
+  <data name="MaintenanceReason_journal_integrity" xml:space="preserve"><value>Die Quarantäneeinträge haben die Integritätsprüfung nicht bestanden.</value></data>
+  <data name="Unknown" xml:space="preserve"><value>unbekannt</value></data>
+  <data name="MaintenancePreviewLocationDetails" xml:space="preserve"><value>Quellordner: {0}
+Quarantäneordner: {1}</value></data>
+  <data name="CancelMaintenanceAction" xml:space="preserve"><value>Aktuellen Vorgang abbrechen</value></data>
+  <data name="HideExactLocation" xml:space="preserve"><value>Genauen Speicherort ausblenden</value></data>
+  <data name="OriginalLocation" xml:space="preserve"><value>an den ursprünglichen Speicherort</value></data>
+  <data name="Source" xml:space="preserve"><value>Quelle</value></data>
+  <data name="Reason" xml:space="preserve"><value>Grund</value></data>
+  <data name="Destination" xml:space="preserve"><value>Ziel</value></data>
+  <data name="MaintenanceResultPartialFailure" xml:space="preserve"><value>Einige Dateien wurden verschoben, ein weiterer Vorgang ist fehlgeschlagen. Prüfen Sie alle Dateien, bevor Sie es erneut versuchen.</value></data>
+  <data name="MaintenanceResultFailed" xml:space="preserve"><value>Die Quarantäneaktion ist fehlgeschlagen. Prüfen Sie die Einzelergebnisse, bevor Sie es erneut versuchen.</value></data>
+  <data name="MaintenanceResultStateUnavailable" xml:space="preserve"><value>Die Wartungsfreigabe oder der Status konnte nicht geprüft werden; es wurde keine Aktion ausgeführt.</value></data>
+  <data name="MaintenanceActionResultDeveloperDetails" xml:space="preserve"><value>Technischer Ergebnisscode: {0}.</value></data>
+  <data name="MaintenanceActionBlocked" xml:space="preserve"><value>Blockiert</value></data>
+  <data name="MaintenanceResultOutcomeUnknown" xml:space="preserve"><value>Das Endergebnis konnte nicht bestätigt werden. Prüfen Sie jede Datei, bevor Sie es erneut versuchen.</value></data>
+  <data name="MaintenanceActionMoved" xml:space="preserve"><value>Verschoben</value></data>
+  <data name="MaintenanceResultCancelledPartial" xml:space="preserve"><value>Der Vorgang wurde abgebrochen, nachdem einige Dateien verschoben wurden. Prüfen Sie jedes Einzelergebnis.</value></data>
+  <data name="MaintenanceResultPartialBlocked" xml:space="preserve"><value>Einige Dateien wurden verschoben, weitere wurden blockiert. Prüfen Sie alle Einzelergebnisse.</value></data>
+  <data name="MaintenanceResultCancelled" xml:space="preserve"><value>Der Vorgang wurde abgebrochen. Prüfen Sie die Einzelergebnisse, bevor Sie es erneut versuchen.</value></data>
+  <data name="MaintenanceActionSkipped" xml:space="preserve"><value>Übersprungen</value></data>
+  <data name="MaintenanceResultBlocked" xml:space="preserve"><value>Die Quarantäneaktion wurde blockiert. Prüfen Sie die Einzelergebnisse, bevor Sie es erneut versuchen.</value></data>
+  <data name="MaintenanceActionCancelled" xml:space="preserve"><value>Abgebrochen</value></data>
+  <data name="MaintenanceResultPartialBlockedRecovery" xml:space="preserve"><value>Einige Dateien wurden verschoben und Wiederherstellungseinträge müssen geprüft werden. Prüfen Sie alle Dateien, bevor Sie es erneut versuchen.</value></data>
+</root>

@@ -56,10 +56,16 @@ public sealed class DashboardDispatcher(IHostAgentStore store,ServiceConfigurati
                     var id=request.Body.GetProperty("incidentId").GetString();
                     var incident=await Timed("incident_summary",()=>store.ReadIncidentSummaryAsync(id!,token));
                     if(incident is null)return Reply("serialize_incident",false,"view_incident_not_found",null);
+                    var diagnosis=incident.LatestDiagnosis;
+                    var diagnosticCode=diagnosis.ProbableRootCause.Code;
                     return Reply("serialize_incident",true,"incident",new ViewIncidentDetail(Project(incident),
-                        IsCrash(incident.LatestDiagnosis.ProbableRootCause.Code)?"stop_code_classification_only":"probable_cause_estimate",
-                        incident.LatestDiagnosis.Evidence.Take(16).Select(x=>new ViewEvidence(SafeSource(x.Source),
-                            x.NumericValue is {} v && double.IsFinite(v)?v:null,x.ObservedAtUtc)).ToArray(),incident.LatestDiagnosis.Evidence.Count>16));
+                        ConfidenceScopeFor(diagnosticCode),
+                        diagnosis.Evidence.Take(16).Select(x=>new ViewEvidence(SafeSource(x.Source),
+                            x.NumericValue is {} v && double.IsFinite(v)?v:null,x.ObservedAtUtc)).ToArray(),diagnosis.Evidence.Count>16)
+                    {
+                        BaselineAssessmentConfidence=diagnosticCode=="adaptive_metric_deviation" && diagnosis.Confidence is >=0 and <=100?diagnosis.Confidence:null,
+                        FollowUpStatus=diagnosticCode=="adaptive_metric_deviation"||SafeCause(diagnosticCode)=="other_diagnosis"?"unavailable":null
+                    });
                 case "investigate":
                     // Read stored evidence only: no checkpoint changes, probes, process launches or dump uploads.
                     var logs=await Timed("telemetry_event_log",()=>store.ReadTelemetrySnapshotsAsync("event-log",now.AddHours(-24),now,256,token));
@@ -201,9 +207,21 @@ public sealed class DashboardDispatcher(IHostAgentStore store,ServiceConfigurati
     }
     private async ValueTask<ViewIncident[]> Heads(CancellationToken token)
         =>(await store.ReadIncidentSummariesAsync(20,token)).Select(Project).ToArray();
-    private static ViewIncident Project(Incident x)=>new(x.IncidentId,x.State.ToString(),SafeCause(x.LatestDiagnosis.ProbableRootCause.Code),
-        x.LatestDiagnosis.Confidence,x.LatestDiagnosis.Severity.ToString(),x.LatestDiagnosis.ObservedAtUtc,x.RecurrenceCount)
-        {AffectedService=SafeAffectedService(x.LatestDiagnosis.ProbableRootCause.Code,x.LatestDiagnosis.ProbableRootCause.Subject)};
+    private static ViewIncident Project(Incident x)
+    {
+        var diagnosis=x.LatestDiagnosis;
+        var code=diagnosis.ProbableRootCause.Code;
+        var displayCode=SafeCause(code);
+        int? confidence=code=="adaptive_metric_deviation"||displayCode=="other_diagnosis"?null:diagnosis.Confidence;
+        return new ViewIncident(x.IncidentId,x.State.ToString(),displayCode,confidence,diagnosis.Severity.ToString(),diagnosis.ObservedAtUtc,x.RecurrenceCount)
+        {
+            AffectedService=SafeAffectedService(code,diagnosis.ProbableRootCause.Subject),
+            DiagnosticCode=SafeDiagnosticCode(code)
+        };
+    }
+    private static string ConfidenceScopeFor(string code)=>code=="adaptive_metric_deviation"?"baseline_deviation_assessment":SafeCause(code)=="other_diagnosis"?"unclassified_diagnostic":IsCrash(code)?"stop_code_classification_only":"probable_cause_estimate";
+    private static string? SafeDiagnosticCode(string? value)=>value is {Length:>0 and <=64} && char.IsAsciiLetter(value[0])
+        && value.All(character=>char.IsAsciiLetterOrDigit(character)||character is '.' or '_' or '-')?value:null;
     private static ViewMetric? Current(ViewMetric[] points,DateTimeOffset now)=>points.LastOrDefault(x=>ViewFreshness.IsFresh(x.AtUtc,now));
     private static bool ValidDrive(string name)=>name.Length is 2 or 3 && char.IsAsciiLetter(name[0]) && name[1]==':' && (name.Length==2||name[2]=='\\');
     private static string SafeName(string value)=>new(value.Take(64).Select(c=>char.IsAsciiLetterOrDigit(c)||c is '.' or '-' or '_'?c:'_').ToArray());
@@ -216,10 +234,16 @@ public sealed class DashboardDispatcher(IHostAgentStore store,ServiceConfigurati
     private static string SafeCause(string value)=>value is "cpu_host_saturation" or "cpu_process_saturation" or "memory_pressure" or "disk_capacity"
         or "service_stopped" or "service_crash" or "windows_bugcheck" or "bugcheck_irql_not_less_or_equal"
         or "gateway_failure" or "dns_failure" or "internet_connectivity_failure"
-        or "gateway_unreachable" or "dns_resolution_failure" or "internet_unreachable" or "network_unavailable"?value:"other_diagnosis";
-    private static string SafeSource(string value)=>value.StartsWith("eventlog",StringComparison.Ordinal)?"eventlog":
-        value.StartsWith("cpu",StringComparison.Ordinal)?"cpu":value.StartsWith("memory",StringComparison.Ordinal)?"memory":
-        value.StartsWith("disk",StringComparison.Ordinal)?"disk":value.StartsWith("service",StringComparison.Ordinal)?"service":"diagnostic";
+        or "gateway_unreachable" or "dns_resolution_failure" or "internet_unreachable" or "network_unavailable" or "adaptive_metric_deviation"?value:"other_diagnosis";
+    private static string SafeSource(string value)
+    {
+        if(value.StartsWith("baseline.",StringComparison.Ordinal))
+            return value.Length>9 && value.Length<=128 && value[value.Length-1]!='.'
+                && value.All(character=>char.IsAsciiLetterOrDigit(character)||character is '.' or '_' or '-')?value:"baseline";
+        return value.StartsWith("eventlog",StringComparison.Ordinal)?"eventlog":
+            value.StartsWith("cpu",StringComparison.Ordinal)?"cpu":value.StartsWith("memory",StringComparison.Ordinal)?"memory":
+            value.StartsWith("disk",StringComparison.Ordinal)?"disk":value.StartsWith("service",StringComparison.Ordinal)?"service":"diagnostic";
+    }
     private static string? SafeDump(string? value)=>value is not null && value.Length<=64 && value.EndsWith(".dmp",StringComparison.OrdinalIgnoreCase)
         && value.All(c=>char.IsAsciiLetterOrDigit(c)||c is '.' or '-' or '_')?value:null;
 }

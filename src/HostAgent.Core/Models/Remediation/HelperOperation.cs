@@ -3,7 +3,7 @@ namespace HostAgent.Core.Models.Remediation;
 // A closed set: adding a capability requires a protocol and security review.
 public enum HelperOperation { StartService, StopService, RestartService, TerminateProcess }
 public abstract record OperationParameters;
-public sealed record ServiceParameters(string ServiceId) : OperationParameters;
+public sealed record ServiceParameters(string ServiceId, string[]? ExpectedDependencyIds = null) : OperationParameters;
 public sealed record ProcessParameters(string ProcessId, int Pid, long StartTimeUtcTicks) : OperationParameters;
 public sealed record HelperOperationRequest(int Version, Guid RequestId, string IncidentId,
     string DiagnosisId, int Confidence, string[] EvidenceReferences, HelperOperation Operation,

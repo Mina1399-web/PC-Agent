@@ -83,6 +83,7 @@ public sealed class DashboardUiTests
                     foreach(var size in new[]{(1280d,800d),(850d,620d)})
                     {
                         window.Width=size.Item1;window.Height=size.Item2;window.UpdateLayout();
+                        AssertNavigationLabels(window, $"{language} {size.Item1:0}x{size.Item2:0}");
                         Assert.Equal(Visibility.Visible,((Button)window.FindName("TriageActionButton")).Visibility);
                         Assert.Equal(DesktopMode.Standard,window.CurrentDesktopMode);
                         Capture(window,$"standard-{language}-{size.Item1:0}x{size.Item2:0}-synthetic");
@@ -93,7 +94,9 @@ public sealed class DashboardUiTests
                 foreach(var size in new[]{(1280d,880d),(1280d,800d),(1000d,760d),(850d,620d)})
                 {
                     window.Width=size.Item1;window.Height=size.Item2;window.UpdateLayout();
-                    Assert.Equal(window.ActualWidth<1050?2:4,((System.Windows.Controls.Primitives.UniformGrid)window.FindName("MetricsGrid")).Columns);
+                    var metrics = (System.Windows.Controls.Primitives.UniformGrid)window.FindName("MetricsGrid");
+                    Assert.Equal(2, metrics.Children.Count);
+                    Assert.Equal(window.ActualWidth < 1050 ? 1 : 2, metrics.Columns);
                     Capture(window,$"developer-{size.Item1:0}x{size.Item2:0}-synthetic");
                 }
                 window.Width=1280;window.Height=880;
@@ -109,7 +112,7 @@ public sealed class DashboardUiTests
                 }
                 window.Localization.SelectLanguage("cs-CZ");
                 window.Width=1280;window.Height=880;
-                var overviewScroll=(ScrollViewer)((TabItem)tabs.Items[0]).Content;
+                var overviewScroll=(ScrollViewer)window.FindName("SituationScroll");
                 overviewScroll.ScrollToBottom();Capture(window,"overview-tables-synthetic");overviewScroll.ScrollToTop();
                 for(var index=1;index<tabs.Items.Count;index++)
                 {
@@ -183,5 +186,59 @@ public sealed class DashboardUiTests
             Dispatcher.PushFrame(frame);Thread.Sleep(20);
         }
         Assert.True(condition());
+    }
+
+    private static void AssertNavigationLabels(MainWindow window, string context)
+    {
+        var expected = new[]
+        {
+            ("DesignNavSituation", "DesignNavSituation"),
+            ("DesignNavEvents", "DesignNavEvents"),
+            ("Recommendations", "DesignNavRecommendationsCompact"),
+            ("DesignNavSystem", "DesignNavSystem"),
+            ("DesignNavMaintenance", "DesignNavMaintenance"),
+            ("DesignNavTools", "DesignNavTools")
+        };
+        var tabs = ((TabControl)window.FindName("DashboardTabs")).Items.Cast<TabItem>().ToArray();
+        Assert.Equal(expected.Length, tabs.Length);
+
+        for (var index = 0; index < expected.Length; index++)
+        {
+            var (automationKey, labelKey) = expected[index];
+            Assert.Equal(window.Localization.Text(automationKey),
+                System.Windows.Automation.AutomationProperties.GetName(tabs[index]));
+
+            var header = Assert.IsType<StackPanel>(tabs[index].Header);
+            var label = Assert.IsType<TextBlock>(header.Children[1]);
+            Assert.Equal(window.Localization.Text(labelKey), label.Text);
+            Assert.Equal(TextWrapping.Wrap, label.TextWrapping);
+            Assert.Equal(TextTrimming.None, label.TextTrimming);
+            Assert.True(label.ActualWidth > 0 && label.ActualHeight > 0,
+                $"Navigation label has no layout size: index={index}, context={context}.");
+            Assert.True(label.IsVisible,
+                $"Navigation label is not visible: index={index}, context={context}.");
+            Assert.True(label.DesiredSize.Height <= label.ActualHeight + 0.5,
+                $"Navigation label needs more height than was arranged: index={index}, context={context}, "
+                + $"desired={label.DesiredSize.Height:0.##}, actual={label.ActualHeight:0.##}.");
+
+            var labelBounds = label.TransformToAncestor(window).TransformBounds(new Rect(label.RenderSize));
+            Assert.True(labelBounds.Left >= -0.5 && labelBounds.Top >= -0.5
+                && labelBounds.Right <= window.ActualWidth + 0.5 && labelBounds.Bottom <= window.ActualHeight + 0.5,
+                $"Navigation label extends outside the window: index={index}, context={context}, bounds={labelBounds}.");
+            for (DependencyObject? ancestor = System.Windows.Media.VisualTreeHelper.GetParent(label);
+                 ancestor is UIElement element;
+                 ancestor = System.Windows.Media.VisualTreeHelper.GetParent(ancestor))
+            {
+                if (element.ClipToBounds)
+                {
+                    var bounds = label.TransformToAncestor(element).TransformBounds(new Rect(label.RenderSize));
+                    Assert.True(bounds.Left >= -0.5 && bounds.Top >= -0.5
+                        && bounds.Right <= element.RenderSize.Width + 0.5
+                        && bounds.Bottom <= element.RenderSize.Height + 0.5,
+                        $"Navigation label is clipped by an ancestor: index={index}, context={context}, bounds={bounds}.");
+                }
+                if (ReferenceEquals(element, window)) break;
+            }
+        }
     }
 }
