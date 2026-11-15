@@ -160,30 +160,27 @@ public sealed class SituationOrbitViewTests
     {
         await StaTest.RunAsync(() =>
         {
-            var wide = CreateMainWindow(1280, 800);
+            var window = CreateMainWindow(850, 620);
             try
             {
-                wide.UpdateLayout();
-                var hero = (Grid)wide.FindName("SituationHeroLayout")!;
-                var detail = (FrameworkElement)wide.FindName("SubsystemDetailPanel")!;
-                Assert.True(hero.ActualWidth >= 940);
+                var hero = (Grid)window.FindName("SituationHeroLayout")!;
+                var detail = (FrameworkElement)window.FindName("SubsystemDetailPanel")!;
+
+                // Control the layout input directly because the display can constrain the outer window.
+                hero.Width = 940;
+                window.UpdateLayout();
+                Assert.Equal(940d, hero.ActualWidth);
                 Assert.Equal(0, Grid.GetRow(detail));
                 Assert.Equal(1, Grid.GetColumn(detail));
-            }
-            finally { wide.Close(); }
 
-            var compact = CreateMainWindow(850, 620);
-            try
-            {
-                compact.UpdateLayout();
-                var hero = (Grid)compact.FindName("SituationHeroLayout")!;
-                var detail = (FrameworkElement)compact.FindName("SubsystemDetailPanel")!;
-                Assert.True(hero.ActualWidth < 940);
+                hero.Width = 939;
+                window.UpdateLayout();
+                Assert.Equal(939d, hero.ActualWidth);
                 Assert.Equal(1, Grid.GetRow(detail));
                 Assert.Equal(0, Grid.GetColumn(detail));
                 Assert.Equal(0d, hero.ColumnDefinitions[1].Width.Value);
             }
-            finally { compact.Close(); }
+            finally { window.Close(); }
         });
     }
 
