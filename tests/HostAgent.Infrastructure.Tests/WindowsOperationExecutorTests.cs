@@ -59,7 +59,8 @@ public sealed class WindowsOperationExecutorTests
     {
         public List<string> ServiceCalls { get; } = []; public int Terminations; public int Disposals; public Action? AfterStop;
         public ProcessIdentity Identity = new(1234, 1000, @"C:\Trusted\worker.exe", new string('A', 64), false);
-        public ValueTask SetServiceRunningAsync(string name, bool running, CancellationToken cancellationToken)
+        public ValueTask SetServiceRunningAsync(string name, bool running, CancellationToken cancellationToken,
+            IReadOnlyCollection<string>? expectedDependencies = null)
         { ServiceCalls.Add(name + ":" + running); if (!running) AfterStop?.Invoke(); return ValueTask.CompletedTask; }
         public IProcessLease OpenProcess(int pid) => new Lease(this, Identity);
         private sealed class Lease(FakeApi api, ProcessIdentity identity) : IProcessLease

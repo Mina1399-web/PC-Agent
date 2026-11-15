@@ -20,6 +20,33 @@ public sealed class TelemetryExplanationTests
         Assert.Contains("future_incident_code",TechnicalText.Format("future_incident_code",culture,true));
     }
 
+
+    [Theory]
+    [InlineData("cs-CZ", "Měřená metrika se odchyluje od nedávného robustního základu", "pravděpodobnost příčiny", "Cílená navazující kontrola není dostupná", "Nezařazený diagnostický stav")]
+    [InlineData("en", "Measured metric differs from its recent robust baseline", "likelihood of a cause", "No targeted follow-up check is currently available", "Unclassified diagnostic item")]
+    [InlineData("de", "Der Messwert weicht von seiner jüngsten robusten Basis ab", "Wahrscheinlichkeit für eine Ursache", "Keine gezielte Anschlussprüfung ist derzeit verfügbar", "Nicht zugeordneter Diagnosestatus")]
+    public void Adaptive_scope_and_unknown_code_have_truthful_localized_fallbacks(
+        string language, string expectedAdaptiveLabel, string expectedScopePhrase, string expectedFollowUpPhrase, string expectedUnknownLabel)
+    {
+        var culture = CultureInfo.GetCultureInfo(language);
+        Assert.Equal(expectedAdaptiveLabel, TechnicalText.Format("adaptive_metric_deviation", culture));
+        var baselineScope = TechnicalText.Format("baseline_deviation_assessment", culture);
+        var expectedConfidencePhrase = language switch { "cs-CZ" => "spolehlivosti vyhodnocení baseline", "de" => "Vertrauenswert der Baselinebewertung", _ => "confidence in the baseline assessment" };
+        var expectedMagnitudePhrase = language switch { "cs-CZ" => "velikost odchylky", "de" => "Größe der Abweichung", _ => "size of the deviation" };
+        var expectedNotCauseLikelihood = language switch { "cs-CZ" => "nikoli o velikost odchylky ani pravděpodobnost příčiny", "de" => "weder die Größe der Abweichung noch die Wahrscheinlichkeit für eine Ursache", _ => "not the size of the deviation or the likelihood of a cause" };
+        Assert.Contains(expectedScopePhrase, baselineScope, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(expectedConfidencePhrase, baselineScope, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(expectedMagnitudePhrase, baselineScope, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(expectedNotCauseLikelihood, baselineScope, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(expectedFollowUpPhrase, TechnicalText.Format("targeted_check_unavailable", culture), StringComparison.OrdinalIgnoreCase);
+        var englishScope = TechnicalText.Format("baseline_deviation_assessment", CultureInfo.GetCultureInfo("en"));
+        Assert.Contains("reference values", englishScope, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("time window", englishScope, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("deviation score", englishScope, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(expectedUnknownLabel, TechnicalText.Format("future_metric_signal_v1", culture));
+        Assert.Contains("future_metric_signal_v1", TechnicalText.Format("future_metric_signal_v1", culture, true));
+    }
+
     private static string Explain(object reasons) => (string)new TelemetryExplanationConverter()
         .Convert(reasons, typeof(string), null!, CultureInfo.GetCultureInfo("cs-CZ"));
 

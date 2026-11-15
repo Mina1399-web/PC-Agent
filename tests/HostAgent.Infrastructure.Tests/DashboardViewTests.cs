@@ -138,6 +138,84 @@ public sealed class DashboardViewTests
         Assert.Equal(confidence, projected.GetProperty("Confidence").GetInt32());
     }
 
+
+    [Theory]
+    [InlineData("adaptive_metric_deviation", "adaptive_metric_deviation", "adaptive_metric_deviation", "baseline_deviation_assessment", true, true, "unavailable", "baseline.cpu.usage.percent", "baseline.cpu.usage.percent")]
+    [InlineData("future_metric_signal_v1", "other_diagnosis", "future_metric_signal_v1", "unclassified_diagnostic", false, true, "unavailable", "baseline.cpu.usage.percent", "baseline.cpu.usage.percent")]
+    [InlineData("future/bad code", "other_diagnosis", null, "unclassified_diagnostic", false, true, "unavailable", "baseline.cpu.usage.percent", "baseline.cpu.usage.percent")]
+    [InlineData("memory_pressure", "memory_pressure", "memory_pressure", "probable_cause_estimate", false, false, null, "baseline.cpu/unsafe", "baseline")]
+    public async Task Incident_projection_preserves_safe_diagnostic_identity_and_reports_scope_gaps(
+        string diagnosticCode, string expectedDisplayCode, string? expectedDiagnosticCode, string expectedScope, bool hasBaselineScore, bool confidenceUnavailable, string? expectedFollowUpStatus, string evidenceSource, string expectedEvidenceSource)
+    {
+        await using var f = await OperatingModeTests.Fixture.Create();
+        var now = new DateTimeOffset(2026, 11, 12, 12, 0, 0, TimeSpan.Zero);
+        var diagnosis = new Diagnosis(
+            Guid.NewGuid().ToString("N"),
+            "diagnostic:" + Guid.NewGuid().ToString("N"),
+            now,
+            DiagnosisSeverity.Warning,
+            84,
+            [new DiagnosticEvidence("evidence-id", evidenceSource, "Synthetic metric observation", 42.5, now)],
+            new ProbableRootCause(diagnosticCode, "Synthetic metric observation", "cpu.usage.percent:host"),
+            [],
+            new RemediationRecommendation("review_metric_trend", "Review the metric trend."),
+            IncidentLifecycleState.Detected);
+        var incident = new Incident(diagnosis.DiagnosisId, diagnosis.CorrelationKey, IncidentLifecycleState.Detected,
+            now, now, 1, diagnosis, []);
+        await f.Store.SaveIncidentBundleAsync(incident, default);
+
+
+        using var overview = JsonDocument.Parse(await new DashboardDispatcher(f.Store, new(), new(), TimeProvider.System)
+            .DispatchAsync(ViewProtocol.Request("overview", new { }), default));
+        Assert.True(overview.RootElement.GetProperty("ok").GetBoolean());
+        var overviewIncident = Assert.Single(overview.RootElement.GetProperty("data").GetProperty("Incidents").EnumerateArray(),
+            item => item.GetProperty("Id").GetString() == incident.IncidentId);
+        Assert.Equal(expectedDisplayCode, overviewIncident.GetProperty("Code").GetString());
+        if (confidenceUnavailable)
+            Assert.Equal(JsonValueKind.Null, overviewIncident.GetProperty("Confidence").ValueKind);
+        else
+            Assert.Equal(84, overviewIncident.GetProperty("Confidence").GetInt32());
+        Assert.True(overviewIncident.TryGetProperty("DiagnosticCode", out var overviewRawCode));
+        if (expectedDiagnosticCode is null)
+            Assert.Equal(JsonValueKind.Null, overviewRawCode.ValueKind);
+        else
+            Assert.Equal(expectedDiagnosticCode, overviewRawCode.GetString());
+
+        var bytes = await new DashboardDispatcher(f.Store, new(), new(), TimeProvider.System)
+            .DispatchAsync(ViewProtocol.Request("incident", new { incidentId = incident.IncidentId }), default);
+
+        using var reply = JsonDocument.Parse(bytes);
+        Assert.True(reply.RootElement.GetProperty("ok").GetBoolean());
+        var data = reply.RootElement.GetProperty("data");
+        var projected = data.GetProperty("Incident");
+        Assert.Equal(expectedDisplayCode, projected.GetProperty("Code").GetString());
+        Assert.True(projected.TryGetProperty("DiagnosticCode", out var rawCode));
+        if (expectedDiagnosticCode is null)
+            Assert.Equal(JsonValueKind.Null, rawCode.ValueKind);
+        else
+            Assert.Equal(expectedDiagnosticCode, rawCode.GetString());
+
+        if (confidenceUnavailable)
+            Assert.Equal(JsonValueKind.Null, projected.GetProperty("Confidence").ValueKind);
+        else
+            Assert.Equal(84, projected.GetProperty("Confidence").GetInt32());
+        Assert.Equal(expectedScope, data.GetProperty("ConfidenceScope").GetString());
+        var followUpStatus = data.GetProperty("FollowUpStatus");
+        if (expectedFollowUpStatus is null)
+            Assert.Equal(JsonValueKind.Null, followUpStatus.ValueKind);
+        else
+            Assert.Equal(expectedFollowUpStatus, followUpStatus.GetString());
+        if (hasBaselineScore)
+            Assert.Equal(84, data.GetProperty("BaselineAssessmentConfidence").GetInt32());
+        else
+            Assert.Equal(JsonValueKind.Null, data.GetProperty("BaselineAssessmentConfidence").ValueKind);
+
+        var evidence = Assert.Single(data.GetProperty("Evidence").EnumerateArray());
+        Assert.Equal(expectedEvidenceSource, evidence.GetProperty("Source").GetString());
+        Assert.Equal(42.5, evidence.GetProperty("Value").GetDouble());
+        Assert.Equal(now, DateTimeOffset.Parse(evidence.GetProperty("AtUtc").GetString()!));
+    }
+
     [Fact]
     public async Task Overview_reports_stage_timings_without_payload_or_exception_text()
     {

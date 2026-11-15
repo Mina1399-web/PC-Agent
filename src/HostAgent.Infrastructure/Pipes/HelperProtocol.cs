@@ -77,8 +77,23 @@ public static class HelperProtocol
         }
         else
         {
-            Exact(parameters, "serviceId");
-            typed = new ServiceParameters(Identifier(parameters.GetProperty("serviceId")));
+            var names = parameters.ValueKind == JsonValueKind.Object
+                ? parameters.EnumerateObject().Select(property => property.Name).ToArray()
+                : [];
+            var serviceId = Identifier(parameters.GetProperty("serviceId"));
+            if (names.Length == 1 && names[0] == "serviceId")
+                typed = new ServiceParameters(serviceId);
+            else
+            {
+                Exact(parameters, "serviceId", "expectedDependencyIds");
+                var dependencyElement = parameters.GetProperty("expectedDependencyIds");
+                if (dependencyElement.ValueKind != JsonValueKind.Array || dependencyElement.GetArrayLength() > 32)
+                    throw Invalid();
+                var dependencyIds = dependencyElement.EnumerateArray().Select(Identifier).ToArray();
+                if (dependencyIds.Distinct(StringComparer.Ordinal).Count() != dependencyIds.Length ||
+                    dependencyIds.Contains(serviceId, StringComparer.Ordinal)) throw Invalid();
+                typed = new ServiceParameters(serviceId, dependencyIds);
+            }
         }
         var approvalElement = root.GetProperty("approvalId");
         Guid? approvalId = approvalElement.ValueKind == JsonValueKind.Null ? null : approvalElement.GetGuid();
@@ -92,7 +107,8 @@ public static class HelperProtocol
             incidentId = request.IncidentId, diagnosisId = request.DiagnosisId, confidence = request.Confidence,
             evidenceReferences = request.EvidenceReferences, operation = request.Operation.ToString(),
             parameters = request.Parameters switch {
-                ServiceParameters p => (object)new { serviceId = p.ServiceId },
+                ServiceParameters p when p.ExpectedDependencyIds is null => (object)new { serviceId = p.ServiceId },
+                ServiceParameters p => new { serviceId = p.ServiceId, expectedDependencyIds = p.ExpectedDependencyIds },
                 ProcessParameters p => new { processId = p.ProcessId, pid = p.Pid, startTimeUtcTicks = p.StartTimeUtcTicks },
                 _ => throw Invalid() }, approvalId = request.ApprovalId });
         _ = ParseRequest(bytes); // The same validation applies to in-process callers.

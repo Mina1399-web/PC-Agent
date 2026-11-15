@@ -47,6 +47,8 @@ public partial class MainWindow:Window
     private int _lastStandardTab;
     private Func<string>? _comparisonText;
     private DashboardSnapshot? _renderedView;
+
+    private DateTimeOffset? _lastOrbitOverviewUtc;
     private string _renderedState="disconnected";
     private string T(string source, params object?[] args) => Localization.Text(source, args);
     private LocalizedMessages Messages => new(Localization);
@@ -66,8 +68,22 @@ public partial class MainWindow:Window
         _diskHealthReader = diskHealthReader ?? new WindowsDiskHealthReader();
         _readWindowsInventory=readWindowsInventory;
         InitializeComponent();_controller=controller;
+        SituationOrbit.SelectedNodeChanged += node => RenderSelectedSubsystem(node);
+        var workArea=SystemParameters.WorkArea;
+        MaxWidth=Math.Max(320,workArea.Width-16);
+        MaxHeight=Math.Max(320,workArea.Height-16);
+        MinWidth=Math.Min(850,MaxWidth);
+        MinHeight=Math.Min(620,MaxHeight);
+        var initialBounds=ClampInitialBounds(workArea);
+        Width=initialBounds.Width;
+        Height=initialBounds.Height;
+        WindowStartupLocation=WindowStartupLocation.Manual;
+        Left=initialBounds.Left;
+        Top=initialBounds.Top;
         Localization.Apply(this);
         InitializeDesign();
+        OrbitTheme.SetPalette(this,true);
+        RenderSituationOrbit(null);
         ApplyDesktopMode();
         OperationChoice.SelectionChanged += OperationChoiceChanged;
         AliasInput.TextChanged += OperationFieldsChanged;
@@ -77,7 +93,7 @@ public partial class MainWindow:Window
         LanguageChoice.ItemsSource=DesktopLocalization.Languages;
         LanguageChoice.SelectedValue=Localization.LanguageCode;
         LanguageChoice.SelectionChanged+=LanguageSelected;
-        SizeChanged+=(_,_)=>MetricsGrid.Columns=ActualWidth<1050?2:4;
+        SizeChanged+=(_,_)=>MetricsGrid.Columns=ActualWidth<1050?1:2;
         var menu=new System.Windows.Forms.ContextMenuStrip();
         menu.Items.Add(T("OpenDashboard"),null,(_,_)=>Dispatcher.Invoke(ShowDashboard));
         menu.Items.Add(T("ExitDashboard"),null,(_,_)=>Dispatcher.Invoke(Close));
@@ -94,6 +110,17 @@ public partial class MainWindow:Window
             TicksInput.Text=process?.StartTimeUtcTicks?.ToString(CultureInfo.InvariantCulture)??"";
         };
     }
+    internal static Rect ClampInitialBounds(Rect workArea)
+    {
+        var maxWidth=Math.Max(320,workArea.Width-16);
+        var maxHeight=Math.Max(320,workArea.Height-16);
+        var minWidth=Math.Min(850,maxWidth);
+        var minHeight=Math.Min(620,maxHeight);
+        var width=Math.Max(minWidth,Math.Min(1280,maxWidth));
+        var height=Math.Max(minHeight,Math.Min(880,maxHeight));
+        return new Rect(workArea.Left+Math.Max(0,(workArea.Width-width)/2),
+            workArea.Top+Math.Max(0,(workArea.Height-height)/2),width,height);
+    }
     private void LanguageSelected(object sender, SelectionChangedEventArgs e)
     {
         if(LanguageChoice.SelectedValue is not string code)return;
@@ -109,10 +136,12 @@ public partial class MainWindow:Window
         Localization.Apply(this);
         UpdateDesktopModeControls();
         UpdateThemeLabel();
+        UpdateWorkspaceTitle();
         LanguageChoice.SelectedValue=Localization.LanguageCode;
         _tray.ContextMenuStrip!.Items[0].Text=T("OpenDashboard");
         _tray.ContextMenuStrip.Items[1].Text=T("ExitDashboard");
         if(_hasRefreshed)RenderSnapshot(_renderedView,false);
+        else RenderSituationOrbit(null);
         if(_comparisonText is not null)ComparisonText.Text=_comparisonText();
         if(_smartText is not null)SmartResultText.Text=_smartText();
         RenderWindowsInventory();
@@ -213,6 +242,12 @@ public partial class MainWindow:Window
     {
             RenderDesignMetrics(view);
             RenderWindowsDiagnosis(view);
+            RenderSituationOrbit(view);
+            var recentActivity=view is not null&&ViewFreshness.IsFresh(view.GeneratedAtUtc,DateTimeOffset.UtcNow)
+                ?view.Incidents.Where(item=>item.AtUtc<=DateTimeOffset.UtcNow).OrderByDescending(item=>item.AtUtc).Take(4).ToArray():Array.Empty<ViewIncident>();
+            RecentActivityItems.ItemsSource=recentActivity;
+            RecentActivityItems.Visibility=recentActivity.Length==0?Visibility.Collapsed:Visibility.Visible;
+            RecentActivityEmpty.Visibility=recentActivity.Length==0?Visibility.Visible:Visibility.Collapsed;
             HealthSummaryText.Text=HealthSummary.Describe(view,Localization.Culture);
             if(view is null)
             {
@@ -255,8 +290,60 @@ public partial class MainWindow:Window
             SetEmptyStates(view);
             UpdateOperationReadiness();
             RenderRecommendations(view);
+            RenderSelectedSubsystem(SituationOrbit.SelectedNode);
             DrawChart();
             if(_refreshFailed){StatusText.Text=T("CouldNotRefreshTheDataAnotherAttemptWillRunAutomatically");UpdateOperationReadiness();}
+    }
+    private void RenderSituationOrbit(DashboardSnapshot? view)
+    {
+        if (view is not null && ViewFreshness.IsFresh(view.GeneratedAtUtc, DateTimeOffset.UtcNow))
+            _lastOrbitOverviewUtc = view.GeneratedAtUtc;
+        SituationOrbit.Render(SituationOrbitSnapshot.Create(view, _renderedState, _hasRefreshed,
+            Localization, DateTimeOffset.UtcNow, _lastOrbitOverviewUtc));
+    }
+    private void RenderSelectedSubsystem(SituationOrbitNode? node)
+    {
+        if(node is null)
+        {
+            SelectedSubsystemTitle.Text=T("OrbitSelected");
+            SelectedSubsystemStatus.Text=T("OrbitSelectNode");
+            SelectedSubsystemSummary.Text=string.Empty;
+            SelectedSubsystemRows.ItemsSource=null;
+            HistoryPanel.Visibility=SmartDetailPanel.Visibility=NetworkText.Visibility=Visibility.Collapsed;
+            return;
+        }
+        SelectedSubsystemTitle.Text=node.Title;
+        SelectedSubsystemStatus.Text=node.Status;
+        SelectedSubsystemSummary.Text=node.Summary;
+        SelectedSubsystemRows.ItemsSource=node.Details;
+        HistoryPanel.Visibility=node.Id is SituationSubsystem.Cpu or SituationSubsystem.Memory?Visibility.Visible:Visibility.Collapsed;
+        SmartDetailPanel.Visibility=node.Id==SituationSubsystem.Disks?Visibility.Visible:Visibility.Collapsed;
+        NetworkText.Visibility=node.Id==SituationSubsystem.Network?Visibility.Visible:Visibility.Collapsed;
+    }
+    private void SituationHeroLayoutSizeChanged(object sender,SizeChangedEventArgs e)
+    {
+        var sideBySide=e.NewSize.Width>=940;
+        SituationHeroLayout.ColumnDefinitions[0].Width=sideBySide?new GridLength(1.7,GridUnitType.Star):new GridLength(1,GridUnitType.Star);
+        SituationHeroLayout.ColumnDefinitions[1].Width=sideBySide?new GridLength(1,GridUnitType.Star):new GridLength(0);
+        Grid.SetColumn(SubsystemDetailPanel,sideBySide?1:0);
+        Grid.SetRow(SubsystemDetailPanel,sideBySide?0:1);
+        SituationOrbit.Margin=sideBySide?new Thickness(0,0,8,0):new Thickness(0,0,0,8);
+        SubsystemDetailPanel.Margin=sideBySide?new Thickness(8,0,0,0):new Thickness(0,8,0,0);
+    }
+    private void OpenRecentEvents(object sender,RoutedEventArgs e)
+    {
+        DashboardTabs.SelectedIndex=1;
+        IncidentsGrid.Focus();
+    }
+    private void RecentIncidentClick(object sender,RoutedEventArgs e)
+    {
+        if(sender is not Button {Tag:string id})return;
+        var incident=IncidentsGrid.Items.OfType<ViewIncident>().FirstOrDefault(item=>item.Id==id);
+        if(incident is null)return;
+        DashboardTabs.SelectedIndex=1;
+        IncidentsGrid.SelectedItem=incident;
+        IncidentsGrid.ScrollIntoView(incident);
+        IncidentsGrid.Focus();
     }
     private async void SmartClick(object sender, RoutedEventArgs e)
     {
@@ -281,7 +368,7 @@ public partial class MainWindow:Window
         try
         {
             var window=new MaintenanceWindow(_controller,null,Localization,developerMode:()=>DeveloperFeaturesEnabled){Owner=this};
-            OrbitTheme.ApplyToDialog(window, this);
+            OrbitTheme.ApplyToDialog(window,this);
             window.ShowDialog();
         }
         finally{_maintenanceWindowOpen=false;}
@@ -358,14 +445,30 @@ public partial class MainWindow:Window
             if(IncidentsGrid.SelectedItem is not ViewIncident){TechnicalDetailsExpander.Visibility=Visibility.Collapsed;DetailText.Text=T("SelectAnIncidentToViewTheAvailableCodesTimesAndNumericEvidence");return;}
             var detail=_selectedDetail;
             if(detail is null){TechnicalDetailsExpander.Visibility=Visibility.Collapsed;DetailText.Text=T("DetailsAreUnavailable");return;}
-            var scope=detail.ConfidenceScope=="stop_code_classification_only"?T("ConfidenceRefersToTheStopCodeClassificationItDoesNotIdentifyAFaultyD"):T("ConfidenceIsAnEstimateOfTheLikelyCauseNotAGuaranteeOfTheCorrectRepai");
-            DetailText.Text=T("IncidentCodeStatusConfidence",T("IncidentSummary",TechnicalText.Format(detail.Incident.Code,Localization.Culture),detail.Incident.AtUtc.ToLocalTime().ToString("g",Localization.Culture)),TechnicalText.Format(detail.Incident.Code,Localization.Culture),TechnicalText.Format(detail.Incident.State,Localization.Culture),detail.Incident.Confidence)+
+            var culture=Localization.Culture;
+            var codeText=TechnicalText.Format(detail.Incident.Code,culture);
+            var stateText=TechnicalText.Format(detail.Incident.State,culture);
+            var summary=T("IncidentSummary",codeText,detail.Incident.AtUtc.ToLocalTime().ToString("g",culture));
+            var heading=detail.ConfidenceScope switch
+            {
+                "baseline_deviation_assessment"=>T("IncidentBaselineAssessmentConfidence",summary,codeText,stateText,detail.BaselineAssessmentConfidence?.ToString(culture)??"-"),
+                "unclassified_diagnostic"=>T("IncidentUnclassifiedStatus",summary,codeText,stateText),
+                _=>T("IncidentCodeStatusConfidence",summary,codeText,stateText,detail.Incident.Confidence?.ToString(culture)??"-")
+            };
+            var scope=detail.ConfidenceScope switch
+            {
+                "baseline_deviation_assessment" or "unclassified_diagnostic"=>TechnicalText.Format(detail.ConfidenceScope,culture),
+                "stop_code_classification_only"=>T("ConfidenceRefersToTheStopCodeClassificationItDoesNotIdentifyAFaultyD"),
+                _=>T("ConfidenceIsAnEstimateOfTheLikelyCauseNotAGuaranteeOfTheCorrectRepai")
+            };
+            DetailText.Text=heading+
                 (detail.Incident.AffectedService is{} service?T("AffectedService",service):string.Empty)+
                 T("LimitedEvidenceSourceValueUTC",scope)+
-                string.Join("\n",detail.Evidence.Select(x=>T("EvidenceValues",x.Source,x.Value?.ToString(Localization.Culture)??"—",x.AtUtc)))+
+                string.Join("\n",detail.Evidence.Select(x=>T("EvidenceValues",x.Source,x.Value?.ToString(culture)??"-",x.AtUtc)))+
+                (detail.FollowUpStatus=="unavailable"?"\n"+TechnicalText.Format("targeted_check_unavailable",culture):string.Empty)+
                 (detail.Truncated?T("AdditionalEvidenceWasOmittedToLimitTheScope"):"")+T("ViewingThisInformationDoesNotApproveAnAutomaticRepair");
             TechnicalDetailsExpander.Visibility=DeveloperFeaturesEnabled?Visibility.Visible:Visibility.Collapsed;
-            TechnicalIncidentCodeText.Text=T("TechnicalIncidentIdentifiers",detail.Incident.Id,detail.Incident.Code);
+            TechnicalIncidentCodeText.Text=T("TechnicalIncidentIdentifiers",detail.Incident.Id,detail.Incident.DiagnosticCode??detail.Incident.Code);
     }
 
     private void RenderSelectedIncidentSummary()
@@ -534,7 +637,7 @@ public partial class MainWindow:Window
             }
         }
         ChartEmptyText.Visibility=count==0?Visibility.Visible:Visibility.Collapsed;
-        System.Windows.Automation.AutomationProperties.SetName(Chart,count==0?T("CPUAndRAMHistoryIsUnavailable"):T("CPUAndRAMHistoryOver24HoursSavedPointsCPUInBlueRAMInPurple",count));
+        System.Windows.Automation.AutomationProperties.SetName(Chart,count==0?T("CPUAndRAMHistoryIsUnavailable"):T("CPUAndRAMHistoryOver24HoursSavedPoints",count));
     }
     private void ChartSizeChanged(object sender,SizeChangedEventArgs e)=>DrawChart();
     private void ShowDashboard(){Show();WindowState=WindowState.Normal;Activate();_tray.Visible=false;}
@@ -579,9 +682,16 @@ public partial class MainWindow:Window
             if(!DesktopModePolicy.CanNavigateTo(selected,_desktopMode))
             {DashboardTabs.SelectedIndex=_lastStandardTab;return;}
             if(!DesktopModePolicy.IsDeveloperTab(selected))_lastStandardTab=selected;
+            UpdateWorkspaceTitle();
         }
         if(ReferenceEquals(e.Source,DashboardTabs)&&WindowsAdministrationTab?.IsSelected==true)
             await ReadWindowsInventory();
+    }
+
+    private void UpdateWorkspaceTitle()
+    {
+        var tab=DashboardTabs.SelectedItem as TabItem;
+        WorkspaceTitle.Text=tab is null?T("Workspace"):System.Windows.Automation.AutomationProperties.GetName(tab);
     }
 
     private async void WindowsAreaChanged(object sender,SelectionChangedEventArgs e)
@@ -765,7 +875,7 @@ public partial class MainWindow:Window
         {
             _maintenanceWindowOpen=true;
             var window=new MaintenanceWindow(_controller,null,Localization,drive,()=>DeveloperFeaturesEnabled){Owner=this};
-            OrbitTheme.ApplyToDialog(window, this);
+            OrbitTheme.ApplyToDialog(window,this);
             window.ShowDialog();
             _maintenanceWindowOpen=false;
             await Refresh();
@@ -781,20 +891,13 @@ public partial class MainWindow:Window
         if(_guidedActionRunning||_controller.Snapshot is not {} view||_recoveryIncident is not {} incident)return;
         await RunGuidedAction(async ()=>
         {
-            using var child=DashboardCommands.ReviewServiceRecovery(view,incident)??throw new InvalidOperationException();
+            using var child=DashboardCommands.ReviewServiceRecovery(view,incident,_darkTheme)??throw new InvalidOperationException();
             await child.WaitForExitAsync(_closing.Token);
-            if(child.ExitCode!=0){SetWindowsActionStatus("ServiceRecoveryUnverified");return;}
+            if(child.ExitCode!=0){SetWindowsActionStatus(DashboardCommands.ServiceRecoveryExitStatusKey(child.ExitCode));return;}
             using var service=new System.ServiceProcess.ServiceController(incident.AffectedService!);
-            for(var second=0;second<=10;second++)
-            {
-                service.Refresh();
-                if(service.Status!=System.ServiceProcess.ServiceControllerStatus.Running)
-                {
-                    SetWindowsActionStatus("ServiceRecoveryUnverified");
-                    return;
-                }
-                if(second<10)await Task.Delay(TimeSpan.FromSeconds(1),_closing.Token);
-            }
+            service.Refresh();
+            if(service.Status!=System.ServiceProcess.ServiceControllerStatus.Running)
+            {SetWindowsActionStatus("ServiceRecoveryUnverified");return;}
             SetWindowsActionStatus("ServiceRecoveryRunning",incident.AffectedService);
         });
     }

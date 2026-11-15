@@ -5,12 +5,12 @@ public sealed record ViewDisk(string Drive, long FreeBytes, long CapacityBytes, 
 public sealed record ViewProcess(int Pid, string Name, double? CpuPercent, long MemoryBytes)
 { public long? StartTimeUtcTicks {get;init;} }
 public sealed record ViewService(string Name, string State);
-public sealed record ViewIncident(string Id, string State, string Code, int Confidence, string Severity, DateTimeOffset AtUtc, int Recurrences)
-{ public string? AffectedService { get; init; } }
+public sealed record ViewIncident(string Id, string State, string Code, int? Confidence, string Severity, DateTimeOffset AtUtc, int Recurrences)
+{ public string? AffectedService { get; init; } public string? DiagnosticCode { get; init; } }
 public sealed record ViewHealth(string Component, string Code, bool Degraded, IReadOnlyList<string>? Reasons = null)
 { public string ReasonSummary => string.Join(", ", Reasons ?? Array.Empty<string>()); }
 public sealed record ViewEvidence(string Source, double? Value, DateTimeOffset AtUtc);
-public sealed record ViewIncidentDetail(ViewIncident Incident, string ConfidenceScope, IReadOnlyList<ViewEvidence> Evidence, bool Truncated);
+public sealed record ViewIncidentDetail(ViewIncident Incident, string ConfidenceScope, IReadOnlyList<ViewEvidence> Evidence, bool Truncated) { public int? BaselineAssessmentConfidence { get; init; } public string? FollowUpStatus { get; init; } }
 public sealed record ViewEvent(int EventId, long? RecordId, DateTimeOffset AtUtc, uint? BugCheckCode, string? DumpFileName);
 public sealed record ViewInvestigation(DateTimeOffset AtUtc, IReadOnlyList<ViewEvent> Events, IReadOnlyList<ViewIncident> Incidents, string Limitation);
 // Availability describes diagnostic metadata, never the health of the disk.

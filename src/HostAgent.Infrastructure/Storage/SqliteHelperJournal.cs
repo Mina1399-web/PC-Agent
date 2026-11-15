@@ -14,14 +14,17 @@ public sealed class SqliteHelperJournal : IAuditStore, IAsyncDisposable
 {
     private readonly string _connectionString;
     private readonly HashSet<string> _approvers;
+    private readonly bool _readOnly;
     private readonly SemaphoreSlim _initialize = new(1, 1);
     private bool _initialized;
     private bool _disposed;
-    public SqliteHelperJournal(string databasePath, IReadOnlyCollection<string> approverSids)
+    public SqliteHelperJournal(string databasePath, IReadOnlyCollection<string> approverSids, bool readOnly = false)
     {
         _connectionString = new SqliteConnectionStringBuilder { DataSource = Path.GetFullPath(databasePath),
-            Mode = SqliteOpenMode.ReadWriteCreate, ForeignKeys = true, Pooling = false, DefaultTimeout = 5 }.ToString();
+            Mode = readOnly ? SqliteOpenMode.ReadOnly : SqliteOpenMode.ReadWriteCreate,
+            ForeignKeys = true, Pooling = false, DefaultTimeout = 5 }.ToString();
         _approvers = new(approverSids, StringComparer.Ordinal);
+        _readOnly = readOnly;
     }
     private async Task<SqliteConnection> OpenAsync(CancellationToken token)
     {
@@ -30,7 +33,9 @@ public sealed class SqliteHelperJournal : IAuditStore, IAsyncDisposable
         try
         {
             await connection.OpenAsync(token);
-            await NonQuery(connection, null, "PRAGMA busy_timeout=5000; PRAGMA synchronous=FULL;", token);
+            await NonQuery(connection, null, "PRAGMA busy_timeout=5000;", token);
+            if (_readOnly) return connection;
+            await NonQuery(connection, null, "PRAGMA synchronous=FULL;", token);
             await _initialize.WaitAsync(token);
             try
             {

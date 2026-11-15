@@ -62,6 +62,31 @@ internal static class TechnicalText
             ? DesktopLocalization.Text(culture,"TechnicalCode",code)
             : DesktopLocalization.Text(culture,"UnclassifiedDiagnostic");
     }
+    internal static string FormatNetworkProbeDetail(string? kind,string? status,CultureInfo culture)
+    {
+        var detailKey=(kind,status) switch
+        {
+            ("Gateway","Succeeded")=>"OrbitProbeGatewaySucceeded",("Gateway","Failed")=>"OrbitProbeGatewayFailed",
+            ("Gateway","TimedOut")=>"OrbitProbeGatewayTimedOut",("Gateway","Unavailable")=>"OrbitProbeGatewayUnavailable",
+            ("InternetIp","Succeeded")=>"OrbitProbeInternetIpSucceeded",("InternetIp","Failed")=>"OrbitProbeInternetIpFailed",
+            ("InternetIp","TimedOut")=>"OrbitProbeInternetIpTimedOut",("InternetIp","Unavailable")=>"OrbitProbeInternetIpUnavailable",
+            ("DnsResolution","Succeeded")=>"OrbitProbeDnsResolutionSucceeded",("DnsResolution","Failed")=>"OrbitProbeDnsResolutionFailed",
+            ("DnsResolution","TimedOut")=>"OrbitProbeDnsResolutionTimedOut",("DnsResolution","Unavailable")=>"OrbitProbeDnsResolutionUnavailable",
+            _=>null
+        };
+        if(detailKey is not null)return DesktopLocalization.Text(culture,detailKey);
+        var kindKey=kind switch { "Gateway"=>"OrbitProbeKindGateway", "InternetIp"=>"OrbitProbeKindInternetIp", "DnsResolution"=>"OrbitProbeKindDnsResolution", _=>null };
+        var statusKey=status switch { "Succeeded"=>"OrbitProbeStatusSucceeded", "Failed"=>"OrbitProbeStatusFailed", "TimedOut"=>"OrbitProbeStatusTimedOut", "Unavailable"=>"OrbitProbeStatusUnavailable", _=>null };
+        var kindText=kindKey is null?DesktopLocalization.Text(culture,"OrbitProbeUnknownKind",SafeNetworkValue(kind)):DesktopLocalization.Text(culture,kindKey);
+        var statusText=statusKey is null?DesktopLocalization.Text(culture,"OrbitProbeUnknownStatus",SafeNetworkValue(status)):DesktopLocalization.Text(culture,statusKey);
+        return kindText+" · "+statusText;
+    }
+    private static string SafeNetworkValue(string? value)
+    {
+        if(string.IsNullOrWhiteSpace(value))return "—";
+        var safe=new string(value.Where(character=>!char.IsControl(character)).Take(64).ToArray()).Trim();
+        return safe.Length==0?"—":safe;
+    }
     public static string FormatMaintenanceReason(string? code,CultureInfo culture,bool includeCode=false)
     {
         if(string.IsNullOrWhiteSpace(code))return "—";

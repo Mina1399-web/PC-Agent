@@ -151,15 +151,16 @@ public sealed class DashboardInteractionTests
         var cpu = ((TextBlock)window.FindName("CpuText")).Text;
         var operationEnabled = ((Button)window.FindName("OperationButton")).IsEnabled;
         var theme = (Button)window.FindName("ThemeButton");
-        theme.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.Equal("Světlý motiv", theme.Content);
+        theme.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.Equal("Tmavý motiv", theme.Content);
         Assert.Equal(cpu, ((TextBlock)window.FindName("CpuText")).Text);
         Assert.Equal("42", ((TextBox)window.FindName("PidInput")).Text);
         Assert.Equal(operationEnabled, ((Button)window.FindName("OperationButton")).IsEnabled);
         window.Localization.SelectLanguage("de");
-        Assert.Equal("Heller Modus", theme.Content);
-        theme.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.Equal("Dunkler Modus", theme.Content);
+        theme.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.Equal("Heller Modus", theme.Content);
         Assert.Equal(cpu, ((TextBlock)window.FindName("CpuText")).Text);
     });
 

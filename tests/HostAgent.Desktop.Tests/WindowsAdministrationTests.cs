@@ -54,7 +54,12 @@ public sealed class WindowsAdministrationTests
             prepare.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             Assert.Equal(4,((TabControl)window.FindName("DashboardTabs")).SelectedIndex);
             Assert.Equal("HostAgent",((TextBox)window.FindName("AliasInput")).Text);
-            Assert.Equal(-1,((ComboBox)window.FindName("OperationChoice")).SelectedIndex);
+            var operations=(ComboBox)window.FindName("OperationChoice");
+            Assert.Equal(-1,operations.SelectedIndex);
+            Assert.False(((ComboBoxItem)operations.Items[0]).IsEnabled);
+            Assert.False(((ComboBoxItem)operations.Items[1]).IsEnabled);
+            Assert.Contains(language.Text("WinServiceStartRequiresGuidedReview"),
+                ((TextBlock)window.FindName("ServiceStartRequiresGuidedReviewText")).Text, StringComparison.Ordinal);
         }
         finally { window.Close(); }
     });

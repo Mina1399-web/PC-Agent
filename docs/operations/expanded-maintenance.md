@@ -1,12 +1,8 @@
 # Expanded local maintenance and disk prediction
 
 This note records product behavior for the Host Agent V1 maintenance surface.
-The Stage 5 implementation passed an independent static review on 2026-11-13.
-On 2026-11-14, the Stage 5B source snapshot in the approved DEV VM passed
-a Release build and all 775 tests (64 Core, 606 Infrastructure, 105 Desktop).
-The focused maintenance suites passed 10 Desktop and 49 Infrastructure tests.
-This evidence applies to the isolated VM snapshot, which differs from the pull
-request checkout. Hosted Windows CI validates its own checkout and test scope.
+The Stage 5 implementation is still a staging change pending independent
+review; it has not been built or transferred to the DEV VM.
 
 ## File maintenance in the public V1 surface
 
