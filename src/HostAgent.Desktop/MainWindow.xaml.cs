@@ -47,6 +47,7 @@ public partial class MainWindow:Window
     private int _lastStandardTab;
     private Func<string>? _comparisonText;
     private DashboardSnapshot? _renderedView;
+    private DateTimeOffset? _lastOrbitOverviewUtc;
     private string _renderedState="disconnected";
     private string T(string source, params object?[] args) => Localization.Text(source, args);
     private LocalizedMessages Messages => new(Localization);
@@ -68,6 +69,7 @@ public partial class MainWindow:Window
         InitializeComponent();_controller=controller;
         Localization.Apply(this);
         InitializeDesign();
+        RenderSituationOrbit(null);
         ApplyDesktopMode();
         OperationChoice.SelectionChanged += OperationChoiceChanged;
         AliasInput.TextChanged += OperationFieldsChanged;
@@ -113,6 +115,7 @@ public partial class MainWindow:Window
         _tray.ContextMenuStrip!.Items[0].Text=T("OpenDashboard");
         _tray.ContextMenuStrip.Items[1].Text=T("ExitDashboard");
         if(_hasRefreshed)RenderSnapshot(_renderedView,false);
+        else RenderSituationOrbit(null);
         if(_comparisonText is not null)ComparisonText.Text=_comparisonText();
         if(_smartText is not null)SmartResultText.Text=_smartText();
         RenderWindowsInventory();
@@ -211,6 +214,7 @@ public partial class MainWindow:Window
     }
     private void RenderSnapshot(DashboardSnapshot? view,bool replaceRows)
     {
+            RenderSituationOrbit(view);
             RenderDesignMetrics(view);
             RenderWindowsDiagnosis(view);
             HealthSummaryText.Text=HealthSummary.Describe(view,Localization.Culture);
@@ -258,6 +262,14 @@ public partial class MainWindow:Window
             DrawChart();
             if(_refreshFailed){StatusText.Text=T("CouldNotRefreshTheDataAnotherAttemptWillRunAutomatically");UpdateOperationReadiness();}
     }
+    private void RenderSituationOrbit(DashboardSnapshot? view)
+    {
+        if (view is not null && ViewFreshness.IsFresh(view.GeneratedAtUtc, DateTimeOffset.UtcNow))
+            _lastOrbitOverviewUtc = view.GeneratedAtUtc;
+        SituationOrbit.Render(SituationOrbitSnapshot.Create(view, _renderedState, _hasRefreshed,
+            Localization, DateTimeOffset.UtcNow, _lastOrbitOverviewUtc));
+    }
+
     private async void SmartClick(object sender, RoutedEventArgs e)
     {
         if (!SmartReadButton.IsEnabled) return;

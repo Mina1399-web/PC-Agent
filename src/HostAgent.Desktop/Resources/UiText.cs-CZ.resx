@@ -1445,6 +1445,11 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="NetworkProbeFailed" xml:space="preserve"><value>selhání</value></data>
   <data name="NetworkProbeTimeout" xml:space="preserve"><value>bez odpovědi v limitu</value></data>
   <data name="NetworkProbeMissing" xml:space="preserve"><value>nedostupné</value></data>
+  <data name="NetworkProbeKindGateway" xml:space="preserve"><value>Brána</value></data>
+  <data name="NetworkProbeKindInternetIp" xml:space="preserve"><value>Vnější IP</value></data>
+  <data name="NetworkProbeKindDnsResolution" xml:space="preserve"><value>DNS</value></data>
+  <data name="UnknownNetworkProbeKind" xml:space="preserve"><value>Neznámý síťový test ({0})</value></data>
+  <data name="UnknownNetworkProbeStatus" xml:space="preserve"><value>Neznámý výsledek ({0})</value></data>
   <data name="NetworkFindingAdapter" xml:space="preserve"><value>Monitor nevidí aktivní adaptér. Zkontrolujte Wi-Fi nebo kabelové připojení.</value></data>
   <data name="NetworkFindingGateway" xml:space="preserve"><value>Kontrola brány neprošla. Prověřte místní připojení a router. Odpovědi ICMP mohou být blokované.</value></data>
   <data name="NetworkFindingDns" xml:space="preserve"><value>Brána i vnější IP odpovídají, ale překlad názvů selhal. Prověřte nastavený DNS server.</value></data>
@@ -1689,4 +1694,32 @@ Složka karantény: {1}</value></data>
   <data name="MaintenanceResultBlocked" xml:space="preserve"><value>Přesun do karantény byl zablokován. Před opakováním zkontrolujte výsledky položek.</value></data>
   <data name="MaintenanceActionCancelled" xml:space="preserve"><value>Zrušeno</value></data>
   <data name="MaintenanceResultPartialBlockedRecovery" xml:space="preserve"><value>Některé soubory byly přesunuty a záznamy pro obnovu vyžadují kontrolu. Před opakováním zkontrolujte všechny položky.</value></data>
+  <data name="OrbitTitle" xml:space="preserve"><value>Mapa subsystémů</value></data>
+  <data name="OrbitDescription" xml:space="preserve"><value>Výběrem subsystému otevřete jeho detail. Mapa seskupuje údaje podle tématu.</value></data>
+  <data name="OrbitSelected" xml:space="preserve"><value>Vybráno</value></data>
+  <data name="OrbitCloseDetail" xml:space="preserve"><value>Zavřít detail subsystému</value></data>
+  <data name="OrbitCollapseDetail" xml:space="preserve"><value>Sbalit detail</value></data>
+  <data name="OrbitExpandDetail" xml:space="preserve"><value>Rozbalit detail</value></data>
+  <data name="OrbitSelectionAnnouncement" xml:space="preserve"><value>Otevřen detail: {0}. {1}.</value></data>
+  <data name="OrbitLegendCurrent" xml:space="preserve"><value>Aktuální data</value></data>
+  <data name="OrbitLegendPartial" xml:space="preserve"><value>Částečná nebo omezená data</value></data>
+  <data name="OrbitLegendUnavailable" xml:space="preserve"><value>Chybějící nebo zastaralá data</value></data>
+  <data name="OrbitServices" xml:space="preserve"><value>Služby</value></data>
+  <data name="OrbitAvailable" xml:space="preserve"><value>Data dostupná</value></data>
+  <data name="OrbitMissing" xml:space="preserve"><value>Data nejsou dostupná</value></data>
+  <data name="OrbitPartial" xml:space="preserve"><value>Částečná data</value></data>
+  <data name="OrbitLimited" xml:space="preserve"><value>Sběr je omezený</value></data>
+  <data name="OrbitOffline" xml:space="preserve"><value>Místní služba nedostupná</value></data>
+  <data name="OrbitStale" xml:space="preserve"><value>Zastaralá data</value></data>
+  <data name="OrbitOverviewAt" xml:space="preserve"><value>Přehled z místní služby Host Agent: {0:g}</value></data>
+  <data name="OrbitMeasuredAt" xml:space="preserve"><value>Změřeno: {0:G}</value></data>
+  <data name="OrbitShownCount" xml:space="preserve"><value>Zobrazené položky: {0}</value></data>
+  <data name="OrbitDiskSpace" xml:space="preserve"><value>{0} · volných {1} z {2} · {3:G}</value></data>
+  <data name="OrbitTextList" xml:space="preserve"><value>Textový seznam subsystémů</value></data>
+  <data name="OrbitAdapterTimeUnknown" xml:space="preserve"><value>Počet adaptérů nemá samostatný čas měření.</value></data>
+  <data name="OrbitInventoryTimeUnknown" xml:space="preserve"><value>Inventář služeb nemá samostatný čas měření.</value></data>
+  <data name="OrbitProbeTime" xml:space="preserve"><value>Síťové kontroly změřeny: {0:G}</value></data>
+  <data name="OrbitLastOverviewAt" xml:space="preserve"><value>Poslední známý přehled z místní služby Host Agent: {0:g}</value></data>
+  <data name="OrbitProbesUnavailable" xml:space="preserve"><value>Výsledky síťových kontrol nejsou dostupné.</value></data>
+  <data name="OrbitProbesStale" xml:space="preserve"><value>Výsledky síťových kontrol jsou zastaralé.</value></data>
 </root>

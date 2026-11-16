@@ -1445,6 +1445,11 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="NetworkProbeFailed" xml:space="preserve"><value>fehlgeschlagen</value></data>
   <data name="NetworkProbeTimeout" xml:space="preserve"><value>Zeitüberschreitung</value></data>
   <data name="NetworkProbeMissing" xml:space="preserve"><value>nicht verfügbar</value></data>
+  <data name="NetworkProbeKindGateway" xml:space="preserve"><value>Gateway</value></data>
+  <data name="NetworkProbeKindInternetIp" xml:space="preserve"><value>Externe IP</value></data>
+  <data name="NetworkProbeKindDnsResolution" xml:space="preserve"><value>DNS</value></data>
+  <data name="UnknownNetworkProbeKind" xml:space="preserve"><value>Nicht erkannte Netzwerkprüfung ({0})</value></data>
+  <data name="UnknownNetworkProbeStatus" xml:space="preserve"><value>Nicht erkanntes Ergebnis ({0})</value></data>
   <data name="NetworkFindingAdapter" xml:space="preserve"><value>Kein aktiver Adapter gemeldet. Prüfen Sie WLAN oder die Ethernet-Verbindung.</value></data>
   <data name="NetworkFindingGateway" xml:space="preserve"><value>Die Gateway-Prüfung schlug fehl. Prüfen Sie die lokale Verbindung und den Router. ICMP kann gefiltert werden.</value></data>
   <data name="NetworkFindingDns" xml:space="preserve"><value>Gateway und externe IP antworten, aber die Namensauflösung schlug fehl. Prüfen Sie den DNS-Resolver.</value></data>
@@ -1689,4 +1694,32 @@ Quarantäneordner: {1}</value></data>
   <data name="MaintenanceResultBlocked" xml:space="preserve"><value>Die Quarantäneaktion wurde blockiert. Prüfen Sie die Einzelergebnisse, bevor Sie es erneut versuchen.</value></data>
   <data name="MaintenanceActionCancelled" xml:space="preserve"><value>Abgebrochen</value></data>
   <data name="MaintenanceResultPartialBlockedRecovery" xml:space="preserve"><value>Einige Dateien wurden verschoben und Wiederherstellungseinträge müssen geprüft werden. Prüfen Sie alle Dateien, bevor Sie es erneut versuchen.</value></data>
+  <data name="OrbitTitle" xml:space="preserve"><value>Übersicht der Teilsysteme</value></data>
+  <data name="OrbitDescription" xml:space="preserve"><value>Wählen Sie ein Teilsystem, um seine Details zu öffnen. Die Übersicht gruppiert die Angaben nach Thema.</value></data>
+  <data name="OrbitSelected" xml:space="preserve"><value>Ausgewählt</value></data>
+  <data name="OrbitCloseDetail" xml:space="preserve"><value>Details zum Teilsystem schließen</value></data>
+  <data name="OrbitCollapseDetail" xml:space="preserve"><value>Details einklappen</value></data>
+  <data name="OrbitExpandDetail" xml:space="preserve"><value>Details ausklappen</value></data>
+  <data name="OrbitSelectionAnnouncement" xml:space="preserve"><value>Details geöffnet: {0}. {1}.</value></data>
+  <data name="OrbitLegendCurrent" xml:space="preserve"><value>Aktuelle Daten</value></data>
+  <data name="OrbitLegendPartial" xml:space="preserve"><value>Unvollständige oder eingeschränkte Daten</value></data>
+  <data name="OrbitLegendUnavailable" xml:space="preserve"><value>Fehlende oder veraltete Daten</value></data>
+  <data name="OrbitServices" xml:space="preserve"><value>Dienste</value></data>
+  <data name="OrbitAvailable" xml:space="preserve"><value>Daten verfügbar</value></data>
+  <data name="OrbitMissing" xml:space="preserve"><value>Daten nicht verfügbar</value></data>
+  <data name="OrbitPartial" xml:space="preserve"><value>Unvollständige Daten</value></data>
+  <data name="OrbitLimited" xml:space="preserve"><value>Datenerfassung eingeschränkt</value></data>
+  <data name="OrbitOffline" xml:space="preserve"><value>Lokaler Dienst nicht verfügbar</value></data>
+  <data name="OrbitStale" xml:space="preserve"><value>Veraltete Daten</value></data>
+  <data name="OrbitOverviewAt" xml:space="preserve"><value>Übersicht des lokalen Host Agent-Dienstes: {0:g}</value></data>
+  <data name="OrbitMeasuredAt" xml:space="preserve"><value>Gemessen: {0:G}</value></data>
+  <data name="OrbitShownCount" xml:space="preserve"><value>Angezeigte Einträge: {0}</value></data>
+  <data name="OrbitDiskSpace" xml:space="preserve"><value>{0} · {1} von {2} frei · {3:G}</value></data>
+  <data name="OrbitTextList" xml:space="preserve"><value>Teilsysteme als Textliste</value></data>
+  <data name="OrbitAdapterTimeUnknown" xml:space="preserve"><value>Für die Anzahl der Adapter ist kein eigener Messzeitpunkt verfügbar.</value></data>
+  <data name="OrbitInventoryTimeUnknown" xml:space="preserve"><value>Für das Dienstinventar ist kein eigener Erfassungszeitpunkt verfügbar.</value></data>
+  <data name="OrbitProbeTime" xml:space="preserve"><value>Netzwerkprüfungen gemessen: {0:G}</value></data>
+  <data name="OrbitLastOverviewAt" xml:space="preserve"><value>Letzte bekannte Übersicht des lokalen Host Agent-Dienstes: {0:g}</value></data>
+  <data name="OrbitProbesUnavailable" xml:space="preserve"><value>Die Ergebnisse der Netzwerkprüfungen sind nicht verfügbar.</value></data>
+  <data name="OrbitProbesStale" xml:space="preserve"><value>Die Ergebnisse der Netzwerkprüfungen sind veraltet.</value></data>
 </root>

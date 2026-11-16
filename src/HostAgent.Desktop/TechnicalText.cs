@@ -62,6 +62,39 @@ internal static class TechnicalText
             ? DesktopLocalization.Text(culture,"TechnicalCode",code)
             : DesktopLocalization.Text(culture,"UnclassifiedDiagnostic");
     }
+    internal static string FormatNetworkProbeKind(string? kind,CultureInfo culture)
+    {
+        var source=kind switch
+        {
+            "Gateway"=>"NetworkProbeKindGateway",
+            "InternetIp"=>"NetworkProbeKindInternetIp",
+            "DnsResolution"=>"NetworkProbeKindDnsResolution",
+            _=>null
+        };
+        return source is null
+            ? DesktopLocalization.Text(culture,"UnknownNetworkProbeKind",SafeNetworkValue(kind))
+            : DesktopLocalization.Text(culture,source);
+    }
+    internal static string FormatNetworkProbeStatus(string? status,CultureInfo culture)
+    {
+        var source=status switch
+        {
+            "Succeeded"=>"NetworkProbePassed",
+            "Failed"=>"NetworkProbeFailed",
+            "TimedOut"=>"NetworkProbeTimeout",
+            "Unavailable"=>"NetworkProbeMissing",
+            _=>null
+        };
+        return source is null
+            ? DesktopLocalization.Text(culture,"UnknownNetworkProbeStatus",SafeNetworkValue(status))
+            : DesktopLocalization.Text(culture,source);
+    }
+    private static string SafeNetworkValue(string? value)
+    {
+        if(string.IsNullOrWhiteSpace(value))return "—";
+        var safe=new string(value.Where(character=>!char.IsControl(character)).Take(64).ToArray()).Trim();
+        return safe.Length==0?"—":safe;
+    }
     public static string FormatMaintenanceReason(string? code,CultureInfo culture,bool includeCode=false)
     {
         if(string.IsNullOrWhiteSpace(code))return "—";

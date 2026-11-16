@@ -90,8 +90,7 @@ public sealed class CliTests
     public async Task Non_admin_status_explains_the_safe_dashboard_and_elevated_cli_paths()
     {
         var assembly=typeof(CliApplication).Assembly.Location;
-        var dotnet=Path.GetFullPath(Path.Combine(System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory(),"..","..","..","dotnet.exe"));
-        var start=new System.Diagnostics.ProcessStartInfo(File.Exists(dotnet)?dotnet:"dotnet")
+        var start=new System.Diagnostics.ProcessStartInfo(TestDotNetHost.Resolve())
         {
             UseShellExecute=false,RedirectStandardOutput=true,RedirectStandardError=true,CreateNoWindow=true
         };

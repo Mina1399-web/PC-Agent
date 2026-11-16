@@ -16,7 +16,7 @@ public sealed class OperatorHostingTests
     public async Task Actual_cli_process_shows_help_without_installation_or_elevation()
     {
         var root=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../"));
-        var runtime=Path.Combine(Environment.GetEnvironmentVariable("DOTNET_ROOT")!,"dotnet.exe");
+        var runtime=TestDotNetHost.Resolve();
         var info=new ProcessStartInfo(runtime){RedirectStandardOutput=true,RedirectStandardError=true,UseShellExecute=false};
         info.ArgumentList.Add(Path.Combine(root,"src/HostAgent.Cli/bin/Release/net10.0-windows/HostAgent.Cli.dll"));info.ArgumentList.Add("--help");
         using var process=Process.Start(info)!;
