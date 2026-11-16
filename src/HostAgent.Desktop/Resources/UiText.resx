@@ -1445,6 +1445,11 @@ Graf se zobrazí po získání uložených měření.</comment>
   <data name="NetworkProbeFailed" xml:space="preserve"><value>failed</value></data>
   <data name="NetworkProbeTimeout" xml:space="preserve"><value>timed out</value></data>
   <data name="NetworkProbeMissing" xml:space="preserve"><value>unavailable</value></data>
+  <data name="NetworkProbeKindGateway" xml:space="preserve"><value>Gateway</value></data>
+  <data name="NetworkProbeKindInternetIp" xml:space="preserve"><value>External IP</value></data>
+  <data name="NetworkProbeKindDnsResolution" xml:space="preserve"><value>DNS</value></data>
+  <data name="UnknownNetworkProbeKind" xml:space="preserve"><value>Unrecognized network check ({0})</value></data>
+  <data name="UnknownNetworkProbeStatus" xml:space="preserve"><value>Unrecognized result ({0})</value></data>
   <data name="NetworkFindingAdapter" xml:space="preserve"><value>No active adapter was reported. Check Wi-Fi or the Ethernet connection.</value></data>
   <data name="NetworkFindingGateway" xml:space="preserve"><value>The gateway did not pass the check. Check the local connection and router. ICMP can be filtered.</value></data>
   <data name="NetworkFindingDns" xml:space="preserve"><value>The gateway and external IP respond, but name resolution failed. Check the configured DNS resolver.</value></data>
@@ -1689,4 +1694,32 @@ Quarantine folder: {1}</value></data>
   <data name="MaintenanceResultBlocked" xml:space="preserve"><value>The quarantine action was blocked. Review the item results before trying again.</value></data>
   <data name="MaintenanceActionCancelled" xml:space="preserve"><value>Cancelled</value></data>
   <data name="MaintenanceResultPartialBlockedRecovery" xml:space="preserve"><value>Some files moved, and recovery records need review. Review every item before retrying.</value></data>
+  <data name="OrbitTitle" xml:space="preserve"><value>Subsystem map</value></data>
+  <data name="OrbitDescription" xml:space="preserve"><value>Select a subsystem to open its details. The map groups information by topic.</value></data>
+  <data name="OrbitSelected" xml:space="preserve"><value>Selected</value></data>
+  <data name="OrbitCloseDetail" xml:space="preserve"><value>Close subsystem details</value></data>
+  <data name="OrbitCollapseDetail" xml:space="preserve"><value>Collapse details</value></data>
+  <data name="OrbitExpandDetail" xml:space="preserve"><value>Expand details</value></data>
+  <data name="OrbitSelectionAnnouncement" xml:space="preserve"><value>Details opened for {0}. {1}.</value></data>
+  <data name="OrbitLegendCurrent" xml:space="preserve"><value>Current data</value></data>
+  <data name="OrbitLegendPartial" xml:space="preserve"><value>Partial or limited data</value></data>
+  <data name="OrbitLegendUnavailable" xml:space="preserve"><value>Missing or out-of-date data</value></data>
+  <data name="OrbitServices" xml:space="preserve"><value>Services</value></data>
+  <data name="OrbitAvailable" xml:space="preserve"><value>Data available</value></data>
+  <data name="OrbitMissing" xml:space="preserve"><value>Data unavailable</value></data>
+  <data name="OrbitPartial" xml:space="preserve"><value>Partial data</value></data>
+  <data name="OrbitLimited" xml:space="preserve"><value>Collection limited</value></data>
+  <data name="OrbitOffline" xml:space="preserve"><value>Local service unavailable</value></data>
+  <data name="OrbitStale" xml:space="preserve"><value>Data out of date</value></data>
+  <data name="OrbitOverviewAt" xml:space="preserve"><value>Local Host Agent service overview: {0:g}</value></data>
+  <data name="OrbitMeasuredAt" xml:space="preserve"><value>Measured: {0:G}</value></data>
+  <data name="OrbitShownCount" xml:space="preserve"><value>Entries shown: {0}</value></data>
+  <data name="OrbitDiskSpace" xml:space="preserve"><value>{0} · {1} free of {2} · {3:G}</value></data>
+  <data name="OrbitTextList" xml:space="preserve"><value>Subsystems in a text list</value></data>
+  <data name="OrbitAdapterTimeUnknown" xml:space="preserve"><value>The adapter count has no separate measurement time.</value></data>
+  <data name="OrbitInventoryTimeUnknown" xml:space="preserve"><value>The service inventory has no separate measurement time.</value></data>
+  <data name="OrbitProbeTime" xml:space="preserve"><value>Network checks measured: {0:G}</value></data>
+  <data name="OrbitLastOverviewAt" xml:space="preserve"><value>Last known local Host Agent overview: {0:g}</value></data>
+  <data name="OrbitProbesUnavailable" xml:space="preserve"><value>Network check results are unavailable.</value></data>
+  <data name="OrbitProbesStale" xml:space="preserve"><value>Network check results are out of date.</value></data>
 </root>

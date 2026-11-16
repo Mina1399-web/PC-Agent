@@ -14,7 +14,7 @@ public sealed class ColdAdminPipeTests
     public async Task First_request_in_cold_server_authenticates_without_loading_assemblies_under_client_token(bool allowed)
     {
         var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
-        var runtime = Path.Combine(Environment.GetEnvironmentVariable("DOTNET_ROOT")!, "dotnet.exe");
+        var runtime = TestDotNetHost.Resolve();
         using var identity = WindowsIdentity.GetCurrent();
         var sid = identity.User!;
         var name = "HostAgent-cold-test-" + Guid.NewGuid().ToString("N");

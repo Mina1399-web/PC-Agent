@@ -102,6 +102,7 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="0,0,12,28">
       <TextBlock Text="{DynamicResource Loc.DesignSituationTitle}" FontSize="28" FontWeight="SemiBold"/>
       <TextBlock Text="{DynamicResource Loc.DesignSituationIntro}" Style="{StaticResource Caption}" Margin="0,4,0,12"/>
+     <local:SituationOrbitView x:Name="SituationOrbit" Margin="0,0,0,16"/>
       <Border Style="{StaticResource Card}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="3,0,0,0" Padding="16" Margin="0,0,0,16">
       <StackPanel>
        <TextBlock Text="{DynamicResource Loc.DesignAttention}" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
