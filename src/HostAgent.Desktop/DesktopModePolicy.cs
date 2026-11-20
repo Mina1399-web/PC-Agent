@@ -11,7 +11,7 @@ internal static class DesktopModePolicy
         bool guidedActionRunning, bool maintenanceWindowOpen)
         => !(childWorkflowPending || guidedActionRunning || maintenanceWindowOpen);
 
-    // Maintenance remains developer-only. Windows inventory is useful as a
-    // read-only surface in Standard; each mutating entry point is separately gated.
+    // Guided Windows repair remains developer-only. File maintenance has a
+    // separate Standard Temp scope with its own service authorization checks.
     public static bool IsDeveloperTab(int index) => index == 4;
 }

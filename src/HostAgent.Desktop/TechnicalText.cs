@@ -29,8 +29,30 @@ internal static class TechnicalText
         ["some_process_metrics_unavailable"]="SomeProcessMetricsUnavailable",["some_process_metrics_access_denied"]="AccessToSomeProcessMetricsDenied",["some_process_start_times_unavailable"]="SomeProcessStartTimesUnavailable",["process_list_truncated"]="ProcessListWasLimited",
         ["process_identity_access_denied"]="AccessToProcessIdentityDenied",["process_name_access_denied"]="AccessToProcessNameDenied",["process_cpu_time_access_denied"]="AccessToProcessCPUTimeDenied",["process_working_set_access_denied"]="AccessToProcessMemoryDenied",["process_start_time_access_denied"]="AccessToProcessStartTimeDenied",
         ["service_catalog_unavailable"]="ServiceListUnavailable",["some_service_states_unavailable"]="SomeServiceStatusesUnavailable",["some_executable_paths_unavailable"]="SomeExecutablePathsUnavailable",["some_service_start_modes_unavailable"]="SomeServiceStartupModesUnavailable",["some_service_triggers_unavailable"]="SomeServiceTriggersUnavailable",["some_network_adapter_details_unavailable"]="SomeAdapterDetailsUnavailable",["no_network_adapters_available"]="NoNetworkAdapterAvailable",["windows_version_registry_unavailable"]="WindowsVersionUnavailable",["shutdown_history_unavailable"]="ShutdownHistoryUnavailable",
+        ["unsafe_name"]="MaintenanceReason_unsafe_name",["too_recent"]="MaintenanceReason_too_recent",["file_too_large"]="MaintenanceReason_file_too_large",
+        ["scope_byte_limit"]="MaintenanceReason_scope_byte_limit",["unsupported_file"]="MaintenanceReason_unsupported_file",["multiple_links"]="MaintenanceReason_multiple_links",
+        ["read_only"]="MaintenanceReason_read_only",["file_locked"]="MaintenanceReason_file_locked",["access_denied"]="MaintenanceReason_access_denied",
+        ["file_unavailable"]="MaintenanceReason_file_unavailable",["verification_failed"]="MaintenanceReason_verification_failed",["preview_time_limit"]="MaintenanceReason_preview_time_limit",
+        ["preview_incomplete"]="MaintenanceReason_preview_incomplete",["service_not_approved"]="MaintenanceReason_service_not_approved",
+        ["source_identity_changed"]="MaintenanceReason_source_identity_changed",["source_metadata_changed"]="MaintenanceReason_source_metadata_changed",
+        ["source_hash_changed"]="MaintenanceReason_source_hash_changed",["destination_already_exists"]="MaintenanceReason_destination_already_exists",
+        ["quarantine_limit_reached"]="MaintenanceReason_quarantine_limit_reached",["operation_failed"]="MaintenanceReason_operation_failed",
+        ["cancelled"]="MaintenanceReason_cancelled",["outcome_unverified"]="MaintenanceReason_outcome_unverified",
+        ["preview_expired"]="MaintenanceReason_preview_expired",["source_root_unavailable"]="MaintenanceReason_source_root_unavailable",
+        ["quarantine_root_unavailable"]="MaintenanceReason_quarantine_root_unavailable",["quarantine_lock_unavailable"]="MaintenanceReason_quarantine_lock_unavailable",
+        ["quarantine_busy"]="MaintenanceReason_quarantine_busy",["volume_mismatch"]="MaintenanceReason_volume_mismatch",
+        ["payload_unavailable"]="MaintenanceReason_payload_unavailable",["payload_verification_failed"]="MaintenanceReason_payload_verification_failed",
+        ["journal_recovery_required"]="MaintenanceReason_journal_recovery_required",["journal_unavailable"]="MaintenanceReason_journal_unavailable",
+        ["journal_integrity"]="MaintenanceReason_journal_integrity",
+        ["baseline_deviation_assessment"]="BaselineDeviationAssessmentScope",["unclassified_diagnostic"]="UnclassifiedConfidenceScope",["targeted_check_unavailable"]="TargetedFollowUpUnavailable",
         ["preview_ready"]="PreviewReady",["maintenance_busy"]="MaintenanceAlreadyInProgress",["maintenance_confirmation_required"]="ExactConfirmationRequired",["maintenance_entry_unavailable"]="RecordUnavailable",["maintenance_journal_integrity"]="MaintenanceRecordsRequireReview",["maintenance_journal_limit"]="RecordLimitReached",["maintenance_journal_write_failed"]="CouldNotWriteRecord",["maintenance_not_approved"]="MaintenanceNotApproved",["maintenance_payload_changed"]="FileChanged",["maintenance_preview_expired"]="PreviewNoLongerValid",["maintenance_quota_reached"]="MaintenanceQuotaReached",["maintenance_root_unavailable"]="MaintenanceFolderUnavailable",["maintenance_scope"]="TargetOutsideAllowedScope",["maintenance_volume_mismatch"]="TargetOnADifferentVolume",
-        ["quarantine_complete"]="MoveToQuarantineCompleted",["quarantine_empty"]="QuarantineIsEmpty",["quarantine_no_files_moved"]="NoFilesWereMoved",["quarantine_partial"]="MovePartiallyCompleted",["quarantine_recovery_required"]="MoveRequiresRecovery",["restore_complete"]="RestoreCompleted",["restore_conflict"]="DestinationFileAlreadyExists",["restore_failed"]="RestoreFailed",["restore_recovery_required"]="RestoreRequiresReview"
+        ["quarantine_complete"]="MoveToQuarantineCompleted",["quarantine_empty"]="QuarantineIsEmpty",["quarantine_no_files_moved"]="NoFilesWereMoved",["quarantine_partial"]="MovePartiallyCompleted",["quarantine_recovery_required"]="MoveRequiresRecovery",["restore_complete"]="RestoreCompleted",["restore_conflict"]="DestinationFileAlreadyExists",["restore_failed"]="RestoreFailed",["restore_recovery_required"]="RestoreRequiresReview",
+        ["maintenance_preview_incomplete"]="PreviewIncomplete",["maintenance_state_unavailable"]="MaintenanceResultStateUnavailable",
+        ["quarantine_blocked"]="MaintenanceResultBlocked",["quarantine_cancelled"]="MaintenanceResultCancelled",["quarantine_cancelled_partial"]="MaintenanceResultCancelledPartial",
+        ["quarantine_failed"]="MaintenanceResultFailed",["quarantine_outcome_unknown"]="MaintenanceResultOutcomeUnknown",
+        ["quarantine_partial_blocked"]="MaintenanceResultPartialBlocked",["quarantine_partial_blocked_recovery_required"]="MaintenanceResultPartialBlockedRecovery",
+        ["quarantine_partial_failure"]="MaintenanceResultPartialFailure",["restore_cancelled"]="MaintenanceResultCancelled",["restore_outcome_unknown"]="MaintenanceResultOutcomeUnknown",
+        ["moved"]="MaintenanceActionMoved",["restored"]="Restored",["skipped"]="MaintenanceActionSkipped",["blocked"]="MaintenanceActionBlocked",["failed"]="ActionFailed",["cancelled"]="MaintenanceActionCancelled",["unknown"]="UnknownStatus"
     };
     public static string Format(string? code,CultureInfo culture,bool includeCode=false)
     {
@@ -39,6 +61,30 @@ internal static class TechnicalText
         return includeCode
             ? DesktopLocalization.Text(culture,"TechnicalCode",code)
             : DesktopLocalization.Text(culture,"UnclassifiedDiagnostic");
+    }
+    public static string FormatMaintenanceReason(string? code,CultureInfo culture,bool includeCode=false)
+    {
+        if(string.IsNullOrWhiteSpace(code))return "—";
+        var value=Labels.TryGetValue(code,out var source)
+            ? DesktopLocalization.Text(culture,source)
+            : DesktopLocalization.Text(culture,"MaintenanceUnknownReason");
+        return includeCode?value+" ("+code+")":value;
+    }
+    public static string FormatMaintenanceActionState(string? state,CultureInfo culture,bool includeCode=false)
+    {
+        var source=state switch
+        {
+            "moved"=>"MaintenanceActionMoved",
+            "restored"=>"Restored",
+            "skipped"=>"MaintenanceActionSkipped",
+            "blocked"=>"MaintenanceActionBlocked",
+            "failed"=>"ActionFailed",
+            "cancelled"=>"MaintenanceActionCancelled",
+            "unknown"=>"UnknownStatus",
+            _=>"MaintenanceUnknownReason"
+        };
+        var value=DesktopLocalization.Text(culture,source);
+        return includeCode&&state is not null?value+" ("+state+")":value;
     }
     internal static IEnumerable<string> Sources => Labels.Values;
 }

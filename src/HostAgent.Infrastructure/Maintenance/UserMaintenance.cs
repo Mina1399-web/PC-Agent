@@ -1,4 +1,5 @@
 using HostAgent.Core.Dashboard;
+using System.ComponentModel;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text.Json;
@@ -7,9 +8,76 @@ namespace HostAgent.Infrastructure.Maintenance;
 
 public sealed record MaintenanceItem(string Id, string Name, long Bytes, DateTimeOffset ModifiedAtUtc, string Sha256);
 public sealed record MaintenancePreview(string Id, DateTimeOffset ExpiresAtUtc, IReadOnlyList<MaintenanceItem> Items, int Skipped, bool Truncated)
-{ public string Code { get; init; } = "preview_ready"; }
+{
+    public string Code { get; init; } = "preview_ready";
+    public string ScopePath { get; init; } = string.Empty;
+    public string QuarantinePath { get; init; } = string.Empty;
+    public uint? ScopeVolumeId { get; init; }
+    public int InspectedFiles { get; init; }
+    public MaintenanceEligibilityLimits EligibilityLimits { get; init; } = new(true, 500, 100, 15, 10, 7,
+        16L * 1024 * 1024, 128L * 1024 * 1024, 256);
+    public IReadOnlyList<MaintenanceSkippedItem> SkippedItems { get; init; } = Array.Empty<MaintenanceSkippedItem>();
+}
+public sealed record MaintenanceEligibilityLimits(bool TopLevelOnly, int MaximumInspectedFiles, int MaximumCandidates,
+    int PreviewTimeoutSeconds, int PreviewValidityMinutes, int MinimumAgeDays, long MaximumFileBytes,
+    long MaximumTotalBytes, int MaximumQuarantineEntries);
+public static class MaintenanceSkipReasonCodes
+{
+    public const string UnsafeName = "unsafe_name";
+    public const string TooRecent = "too_recent";
+    public const string FileTooLarge = "file_too_large";
+    public const string ScopeByteLimit = "scope_byte_limit";
+    public const string UnsupportedFile = "unsupported_file";
+    public const string MultipleLinks = "multiple_links";
+    public const string ReadOnly = "read_only";
+    public const string FileLocked = "file_locked";
+    public const string AccessDenied = "access_denied";
+    public const string FileUnavailable = "file_unavailable";
+    public const string VerificationFailed = "verification_failed";
+    public const string PreviewTimeLimit = "preview_time_limit";
+}
+public static class MaintenanceActionStates
+{
+    public const string Moved = "moved";
+    public const string Restored = "restored";
+    public const string Skipped = "skipped";
+    public const string Blocked = "blocked";
+    public const string Failed = "failed";
+    public const string Cancelled = "cancelled";
+    public const string Unknown = "unknown";
+}
+public static class MaintenanceActionReasonCodes
+{
+    public const string PreviewIncomplete = "preview_incomplete";
+    public const string ServiceNotApproved = "service_not_approved";
+    public const string SourceIdentityChanged = "source_identity_changed";
+    public const string SourceMetadataChanged = "source_metadata_changed";
+    public const string SourceHashChanged = "source_hash_changed";
+    public const string DestinationAlreadyExists = "destination_already_exists";
+    public const string QuarantineLimitReached = "quarantine_limit_reached";
+    public const string OperationFailed = "operation_failed";
+    public const string Cancelled = "cancelled";
+    public const string OutcomeUnverified = "outcome_unverified";
+}
 public sealed record QuarantineItem(string Id, string Name, long Bytes, DateTimeOffset CreatedAtUtc, string State);
-public sealed record MaintenanceResult(string Code, int Moved, int Skipped, long Bytes, int JournalWarnings = 0);
+public sealed record MaintenanceActionItem(string Id, string Name, long Bytes, string SourcePath, string DestinationPath,
+    string State, string ReasonCode);
+public sealed record MaintenanceFreeSpaceReadback(long? AvailableBytes, DateTimeOffset? MeasuredAtUtc)
+{
+    public bool IsKnown => AvailableBytes.HasValue;
+}
+public sealed record MaintenanceResult(string Code, int Moved, int Skipped, long Bytes, int JournalWarnings = 0)
+{
+    public IReadOnlyList<MaintenanceActionItem> Items { get; init; } = Array.Empty<MaintenanceActionItem>();
+    public MaintenanceFreeSpaceReadback FreeSpace { get; init; } = new(null, null);
+    public int Restored { get; init; }
+    public int Blocked => Items.Count(item => item.State == MaintenanceActionStates.Blocked);
+    public int Failed => Items.Count(item => item.State == MaintenanceActionStates.Failed);
+    public int Cancelled => Items.Count(item => item.State == MaintenanceActionStates.Cancelled);
+    public int Unknown => Items.Count(item => item.State == MaintenanceActionStates.Unknown);
+}
+
+public sealed record MaintenanceSkippedItem(string Name, string ReasonCode);
 
 public sealed class UserMaintenance
 {
@@ -20,10 +88,22 @@ public sealed class UserMaintenance
     private readonly Action<string>? _afterPrivateAcl;
     private readonly Action? _beforeJournalHash;
     private readonly Action? _beforeCandidateHash;
+    private readonly Action? _beforePreviewHash;
+    private readonly Action? _afterQuarantineMove;
+    private readonly Func<long?>? _freeSpaceReader;
     private readonly Func<string, bool>? _rejectJournalState;
     private readonly SemaphoreSlim _gate = new(1, 1);
     private Plan? _plan;
     private readonly bool _selectedDirectory;
+    public string ScopePath => _source;
+    public string QuarantinePath => _quarantine;
+    public bool IsSelectedDirectory => _selectedDirectory;
+    private const int MaximumInspectedFiles = 500;
+    private const int MaximumCandidates = 100;
+    private const int PreviewTimeoutSeconds = 15;
+    private const int PreviewValidityMinutes = 10;
+    private const int MinimumAgeDays = 7;
+    private const int MaximumQuarantineEntries = 256;
     private sealed record Candidate(MaintenanceItem Item, FileProof Proof);
     private sealed record Plan(MaintenancePreview Preview, DateTimeOffset CreatedAtUtc, Candidate[] Candidates);
     private sealed record Journal(string Id, string Name, long Bytes, DateTimeOffset ModifiedAtUtc,
@@ -33,13 +113,16 @@ public sealed class UserMaintenance
     internal UserMaintenance(string source, string quarantine, TimeProvider clock,
         Func<CancellationToken, ValueTask<DashboardSnapshot?>> stateReader, Action<string>? afterDirectoryCreate = null,
         Func<string, bool>? rejectJournalState = null, Action<string>? afterPrivateAcl = null, Action? beforeJournalHash = null,
-        Action? beforeCandidateHash = null, bool selectedDirectory = false)
+        Action? beforeCandidateHash = null, bool selectedDirectory = false, Action? beforePreviewHash = null,
+        Action? afterQuarantineMove = null, Func<long?>? freeSpaceReader = null)
     {
         _source = Path.GetFullPath(source).TrimEnd(Path.DirectorySeparatorChar);
         _quarantine = Path.GetFullPath(quarantine).TrimEnd(Path.DirectorySeparatorChar);
         _clock = clock; _stateReader = stateReader; _afterDirectoryCreate = afterDirectoryCreate;
         _rejectJournalState = rejectJournalState; _afterPrivateAcl = afterPrivateAcl; _beforeJournalHash = beforeJournalHash;
-        _beforeCandidateHash = beforeCandidateHash;
+        _beforeCandidateHash = beforeCandidateHash; _beforePreviewHash = beforePreviewHash;
+        _afterQuarantineMove = afterQuarantineMove;
+        _freeSpaceReader = freeSpaceReader;
         var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         var temp = Path.Combine(local, "Temp");
         _selectedDirectory = selectedDirectory;
@@ -82,34 +165,79 @@ public sealed class UserMaintenance
         {
             _plan = null;
             var now = _clock.GetUtcNow();
-            var candidates = new List<Candidate>(); var skipped = 0; var inspected = 0; long bytes = 0; var truncated = false;
-            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token); deadline.CancelAfter(TimeSpan.FromSeconds(15));
+            var candidates = new List<Candidate>(); var skippedItems = new List<MaintenanceSkippedItem>(); var inspected = 0; long bytes = 0; var truncated = false;
+            uint? scopeVolumeId = null;
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token); deadline.CancelAfter(TimeSpan.FromSeconds(PreviewTimeoutSeconds));
+            void Skip(string name, string reasonCode) => skippedItems.Add(new(
+                MaintenanceSecurity.SafeName(name) ? name : string.Empty, reasonCode));
             try
             {
                 using var source = PinnedDirectory.Open(_source, true);
+                scopeVolumeId = source.Volume;
                 foreach (var path in Directory.EnumerateFiles(_source, "*", SearchOption.TopDirectoryOnly))
                 {
                     deadline.Token.ThrowIfCancellationRequested();
-                    if (++inspected > 500 || candidates.Count == 100) { truncated = true; break; }
+                    if (inspected >= MaximumInspectedFiles || candidates.Count >= MaximumCandidates) { truncated = true; break; }
+                    inspected++;
                     var name = Path.GetFileName(path);
+                    var opened = false;
                     try
                     {
-                        if (!MaintenanceSecurity.SafeName(name)) { skipped++; continue; }
+                        if (!MaintenanceSecurity.SafeName(name)) { Skip(name, MaintenanceSkipReasonCodes.UnsafeName); continue; }
                         using var file = PinnedFile.Open(path);
-                        if ((!_selectedDirectory && now - file.Info.ModifiedAtUtc < TimeSpan.FromDays(7)) || file.Info.Bytes > MaximumFileBytes || bytes + file.Info.Bytes > MaximumTotalBytes) { skipped++; continue; }
+                        opened = true;
+                        if (!_selectedDirectory && now - file.Info.ModifiedAtUtc < TimeSpan.FromDays(MinimumAgeDays))
+                        { Skip(name, MaintenanceSkipReasonCodes.TooRecent); continue; }
+                        if (file.Info.Bytes > MaximumFileBytes) { Skip(name, MaintenanceSkipReasonCodes.FileTooLarge); continue; }
+                        if (file.Info.Bytes > MaximumTotalBytes - bytes) { Skip(name, MaintenanceSkipReasonCodes.ScopeByteLimit); continue; }
+                        _beforePreviewHash?.Invoke();
                         var proof = await file.ProofAsync(deadline.Token);
+                        if (proof.Identity != file.Info.Identity || proof.Bytes != file.Info.Bytes
+                            || proof.ModifiedAtUtc != file.Info.ModifiedAtUtc)
+                        { Skip(name, MaintenanceSkipReasonCodes.VerificationFailed); continue; }
                         var item = new MaintenanceItem(Guid.NewGuid().ToString("N"), name, proof.Bytes, proof.ModifiedAtUtc, proof.Sha256);
                         candidates.Add(new Candidate(item, proof)); bytes += proof.Bytes;
                     }
-                    catch (Exception error) when (MaintenanceSecurity.Expected(error)) { skipped++; }
+                    catch (OperationCanceledException) when (!token.IsCancellationRequested)
+                    {
+                        Skip(name, MaintenanceSkipReasonCodes.PreviewTimeLimit);
+                        truncated = true;
+                        break;
+                    }
+                    catch (Exception error) when (MaintenanceSecurity.Expected(error))
+                    {
+                        Skip(name, error is MaintenanceFileRejectedException rejected ? rejected.ReasonCode
+                            : error is Win32Exception win32 && win32.NativeErrorCode is 32 or 33 ? MaintenanceSkipReasonCodes.FileLocked
+                            : opened ? MaintenanceSkipReasonCodes.VerificationFailed
+                            : error is UnauthorizedAccessException ? MaintenanceSkipReasonCodes.AccessDenied
+                            : MaintenanceSkipReasonCodes.FileUnavailable);
+                    }
                 }
+                if (deadline.IsCancellationRequested && !token.IsCancellationRequested) truncated = true;
             }
             catch (OperationCanceledException) when (!token.IsCancellationRequested) { truncated = true; }
             catch (Exception error) when (MaintenanceSecurity.Expected(error))
             {
-                return new MaintenancePreview(Guid.NewGuid().ToString("D"), now, [], skipped, false) { Code = "maintenance_root_unavailable" };
+                return new MaintenancePreview(Guid.NewGuid().ToString("D"), now, [], skippedItems.Count, false)
+                {
+                    Code = "maintenance_root_unavailable",
+                    ScopePath = _source,
+                    QuarantinePath = _quarantine,
+                    EligibilityLimits = CurrentEligibilityLimits,
+                    InspectedFiles = inspected,
+                    SkippedItems = Array.AsReadOnly(skippedItems.ToArray())
+                };
             }
-            var preview = new MaintenancePreview(Guid.NewGuid().ToString("D"), now.AddMinutes(10), Array.AsReadOnly(candidates.Select(x => x.Item).ToArray()), skipped, truncated);
+            var preview = new MaintenancePreview(Guid.NewGuid().ToString("D"), now.AddMinutes(PreviewValidityMinutes),
+                Array.AsReadOnly(candidates.Select(x => x.Item).ToArray()), skippedItems.Count, truncated)
+            {
+                ScopePath = _source,
+                QuarantinePath = _quarantine,
+                ScopeVolumeId = scopeVolumeId,
+                InspectedFiles = inspected,
+                EligibilityLimits = CurrentEligibilityLimits,
+                SkippedItems = Array.AsReadOnly(skippedItems.ToArray())
+            };
             _plan = new Plan(preview, now, candidates.ToArray());
             return preview;
         }
@@ -125,60 +253,237 @@ public sealed class UserMaintenance
             if (plan is null || !string.Equals(previewId, plan.Preview.Id, StringComparison.Ordinal)
                 || !string.Equals(confirmation, plan.Preview.Id, StringComparison.Ordinal)) return Result("maintenance_confirmation_required");
             _plan = null; // One exact, correctly bound confirmation can be attempted only once.
-            if (_clock.GetUtcNow() > plan.Preview.ExpiresAtUtc) return Result("maintenance_preview_expired");
-            if (!await ApprovedAsync(token)) return Result("maintenance_not_approved");
-            if (plan.Candidates.Length == 0) return Result("quarantine_empty");
+            var items = new List<MaintenanceActionItem>(plan.Candidates.Length);
+            var moved = 0; var skipped = 0; var failed = 0; var unknown = 0; var journalWarnings = 0;
+            var cancelled = false; long bytes = 0;
+            MaintenanceActionItem ActionItem(Candidate candidate, string state, string reasonCode) => new(
+                candidate.Item.Id, candidate.Item.Name, candidate.Item.Bytes,
+                Path.Combine(_source, candidate.Item.Name), PayloadPath(candidate.Item.Id), state, reasonCode);
+            void AddRemaining(int start, string state, string reasonCode)
+            {
+                for (var index = start; index < plan.Candidates.Length; index++)
+                    items.Add(ActionItem(plan.Candidates[index], state, reasonCode));
+            }
+            MaintenanceResult Finish(string code) => new(code, moved, skipped, bytes, journalWarnings)
+            {
+                Items = Array.AsReadOnly(items.ToArray()),
+                FreeSpace = moved > 0 ? ReadFreeSpaceReadback() : new(null, null)
+            };
+            MaintenanceResult BlockAll(string code, string reasonCode)
+            {
+                AddRemaining(0, MaintenanceActionStates.Blocked, reasonCode);
+                return Finish(code);
+            }
+
+            if (plan.Preview.Truncated) return BlockAll("maintenance_preview_incomplete", MaintenanceActionReasonCodes.PreviewIncomplete);
+            if (_clock.GetUtcNow() > plan.Preview.ExpiresAtUtc) return BlockAll("maintenance_preview_expired", "preview_expired");
+            if (plan.Candidates.Length == 0) return Finish("quarantine_empty");
+            try
+            {
+                if (!await ApprovedAsync(token)) return BlockAll("maintenance_not_approved", MaintenanceActionReasonCodes.ServiceNotApproved);
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            {
+                cancelled = true;
+                return BlockAll("quarantine_cancelled", MaintenanceActionReasonCodes.Cancelled);
+            }
+            catch (Exception)
+            {
+                return BlockAll("maintenance_state_unavailable", MaintenanceActionReasonCodes.ServiceNotApproved);
+            }
+            if (token.IsCancellationRequested)
+            {
+                cancelled = true;
+                return BlockAll("quarantine_cancelled", MaintenanceActionReasonCodes.Cancelled);
+            }
 
             try { EnsurePrivateRoot(); }
-            catch (Exception error) when (MaintenanceSecurity.Expected(error)) { return Result("maintenance_root_unavailable"); }
-            using var source = PinnedDirectory.Open(_source, true);
-            using var quarantine = PinnedDirectory.Open(_quarantine, true);
-            using var mutationLock = MaintenanceMutationLock.TryAcquire(_quarantine);
-            if (mutationLock is null) return Result("maintenance_busy");
-            if (source.Volume != quarantine.Volume) return Result("maintenance_volume_mismatch");
-            var inventory = ReadJournals();
-            if (inventory.HasInvalidEntries) return Result("maintenance_journal_integrity");
-            var existing = inventory.Entries;
-            if (existing.Length >= 256 || inventory.PayloadBytes > MaximumTotalBytes
-                || existing.Sum(item => item.State is "Quarantined" or "Intent" or "RestoreIntent" ? item.Bytes : 0) > MaximumTotalBytes)
-                return Result("maintenance_quota_reached");
+            catch (Exception error) when (MaintenanceSecurity.Expected(error))
+            { return BlockAll("maintenance_root_unavailable", "quarantine_root_unavailable"); }
 
-            var moved = 0; var skipped = 0; var journalWarnings = 0; long bytes = 0;
-            var reservedJournals = existing.Length;
-            var reservedBytes = Math.Max(inventory.PayloadBytes,
-                existing.Sum(item => item.State is "Quarantined" or "Intent" or "RestoreIntent" ? item.Bytes : 0));
-            foreach (var candidate in plan.Candidates)
+            PinnedDirectory source;
+            try { source = PinnedDirectory.Open(_source, true); }
+            catch (Exception error) when (MaintenanceSecurity.Expected(error))
+            { return BlockAll("maintenance_root_unavailable", "source_root_unavailable"); }
+            using (source)
             {
-                token.ThrowIfCancellationRequested();
-                if (!await ApprovedAsync(token)) { skipped += plan.Candidates.Length - moved - skipped; return new("maintenance_not_approved", moved, skipped, bytes, journalWarnings); }
-                var journal = new Journal(candidate.Item.Id, candidate.Item.Name, candidate.Proof.Bytes,
-                    candidate.Proof.ModifiedAtUtc, candidate.Proof.Sha256, candidate.Proof.Identity,
-                    _clock.GetUtcNow(), "Intent");
-                var payloadPath = PayloadPath(journal.Id);
-                try
+                PinnedDirectory quarantine;
+                try { quarantine = PinnedDirectory.Open(_quarantine, true); }
+                catch (Exception error) when (MaintenanceSecurity.Expected(error))
+                { return BlockAll("maintenance_root_unavailable", "quarantine_root_unavailable"); }
+                using (quarantine)
                 {
-                    using var file = PinnedFile.Open(Path.Combine(_source, candidate.Item.Name), true);
-                    if (file.Info.Identity != candidate.Proof.Identity || file.Info.Bytes != candidate.Proof.Bytes
-                        || file.Info.ModifiedAtUtc != candidate.Proof.ModifiedAtUtc) { skipped++; continue; }
-                    _beforeCandidateHash?.Invoke();
-                    var proof = await file.ProofAsync(token);
-                    if (!Same(proof, candidate.Proof)) { skipped++; continue; }
-                    if (System.IO.File.Exists(payloadPath) || System.IO.File.Exists(JournalPath(journal.Id))) { skipped++; continue; }
-                    if (reservedJournals >= 256 || journal.Bytes > MaximumTotalBytes - reservedBytes) { skipped++; continue; }
-                    WriteJournal(journal); // Durable intent precedes the same-volume handle rename.
-                    reservedJournals++; reservedBytes += journal.Bytes;
-                    MaintenanceNative.Rename(file.Handle, payloadPath);
-                    moved++; bytes += journal.Bytes;
-                    journal = journal with { State = "Quarantined" };
-                    try { WriteJournal(journal); }
-                    catch (Exception error) when (MaintenanceSecurity.Expected(error)) { journalWarnings++; }
+                    FileStream? mutationLock;
+                    try { mutationLock = MaintenanceMutationLock.TryAcquire(_quarantine); }
+                    catch (Exception error) when (MaintenanceSecurity.Expected(error))
+                    { return BlockAll("maintenance_root_unavailable", "quarantine_lock_unavailable"); }
+                    if (mutationLock is null) return BlockAll("maintenance_busy", "quarantine_busy");
+                    using (mutationLock)
+                    {
+                        if (source.Volume != quarantine.Volume) return BlockAll("maintenance_volume_mismatch", "volume_mismatch");
+                        JournalInventory inventory;
+                        try { inventory = ReadJournals(); }
+                        catch (Exception error) when (MaintenanceSecurity.Expected(error))
+                        { return BlockAll("maintenance_journal_integrity", "journal_unavailable"); }
+                        if (inventory.HasInvalidEntries) return BlockAll("maintenance_journal_integrity", "journal_integrity");
+                        var existing = inventory.Entries;
+                        if (existing.Length >= MaximumQuarantineEntries || inventory.PayloadBytes > MaximumTotalBytes
+                            || existing.Sum(item => item.State is "Quarantined" or "Intent" or "RestoreIntent" ? item.Bytes : 0) > MaximumTotalBytes)
+                            return BlockAll("maintenance_quota_reached", MaintenanceActionReasonCodes.QuarantineLimitReached);
+
+                        var reservedJournals = existing.Length;
+                        var reservedBytes = Math.Max(inventory.PayloadBytes,
+                            existing.Sum(item => item.State is "Quarantined" or "Intent" or "RestoreIntent" ? item.Bytes : 0));
+                        for (var index = 0; index < plan.Candidates.Length; index++)
+                        {
+                            var candidate = plan.Candidates[index];
+                            if (token.IsCancellationRequested)
+                            {
+                                cancelled = true;
+                                AddRemaining(index, MaintenanceActionStates.Cancelled, MaintenanceActionReasonCodes.Cancelled);
+                                break;
+                            }
+                            bool approved;
+                            try { approved = await ApprovedAsync(token); }
+                            catch (OperationCanceledException) when (token.IsCancellationRequested)
+                            {
+                                cancelled = true;
+                                AddRemaining(index, MaintenanceActionStates.Cancelled, MaintenanceActionReasonCodes.Cancelled);
+                                break;
+                            }
+                            catch (Exception)
+                            {
+                                AddRemaining(index, MaintenanceActionStates.Blocked, MaintenanceActionReasonCodes.ServiceNotApproved);
+                                break;
+                            }
+                            if (!approved)
+                            {
+                                AddRemaining(index, MaintenanceActionStates.Blocked, MaintenanceActionReasonCodes.ServiceNotApproved);
+                                break;
+                            }
+
+                            var journal = new Journal(candidate.Item.Id, candidate.Item.Name, candidate.Proof.Bytes,
+                                candidate.Proof.ModifiedAtUtc, candidate.Proof.Sha256, candidate.Proof.Identity,
+                                _clock.GetUtcNow(), "Intent");
+                            var payloadPath = PayloadPath(journal.Id);
+                            var opened = false; var journalWriteAttempted = false; var intentWritten = false; var itemRecorded = false;
+                            try
+                            {
+                                using var file = PinnedFile.Open(Path.Combine(_source, candidate.Item.Name), true);
+                                opened = true;
+                                if (file.Info.Identity != candidate.Proof.Identity)
+                                {
+                                    skipped++;
+                                    items.Add(ActionItem(candidate, MaintenanceActionStates.Skipped, MaintenanceActionReasonCodes.SourceIdentityChanged));
+                                    continue;
+                                }
+                                if (file.Info.Bytes != candidate.Proof.Bytes || file.Info.ModifiedAtUtc != candidate.Proof.ModifiedAtUtc)
+                                {
+                                    skipped++;
+                                    items.Add(ActionItem(candidate, MaintenanceActionStates.Skipped, MaintenanceActionReasonCodes.SourceMetadataChanged));
+                                    continue;
+                                }
+                                _beforeCandidateHash?.Invoke();
+                                var proof = await file.ProofAsync(token);
+                                if (!Same(proof, candidate.Proof))
+                                {
+                                    skipped++;
+                                    items.Add(ActionItem(candidate, MaintenanceActionStates.Skipped, MaintenanceActionReasonCodes.SourceHashChanged));
+                                    continue;
+                                }
+                                if (System.IO.File.Exists(payloadPath) || System.IO.File.Exists(JournalPath(journal.Id)))
+                                {
+                                    skipped++;
+                                    items.Add(ActionItem(candidate, MaintenanceActionStates.Skipped, MaintenanceActionReasonCodes.DestinationAlreadyExists));
+                                    continue;
+                                }
+                                if (reservedJournals >= MaximumQuarantineEntries || journal.Bytes > MaximumTotalBytes - reservedBytes)
+                                {
+                                    skipped++;
+                                    items.Add(ActionItem(candidate, MaintenanceActionStates.Skipped, MaintenanceActionReasonCodes.QuarantineLimitReached));
+                                    continue;
+                                }
+                                journalWriteAttempted = true;
+                                WriteJournal(journal); // Durable intent precedes the same-volume handle rename.
+                                intentWritten = true;
+                                reservedJournals++; reservedBytes += journal.Bytes;
+                                MaintenanceNative.Rename(file.Handle, payloadPath);
+                                moved++; bytes += journal.Bytes;
+                                var itemJournalWarning = false;
+                                journal = journal with { State = "Quarantined" };
+                                try { WriteJournal(journal); }
+                                catch (Exception error) when (MaintenanceSecurity.Expected(error))
+                                { journalWarnings++; itemJournalWarning = true; }
+                                items.Add(ActionItem(candidate, MaintenanceActionStates.Moved,
+                                    itemJournalWarning ? "journal_recovery_required" : string.Empty));
+                                itemRecorded = true;
+                                _afterQuarantineMove?.Invoke();
+                            }
+                            catch (OperationCanceledException) when (token.IsCancellationRequested)
+                            {
+                                cancelled = true;
+                                if (!itemRecorded)
+                                    items.Add(ActionItem(candidate, MaintenanceActionStates.Cancelled, MaintenanceActionReasonCodes.Cancelled));
+                                AddRemaining(index + 1, MaintenanceActionStates.Cancelled, MaintenanceActionReasonCodes.Cancelled);
+                                break;
+                            }
+                            catch (Exception error) when (MaintenanceSecurity.Expected(error))
+                            {
+                                if (itemRecorded)
+                                {
+                                    failed++;
+                                    AddRemaining(index + 1, MaintenanceActionStates.Blocked, MaintenanceActionReasonCodes.OperationFailed);
+                                    break;
+                                }
+                                if (journalWriteAttempted && !intentWritten)
+                                {
+                                    failed++;
+                                    items.Add(ActionItem(candidate, MaintenanceActionStates.Failed, MaintenanceActionReasonCodes.OperationFailed));
+                                    AddRemaining(index + 1, MaintenanceActionStates.Blocked, MaintenanceActionReasonCodes.OperationFailed);
+                                    break;
+                                }
+                                if (intentWritten)
+                                {
+                                    string outcome;
+                                    try { outcome = await VerifyQuarantineOutcomeAsync(journal, CancellationToken.None); }
+                                    catch (Exception) { outcome = "unknown"; }
+                                    if (outcome == "moved")
+                                    {
+                                        moved++; bytes += journal.Bytes; journalWarnings++;
+                                        items.Add(ActionItem(candidate, MaintenanceActionStates.Moved, "journal_recovery_required"));
+                                    }
+                                    else if (outcome == "not_moved")
+                                    {
+                                        failed++;
+                                        items.Add(ActionItem(candidate, MaintenanceActionStates.Failed, MaintenanceActionReasonCodes.OperationFailed));
+                                    }
+                                    else
+                                    {
+                                        unknown++;
+                                        items.Add(ActionItem(candidate, MaintenanceActionStates.Unknown, MaintenanceActionReasonCodes.OutcomeUnverified));
+                                    }
+                                    AddRemaining(index + 1, MaintenanceActionStates.Blocked, MaintenanceActionReasonCodes.OperationFailed);
+                                    break;
+                                }
+                                skipped++;
+                                items.Add(ActionItem(candidate, MaintenanceActionStates.Skipped, opened
+                                    ? MaintenanceSkipReasonCodes.VerificationFailed : PreviewSkipReason(error)));
+                            }
+                        }
+                        var blocked = items.Count(item => item.State == MaintenanceActionStates.Blocked);
+                        var code = cancelled ? moved > 0 ? "quarantine_cancelled_partial" : "quarantine_cancelled"
+                            : unknown > 0 ? "quarantine_outcome_unknown"
+                            : failed > 0 ? moved > 0 ? "quarantine_partial_failure" : "quarantine_failed"
+                            : blocked > 0 ? moved > 0
+                                ? journalWarnings > 0 ? "quarantine_partial_blocked_recovery_required" : "quarantine_partial_blocked"
+                                : "quarantine_blocked"
+                            : journalWarnings > 0 ? "quarantine_recovery_required"
+                            : moved > 0 && skipped == 0 ? "quarantine_complete"
+                            : moved > 0 ? "quarantine_partial" : "quarantine_no_files_moved";
+                        return Finish(code);
+                    }
                 }
-                catch (Exception error) when (MaintenanceSecurity.Expected(error)) { skipped++; }
             }
-            var code = journalWarnings > 0 ? "quarantine_recovery_required"
-                : moved > 0 && skipped == 0 ? "quarantine_complete"
-                : moved > 0 ? "quarantine_partial" : "quarantine_no_files_moved";
-            return new(code, moved, skipped, bytes, journalWarnings);
         }
         finally { _gate.Release(); }
     }
@@ -199,7 +504,9 @@ public sealed class UserMaintenance
                 var state = journal.State;
                 var payload = System.IO.File.Exists(PayloadPath(journal.Id));
                 var original = System.IO.File.Exists(Path.Combine(_source, journal.Name));
-                if (state == "DeleteIntent" || state == "Deleted" && payload) state = "NeedsReview";
+                // These states come from a removed development-only delete flow. Keep their
+                // journals readable, but never treat them as restorable or as proof of success.
+                if (state is "DeleteIntent" or "Deleted") state = "NeedsReview";
                 if (state is "Intent" or "RestoreIntent" or "Quarantined")
                 {
                     if (payload && !original)
@@ -227,65 +534,102 @@ public sealed class UserMaintenance
         try
         {
             if (!Guid.TryParseExact(entryId, "N", out _) || !string.Equals(entryId, confirmation, StringComparison.Ordinal)) return Result("maintenance_confirmation_required");
-            var inventory = ReadJournals();
+            JournalInventory inventory;
+            try { inventory = ReadJournals(); }
+            catch (Exception error) when (MaintenanceSecurity.Expected(error)) { return Result("maintenance_journal_integrity"); }
             if (inventory.HasInvalidEntries) return Result("maintenance_journal_integrity");
             var journal = inventory.Entries.FirstOrDefault(item => item.Id == entryId);
             if (journal is null || journal.State is not ("Quarantined" or "Intent" or "RestoreIntent")) return Result("maintenance_entry_unavailable");
-            if (!await ApprovedAsync(token)) return Result("maintenance_not_approved");
-            using var source = PinnedDirectory.Open(_source, true);
-            using var quarantine = PinnedDirectory.Open(_quarantine, true);
-            using var mutationLock = MaintenanceMutationLock.TryAcquire(_quarantine);
-            if (mutationLock is null) return Result("maintenance_busy");
-            if (source.Volume != quarantine.Volume) return Result("maintenance_volume_mismatch");
             var original = Path.Combine(_source, journal.Name);
-            if (System.IO.File.Exists(original) || Directory.Exists(original)) return Result("restore_conflict");
-            PinnedFile payload;
-            try { payload = PinnedFile.Open(PayloadPath(journal.Id), true); }
-            catch (Exception error) when (MaintenanceSecurity.Expected(error)) { return Result("maintenance_payload_changed"); }
-            using (payload)
+            var payloadPath = PayloadPath(journal.Id);
+            MaintenanceActionItem ActionItem(string state, string reasonCode) => new(journal.Id, journal.Name, journal.Bytes,
+                payloadPath, original, state, reasonCode);
+            MaintenanceResult Finish(string code, string state, string reasonCode, int restored = 0, int skipped = 0,
+                int warnings = 0, bool readback = false) => new(code, 0, skipped, restored > 0 ? journal.Bytes : 0, warnings)
             {
-            if (!await MatchesJournalAsync(payload, journal, token)) return Result("maintenance_payload_changed");
-            if (!await ApprovedAsync(token)) return Result("maintenance_not_approved");
-            try { WriteJournal(journal with { State = "RestoreIntent" }); }
-            catch (Exception error) when (MaintenanceSecurity.Expected(error)) { return Result("maintenance_journal_write_failed"); }
-            try { MaintenanceNative.Rename(payload.Handle, original); }
-            catch (Exception error) when (MaintenanceSecurity.Expected(error)) { return Result("restore_failed"); }
-            try { WriteJournal(journal with { State = "Restored" }); }
-            catch (Exception error) when (MaintenanceSecurity.Expected(error))
-            { return new("restore_recovery_required", 1, 0, journal.Bytes, 1); }
-            return new("restore_complete", 1, 0, journal.Bytes);
-            }
-        }
-        finally { _gate.Release(); }
-    }
+                Items = Array.AsReadOnly(new[] { ActionItem(state, reasonCode) }),
+                FreeSpace = readback ? ReadFreeSpaceReadback() : new(null, null),
+                Restored = restored
+            };
 
-    public async ValueTask<MaintenanceResult> DeleteQuarantinedAsync(string entryId, string confirmation, CancellationToken token = default)
-    {
-        await _gate.WaitAsync(token);
-        try
-        {
-            if (!Guid.TryParseExact(entryId, "N", out _) || confirmation != "DELETE " + entryId)
-                return Result("maintenance_confirmation_required");
-            if (!await ApprovedAsync(token)) return Result("maintenance_not_approved");
-            using var root = PinnedDirectory.Open(_quarantine, true);
-            using var mutationLock = MaintenanceMutationLock.TryAcquire(_quarantine);
-            if (mutationLock is null) return Result("maintenance_busy");
-            var inventory = ReadJournals();
-            if (inventory.HasInvalidEntries) return Result("maintenance_journal_integrity");
-            var journal = inventory.Entries.FirstOrDefault(item => item.Id == entryId && item.State == "Quarantined");
-            if (journal is null) return Result("maintenance_entry_unavailable");
-            using (var payload = PinnedFile.Open(PayloadPath(entryId), true))
+            try
             {
-                if (!await MatchesJournalAsync(payload, journal, token)) return Result("maintenance_payload_changed");
-                if (!await ApprovedAsync(token)) return Result("maintenance_not_approved");
-                WriteJournal(journal with { State = "DeleteIntent" });
-                // Delete the validated opened object, without reopening a replaceable path.
-                MaintenanceNative.Delete(payload.Handle);
+                if (!await ApprovedAsync(token))
+                    return Finish("maintenance_not_approved", MaintenanceActionStates.Blocked, MaintenanceActionReasonCodes.ServiceNotApproved);
             }
-            try { WriteJournal(journal with { State = "Deleted" }); }
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            { return Finish("restore_cancelled", MaintenanceActionStates.Cancelled, MaintenanceActionReasonCodes.Cancelled); }
+            catch (Exception)
+            { return Finish("maintenance_state_unavailable", MaintenanceActionStates.Blocked, MaintenanceActionReasonCodes.ServiceNotApproved); }
+
+            PinnedDirectory source;
+            try { source = PinnedDirectory.Open(_source, true); }
             catch (Exception error) when (MaintenanceSecurity.Expected(error))
-            { return new("delete_recovery_required", 1, 0, journal.Bytes, 1); }
-            return new("delete_complete", 1, 0, journal.Bytes);
+            { return Finish("maintenance_root_unavailable", MaintenanceActionStates.Blocked, "source_root_unavailable"); }
+            using (source)
+            {
+                PinnedDirectory quarantine;
+                try { quarantine = PinnedDirectory.Open(_quarantine, true); }
+                catch (Exception error) when (MaintenanceSecurity.Expected(error))
+                { return Finish("maintenance_root_unavailable", MaintenanceActionStates.Blocked, "quarantine_root_unavailable"); }
+                using (quarantine)
+                {
+                    FileStream? mutationLock;
+                    try { mutationLock = MaintenanceMutationLock.TryAcquire(_quarantine); }
+                    catch (Exception error) when (MaintenanceSecurity.Expected(error))
+                    { return Finish("maintenance_root_unavailable", MaintenanceActionStates.Blocked, "quarantine_lock_unavailable"); }
+                    if (mutationLock is null) return Finish("maintenance_busy", MaintenanceActionStates.Blocked, "quarantine_busy");
+                    using (mutationLock)
+                    {
+                        if (source.Volume != quarantine.Volume)
+                            return Finish("maintenance_volume_mismatch", MaintenanceActionStates.Blocked, "volume_mismatch");
+                        if (System.IO.File.Exists(original) || Directory.Exists(original))
+                            return Finish("restore_conflict", MaintenanceActionStates.Blocked, MaintenanceActionReasonCodes.DestinationAlreadyExists);
+                        PinnedFile payload;
+                        try { payload = PinnedFile.Open(payloadPath, true); }
+                        catch (Exception error) when (MaintenanceSecurity.Expected(error))
+                        { return Finish("maintenance_payload_changed", MaintenanceActionStates.Blocked, "payload_unavailable"); }
+                        using (payload)
+                        {
+                            try
+                            {
+                                if (!await MatchesJournalAsync(payload, journal, token))
+                                    return Finish("maintenance_payload_changed", MaintenanceActionStates.Blocked, "payload_verification_failed");
+                                if (!await ApprovedAsync(token))
+                                    return Finish("maintenance_not_approved", MaintenanceActionStates.Blocked, MaintenanceActionReasonCodes.ServiceNotApproved);
+                            }
+                            catch (OperationCanceledException) when (token.IsCancellationRequested)
+                            { return Finish("restore_cancelled", MaintenanceActionStates.Cancelled, MaintenanceActionReasonCodes.Cancelled); }
+                            catch (Exception)
+                            { return Finish("maintenance_payload_changed", MaintenanceActionStates.Blocked, "payload_verification_failed"); }
+                            try { WriteJournal(journal with { State = "RestoreIntent" }); }
+                            catch (Exception error) when (MaintenanceSecurity.Expected(error))
+                            { return Finish("maintenance_journal_write_failed", MaintenanceActionStates.Failed, MaintenanceActionReasonCodes.OperationFailed); }
+                            try { MaintenanceNative.Rename(payload.Handle, original); }
+                            catch (Exception error) when (MaintenanceSecurity.Expected(error))
+                            {
+                                string outcome;
+                                try { outcome = await VerifyRestoreOutcomeAsync(journal, CancellationToken.None); }
+                                catch (Exception) { outcome = "unknown"; }
+                                if (outcome == "restored")
+                                {
+                                    try { WriteJournal(journal with { State = "Restored" }); }
+                                    catch (Exception writeError) when (MaintenanceSecurity.Expected(writeError))
+                                    { return Finish("restore_recovery_required", MaintenanceActionStates.Restored, "journal_recovery_required", 1, warnings: 1, readback: true); }
+                                    return Finish("restore_complete", MaintenanceActionStates.Restored, string.Empty, 1, readback: true);
+                                }
+                                return outcome == "not_restored"
+                                    ? Finish("restore_failed", MaintenanceActionStates.Failed, MaintenanceActionReasonCodes.OperationFailed)
+                                    : Finish("restore_outcome_unknown", MaintenanceActionStates.Unknown, MaintenanceActionReasonCodes.OutcomeUnverified);
+                            }
+                            try { WriteJournal(journal with { State = "Restored" }); }
+                            catch (Exception error) when (MaintenanceSecurity.Expected(error))
+                            { return Finish("restore_recovery_required", MaintenanceActionStates.Restored, "journal_recovery_required", 1, warnings: 1, readback: true); }
+                            return Finish("restore_complete", MaintenanceActionStates.Restored, string.Empty, 1, readback: true);
+                        }
+                    }
+                }
+            }
         }
         finally { _gate.Release(); }
     }
@@ -435,6 +779,17 @@ public sealed class UserMaintenance
         return new(journals.Values.ToArray(), invalid, payloadBytes);
     }
 
+    private MaintenanceEligibilityLimits CurrentEligibilityLimits => new(
+        TopLevelOnly: true,
+        MaximumInspectedFiles: MaximumInspectedFiles,
+        MaximumCandidates: MaximumCandidates,
+        PreviewTimeoutSeconds: PreviewTimeoutSeconds,
+        PreviewValidityMinutes: PreviewValidityMinutes,
+        MinimumAgeDays: _selectedDirectory ? 0 : MinimumAgeDays,
+        MaximumFileBytes: MaximumFileBytes,
+        MaximumTotalBytes: MaximumTotalBytes,
+        MaximumQuarantineEntries: MaximumQuarantineEntries);
+
     private long MaximumFileBytes => _selectedDirectory ? 1024L * 1024 * 1024 : 16L * 1024 * 1024;
     private long MaximumTotalBytes => _selectedDirectory ? 10L * 1024 * 1024 * 1024 : 128L * 1024 * 1024;
 
@@ -494,6 +849,46 @@ public sealed class UserMaintenance
     }
     private static bool Same(FileProof left, FileProof right) => left.Identity == right.Identity && left.Bytes == right.Bytes
         && left.ModifiedAtUtc == right.ModifiedAtUtc && string.Equals(left.Sha256, right.Sha256, StringComparison.Ordinal);
+    private static string PreviewSkipReason(Exception error) => error switch
+    {
+        MaintenanceFileRejectedException rejected => rejected.ReasonCode,
+        Win32Exception win32 when win32.NativeErrorCode is 32 or 33 => MaintenanceSkipReasonCodes.FileLocked,
+        UnauthorizedAccessException => MaintenanceSkipReasonCodes.AccessDenied,
+        _ => MaintenanceSkipReasonCodes.FileUnavailable
+    };
+    private async ValueTask<string> VerifyQuarantineOutcomeAsync(Journal journal, CancellationToken token)
+    {
+        var payload = PayloadPath(journal.Id);
+        var source = Path.Combine(_source, journal.Name);
+        var payloadMatches = await MatchesPathAsync(payload, journal, token);
+        var sourceMatches = await MatchesPathAsync(source, journal, token);
+        if (payloadMatches && !sourceMatches) return "moved";
+        if (sourceMatches && !System.IO.File.Exists(payload)) return "not_moved";
+        return "unknown";
+    }
+    private async ValueTask<string> VerifyRestoreOutcomeAsync(Journal journal, CancellationToken token)
+    {
+        var payloadMatches = await MatchesPathAsync(PayloadPath(journal.Id), journal, token);
+        var sourceMatches = await MatchesPathAsync(Path.Combine(_source, journal.Name), journal, token);
+        if (sourceMatches && !payloadMatches) return "restored";
+        if (payloadMatches && !sourceMatches) return "not_restored";
+        return "unknown";
+    }
+    private MaintenanceFreeSpaceReadback ReadFreeSpaceReadback()
+    {
+        try
+        {
+            var root = Path.GetPathRoot(_source);
+            if (string.IsNullOrWhiteSpace(root)) return new(null, _clock.GetUtcNow());
+            var availableBytes = _freeSpaceReader is null ? new DriveInfo(root).AvailableFreeSpace : _freeSpaceReader();
+            if (availableBytes is null || availableBytes < 0) return new(null, _clock.GetUtcNow());
+            return new(availableBytes, _clock.GetUtcNow());
+        }
+        catch (Exception error) when (error is not OutOfMemoryException)
+        {
+            return new(null, _clock.GetUtcNow());
+        }
+    }
     private static MaintenanceResult Result(string code) => new(code, 0, 0, 0);
     private string JournalPath(string id) => Path.Combine(_quarantine, id + ".json");
     private string PayloadPath(string id) => Path.Combine(_quarantine, id + ".payload");

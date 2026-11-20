@@ -16,53 +16,106 @@ public sealed class UserMaintenanceTests
         System.IO.File.SetLastWriteTimeUtc(path, DateTime.UtcNow);
         var service = new UserMaintenance(fixture.Source, fixture.Quarantine, TimeProvider.System,
             _ => ValueTask.FromResult<DashboardSnapshot?>(null), selectedDirectory: true);
-        Assert.Single((await service.PreviewAsync()).Items);
+        var preview = await service.PreviewAsync();
+        Assert.Single(preview.Items);
+        Assert.Equal(fixture.Source, preview.ScopePath);
+        Assert.Equal(fixture.Quarantine, preview.QuarantinePath);
+        Assert.NotNull(preview.ScopeVolumeId);
+        Assert.Equal(1, preview.InspectedFiles);
+        Assert.True(preview.EligibilityLimits.TopLevelOnly);
+        Assert.Equal(500, preview.EligibilityLimits.MaximumInspectedFiles);
+        Assert.Equal(100, preview.EligibilityLimits.MaximumCandidates);
+        Assert.Equal(15, preview.EligibilityLimits.PreviewTimeoutSeconds);
+        Assert.Equal(10, preview.EligibilityLimits.PreviewValidityMinutes);
+        Assert.Equal(0, preview.EligibilityLimits.MinimumAgeDays);
+        Assert.Equal(1024L * 1024 * 1024, preview.EligibilityLimits.MaximumFileBytes);
+        Assert.Equal(10L * 1024 * 1024 * 1024, preview.EligibilityLimits.MaximumTotalBytes);
+        Assert.Equal(256, preview.EligibilityLimits.MaximumQuarantineEntries);
         Assert.True(System.IO.File.Exists(path));
         Assert.False(Directory.Exists(fixture.Quarantine));
     }
 
     [Fact]
-    public async Task Permanent_delete_requires_separate_confirmation_and_retains_audit()
+    public async Task Standard_preview_reports_exact_scope_and_standard_eligibility_limits()
     {
         using var fixture = new Fixture();
-        var path = fixture.File("old.tmp", "disposable fixture", 9);
+        fixture.File("old.tmp", "eligible", 9);
+
         var preview = await fixture.Service.PreviewAsync();
-        Assert.Equal(1, (await fixture.Service.QuarantineAsync(preview.Id, preview.Id)).Moved);
-        var entry = Assert.Single(await fixture.Service.ListAsync());
-        Assert.Equal("maintenance_confirmation_required", (await fixture.Service.DeleteQuarantinedAsync(entry.Id, entry.Id)).Code);
-        Assert.Equal("Quarantined", Assert.Single(await fixture.Service.ListAsync()).State);
-        Assert.Equal("delete_complete", (await fixture.Service.DeleteQuarantinedAsync(entry.Id, "DELETE " + entry.Id)).Code);
-        Assert.False(System.IO.File.Exists(path));
-        Assert.False(System.IO.File.Exists(Path.Combine(fixture.Quarantine, entry.Id + ".payload")));
-        Assert.Equal("Deleted", Assert.Single(await fixture.Service.ListAsync()).State);
-        Assert.Equal("maintenance_entry_unavailable", (await fixture.Service.RestoreAsync(entry.Id, entry.Id)).Code);
+
+        Assert.Equal(fixture.Source, preview.ScopePath);
+        Assert.Equal(fixture.Quarantine, preview.QuarantinePath);
+        Assert.NotNull(preview.ScopeVolumeId);
+        Assert.Equal(1, preview.InspectedFiles);
+        Assert.True(preview.EligibilityLimits.TopLevelOnly);
+        Assert.Equal(500, preview.EligibilityLimits.MaximumInspectedFiles);
+        Assert.Equal(100, preview.EligibilityLimits.MaximumCandidates);
+        Assert.Equal(15, preview.EligibilityLimits.PreviewTimeoutSeconds);
+        Assert.Equal(10, preview.EligibilityLimits.PreviewValidityMinutes);
+        Assert.Equal(7, preview.EligibilityLimits.MinimumAgeDays);
+        Assert.Equal(16L * 1024 * 1024, preview.EligibilityLimits.MaximumFileBytes);
+        Assert.Equal(128L * 1024 * 1024, preview.EligibilityLimits.MaximumTotalBytes);
+        Assert.Equal(256, preview.EligibilityLimits.MaximumQuarantineEntries);
+        Assert.Empty(preview.SkippedItems);
     }
 
     [Fact]
-    public async Task Permanent_delete_refuses_shadow_and_changed_payload()
+    public async Task Preview_reports_unsafe_filename_without_returning_the_raw_name()
     {
         using var fixture = new Fixture();
-        fixture.File("old.tmp", "original", 9);
+        fixture.File("résumé.tmp", "old", 9);
+
         var preview = await fixture.Service.PreviewAsync();
-        await fixture.Service.QuarantineAsync(preview.Id, preview.Id);
-        var entry = Assert.Single(await fixture.Service.ListAsync());
-        Assert.Equal("maintenance_not_approved", (await fixture.NewService("Shadow").DeleteQuarantinedAsync(entry.Id, "DELETE " + entry.Id)).Code);
-        System.IO.File.WriteAllText(Path.Combine(fixture.Quarantine, entry.Id + ".payload"), "tampered");
-        Assert.Equal("maintenance_payload_changed", (await fixture.Service.DeleteQuarantinedAsync(entry.Id, "DELETE " + entry.Id)).Code);
-        Assert.True(System.IO.File.Exists(Path.Combine(fixture.Quarantine, entry.Id + ".payload")));
+
+        var skipped = Assert.Single(preview.SkippedItems);
+        Assert.Equal(string.Empty, skipped.Name);
+        Assert.Equal(MaintenanceSkipReasonCodes.UnsafeName, skipped.ReasonCode);
+        Assert.Equal(1, preview.Skipped);
     }
 
     [Fact]
-    public async Task Permanent_delete_stops_before_native_boundary_when_journal_cannot_be_written()
+    public async Task Preview_reports_hash_verification_failure_without_mutating_source()
     {
         using var fixture = new Fixture();
-        fixture.File("old.tmp", "original", 9);
+        var original = fixture.File("old.tmp", "old", 9);
+        var service = new UserMaintenance(fixture.Source, fixture.Quarantine, TimeProvider.System,
+            _ => ValueTask.FromResult<DashboardSnapshot?>(null), beforePreviewHash: () => throw new IOException("private detail"));
+
+        var preview = await service.PreviewAsync();
+
+        var skipped = Assert.Single(preview.SkippedItems);
+        Assert.Equal("old.tmp", skipped.Name);
+        Assert.Equal(MaintenanceSkipReasonCodes.VerificationFailed, skipped.ReasonCode);
+        Assert.DoesNotContain("private detail", skipped.ReasonCode);
+        Assert.Equal(1, preview.Skipped);
+        Assert.True(System.IO.File.Exists(original));
+        Assert.False(Directory.Exists(fixture.Quarantine));
+    }
+
+    [Fact]
+    public void Public_maintenance_api_has_no_permanent_delete_operation()
+    {
+        Assert.Null(typeof(UserMaintenance).GetMethod("DeleteQuarantinedAsync"));
+    }
+
+    [Theory]
+    [InlineData("DeleteIntent")]
+    [InlineData("Deleted")]
+    public async Task Legacy_delete_journals_remain_readable_as_needs_review(string legacyState)
+    {
+        using var fixture = new Fixture("Confirmation");
+        fixture.File("legacy.tmp", "legacy journal payload", 9);
         var preview = await fixture.Service.PreviewAsync();
-        await fixture.Service.QuarantineAsync(preview.Id, preview.Id);
+        Assert.Equal("quarantine_complete", (await fixture.Service.QuarantineAsync(preview.Id, preview.Id)).Code);
         var entry = Assert.Single(await fixture.Service.ListAsync());
-        var service = fixture.NewService("Confirmation", rejectJournalState: state => state == "DeleteIntent");
-        await Assert.ThrowsAsync<IOException>(async () => await service.DeleteQuarantinedAsync(entry.Id, "DELETE " + entry.Id));
-        Assert.True(System.IO.File.Exists(Path.Combine(fixture.Quarantine, entry.Id + ".payload")));
+        var journalPath = Path.Combine(fixture.Quarantine, entry.Id + ".json");
+        var journal = await System.IO.File.ReadAllTextAsync(journalPath);
+        await System.IO.File.WriteAllTextAsync(journalPath, journal.Replace("\"State\":\"Quarantined\"", $"\"State\":\"{legacyState}\"", StringComparison.Ordinal));
+
+        var observed = Assert.Single(await fixture.Service.ListAsync());
+
+        Assert.Equal("NeedsReview", observed.State);
+        Assert.Equal(entry.Id, observed.Id);
     }
 
     // A preview that scans recursively or accepts recent files proposes unrelated active data.
@@ -78,6 +131,10 @@ public sealed class UserMaintenanceTests
         var item = Assert.Single(preview.Items);
         Assert.Equal("old.tmp", item.Name);
         Assert.Equal(3, item.Bytes);
+        var skipped = Assert.Single(preview.SkippedItems);
+        Assert.Equal("recent.tmp", skipped.Name);
+        Assert.Equal(MaintenanceSkipReasonCodes.TooRecent, skipped.ReasonCode);
+        Assert.Equal(preview.Skipped, preview.SkippedItems.Count);
         Assert.True(File.Exists(old));
         Assert.False(Directory.Exists(fixture.Quarantine));
     }
@@ -105,8 +162,33 @@ public sealed class UserMaintenanceTests
             Assert.Equal("eligible.tmp", Assert.Single(preview.Items).Name);
             Assert.True(System.IO.File.Exists(candidate));
             Assert.True(preview.Skipped >= 1);
+            var skipped = Assert.Single(preview.SkippedItems);
+            Assert.Equal("excluded.tmp", skipped.Name);
+            Assert.Equal(kind switch
+            {
+                "locked" => MaintenanceSkipReasonCodes.FileLocked,
+                "large" => MaintenanceSkipReasonCodes.FileTooLarge,
+                "hardlink" => MaintenanceSkipReasonCodes.MultipleLinks,
+                _ => throw new InvalidOperationException("Unknown fixture kind")
+            }, skipped.ReasonCode);
+            Assert.Equal(preview.Skipped, preview.SkippedItems.Count);
         }
         finally { held?.Dispose(); }
+    }
+
+    [Fact]
+    public async Task Preview_reports_scope_byte_budget_without_omitting_skip_reason()
+    {
+        using var fixture = new Fixture();
+        for (var index = 0; index < 8; index++) fixture.SizedFile($"large-{index}.tmp", 16L * 1024 * 1024);
+        fixture.File("small.tmp", "x", 9);
+
+        var preview = await fixture.Service.PreviewAsync();
+
+        Assert.Equal(8, preview.Items.Count);
+        var skipped = Assert.Single(preview.SkippedItems);
+        Assert.Equal(MaintenanceSkipReasonCodes.ScopeByteLimit, skipped.ReasonCode);
+        Assert.Equal(1, preview.Skipped);
     }
 
     [Fact]
@@ -175,6 +257,8 @@ public sealed class UserMaintenanceTests
         var restored = await fixture.Service.RestoreAsync(entry.Id, entry.Id);
 
         Assert.Equal("restore_conflict", restored.Code);
+        Assert.Equal(1, restored.Blocked);
+        Assert.Equal(MaintenanceActionReasonCodes.DestinationAlreadyExists, Assert.Single(restored.Items).ReasonCode);
         Assert.Equal("user replacement", await System.IO.File.ReadAllTextAsync(original));
     }
 
@@ -187,6 +271,94 @@ public sealed class UserMaintenanceTests
         Assert.Equal("maintenance_confirmation_required", (await fixture.Service.QuarantineAsync(preview.Id, "another operation")).Code);
         Assert.True(System.IO.File.Exists(original));
         Assert.Equal("quarantine_complete", (await fixture.Service.QuarantineAsync(preview.Id, preview.Id)).Code);
+    }
+
+    [Fact]
+    public async Task Truncated_preview_cannot_quarantine_its_visible_subset()
+    {
+        using var fixture = new Fixture("Confirmation");
+        for (var index = 0; index < 101; index++) fixture.File($"item-{index:D3}.tmp", "old", 9);
+        var preview = await fixture.Service.PreviewAsync();
+
+        Assert.True(preview.Truncated);
+        Assert.Equal(100, preview.Items.Count);
+        Assert.Equal(100, preview.InspectedFiles);
+        var result = await fixture.Service.QuarantineAsync(preview.Id, preview.Id);
+
+        Assert.Equal("maintenance_preview_incomplete", result.Code);
+        Assert.Equal(100, result.Blocked);
+        Assert.Equal(0, result.Moved);
+        Assert.Equal(101, Directory.GetFiles(fixture.Source).Length);
+        Assert.False(Directory.Exists(fixture.Quarantine));
+    }
+
+    [Fact]
+    public async Task Cancellation_after_first_move_returns_exact_partial_receipt()
+    {
+        using var fixture = new Fixture("Confirmation");
+        fixture.File("first.tmp", "first", 9);
+        fixture.File("second.tmp", "second", 9);
+        using var cancellation = new CancellationTokenSource();
+        var service = fixture.NewService("Confirmation", afterQuarantineMove: cancellation.Cancel);
+        var preview = await service.PreviewAsync();
+
+        var result = await service.QuarantineAsync(preview.Id, preview.Id, cancellation.Token);
+
+        Assert.Equal("quarantine_cancelled_partial", result.Code);
+        Assert.Equal(1, result.Moved);
+        Assert.Equal(1, result.Cancelled);
+        Assert.Equal(2, result.Items.Count);
+        var moved = Assert.Single(result.Items, item => item.State == MaintenanceActionStates.Moved);
+        var cancelled = Assert.Single(result.Items, item => item.State == MaintenanceActionStates.Cancelled);
+        Assert.False(System.IO.File.Exists(moved.SourcePath));
+        Assert.True(System.IO.File.Exists(moved.DestinationPath));
+        Assert.True(System.IO.File.Exists(cancelled.SourcePath));
+        Assert.False(System.IO.File.Exists(cancelled.DestinationPath));
+        Assert.Equal("Quarantined", Assert.Single(await service.ListAsync()).State);
+        Assert.NotNull(result.FreeSpace.MeasuredAtUtc);
+        Assert.Equal(result.Moved, result.Items.Count(item => item.State == MaintenanceActionStates.Moved));
+    }
+
+    [Fact]
+    public async Task Unknown_free_space_readback_keeps_the_confirmed_move_receipt()
+    {
+        using var fixture = new Fixture("Confirmation");
+        fixture.File("old.tmp", "old", 9);
+        var service = fixture.NewService("Confirmation", freeSpaceReader: () => throw new IOException("private detail"));
+        var preview = await service.PreviewAsync();
+
+        var result = await service.QuarantineAsync(preview.Id, preview.Id);
+
+        Assert.Equal("quarantine_complete", result.Code);
+        Assert.Equal(1, result.Moved);
+        Assert.Single(result.Items);
+        Assert.Equal(MaintenanceActionStates.Moved, result.Items[0].State);
+        Assert.False(result.FreeSpace.IsKnown);
+        Assert.NotNull(result.FreeSpace.MeasuredAtUtc);
+    }
+
+    [Fact]
+    public async Task Restore_reports_exact_paths_and_unknown_free_space_readback()
+    {
+        using var fixture = new Fixture("Confirmation");
+        var original = fixture.File("old.tmp", "old", 9);
+        var quarantine = await fixture.Service.PreviewAsync();
+        Assert.Equal("quarantine_complete", (await fixture.Service.QuarantineAsync(quarantine.Id, quarantine.Id)).Code);
+        var entry = Assert.Single(await fixture.Service.ListAsync());
+        var service = fixture.NewService("Confirmation", freeSpaceReader: () => throw new IOException("private detail"));
+
+        var result = await service.RestoreAsync(entry.Id, entry.Id);
+
+        Assert.Equal("restore_complete", result.Code);
+        Assert.Equal(0, result.Moved);
+        Assert.Equal(1, result.Restored);
+        var item = Assert.Single(result.Items);
+        Assert.Equal(MaintenanceActionStates.Restored, item.State);
+        Assert.Equal(Path.Combine(fixture.Quarantine, entry.Id + ".payload"), item.SourcePath);
+        Assert.Equal(original, item.DestinationPath);
+        Assert.False(result.FreeSpace.IsKnown);
+        Assert.NotNull(result.FreeSpace.MeasuredAtUtc);
+        Assert.Equal("old", await System.IO.File.ReadAllTextAsync(original));
     }
 
     [Theory]
@@ -405,6 +577,7 @@ public sealed class UserMaintenanceTests
 
         Assert.Equal(0, result.Moved);
         Assert.Equal(1, result.Skipped);
+        Assert.Equal(MaintenanceActionReasonCodes.SourceMetadataChanged, Assert.Single(result.Items).ReasonCode);
         Assert.Equal(0, hashAttempts);
         Assert.True(System.IO.File.Exists(original));
     }
@@ -494,9 +667,10 @@ public sealed class UserMaintenanceTests
 
         var result = await service.QuarantineAsync(preview.Id, preview.Id);
 
-        Assert.Equal("maintenance_not_approved", result.Code);
+        Assert.Equal("quarantine_partial_blocked_recovery_required", result.Code);
         Assert.Equal(1, result.Moved);
-        Assert.Equal(1, result.Skipped);
+        Assert.Equal(0, result.Skipped);
+        Assert.Equal(1, result.Blocked);
         Assert.Equal(1, result.JournalWarnings);
     }
 
@@ -513,9 +687,12 @@ public sealed class UserMaintenanceTests
         var result = await service.RestoreAsync(entry.Id, entry.Id);
 
         Assert.Equal("restore_recovery_required", result.Code);
-        Assert.Equal(1, result.Moved);
+        Assert.Equal(0, result.Moved);
+        Assert.Equal(1, result.Restored);
         Assert.Equal(0, result.Skipped);
         Assert.Equal(1, result.JournalWarnings);
+        Assert.Equal(MaintenanceActionStates.Restored, Assert.Single(result.Items).State);
+        Assert.NotNull(result.FreeSpace.MeasuredAtUtc);
         Assert.Equal("synthetic", await System.IO.File.ReadAllTextAsync(original));
         Assert.Equal("Restored", Assert.Single(await service.ListAsync()).State);
     }
@@ -663,9 +840,11 @@ public sealed class UserMaintenanceTests
         }
         public UserMaintenance NewService(string mode, Action<string>? afterDirectoryCreate = null,
             Func<string, bool>? rejectJournalState = null, Action<string>? afterPrivateAcl = null,
-            Action? beforeJournalHash = null, Action? beforeCandidateHash = null) => new(Source, Quarantine, _clock,
+            Action? beforeJournalHash = null, Action? beforeCandidateHash = null, Action? afterQuarantineMove = null,
+            Func<long?>? freeSpaceReader = null) => new(Source, Quarantine, _clock,
             _ => ValueTask.FromResult<DashboardSnapshot?>(new DashboardSnapshot(_generatedAt ?? _clock.GetUtcNow(), mode, _readOnly, false,
-                null, null, null, [], [], [], null, [], [], [], []) { KillSwitch = _killSwitch }), afterDirectoryCreate, rejectJournalState, afterPrivateAcl, beforeJournalHash, beforeCandidateHash);
+                null, null, null, [], [], [], null, [], [], [], []) { KillSwitch = _killSwitch }), afterDirectoryCreate, rejectJournalState, afterPrivateAcl,
+            beforeJournalHash, beforeCandidateHash, afterQuarantineMove: afterQuarantineMove, freeSpaceReader: freeSpaceReader);
         public string File(string name, string contents, int ageDays)
         {
             var path = Path.Combine(Source, name);

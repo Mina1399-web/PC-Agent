@@ -65,6 +65,12 @@ internal sealed class PinnedDirectory : IDisposable
     public void Dispose() { for (var index = _handles.Count - 1; index >= 0; index--) _handles[index].Dispose(); }
 }
 
+internal sealed class MaintenanceFileRejectedException(string reasonCode)
+    : UnauthorizedAccessException("maintenance_file_ineligible")
+{
+    internal string ReasonCode { get; } = reasonCode;
+}
+
 internal sealed class PinnedFile : IDisposable
 {
     private readonly FileStream _stream;
@@ -79,9 +85,13 @@ internal sealed class PinnedFile : IDisposable
         try
         {
             var info = MaintenanceNative.Info(handle);
-            const FileAttributes excluded = FileAttributes.Directory | FileAttributes.ReparsePoint | FileAttributes.Device | FileAttributes.System | FileAttributes.Offline | FileAttributes.ReadOnly;
-            if ((info.Attributes & (uint)excluded) != 0 || info.Links != 1 || MaintenanceNative.GetFileType(handle) != 1)
-                throw new UnauthorizedAccessException("maintenance_file_type");
+            const FileAttributes unsupported = FileAttributes.Directory | FileAttributes.ReparsePoint | FileAttributes.Device | FileAttributes.System | FileAttributes.Offline;
+            if ((info.Attributes & (uint)unsupported) != 0 || MaintenanceNative.GetFileType(handle) != 1)
+                throw new MaintenanceFileRejectedException(MaintenanceSkipReasonCodes.UnsupportedFile);
+            if ((info.Attributes & (uint)FileAttributes.ReadOnly) != 0)
+                throw new MaintenanceFileRejectedException(MaintenanceSkipReasonCodes.ReadOnly);
+            if (info.Links != 1)
+                throw new MaintenanceFileRejectedException(MaintenanceSkipReasonCodes.MultipleLinks);
             stream = new FileStream(handle, FileAccess.Read, 4096, false);
             MaintenanceSecurity.DemandPrivate(stream.GetAccessControl());
             return new PinnedFile(stream, info);
@@ -151,18 +161,6 @@ internal static partial class MaintenanceNative
     }
     [LibraryImport("kernel32.dll", EntryPoint = "CreateFileW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
     internal static partial SafeFileHandle CreateFile(string path, uint access, uint sharing, IntPtr security, uint creation, uint flags, IntPtr template);
-    internal static void Delete(SafeFileHandle handle)
-    {
-        var buffer = Marshal.AllocHGlobal(4);
-        try
-        {
-            Marshal.WriteInt32(buffer, 1);
-            if (!SetFileInformationByHandle(handle, 4, buffer, 4))
-                throw new Win32Exception(Marshal.GetLastPInvokeError());
-        }
-        finally { Marshal.FreeHGlobal(buffer); }
-    }
-
     [LibraryImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetFileInformationByHandle(SafeFileHandle handle, out FileInfo info);
