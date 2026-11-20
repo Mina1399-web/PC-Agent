@@ -12,6 +12,8 @@ installation. Connectivity probes, Pushover and heartbeat are off by default; co
 The project is **not enrolled, sponsored or signed by SignPath**.
 [Host Agent V1 1.2.8 unsigned preview](https://github.com/Mina1399-web/PC-Agent/releases/tag/v1.2.8-preview.1)
 is publicly available for authorized testing in the approved Windows DEV VM.
+Its source is commit `82465b48d6137b4f81a57f33900f3da69c194658`; it does
+not include all changes on the current source branch.
 It is a **pre-release**, not approved for production. Initial installed
 acceptance remains incomplete and some CPU/process metrics remain partial.
 
@@ -29,9 +31,20 @@ documents the submitted materials.
 
 ## Project status
 
-The current application includes the local Windows dashboard, evidence-based recommendations, bounded reversible maintenance, and a Windows administration tab that displays live system inventories inside the app. See the [dashboard guide](docs/operations/dashboard.md) and [predeployment checkpoint](docs/verification/predeployment-2026-10-18.md). The resilience records distinguish each tested candidate and its limits; an unsigned DEV package is not a production release.
+As of 2026-11-20, the default source branch includes the local Windows dashboard,
+evidence-based recommendations, bounded reversible maintenance, and a Windows
+administration tab. The Stage 5B maintenance changes were merged at commit
+`c733224d2a63b60997ff2ea2d36ca16dae562724`; the
+[hosted review build](https://github.com/Mina1399-web/PC-Agent/actions/runs/44771001309)
+passed for that commit. This does not establish installed acceptance of that
+commit or of the separate Orbital drafts. See the
+[dashboard guide](docs/operations/dashboard.md), the
+[maintenance guide](docs/operations/expanded-maintenance.md), which distinguishes
+the DEV snapshot from the PR checkout, and the historical
+[predeployment checkpoint](docs/verification/predeployment-2026-10-18.md).
+An unsigned DEV package is not a production release.
 
-V1 product completion adds an elevated local CLI, authenticated administrator IPC, service-identity secret provisioning, safe configuration commands, and a self-contained Windows x64 MSI/release pipeline. Shadow/read-only remains the default. Start with the [operator guide](docs/operations/quickstart.md); the [current verification record](docs/verification/v1-release.md) distinguishes executed checks from live deployment prerequisites.
+V1 product completion adds an elevated local CLI, authenticated administrator IPC, service-identity secret provisioning, safe configuration commands, and a self-contained Windows x64 MSI/release pipeline. Shadow/read-only remains the default. Start with the [operator guide](docs/operations/quickstart.md); the [V1 completion verification record](docs/verification/v1-release.md) documents historical checkpoints and their limits, not acceptance of later source.
 
 Historical V1 acceptance was completed for executable source commit0a13ea1dd92a2b8cc7eaa7df3d045b85cd1f2b5a: Release build0 warnings/errors,206/206 tests, reviewed privilege boundaries, verified self-contained1.0.2 package and installed service/CLI, synthetic secret provisioning, telemetry progress, graceful restart, upgrade/repair/uninstall/reinstall with retained configuration/data. The unsigned candidate is restricted to the approved VM. Production deployment still requires the owner's trusted signing material, target-policy acceptance and optional outbound credentials; these were not fabricated or bypassed.
 
