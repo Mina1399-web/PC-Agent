@@ -16,6 +16,39 @@ namespace HostAgent.Desktop.Tests;
 
 public sealed class DashboardUiTests
 {
+    [Fact]
+    public async Task Unavailable_memory_and_denied_service_list_render_their_own_data_state()
+    {
+        await StaTest.RunAsync(() =>
+        {
+            var now = DateTimeOffset.UtcNow;
+            var other = new ViewDataState("Windows", now, "available", null);
+            var view = new DashboardSnapshot(now, "Shadow", true, false, new(now, 0), new(now, 0), null,
+                [], [], [], null, [], [], [], [])
+            {
+                DataState = new(other, new("GlobalMemoryStatusEx", now, "unavailable", "invalid_sample"), other,
+                    other, other, new("services", now, "unavailable", "access_denied"), other)
+            };
+            var controller = new DashboardController((payload, _) =>
+                ValueTask.FromResult(ViewProtocol.Parse(payload).Command == "overview"
+                    ? AdminProtocol.Reply(true, "overview", view)
+                    : AdminProtocol.Reply(true, "history", Array.Empty<ViewMetric>())));
+            var window = new MainWindow(controller, TestLocalization.Czech());
+            try
+            {
+                window.Show();
+                var memory = (TextBlock)window.FindName("MemoryText");
+                PumpUntil(() => memory.ToolTip is string text && text.Contains("GlobalMemoryStatusEx"));
+                Assert.Equal("—", memory.Text);
+                Assert.Contains("Neplatné měření", Assert.IsType<string>(memory.ToolTip));
+                Assert.Equal(Visibility.Hidden, ((ProgressBar)window.FindName("MemoryMeter")).Visibility);
+                Assert.Equal("0 %", ((TextBlock)window.FindName("CpuText")).Text);
+                Assert.Contains("Přístup odepřen", ((TextBlock)window.FindName("ServicesEmptyText")).Text);
+            }
+            finally { window.Close(); }
+        });
+    }
+
     // Each test process keeps its own synthetic captures; never overwrite earlier evidence.
     private static readonly string CaptureDirectory = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HostAgent-DEV-evidence",

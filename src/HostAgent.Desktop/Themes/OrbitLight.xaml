@@ -1,0 +1,22 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SolidColorBrush x:Key="CanvasBrush" Color="#F0F2FA"/>
+    <SolidColorBrush x:Key="CardBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="InkBrush" Color="#1C2540"/>
+    <SolidColorBrush x:Key="MutedBrush" Color="#4B5775"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="#5540A5"/>
+    <SolidColorBrush x:Key="AccentInkBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="LineBrush" Color="#B8C3DE"/>
+    <SolidColorBrush x:Key="InputBorderBrush" Color="#6F7B9C"/>
+    <SolidColorBrush x:Key="RailBrush" Color="#232849"/>
+    <SolidColorBrush x:Key="RailTextBrush" Color="#F0F2FF"/>
+    <SolidColorBrush x:Key="SelectedBrush" Color="#5F6B8E"/>
+    <SolidColorBrush x:Key="HoverBrush" Color="#3B456D"/>
+    <SolidColorBrush x:Key="AlternateBrush" Color="#EBEFF8"/>
+    <SolidColorBrush x:Key="GreenBrush" Color="#166348"/>
+    <SolidColorBrush x:Key="GreenSurfaceBrush" Color="#DDF0E7"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="#865116"/>
+    <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#FFF0D7"/>
+    <SolidColorBrush x:Key="ErrorBrush" Color="#96364B"/>
+    <SolidColorBrush x:Key="ErrorSurfaceBrush" Color="#F8E0E7"/>
+    <SolidColorBrush x:Key="RamBrush" Color="#246B80"/>
+</ResourceDictionary>

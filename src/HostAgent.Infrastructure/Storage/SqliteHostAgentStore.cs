@@ -831,10 +831,11 @@ public sealed partial class SqliteHostAgentStore : IHostAgentStore
         await using var command = connection.CreateCommand();
         command.Transaction = transaction;
         command.CommandText =
-            """
+            $"""
             SELECT sample_id, metric_name, scope, sampled_at_utc, value
             FROM baseline_samples
-            WHERE sampled_at_utc < $cutoff;
+            WHERE sampled_at_utc < $cutoff
+            {ValidUsageSample};
             """;
         command.Parameters.AddWithValue("$cutoff", FormatTimestamp(cutoff));
         var samples = new List<MetricSample>();

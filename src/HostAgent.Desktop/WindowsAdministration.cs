@@ -15,7 +15,8 @@ namespace HostAgent.Desktop;
 internal enum WindowsArea { Processes, Services, Disks, Network, Events, Applications, Startup }
 internal sealed record WindowsInventoryRow(string Name, string Detail, string State, string Value,
     string? StateKey = null, int? ProcessId = null, long? ProcessStartTimeUtcTicks = null);
-internal sealed record WindowsInventory(IReadOnlyList<WindowsInventoryRow> Rows, bool Partial = false);
+internal sealed record WindowsInventory(IReadOnlyList<WindowsInventoryRow> Rows, bool Partial = false)
+{ public DateTimeOffset? AtUtc { get; init; } }
 
 internal static class WindowsAdministration
 {

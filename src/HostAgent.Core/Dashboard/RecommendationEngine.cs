@@ -5,13 +5,13 @@ public sealed class RecommendationEngine
     public IReadOnlyList<Recommendation> Evaluate(DashboardSnapshot snapshot, DateTimeOffset now)
     {
         var result = new List<Recommendation>();
-        if (Sustained(snapshot.RecentCpu, now))
+        if (snapshot.DataState?.Cpu.HasCurrentData(now)!=false && Sustained(snapshot.RecentCpu, now))
             result.Add(new("sustained_cpu", "Prověřit dlouhodobé vytížení CPU",
                 "CPU alespoň 90 % po dobu nejméně 4 minut v posledních 6 minutách.",
                 "Omezení nepotřebných programů po spuštění může uvolnit výkon; přínos se musí změřit.",
                 "Vypnutí automatického spuštění může odložit synchronizaci nebo jiné funkce aplikace.",
                 "Položku lze znovu povolit v nastavení Po spuštění.", GuidedAction.Startup));
-        if (Sustained(snapshot.RecentMemory, now))
+        if (snapshot.DataState?.Memory.HasCurrentData(now)!=false && Sustained(snapshot.RecentMemory, now))
             result.Add(new("sustained_memory", "Prověřit tlak na paměť",
                 "RAM alespoň 90 % po dobu nejméně 4 minut v posledních 6 minutách.",
                 "Zavření nepotřebné aplikace může uvolnit RAM. Neuloženou práci nejdřív uložte.",

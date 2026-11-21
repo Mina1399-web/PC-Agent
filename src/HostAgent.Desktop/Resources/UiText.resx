@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -310,9 +310,9 @@ CLI vyžádá UAC a potvrzení APPLY. Restartují se pouze služby Host Agent. O
     <value>CPU and RAM history is unavailable</value>
     <comment>Source (cs-CZ): Historie CPU a RAM není dostupná</comment>
   </data>
-  <data xml:space="preserve" name="CPUAndRAMHistoryOver24HoursSavedPointsCPUInBlueRAMInPurple">
-    <value>CPU and RAM history over 24 hours, {0} saved points. CPU in blue, RAM in purple.</value>
-    <comment>Source (cs-CZ): Historie CPU a RAM za 24 hodin, {0} uložených bodů. CPU modře, RAM fialově.</comment>
+  <data xml:space="preserve" name="HistorySeriesSavedPoints">
+    <value>{0}: {1} saved points.</value>
+    <comment>Series label and plotted point count.</comment>
   </data>
   <data xml:space="preserve" name="CouldNotOpenWindowsSettings">
     <value>Could not open Windows Settings.</value>
@@ -1689,4 +1689,21 @@ Quarantine folder: {1}</value></data>
   <data name="MaintenanceResultBlocked" xml:space="preserve"><value>The quarantine action was blocked. Review the item results before trying again.</value></data>
   <data name="MaintenanceActionCancelled" xml:space="preserve"><value>Cancelled</value></data>
   <data name="MaintenanceResultPartialBlockedRecovery" xml:space="preserve"><value>Some files moved, and recovery records need review. Review every item before retrying.</value></data>
+  <data name="DataTrustAvailable" xml:space="preserve"><value>Available</value></data>
+  <data name="DataTrustPartial" xml:space="preserve"><value>Partial</value></data>
+  <data name="DataTrustUnavailable" xml:space="preserve"><value>Unavailable</value></data>
+  <data name="DataTrustUnknown" xml:space="preserve"><value>Unknown</value></data>
+  <data name="DataTrustStale" xml:space="preserve"><value>Stale</value></data>
+  <data name="DataTrustMeta" xml:space="preserve"><value>Source: {0} · {1}</value></data>
+  <data name="DataTrustNoTime" xml:space="preserve"><value>No observation time</value></data>
+  <data name="DataTrustAccessDenied" xml:space="preserve"><value>Access denied</value></data>
+  <data name="DataTrustInvalid" xml:space="preserve"><value>Invalid measurement</value></data>
+  <data name="DataTrustMissing" xml:space="preserve"><value>No recorded measurement</value></data>
+  <data name="DataTrustExpired" xml:space="preserve"><value>Measurement expired</value></data>
+  <data name="DataTrustFailed" xml:space="preserve"><value>Source did not return data</value></data>
+  <data name="DataTrustWaiting" xml:space="preserve"><value>Waiting for a second sample</value></data>
+  <data name="DataTrustIncomplete" xml:space="preserve"><value>Incomplete measurement</value></data>
+  <data name="DataTrustLegacy" xml:space="preserve"><value>Legacy record without collector status</value></data>
+  <data name="DataTrustEmpty" xml:space="preserve"><value>No entries in the latest read.</value></data>
+  <data name="DataTrustEventCoverage" xml:space="preserve"><value>Saved entries are shown where present. Current Event Log coverage: {0}.</value></data>
 </root>

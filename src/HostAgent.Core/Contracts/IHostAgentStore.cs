@@ -67,6 +67,9 @@ public interface IHostAgentStore : ICollectorCheckpointStore, IAsyncDisposable
         RemediationAttemptStorageRecord attempt,
         CancellationToken cancellationToken);
 
+    ValueTask<ServiceHealthSnapshot?> ReadLatestServiceHealthAsync(
+        string componentId, DateTimeOffset throughUtc, CancellationToken cancellationToken);
+
     ValueTask SaveServiceHealthAsync(
         ServiceHealthSnapshot snapshot,
         CancellationToken cancellationToken);

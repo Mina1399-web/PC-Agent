@@ -12,7 +12,17 @@ public sealed record ViewHealth(string Component, string Code, bool Degraded, IR
 public sealed record ViewEvidence(string Source, double? Value, DateTimeOffset AtUtc);
 public sealed record ViewIncidentDetail(ViewIncident Incident, string ConfidenceScope, IReadOnlyList<ViewEvidence> Evidence, bool Truncated);
 public sealed record ViewEvent(int EventId, long? RecordId, DateTimeOffset AtUtc, uint? BugCheckCode, string? DumpFileName);
-public sealed record ViewInvestigation(DateTimeOffset AtUtc, IReadOnlyList<ViewEvent> Events, IReadOnlyList<ViewIncident> Incidents, string Limitation);
+public sealed record ViewInvestigation(DateTimeOffset AtUtc, IReadOnlyList<ViewEvent> Events, IReadOnlyList<ViewIncident> Incidents, string Limitation)
+{ public ViewDataState? EventData { get; init; } }
+
+// Source and reason are fixed codes. AtUtc is the source observation/attempt time.
+public sealed record ViewDataState(string Source, DateTimeOffset? AtUtc, string Status, string? Reason)
+{
+    public bool HasCurrentData(DateTimeOffset now) => Status is "available" or "partial"
+        && AtUtc is { } at && ViewFreshness.IsFresh(at, now);
+}
+public sealed record ViewOverviewData(ViewDataState Cpu, ViewDataState Memory, ViewDataState Uptime,
+    ViewDataState Disks, ViewDataState Processes, ViewDataState Services, ViewDataState Network);
 // Availability describes diagnostic metadata, never the health of the disk.
 public sealed record ViewDiskIoDiagnostic(string Stage, string Counter, uint Status, uint? DataStatus, bool? ValueFinite);
 public sealed record ViewDiskIoDiagnostics(DateTimeOffset? AtUtc, string Status, IReadOnlyList<ViewDiskIoDiagnostic> Records);
@@ -24,6 +34,7 @@ public sealed record DashboardSnapshot(DateTimeOffset GeneratedAtUtc, string Mod
     IReadOnlyList<ViewIncident> Incidents, IReadOnlyList<ViewHealth> Health,
     IReadOnlyList<ViewMetric> RecentCpu, IReadOnlyList<ViewMetric> RecentMemory)
 {
+    public ViewOverviewData? DataState {get;init;}
     public bool KillSwitch {get;init;}
     public ViewDiskIoDiagnostics? DiskIoDiagnostics {get;init;}
     public ViewNetworkChecks? NetworkChecks {get;init;}
