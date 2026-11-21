@@ -5,6 +5,7 @@ using HostAgent.Infrastructure.Dashboard;
 using HostAgent.Core.Dashboard;
 using HostAgent.Core.Models.Telemetry;
 using HostAgent.Core.Models.Incidents;
+using HostAgent.Core.Models.Inventory;
 using System.Text.Json;
 using System.Diagnostics;
 namespace HostAgent.Service;
@@ -23,7 +24,7 @@ public sealed partial class DashboardDispatcher(IHostAgentStore store,ServiceCon
                     var category = request.Body.GetProperty("category").GetString()!;
                     var inventory = hardwareInventory?.Read(category, now)
                         ?? HardwareInventoryCache.Unavailable(category, null, "unavailable", "collector_unavailable");
-                    return Reply("serialize_hardware_inventory", true, "hardware-inventory", inventory);
+                    return Timed("serialize_hardware_inventory", () => ReplyInventory(inventory));
                 case "overview":
                     var cpu=await Timed("metric_cpu",()=>Metrics("cpu.usage.percent",now.AddMinutes(-6),now,128,token));
                     var memory=await Timed("metric_memory",()=>Metrics("memory.used.percent",now.AddMinutes(-6),now,128,token));
@@ -144,6 +145,25 @@ public sealed partial class DashboardDispatcher(IHostAgentStore store,ServiceCon
         catch(OperationCanceledException) when(token.IsCancellationRequested){throw;}
         catch { /* Never echo exception text, paths, caller data or database payload. */ }
         return Reply("serialize_rejected",false,"view_request_rejected",null);
+    }
+
+    private static byte[] ReplyInventory(HardwareInventoryCategory inventory)
+    {
+        const string code = "hardware-inventory";
+        if (AdminProtocol.TryReply(true, code, inventory) is { } full) return full;
+
+        // Current observations take precedence. A wire-size limit must not
+        // discard the previously observed rows retained inside the cache.
+        for (var retained = inventory.Prior.Count - 1; retained >= 0; retained--)
+        {
+            var bounded = inventory with
+            {
+                Prior = inventory.Prior.Take(retained).ToArray(),
+                PriorOmitted = inventory.Prior.Count - retained
+            };
+            if (AdminProtocol.TryReply(true, code, bounded) is { } response) return response;
+        }
+        return AdminProtocol.Reply(false, "control_response_limit");
     }
 
     private async ValueTask<T> Timed<T>(string stage,Func<ValueTask<T>> action)

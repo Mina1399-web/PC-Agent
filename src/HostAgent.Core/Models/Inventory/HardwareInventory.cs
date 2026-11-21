@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace HostAgent.Core.Models.Inventory;
 
 public static class HardwareInventorySources
@@ -29,4 +31,8 @@ public sealed record InventoryItem(
 // current values simply because a later attempt failed or returned partial data.
 public sealed record HardwareInventoryCategory(
     string Category, InventoryEvidence Evidence, IReadOnlyList<InventoryItem> Current,
-    IReadOnlyList<InventoryItem> Prior);
+    IReadOnlyList<InventoryItem> Prior)
+{
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public int PriorOmitted { get; init; }
+}

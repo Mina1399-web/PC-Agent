@@ -75,8 +75,11 @@ public static class AdminProtocol
         return(request,approval);
     }
     public static byte[] Reply(bool ok,string code,object? data=null)
+        => TryReply(ok,code,data) ?? JsonSerializer.SerializeToUtf8Bytes(new{version=1,ok=false,code="control_response_limit",data=(object?)null});
+
+    public static byte[]? TryReply(bool ok,string code,object? data)
     {
         var bytes=JsonSerializer.SerializeToUtf8Bytes(new{version=1,ok,code,data});
-        return bytes.Length<=HelperProtocol.MaximumFrameBytes?bytes:JsonSerializer.SerializeToUtf8Bytes(new{version=1,ok=false,code="control_response_limit",data=(object?)null});
+        return bytes.Length <= HelperProtocol.MaximumFrameBytes ? bytes : null;
     }
 }

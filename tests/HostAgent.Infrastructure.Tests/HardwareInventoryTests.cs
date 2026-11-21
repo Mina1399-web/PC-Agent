@@ -167,6 +167,46 @@ public sealed class HardwareInventoryTests
         Assert.DoesNotContain("Fixture board", Encoding.UTF8.GetString(response));
     }
 
+    [Theory]
+    [InlineData("cpu")]
+    [InlineData("board")]
+    public async Task View_keeps_current_inventory_and_accounts_for_prior_rows_over_the_frame_budget(string category)
+    {
+        var clock = new Clock();
+        var localText = new string('漢', 64);
+        var rows = Enumerable.Range(0, WindowsHardwareInventory.MaximumItems)
+            .Select(i => category == "cpu" ? new object?[] { $"CPU{i}", localText, localText, 4U }
+                : [localText, localText, localText]).ToArray();
+        var prior = Read(category, rows);
+        var current = prior with { Evidence = prior.Evidence with { Status = "partial", Reason = "incomplete_sample" } };
+        var cache = new HardwareInventoryCache();
+        cache.Publish(prior, default);
+        cache.Publish(current, default);
+        var full = cache.Read(category, clock.GetUtcNow());
+        Assert.Equal(8, full.Current.Count);
+        Assert.Equal(8, full.Prior.Count);
+
+        await using var fixture = await OperatingModeTests.Fixture.Create();
+        var dispatcher = new DashboardDispatcher(fixture.Store, new(), new(), clock, hardwareInventory: cache);
+        var request = ViewProtocol.Request("hardware-inventory", new { category });
+        var response = await dispatcher.DispatchAsync(request, default);
+        using var stream = new MemoryStream();
+        await HelperProtocol.WriteFrameAsync(stream, response, default);
+        stream.Position = 0;
+        using var json = JsonDocument.Parse(await HelperProtocol.ReadFrameAsync(stream, default));
+        Assert.True(json.RootElement.GetProperty("ok").GetBoolean());
+        var result = json.RootElement.GetProperty("data")
+            .Deserialize<HostAgent.Core.Models.Inventory.HardwareInventoryCategory>()!;
+        Assert.Equal(full.Evidence, result.Evidence);
+        Assert.Equal(full.Current.Select(row => row.SlotId), result.Current.Select(row => row.SlotId));
+        Assert.All(result.Current, row => Assert.Equal(localText, row.Fields[0].Text));
+        Assert.InRange(result.PriorOmitted, 1, full.Prior.Count);
+        Assert.Equal(full.Prior.Count, result.Prior.Count + result.PriorOmitted);
+        Assert.Equal(full.Prior.Take(result.Prior.Count).Select(row => row.SlotId),
+            result.Prior.Select(row => row.SlotId));
+        Assert.Equal(full.Prior.Count, cache.Read(category, clock.GetUtcNow()).Prior.Count);
+    }
+
     private static HostAgent.Core.Models.Inventory.HardwareInventoryCategory Read(string category, params object?[][] rows) =>
         WindowsHardwareInventory.Read(category, new Clock(), (_, _) => rows, default);
 
