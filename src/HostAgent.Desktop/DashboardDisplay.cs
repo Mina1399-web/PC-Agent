@@ -6,9 +6,11 @@ namespace HostAgent.Desktop;
 
 public sealed class ByteSizeConverter : IValueConverter
 {
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+        value is long bytes && bytes >= 0 ? Format(bytes, culture) : "—";
+
+    internal static string Format(long bytes, CultureInfo culture)
     {
-        if (value is not long bytes || bytes < 0) return "—";
         string[] units = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"];
         var size = (double)bytes;
         var unit = 0;

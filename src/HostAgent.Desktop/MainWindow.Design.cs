@@ -23,6 +23,7 @@ public partial class MainWindow
         OperationChoice.SelectionChanged += (_, _) => UpdateProcessFields();
         UpdateProcessFields();
         UpdateThemeLabel();
+        SubsystemView.Render(null, Localization, DateTimeOffset.UtcNow);
     }
 
     private void UpdateDesignLayout()
@@ -96,6 +97,7 @@ public partial class MainWindow
         var now=DateTimeOffset.UtcNow;
         SetMeter(CpuMeter, CurrentDisplayMetric(view?.Cpu,view?.DataState?.Cpu,now));
         SetMeter(MemoryMeter, CurrentDisplayMetric(view?.Memory,view?.DataState?.Memory,now,allowLegacyZero:false));
+        SubsystemView.Render(view, Localization, now);
         RenderTriage(view);
     }
 

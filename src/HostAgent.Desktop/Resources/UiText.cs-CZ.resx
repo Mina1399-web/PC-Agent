@@ -1703,4 +1703,12 @@ Složka karantény: {1}</value></data>
   <data name="DataTrustLegacy" xml:space="preserve"><value>Starší záznam bez stavu kolektoru</value></data>
   <data name="DataTrustEmpty" xml:space="preserve"><value>Poslední čtení nenašlo žádnou položku.</value></data>
   <data name="DataTrustEventCoverage" xml:space="preserve"><value>Zobrazeny případné uložené položky. Aktuální pokrytí protokolu událostí: {0}.</value></data>
+  <data name="SubsystemHeading" xml:space="preserve"><value>Subsystémy</value></data>
+  <data name="SubsystemMap" xml:space="preserve"><value>Mapa subsystémů</value></data>
+  <data name="SubsystemList" xml:space="preserve"><value>Seznam subsystémů</value></data>
+  <data name="SubsystemShowDetail" xml:space="preserve"><value>Detail subsystému</value></data>
+  <data name="SubsystemCloseDetail" xml:space="preserve"><value>Zavřít detail</value></data>
+  <data name="SubsystemNoCurrentValue" xml:space="preserve"><value>Aktuální údaj není dostupný.</value></data>
+  <data name="SubsystemExcerpt" xml:space="preserve"><value>Poslední hlášené položky (omezený výpis)</value></data>
+  <data name="SubsystemDiskLine" xml:space="preserve"><value>{0} · volné {1} z {2}</value></data>
 </root>

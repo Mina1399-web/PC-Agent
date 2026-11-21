@@ -114,6 +114,7 @@ public partial class MainWindow:Window
         _tray.ContextMenuStrip!.Items[0].Text=T("OpenDashboard");
         _tray.ContextMenuStrip.Items[1].Text=T("ExitDashboard");
         if(_hasRefreshed)RenderSnapshot(_renderedView,false);
+        else SubsystemView.Render(null, Localization, DateTimeOffset.UtcNow);
         if(_comparisonText is not null)ComparisonText.Text=_comparisonText();
         if(_smartText is not null)SmartResultText.Text=_smartText();
         RenderWindowsInventory();
@@ -326,22 +327,9 @@ public partial class MainWindow:Window
 
     private string DescribeData(ViewDataState? state,DateTimeOffset now)
     {
-        var expired=state?.AtUtc is {} at && !ViewFreshness.IsFresh(at,now);
-        var status=T((expired?"stale":state?.Status) switch
-        {
-            "available"=>"DataTrustAvailable", "partial"=>"DataTrustPartial", "unavailable"=>"DataTrustUnavailable",
-            "stale"=>"DataTrustStale", _=>"DataTrustUnknown"
-        });
-        var reason=(expired?"sample_expired":state?.Reason) switch
-        {
-            "access_denied"=>"DataTrustAccessDenied", "invalid_sample"=>"DataTrustInvalid",
-            "missing_sample"=>"DataTrustMissing", "sample_expired"=>"DataTrustExpired",
-            "collector_unavailable" or "read_timeout"=>"DataTrustFailed", "waiting_for_sample"=>"DataTrustWaiting",
-            "incomplete_sample"=>"DataTrustIncomplete", "legacy_sample"=>"DataTrustLegacy", _=>null
-        };
-        if(reason is not null)status += " · "+T(reason);
-        if(state is null)return status;
-        return status+"\n"+T("DataTrustMeta",state.Source,state.AtUtc?.ToLocalTime().ToString("G",Localization.Culture)??T("DataTrustNoTime"));
+        if (state?.AtUtc is { } at && !ViewFreshness.IsFresh(at, now))
+            state = state with { Status = "stale", Reason = "sample_expired" };
+        return DataTrustDisplay.Describe(Localization, state);
     }
 
     private void SetListState(TextBlock label,int count,ViewDataState? state)
