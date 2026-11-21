@@ -389,7 +389,11 @@ public sealed class DashboardViewTests
         var overview=reply.RootElement.GetProperty("data").Deserialize<DashboardSnapshot>()!;
         Assert.Equal(10,overview.Processes.Count);
         Assert.DoesNotContain(overview.Processes,row=>row.Pid==42);
-        var load=Assert.IsType<ViewProcessLoad>(overview.ProcessLoad);
+        Assert.False(reply.RootElement.GetProperty("data").TryGetProperty("ProcessLoad",out _));
+        using var rankings=JsonDocument.Parse(await new DashboardDispatcher(fixture.Store,new(),new(),TimeProvider.System)
+            .DispatchAsync(ViewProtocol.Request("process-load",new{}),default));
+        var load=Assert.IsType<ViewProcessLoad>(rankings.RootElement.GetProperty("data").Deserialize<ViewProcessLoad>());
+        Assert.Equal(10,load.TopRam.Count);
         Assert.Equal(new[]{42,43,44},load.TopCpu.Select(row=>row.Pid));
         Assert.Equal(0d,load.TopCpu[2].CpuPercent);
         Assert.Null(load.TopCpu[1].MemoryBytes);

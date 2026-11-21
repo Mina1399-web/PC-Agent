@@ -16,7 +16,7 @@ public static class ViewProtocol
             var command=root.GetProperty("command").GetString();var body=root.GetProperty("body");
             switch(command)
             {
-                case "overview":case "investigate":HelperProtocol.Exact(body);break;
+                case "overview":case "investigate":case "process-load":HelperProtocol.Exact(body);break;
                 case "history":
                     HelperProtocol.Exact(body,"metric");
                     if(body.GetProperty("metric").GetString() is not ("cpu" or "memory"))throw new InvalidDataException();break;

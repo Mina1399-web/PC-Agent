@@ -88,7 +88,7 @@ public partial class MainWindow:Window
         Loaded+=async(_,_)=>{_timer.Start();await Refresh();};
         Localization.Changed+=LanguageChanged;
         Closed+=(_,_)=>{Localization.Changed-=LanguageChanged;_timer.Stop();_closing.Cancel();_tray.Dispose();};
-        ProcessRankingChoice.SelectionChanged+=(_,_)=>RenderProcessRanking(_renderedView,true);
+        ProcessRankingChoice.SelectionChanged+=ProcessRankingChanged;
         ProcessGrid.SelectionChanged+=(_,_)=>
         {
             var process=ProcessGrid.SelectedItem as ViewProcess;
@@ -212,6 +212,7 @@ public partial class MainWindow:Window
         catch(OperationCanceledException) when(_closing.IsCancellationRequested){}
         catch {_hasRefreshed=true;_refreshFailed=true;_renderedView=null;_renderedState=_controller.State;RenderSnapshot(null,false);}
         finally {RefreshButton.IsEnabled=true;_reading.Release();}
+        await RefreshVisibleProcessRanking();
     }
     private void RenderSnapshot(DashboardSnapshot? view,bool replaceRows)
     {
@@ -638,6 +639,8 @@ public partial class MainWindow:Window
             if(!DesktopModePolicy.CanNavigateTo(selected,_desktopMode))
             {NavigateTo(_lastStandardTab,focus:false);return;}
             if(selected is {} named && !DesktopModePolicy.IsDeveloperTab(named))_lastStandardTab=named;
+            if(selected==DesktopRoute.Situation && ProcessRankingChoice is not null)
+                await RefreshVisibleProcessRanking();
         }
         if(ReferenceEquals(e.Source,DashboardTabs)&&WindowsAdministrationTab?.IsSelected==true)
             await ReadWindowsInventory();

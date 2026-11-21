@@ -4,7 +4,8 @@ public sealed record ViewMetric(DateTimeOffset AtUtc, double Value);
 public sealed record ViewDisk(string Drive, long FreeBytes, long CapacityBytes, DateTimeOffset AtUtc);
 public sealed record ViewProcess(int Pid, string Name, double? CpuPercent, long? MemoryBytes)
 { public long? StartTimeUtcTicks {get;init;} }
-public sealed record ViewProcessLoad(IReadOnlyList<ViewProcess> TopCpu, int Sampled, int CpuMeasured, int RamMeasured,
+public sealed record ViewProcessLoad(IReadOnlyList<ViewProcess> TopCpu, IReadOnlyList<ViewProcess> TopRam,
+    int Sampled, int CpuMeasured, int RamMeasured,
     ViewDataState CpuState, ViewDataState RamState);
 public sealed record ViewService(string Name, string State);
 public sealed record ViewIncident(string Id, string State, string Code, int Confidence, string Severity, DateTimeOffset AtUtc, int Recurrences)
@@ -37,7 +38,6 @@ public sealed record DashboardSnapshot(DateTimeOffset GeneratedAtUtc, string Mod
     IReadOnlyList<ViewMetric> RecentCpu, IReadOnlyList<ViewMetric> RecentMemory)
 {
     public ViewOverviewData? DataState {get;init;}
-    public ViewProcessLoad? ProcessLoad {get;init;}
     public bool KillSwitch {get;init;}
     public ViewDiskIoDiagnostics? DiskIoDiagnostics {get;init;}
     public ViewNetworkChecks? NetworkChecks {get;init;}
