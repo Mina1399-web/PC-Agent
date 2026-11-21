@@ -21,7 +21,7 @@ public sealed class DeviceHealthTests
     public void Windows_return_and_problem_bit_govern_classification(int result,int flags,int problem,
         string outcome,string? finding)
     {
-        var report=Project(new(Guid.Empty,(uint)result,(uint)flags,(uint)problem));
+        var report=Project(new Status(Guid.Empty,(uint)result,(uint)flags,(uint)problem));
         Assert.Equal(outcome,report.Outcome);
         if(finding is null) Assert.Empty(report.Findings);
         else
