@@ -5,6 +5,16 @@ using DiagnosisModel = HostAgent.Core.Models.Diagnosis.Diagnosis;
 
 namespace HostAgent.Core.Models.Incidents;
 
+public sealed record IncidentHistoryCursor(long CreatedAtUtcTicks, string IncidentId)
+{
+    public const int PageSize = 20;
+
+    public bool IsValid() => CreatedAtUtcTicks > 0 && CreatedAtUtcTicks <= DateTimeOffset.MaxValue.UtcTicks
+        && IncidentId is { Length: 32 }
+        && IncidentId.All(character => character is >= '0' and <= '9' or >= 'a' and <= 'f')
+        && Guid.TryParseExact(IncidentId, "N", out var id) && id != Guid.Empty;
+}
+
 public enum IncidentLifecycleState
 {
     Detected,

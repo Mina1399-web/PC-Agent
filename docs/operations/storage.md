@@ -4,11 +4,13 @@ All paths are local protected Windows data directories, outside source delivery:
 
 | Database | Owner/boundary | Schema | Data |
 | --- | --- | --- | --- |
-| %ProgramData%/HostAgent/host-agent.db | non-privileged monitoring service | 3 | telemetry, metrics/baselines, incidents/snapshots/evidence, append-oriented audit, remediation attempts, health/checkpoints |
+| %ProgramData%/HostAgent/host-agent.db | non-privileged monitoring service | 4 | telemetry, metrics/baselines, incidents/snapshots/evidence, append-oriented audit, remediation attempts, health/checkpoints |
 | %ProgramData%/HostAgent/notifications.db | monitoring service | 1 | deduplicated notification history, receipt/current delivery state, attempts/next due time, append-only delivery events |
 | %ProgramData%/HostAgent.Helper/helper-journal.db | SYSTEM/Administrators only | 1 | immutable helper audit/approvals/claims and durable guard state |
 
 Monitoring migrations retain Task 1–3 semantics. Notification schema is initialized at version 1; a newer unsupported version is refused. Each pre-send claim and completion/event transaction is durable with SQLite synchronous=FULL, no pooling, bounded busy timeout and parameterized values. A claim survives process restart as Uncertain. Current notification state is mutable delivery bookkeeping; notification event rows reject update/delete. Monitoring and notification writes are separate transactions/databases; the publication recovery test covers the interruption boundary.
+
+Monitoring migration 4 adds the descending incident creation-time and ID index. It does not rewrite stored incidents, snapshots or evidence. History uses a keyset cursor on this immutable pair, a fixed 20-row view with one lookahead row, and displays the separate last-update timestamp. An older service can still provide its recent-incident view to a newer Desktop. An older service binary refuses a v4 database. Keep a SQLite-consistent pre-upgrade v3 backup and restore it offline before reverting the service binary. Restoring that backup reverts writes after the backup, so retain a consistent copy of the v4 database first.
 
 Detailed telemetry/metrics/health retention remains at least 30 days, with hourly/daily aggregates preserved. Retention never removes monitoring audit, helper audit/approvals/claims, incident snapshots/evidence or notification history/events. Review disk growth and preserve evidence before any future administrator-approved archival policy; no notification purge feature is implemented.
 
