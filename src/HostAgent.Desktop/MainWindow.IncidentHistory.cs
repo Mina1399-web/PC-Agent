@@ -23,6 +23,7 @@ public partial class MainWindow
 
     private void RenderIncidentOverview(DashboardSnapshot? view, bool replaceRows)
     {
+        var reconnecting = !_historyConnected && view?.SupportsIncidentHistory == true;
         if (view is { SupportsIncidentHistory: true } && !_historySupported)
         {
             _historySupported = true;
@@ -64,6 +65,8 @@ public partial class MainWindow
         }
         else if (replaceRows) RenderSelectedIncidentSummary();
         UpdateIncidentHistoryControls();
+        if (reconnecting && SelectedEventIncident is not null && _selectedDetail is null && !_detailLoading)
+            _ = LoadSelectedIncidentAsync();
         if (replaceRows) _ = LoadInitialIncidentHistoryAsync();
     }
 
@@ -137,7 +140,9 @@ public partial class MainWindow
         finally { _applyingHistoryRows = false; }
         RenderSelectedIncidentSummary();
         RenderDetail();
-        if (SelectedEventIncident?.UpdatedAtUtc != selected?.UpdatedAtUtc) _ = LoadSelectedIncidentAsync();
+        if (SelectedEventIncident is { } current &&
+            (current.UpdatedAtUtc != selected?.UpdatedAtUtc || _selectedDetail is null && !_detailLoading))
+            _ = LoadSelectedIncidentAsync();
     }
 
     private void SelectIncidentFromTriage(string? id)

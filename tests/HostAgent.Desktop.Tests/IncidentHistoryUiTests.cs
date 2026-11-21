@@ -119,5 +119,73 @@ public sealed class IncidentHistoryUiTests
         finally { window.Close(); }
     });
 
+    [Fact]
+    public Task Reconnect_reloads_selected_detail_at_the_same_revision_and_discards_previous_reply() =>
+        StaTest.RunAsync(() =>
+        {
+            var now = DateTimeOffset.UtcNow;
+            var loc = TestLocalization.CzechStandard();
+            var row = new ViewIncident(Guid.NewGuid().ToString("N"), "Active", "memory_pressure", 80, "Warning", now, 1)
+                { CreatedAtUtc = now, UpdatedAtUtc = now };
+            var view = new DashboardSnapshot(now, "Shadow", true, false, null, null, null, [], [], [],
+                null, [row], [], [], []) { SupportsIncidentHistory = true };
+            var connected = true;
+            var detailReads = 0;
+            var previousDetail = new TaskCompletionSource<byte[]>();
+            byte[] Detail(string source) => AdminProtocol.Reply(true, "incident",
+                new ViewIncidentDetail(row, "probable_cause_estimate", [new ViewEvidence(source, 1, now)], false));
+            var controller = new DashboardController((payload, _) =>
+            {
+                var command = ViewProtocol.Parse(payload).Command;
+                if (!connected)
+                    return ValueTask.FromResult(AdminProtocol.Reply(false, "view_request_rejected", null));
+                switch (command)
+                {
+                    case "overview": return ValueTask.FromResult(AdminProtocol.Reply(true, command, view));
+                    case "history": return ValueTask.FromResult(AdminProtocol.Reply(true, command, Array.Empty<ViewMetric>()));
+                    case "incident-page": return ValueTask.FromResult(AdminProtocol.Reply(true, command, new ViewIncidentPage([row], null)));
+                    case "incident":
+                        detailReads++;
+                        return detailReads == 1 ? new ValueTask<byte[]>(previousDetail.Task)
+                            : ValueTask.FromResult(Detail("restored-source"));
+                    default: throw new InvalidOperationException(command);
+                }
+            });
+
+            var window = new MainWindow(controller, loc);
+            try
+            {
+                window.Show();
+                Drain();
+                var tabs = Assert.IsAssignableFrom<TabControl>(window.FindName("DashboardTabs"));
+                tabs.SelectedItem = tabs.Items.OfType<TabItem>().Single(tab => Equals(tab.Tag, DesktopRoute.Events));
+                Drain();
+                var grid = Assert.IsAssignableFrom<DataGrid>(window.FindName("IncidentsGrid"));
+                var refresh = Assert.IsAssignableFrom<Button>(window.FindName("RefreshButton"));
+                var details = Assert.IsAssignableFrom<TextBox>(window.FindName("DetailText"));
+                grid.SelectedIndex = 0;
+                Assert.Equal(1, detailReads);
+
+                connected = false;
+                refresh.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                Drain();
+                Assert.Equal(row, Assert.IsType<ViewIncident>(grid.SelectedItem));
+                Assert.Equal(loc.Text("DetailsAreUnavailableAPreviousStatusIsNotCurrentEvidence"), details.Text);
+
+                connected = true;
+                refresh.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                Drain();
+                Assert.Equal(row, Assert.IsType<ViewIncident>(grid.SelectedItem));
+                Assert.Equal(2, detailReads);
+                Assert.Contains("restored-source", details.Text);
+
+                previousDetail.SetResult(Detail("previous-source"));
+                Drain();
+                Assert.Contains("restored-source", details.Text);
+                Assert.DoesNotContain("previous-source", details.Text);
+            }
+            finally { window.Close(); }
+        });
+
     private static void Drain() => Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
 }
