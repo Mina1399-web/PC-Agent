@@ -1714,4 +1714,16 @@ Quarantine folder: {1}</value></data>
   <data name="SubsystemNoCurrentValue" xml:space="preserve"><value>No current reading.</value></data>
   <data name="SubsystemExcerpt" xml:space="preserve"><value>Latest reported entries (limited list)</value></data>
   <data name="SubsystemDiskLine" xml:space="preserve"><value>{0} · {1} free of {2}</value></data>
+  <data name="DiskHistoryCpuRam" xml:space="preserve"><value>CPU and RAM</value></data>
+  <data name="DiskHistoryThroughput" xml:space="preserve"><value>Disk throughput</value></data>
+  <data name="DiskHistoryLatency" xml:space="preserve"><value>Disk latency</value></data>
+  <data name="DiskHistoryRead" xml:space="preserve"><value>Read</value></data>
+  <data name="DiskHistoryWrite" xml:space="preserve"><value>Write</value></data>
+  <data name="DiskHistoryLoading" xml:space="preserve"><value>Loading disk history…</value></data>
+  <data name="DiskHistoryUnavailable" xml:space="preserve"><value>Disk history is unavailable. Select the chart again to retry.</value></data>
+  <data name="DiskHistoryCoverage" xml:space="preserve"><value>{0} · {1} of {2} intervals · {3}. Current: {4} · {5}</value></data>
+  <data name="DiskHistoryWindow" xml:space="preserve"><value>{0:g} to {1:g} · scale 0–{2:G4} {3}</value></data>
+  <data name="DiskHistoryWindowEmpty" xml:space="preserve"><value>{0:g} to {1:g}</value></data>
+  <data name="DiskHistoryCapacity" xml:space="preserve"><value>Stored sample limit exceeded</value></data>
+  <data name="DiskHistoryCounterMissing" xml:space="preserve"><value>Disk counter unavailable</value></data>
 </root>

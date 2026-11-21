@@ -9,7 +9,7 @@ using System.Text.Json;
 using System.Diagnostics;
 namespace HostAgent.Service;
 
-public sealed class DashboardDispatcher(IHostAgentStore store,ServiceConfiguration configuration,AgentRuntimeHealth health,
+public sealed partial class DashboardDispatcher(IHostAgentStore store,ServiceConfiguration configuration,AgentRuntimeHealth health,
     TimeProvider clock,Action<DashboardDispatchDiagnostic>? reportDiagnostic=null)
 {
     public async ValueTask<byte[]> DispatchAsync(byte[] payload,CancellationToken token)
@@ -79,6 +79,10 @@ public sealed class DashboardDispatcher(IHostAgentStore store,ServiceConfigurati
                                     .Select(p=>new ViewNetworkProbe(p.Kind.ToString(),p.Status.ToString())).ToArray())
                                 :null
                         });
+                case "disk-history":
+                    var group=request.Body.GetProperty("group").GetString()!;
+                    var diskHistory=await Timed("disk_history",()=>ReadDiskHistory(group,now,token));
+                    return Reply("serialize_disk_history",true,"disk-history",diskHistory);
                 case "history":
                     var metric=request.Body.GetProperty("metric").GetString()=="cpu"?"cpu.usage.percent":"memory.used.percent";
                     // Minimum supported interval is 5s: 24h has at most 17,281 samples.

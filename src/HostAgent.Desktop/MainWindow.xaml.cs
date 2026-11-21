@@ -234,6 +234,9 @@ public partial class MainWindow:Window
                 SystemEvidenceMetaText.Text=T("DesignEvidenceSourceUnavailable");
                 DisksGrid.ItemsSource=ProcessGrid.ItemsSource=HealthGrid.ItemsSource=IncidentsGrid.ItemsSource=ServicesGrid.ItemsSource=null;
                 SetEmptyStates(null);
+                _diskHistoryVersion++;
+                _diskHistory=null;
+                _diskHistoryLoading=false;
                 _cpuHistory=[];_memoryHistory=[];DrawChart();RecommendationsPanel.Children.Clear();OperationButton.IsEnabled=false;
                 RecommendationsPanel.Children.Add(Notice(T("RecommendationsAreUnavailableWithoutCurrentMeasurementsCheckTheLocal")));
                 OperationHintText.Text=T("ActionsAreBlockedTheCurrentServiceStatusIsUnavailable");
@@ -572,6 +575,7 @@ public partial class MainWindow:Window
     }
     private void DrawChart()
     {
+        RenderDiskHistory();
         Chart.Children.Clear();var width=Math.Max(1,Chart.ActualWidth);var height=Math.Max(1,Chart.ActualHeight-2);var now=DateTimeOffset.UtcNow;
         foreach(var fraction in new[]{0d,0.5,1})
             Chart.Children.Add(new Line{X1=0,X2=width,Y1=1+height*fraction,Y2=1+height*fraction,Stroke=(Brush)FindResource("LineBrush"),StrokeThickness=1,StrokeDashArray=new DoubleCollection{4,4}});
@@ -601,7 +605,11 @@ public partial class MainWindow:Window
     private void ChartSizeChanged(object sender,SizeChangedEventArgs e)=>DrawChart();
     private void ShowDashboard(){Show();WindowState=WindowState.Normal;Activate();_tray.Visible=false;}
     private void TrayClick(object sender,RoutedEventArgs e){_tray.Visible=true;Hide();}
-    private async void RefreshClick(object sender,RoutedEventArgs e)=>await Refresh();
+    private async void RefreshClick(object sender,RoutedEventArgs e)
+    {
+        await Refresh();
+        if (_renderedView is not null && SelectedDiskHistory is not null) await LoadSelectedDiskHistory();
+    }
     private async void InvestigateClick(object sender,RoutedEventArgs e)=>await Investigate();
     private void OpenManagementArea(GuidedAction action)
     {

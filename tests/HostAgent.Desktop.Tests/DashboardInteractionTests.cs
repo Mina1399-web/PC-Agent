@@ -489,6 +489,49 @@ public sealed class DashboardInteractionTests
         }
     });
 
+    [Fact]
+    public Task Disk_chart_is_opt_in_and_publishes_only_the_latest_selection() => WithWindow((window, view) =>
+    {
+        Assert.Empty(view.DiskRequests);
+        var selector=Assert.IsType<ComboBox>(window.FindName("HistoryGroup"));
+        var selectorPeer=new System.Windows.Automation.Peers.ComboBoxAutomationPeer(selector);
+        Assert.True(selectorPeer.IsKeyboardFocusable());
+        Assert.Equal(window.Localization.Text("PerformanceHistory"),selectorPeer.GetName());
+        selector.SelectedIndex=1;
+        selector.SelectedIndex=2;
+        Assert.Equal(new[]{"throughput","latency"},view.DiskRequests.Select(request=>request.Group));
+        var now=DateTimeOffset.UtcNow;
+        ViewDiskHistorySeries Series(string key,string unit)
+        {
+            var points=new double?[96];
+            points[0]=0;
+            points[2]=1;
+            return new(key,unit,"disk","partial","incomplete_sample",points,null,
+                new("PDH",now,"unavailable","collector_unavailable"));
+        }
+        void Reply(int request,params ViewDiskHistorySeries[] series) =>
+            view.DiskRequests[request].Reply.SetResult(AdminProtocol.Reply(true,"disk-history",
+                new ViewDiskHistory(now.AddHours(-24),now,15,series)));
+        Reply(1,Series("latency","ms"));
+        var chart=Assert.IsType<Canvas>(window.FindName("DiskHistoryChart"));
+        var summary=Assert.IsType<GroupBox>(window.FindName("DiskHistorySummary"));
+        PumpUntil(()=>chart.Children.OfType<System.Windows.Shapes.Polyline>().Count()==2);
+        Reply(0,Series("read","B/s"),Series("write","B/s"));
+        Drain();
+        var lines=chart.Children.OfType<System.Windows.Shapes.Polyline>().ToArray();
+        Assert.Equal(2,lines.Length);
+        Assert.All(lines,line=>Assert.Single(line.Points));
+        Assert.True(lines[0].Points[0].Y>lines[1].Points[0].Y);
+        var peer=FindPublishedPeer(new System.Windows.Automation.Peers.WindowAutomationPeer(window),summary);
+        Assert.NotNull(peer);
+        Assert.Contains(window.Localization.Text("DiskHistoryLatency"),peer.GetName());
+        Assert.Contains("ms",peer.GetName());
+        Assert.DoesNotContain("B/s",peer.GetName());
+        selector.SelectedIndex=0;
+        Assert.Equal(Visibility.Collapsed,((StackPanel)window.FindName("DiskHistoryPanel")).Visibility);
+        Assert.True(((Canvas)window.FindName("Chart")).IsVisible);
+    });
+
     private static System.Windows.Automation.Peers.AutomationPeer? FindPublishedPeer(
         System.Windows.Automation.Peers.AutomationPeer parent, FrameworkElement target)
     {
@@ -531,6 +574,7 @@ public sealed class DashboardInteractionTests
         public List<TaskCompletionSource<byte[]>> Details { get; } = [];
         public TaskCompletionSource<byte[]>? PendingOverview {get;set;}
         public bool OverviewDelayed {get;private set;}
+        public List<(string Group, TaskCompletionSource<byte[]> Reply)> DiskRequests { get; } = [];
 
         public FakeView()
         {
@@ -543,6 +587,12 @@ public sealed class DashboardInteractionTests
         {
             var request = ViewProtocol.Parse(bytes);
             if(request.Command=="overview"&&PendingOverview is not null){OverviewDelayed=true;return new(PendingOverview.Task);}
+            if (request.Command == "disk-history")
+            {
+                var pending = new TaskCompletionSource<byte[]>();
+                DiskRequests.Add((request.Body.GetProperty("group").GetString()!, pending));
+                return new(pending.Task);
+            }
             if (request.Command == "incident" && DelayDetails)
             {
                 var pending = new TaskCompletionSource<byte[]>();
