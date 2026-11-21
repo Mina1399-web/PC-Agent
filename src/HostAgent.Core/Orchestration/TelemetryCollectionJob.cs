@@ -53,6 +53,10 @@ public sealed class TelemetryCollectionJob<TPayload> : ITelemetryCollectionJob w
 
             metrics = _metricProjector?.Project(result.Value, result.SampledAtUtc)
                 ?? Array.Empty<MetricSample>();
+            // Whole-source counts cannot be established from an incomplete enumeration.
+            if (result.Status == CollectorStatus.Partial && result.Value is (ProcessServiceTelemetry or EventLogTelemetry))
+                metrics = [];
+
             if (result.Value is ICheckpointedTelemetry checkpointed)
             {
                 checkpoints = checkpointed.Checkpoints

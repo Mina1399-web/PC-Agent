@@ -19,9 +19,12 @@ public static class HealthSummary
             ? DesktopLocalization.Text(culture, "HealthSummaryComponentsMissing")
             : DesktopLocalization.Text(culture, "HealthSummaryComponentsLimited", limited, snapshot.Health.Count);
         if (snapshot.Degraded && limited == 0) text += DesktopLocalization.Text(culture, "HealthSummaryDegradedWithoutReasons");
-        if (snapshot.Cpu is null || !ViewFreshness.IsFresh(snapshot.Cpu.AtUtc, DateTimeOffset.UtcNow))
+        var now = DateTimeOffset.UtcNow;
+        if (snapshot.Cpu is not {Value:>=0 and <=100} || !ViewFreshness.IsFresh(snapshot.Cpu.AtUtc, now)
+            || snapshot.DataState?.Cpu.HasCurrentData(now)==false)
             text += DesktopLocalization.Text(culture, "HealthSummaryMissingCpu");
-        if (snapshot.Memory is null || !ViewFreshness.IsFresh(snapshot.Memory.AtUtc, DateTimeOffset.UtcNow))
+        if (snapshot.Memory is not {Value:>=0 and <=100} || !ViewFreshness.IsFresh(snapshot.Memory.AtUtc, now)
+            || (snapshot.DataState?.Memory.HasCurrentData(now)==false || snapshot.DataState is null && snapshot.Memory.Value==0))
             text += DesktopLocalization.Text(culture, "HealthSummaryMissingMemory");
         return text + DesktopLocalization.Text(culture, "HealthSummaryDetails");
     }

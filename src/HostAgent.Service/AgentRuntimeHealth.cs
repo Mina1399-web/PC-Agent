@@ -6,7 +6,9 @@ public sealed class AgentRuntimeHealth
 {
     private static readonly HashSet<string> AllowedWarnings = new(StringComparer.Ordinal)
     {
-        "volume_not_ready", "volume_metrics_unavailable", "disk_io_counters_unavailable", "some_disk_io_counters_unavailable",
+        "system_cpu_counter_invalid", "system_cpu_counter_access_denied", "physical_memory_invalid", "commit_memory_invalid", "global_memory_status_unavailable", "global_memory_status_access_denied",
+        "volume_metrics_invalid", "volume_metrics_access_denied", "process_list_access_denied", "service_catalog_access_denied",
+        "some_network_adapter_details_access_denied", "volume_not_ready", "volume_metrics_unavailable", "disk_io_counters_unavailable", "some_disk_io_counters_unavailable",
         "smart_health_unavailable", "system_cpu_counter_unavailable", "cpu_baseline_not_ready", "process_list_unavailable",
         "some_process_metrics_unavailable", "some_process_metrics_access_denied", "some_process_start_times_unavailable", "process_list_truncated",
         "process_identity_access_denied", "process_name_access_denied", "process_cpu_time_access_denied",

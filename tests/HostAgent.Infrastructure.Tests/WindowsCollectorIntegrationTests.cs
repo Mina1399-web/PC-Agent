@@ -41,10 +41,10 @@ public sealed class WindowsCollectorIntegrationTests
         Assert.NotNull(result.Value);
         Assert.True(result.Value.TotalPhysicalMemoryBytes > 0);
         Assert.InRange(
-            result.Value.AvailablePhysicalMemoryBytes,
+            result.Value.AvailablePhysicalMemoryBytes!.Value,
             0,
-            result.Value.TotalPhysicalMemoryBytes);
-        Assert.InRange(result.Value.MemoryPressurePercent, 0, 100);
+            result.Value.TotalPhysicalMemoryBytes!.Value);
+        Assert.InRange(result.Value.MemoryPressurePercent!.Value, 0, 100);
         Assert.True(result.Value.CommitLimitBytes is null or > 0);
         Assert.True(result.Value.CommitAvailableBytes is null or >= 0);
         if (result.Value.CpuUsagePercent is { } cpu)

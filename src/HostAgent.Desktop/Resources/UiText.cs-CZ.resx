@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -310,10 +310,7 @@ CLI vyžádá UAC a potvrzení APPLY. Restartují se pouze služby Host Agent. O
     <value>Historie CPU a RAM není dostupná</value>
     <comment>Source (cs-CZ): Historie CPU a RAM není dostupná</comment>
   </data>
-  <data xml:space="preserve" name="CPUAndRAMHistoryOver24HoursSavedPointsCPUInBlueRAMInPurple">
-    <value>Historie CPU a RAM za 24 hodin, {0} uložených bodů. CPU modře, RAM fialově.</value>
-    <comment>Source (cs-CZ): Historie CPU a RAM za 24 hodin, {0} uložených bodů. CPU modře, RAM fialově.</comment>
-  </data>
+  <data xml:space="preserve" name="HistorySeriesSavedPoints"><value>{0}: počet uložených bodů {1}.</value><comment>Series label and plotted point count.</comment></data>
   <data xml:space="preserve" name="CouldNotOpenWindowsSettings">
     <value>Nastavení Windows se nepodařilo otevřít.</value>
     <comment>Source (cs-CZ): Nastavení Windows se nepodařilo otevřít.</comment>
@@ -1689,4 +1686,21 @@ Složka karantény: {1}</value></data>
   <data name="MaintenanceResultBlocked" xml:space="preserve"><value>Přesun do karantény byl zablokován. Před opakováním zkontrolujte výsledky položek.</value></data>
   <data name="MaintenanceActionCancelled" xml:space="preserve"><value>Zrušeno</value></data>
   <data name="MaintenanceResultPartialBlockedRecovery" xml:space="preserve"><value>Některé soubory byly přesunuty a záznamy pro obnovu vyžadují kontrolu. Před opakováním zkontrolujte všechny položky.</value></data>
+  <data name="DataTrustAvailable" xml:space="preserve"><value>Dostupné</value></data>
+  <data name="DataTrustPartial" xml:space="preserve"><value>Částečné</value></data>
+  <data name="DataTrustUnavailable" xml:space="preserve"><value>Nedostupné</value></data>
+  <data name="DataTrustUnknown" xml:space="preserve"><value>Neznámé</value></data>
+  <data name="DataTrustStale" xml:space="preserve"><value>Zastaralé</value></data>
+  <data name="DataTrustMeta" xml:space="preserve"><value>Zdroj: {0} · {1}</value></data>
+  <data name="DataTrustNoTime" xml:space="preserve"><value>Čas měření neznámý</value></data>
+  <data name="DataTrustAccessDenied" xml:space="preserve"><value>Přístup odepřen</value></data>
+  <data name="DataTrustInvalid" xml:space="preserve"><value>Neplatné měření</value></data>
+  <data name="DataTrustMissing" xml:space="preserve"><value>Chybí záznam měření</value></data>
+  <data name="DataTrustExpired" xml:space="preserve"><value>Měření je zastaralé</value></data>
+  <data name="DataTrustFailed" xml:space="preserve"><value>Zdroj nevrátil data</value></data>
+  <data name="DataTrustWaiting" xml:space="preserve"><value>Čeká se na druhý vzorek</value></data>
+  <data name="DataTrustIncomplete" xml:space="preserve"><value>Neúplné měření</value></data>
+  <data name="DataTrustLegacy" xml:space="preserve"><value>Starší záznam bez stavu kolektoru</value></data>
+  <data name="DataTrustEmpty" xml:space="preserve"><value>Poslední čtení nenašlo žádnou položku.</value></data>
+  <data name="DataTrustEventCoverage" xml:space="preserve"><value>Zobrazeny případné uložené položky. Aktuální pokrytí protokolu událostí: {0}.</value></data>
 </root>

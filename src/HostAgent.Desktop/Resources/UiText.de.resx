@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -310,10 +310,7 @@ CLI vyžádá UAC a potvrzení APPLY. Restartují se pouze služby Host Agent. O
     <value>CPU- und RAM-Verlauf nicht verfügbar</value>
     <comment>Source (cs-CZ): Historie CPU a RAM není dostupná</comment>
   </data>
-  <data xml:space="preserve" name="CPUAndRAMHistoryOver24HoursSavedPointsCPUInBlueRAMInPurple">
-    <value>CPU- und RAM-Verlauf der letzten 24 Stunden, {0} gespeicherte Punkte. CPU blau, RAM violett.</value>
-    <comment>Source (cs-CZ): Historie CPU a RAM za 24 hodin, {0} uložených bodů. CPU modře, RAM fialově.</comment>
-  </data>
+  <data xml:space="preserve" name="HistorySeriesSavedPoints"><value>{0}: {1} gespeicherte Punkte.</value><comment>Series label and plotted point count.</comment></data>
   <data xml:space="preserve" name="CouldNotOpenWindowsSettings">
     <value>Die Windows-Einstellungen konnten nicht geöffnet werden.</value>
     <comment>Source (cs-CZ): Nastavení Windows se nepodařilo otevřít.</comment>
@@ -1689,4 +1686,21 @@ Quarantäneordner: {1}</value></data>
   <data name="MaintenanceResultBlocked" xml:space="preserve"><value>Die Quarantäneaktion wurde blockiert. Prüfen Sie die Einzelergebnisse, bevor Sie es erneut versuchen.</value></data>
   <data name="MaintenanceActionCancelled" xml:space="preserve"><value>Abgebrochen</value></data>
   <data name="MaintenanceResultPartialBlockedRecovery" xml:space="preserve"><value>Einige Dateien wurden verschoben und Wiederherstellungseinträge müssen geprüft werden. Prüfen Sie alle Dateien, bevor Sie es erneut versuchen.</value></data>
+  <data name="DataTrustAvailable" xml:space="preserve"><value>Verfügbar</value></data>
+  <data name="DataTrustPartial" xml:space="preserve"><value>Teilweise</value></data>
+  <data name="DataTrustUnavailable" xml:space="preserve"><value>Nicht verfügbar</value></data>
+  <data name="DataTrustUnknown" xml:space="preserve"><value>Unbekannt</value></data>
+  <data name="DataTrustStale" xml:space="preserve"><value>Veraltet</value></data>
+  <data name="DataTrustMeta" xml:space="preserve"><value>Quelle: {0} · {1}</value></data>
+  <data name="DataTrustNoTime" xml:space="preserve"><value>Messzeit unbekannt</value></data>
+  <data name="DataTrustAccessDenied" xml:space="preserve"><value>Zugriff verweigert</value></data>
+  <data name="DataTrustInvalid" xml:space="preserve"><value>Ungültige Messung</value></data>
+  <data name="DataTrustMissing" xml:space="preserve"><value>Keine Messung gespeichert</value></data>
+  <data name="DataTrustExpired" xml:space="preserve"><value>Messung ist veraltet</value></data>
+  <data name="DataTrustFailed" xml:space="preserve"><value>Quelle lieferte keine Daten</value></data>
+  <data name="DataTrustWaiting" xml:space="preserve"><value>Wartet auf eine zweite Messung</value></data>
+  <data name="DataTrustIncomplete" xml:space="preserve"><value>Unvollständige Messung</value></data>
+  <data name="DataTrustLegacy" xml:space="preserve"><value>Älterer Eintrag ohne Erfassungsstatus</value></data>
+  <data name="DataTrustEmpty" xml:space="preserve"><value>Beim letzten Lesen wurden keine Einträge gefunden.</value></data>
+  <data name="DataTrustEventCoverage" xml:space="preserve"><value>Vorhandene gespeicherte Einträge werden angezeigt. Aktuelle Abdeckung des Ereignisprotokolls: {0}.</value></data>
 </root>

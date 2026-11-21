@@ -2,11 +2,57 @@ using System.Text.Json;
 using HostAgent.Core.Models.Baseline;
 using HostAgent.Core.Models.Incidents;
 using HostAgent.Core.Models.Telemetry;
+using HostAgent.Core.Models.Storage;
 
 namespace HostAgent.Infrastructure.Storage;
 
 public sealed partial class SqliteHostAgentStore
 {
+    // A legacy memory zero could mean invalid total RAM. Verify against the
+    // original schema-1 sample before returning or rolling up a zero.
+    private const string ValidUsageSample = """
+        AND (
+            metric_name NOT IN ('cpu.usage.percent', 'memory.used.percent')
+            OR (value BETWEEN 0 AND 100 AND (
+                metric_name <> 'memory.used.percent' OR value <> 0 OR EXISTS (
+                    SELECT 1 FROM telemetry_snapshots AS t
+                    WHERE t.collector_id = 'cpu-memory'
+                      AND t.payload_schema_version = 1
+                      AND t.sampled_at_utc = baseline_samples.sampled_at_utc
+                      AND CASE WHEN json_valid(t.payload_json) THEN
+                        json_extract(t.payload_json, '$.CollectorId') = 'cpu-memory'
+                        AND json_extract(t.payload_json, '$.Status') IN (0, 1)
+                        AND json_type(t.payload_json, '$.Value.TotalPhysicalMemoryBytes') = 'integer'
+                        AND json_type(t.payload_json, '$.Value.AvailablePhysicalMemoryBytes') = 'integer'
+                        AND json_extract(t.payload_json, '$.Value.TotalPhysicalMemoryBytes') > 0
+                        AND json_extract(t.payload_json, '$.Value.TotalPhysicalMemoryBytes')
+                            = json_extract(t.payload_json, '$.Value.AvailablePhysicalMemoryBytes')
+                      ELSE 0 END
+                )
+            ))
+        )
+        """;
+
+    public async ValueTask<ServiceHealthSnapshot?> ReadLatestServiceHealthAsync(
+        string componentId, DateTimeOffset throughUtc, CancellationToken cancellationToken)
+    {
+        await EnsureInitializedAsync(cancellationToken);
+        await using var connection = await OpenConnectionAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT observed_at_utc, status, payload_json
+            FROM service_health
+            WHERE component_id = $component AND observed_at_utc <= $through
+            ORDER BY observed_at_utc DESC, rowid DESC LIMIT 1;
+            """;
+        command.Parameters.AddWithValue("$component", componentId);
+        command.Parameters.AddWithValue("$through", FormatTimestamp(throughUtc));
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        return await reader.ReadAsync(cancellationToken)
+            ? new ServiceHealthSnapshot(componentId, ParseTimestamp(reader.GetString(0)), reader.GetString(1), reader.GetString(2))
+            : null;
+    }
+
     public async ValueTask<IReadOnlyList<MetricSample>> ReadMetricSamplesAsync(DateTimeOffset fromUtc,
         DateTimeOffset throughUtc, int limit, CancellationToken cancellationToken)
     {
@@ -14,9 +60,10 @@ public sealed partial class SqliteHostAgentStore
         await EnsureInitializedAsync(cancellationToken);
         await using var connection = await OpenConnectionAsync(cancellationToken);
         await using var command = connection.CreateCommand();
-        command.CommandText = """
+        command.CommandText = $"""
             SELECT sample_id, metric_name, scope, sampled_at_utc, value FROM baseline_samples
             WHERE sampled_at_utc >= $from AND sampled_at_utc <= $through
+            {ValidUsageSample}
             ORDER BY sampled_at_utc, sample_id LIMIT $limit;
             """;
         command.Parameters.AddWithValue("$from", FormatTimestamp(fromUtc));
@@ -39,9 +86,10 @@ public sealed partial class SqliteHostAgentStore
         await EnsureInitializedAsync(cancellationToken);
         await using var connection = await OpenConnectionAsync(cancellationToken);
         await using var command = connection.CreateCommand();
-        command.CommandText = """
+        command.CommandText = $"""
             SELECT sample_id, metric_name, scope, sampled_at_utc, value FROM baseline_samples
             WHERE metric_name=$metric AND scope=$scope AND sampled_at_utc >= $from AND sampled_at_utc <= $through
+            {ValidUsageSample}
             ORDER BY sampled_at_utc DESC, sample_id DESC LIMIT $limit;
             """;
         command.Parameters.AddWithValue("$metric", metricName);

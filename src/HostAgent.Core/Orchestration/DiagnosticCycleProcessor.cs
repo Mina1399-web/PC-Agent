@@ -59,11 +59,16 @@ public sealed class DiagnosticCycleProcessor(IHostAgentStore store) : IDisposabl
             var samples = await store.ReadMetricSeriesAsync("cpu.usage.percent", "host", nowUtc.AddMinutes(-5), nowUtc, 500, cancellationToken);
 
             var timestamps = new List<DateTimeOffset>();
+            var cpuAt = (DateTimeOffset?)null;
             async ValueTask<T?> Latest<T>(string collectorId) where T : class
             {
                 var records = await store.ReadTelemetrySnapshotsAsync(collectorId, nowUtc.AddMinutes(-2), nowUtc, 1, cancellationToken);
                 if (records.Count == 0) return null;
                 var record = records[0];
+                var attempt = await store.ReadLatestServiceHealthAsync(collectorId, nowUtc, cancellationToken);
+                if (attempt is not null && (attempt.ObservedAtUtc > record.SampledAtUtc
+                    || (attempt.ObservedAtUtc == record.SampledAtUtc && attempt.Status is not ("Success" or "Partial"))))
+                    return null;
                 if (record.PayloadSchemaVersion != 1)
                 {
                     TelemetryFailureCode ??= "telemetry_schema_unsupported";
@@ -94,7 +99,11 @@ public sealed class DiagnosticCycleProcessor(IHostAgentStore store) : IDisposabl
                     return null;
                 }
 
-                if (value is not null) timestamps.Add(record.SampledAtUtc);
+                if (value is not null)
+                {
+                    timestamps.Add(record.SampledAtUtc);
+                    if (collectorId == "cpu-memory") cpuAt = record.SampledAtUtc;
+                }
                 return value;
             }
 
@@ -106,8 +115,17 @@ public sealed class DiagnosticCycleProcessor(IHostAgentStore store) : IDisposabl
             var events = await Latest<EventLogTelemetry>("event-log");
             if (timestamps.Count == 0) return [];
             var observedAt = timestamps.Max();
-            var evidence = new HostEvidence(observedAt, system, cpu, disk, services, network, events, assessments,
-                samples.Where(sample => sample.SampledAtUtc >= observedAt.AddMinutes(-5)).ToArray());
+            // Current and adaptive conclusions must stop when a newer read failed.
+            var currentAssessments = assessments.Where(assessment => assessment.MetricName switch
+            {
+                "cpu.usage.percent" => cpu?.CpuUsagePercent is >= 0 and <= 100 && assessment.SampledAtUtc == cpuAt,
+                "memory.used.percent" or "memory.available.bytes" => cpu?.MemoryPressurePercent is not null && assessment.SampledAtUtc == cpuAt,
+                "memory.commit.used.percent" => cpu?.CommitPressurePercent is not null && assessment.SampledAtUtc == cpuAt,
+                _ => true
+            }).ToArray();
+            var evidence = new HostEvidence(observedAt, system, cpu, disk, services, network, events, currentAssessments,
+                cpu?.CpuUsagePercent is >= 0 and <= 100 && samples.LastOrDefault()?.SampledAtUtc == cpuAt
+                    ? samples.Where(sample => sample.SampledAtUtc >= observedAt.AddMinutes(-5)).ToArray() : []);
             var diagnoses = await new DiagnosticEngine().EvaluateAsync(evidence, cancellationToken);
             var incidents = new IncidentEngine();
             incidents.Restore(await store.ReadIncidentHeadsAsync(cancellationToken));
@@ -115,7 +133,7 @@ public sealed class DiagnosticCycleProcessor(IHostAgentStore store) : IDisposabl
             foreach (var diagnosis in diagnoses)
             {
                 var snapshot = new IncidentSnapshot(Guid.NewGuid().ToString("N"), "", observedAt,
-                    system, cpu, disk, services, network, events, assessments, diagnosis.Evidence);
+                    system, cpu, disk, services, network, events, currentAssessments, diagnosis.Evidence);
                 var incident = await incidents.ApplyAsync(diagnosis, snapshot, cancellationToken);
                 await store.SaveIncidentBundleAsync(incident, cancellationToken);
                 updated.Add(incident);

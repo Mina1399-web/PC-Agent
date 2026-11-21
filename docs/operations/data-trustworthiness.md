@@ -1,0 +1,15 @@
+# Data trustworthiness
+
+Scope: CURRENT_SCOPE.md priority 1. The source baseline is checkout 4bda062, Git tree 1ebf964c342d94f1aad44050e9407387f9239412. Verification tracking: Beads vmrebuild-zuz.
+
+## Contract
+
+- Physical RAM raw byte fields and the computed usage percentage are nullable in the schema 1 CPU/memory payload. Committed memory uses the same validation rule. Both fields must be present and satisfy `total > 0` and `0 <= available <= total`. Invalid pairs produce no numeric samples. Valid zero remains a number. A failed RAM read can coexist with a valid CPU reading. An unreadable process working set likewise has no numeric value.
+- The overview adds optional `DataState` with entries `Cpu`, `Memory`, `Uptime`, `Disks`, `Processes`, `Services` and `Network`. The investigation adds optional `EventData`. Each entry carries `Source`, `AtUtc` (nullable observation/attempt time), `Status` and nullable `Reason`. Status is one of `available`, `partial`, `unavailable`, `unknown`, `stale`. The live validity window is three minutes inclusive. Current readings/lists require a fresh source. Explicit failure supersedes an earlier successful sample. Completed empty lists remain empty with status available. Process/service lists remain bounded excerpts.
+- View requests, protocol version, existing DTO members and the SQLite schema stay compatible. The new read-only store operation looks up the latest persisted collector health attempt. Reasons come from fixed mappings; raw warning strings, exception messages and paths are excluded. The dashboard distinguishes source status from the monitor's worker health.
+- Existing complete snapshots and incident archives stay readable. A downgrade to an older reader with non-nullable numeric fields may reject newer payloads containing null.  Raw RAM fields take precedence over old serialized derived percentages. History and baseline reads exclude historic RAM zeros without matching valid raw bytes and out-of-range CPU/RAM percentages. New retention rollups apply the same filter. Older precomputed hourly/daily aggregates lack row-level provenance and are not used by the dashboard's 24-hour history. Metric-only legacy current readings with a usable numeric value and no collector attempt are labeled partial. No historical rows are rewritten.
+- Investigation shows existing saved events as historical evidence alongside current source coverage. Unavailable or stale coverage cannot prove the event log is empty. No new source, IPC command, permissions or actions are introduced.
+
+## Independent review
+
+Inspect paired-byte validation, timestamp boundaries, persisted access-denied redaction, zero read/rollup filtering, partial process/service and event lists, and the bounded View frame with a populated overview. In the approved non-elevated DEV VM run the Core, Infrastructure and Desktop regressions and verify the Czech, English and German dashboard labels. Check recent failure after an earlier valid value, valid zero, missing and future inputs, and legacy snapshots without the optional DTO members. Compare the live details and labels independently of the collector health banner.

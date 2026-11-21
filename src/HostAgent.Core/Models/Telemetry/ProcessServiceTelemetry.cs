@@ -10,7 +10,7 @@ public sealed record ProcessTelemetry(
     string ProcessName,
     string? ExecutablePath,
     double? CpuUsagePercent,
-    long MemoryBytes,
+    long? MemoryBytes,
     DateTimeOffset? StartedAtUtc);
 
 public enum HostServiceStatus

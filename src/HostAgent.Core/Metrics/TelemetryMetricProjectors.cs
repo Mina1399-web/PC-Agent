@@ -17,29 +17,20 @@ public sealed class CpuMemoryMetricProjector : ITelemetryMetricProjector<CpuMemo
     public IReadOnlyList<MetricSample> Project(CpuMemoryTelemetry payload, DateTimeOffset sampledAtUtc)
     {
         ArgumentNullException.ThrowIfNull(payload);
-        var samples = new List<MetricSample>
+        var samples = new List<MetricSample>();
+        if (payload.MemoryPressurePercent is { } pressure && payload.AvailablePhysicalMemoryBytes is { } available)
         {
-            SystemTelemetryMetricProjector.Metric(
-                "memory.available.bytes",
-                "host",
-                sampledAtUtc,
-                payload.AvailablePhysicalMemoryBytes),
-            SystemTelemetryMetricProjector.Metric(
-                "memory.used.percent",
-                "host",
-                sampledAtUtc,
-                payload.MemoryPressurePercent)
-        };
+            samples.Add(SystemTelemetryMetricProjector.Metric("memory.available.bytes", "host", sampledAtUtc, available));
+            samples.Add(SystemTelemetryMetricProjector.Metric("memory.used.percent", "host", sampledAtUtc, pressure));
+        }
 
-        if (payload.CpuUsagePercent is { } cpuUsage)
+        if (payload.CpuUsagePercent is >= 0 and <= 100 and { } cpuUsage)
         {
             samples.Add(SystemTelemetryMetricProjector.Metric("cpu.usage.percent", "host", sampledAtUtc, cpuUsage));
         }
 
-        if (payload.CommitLimitBytes is > 0 && payload.CommitAvailableBytes is { } commitAvailable)
+        if (payload.CommitPressurePercent is { } usedPercent)
         {
-            var usedPercent = 100d * Math.Clamp(payload.CommitLimitBytes.Value - commitAvailable, 0, payload.CommitLimitBytes.Value)
-                / payload.CommitLimitBytes.Value;
             samples.Add(SystemTelemetryMetricProjector.Metric("memory.commit.used.percent", "host", sampledAtUtc, usedPercent));
         }
 
@@ -53,7 +44,7 @@ public sealed class DiskTelemetryMetricProjector : ITelemetryMetricProjector<Dis
     {
         ArgumentNullException.ThrowIfNull(payload);
         var samples = new List<MetricSample>();
-        foreach (var volume in payload.Volumes)
+        foreach (var volume in payload.Volumes.Where(x => x.HasValidCapacity))
         {
             samples.Add(SystemTelemetryMetricProjector.Metric(
                 "disk.used.percent",

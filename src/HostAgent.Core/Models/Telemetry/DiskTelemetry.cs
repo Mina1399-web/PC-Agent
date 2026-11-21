@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace HostAgent.Core.Models.Telemetry;
 
 public sealed record DiskTelemetry(
@@ -9,10 +11,15 @@ public sealed record DiskVolumeTelemetry(
     string RootPath,
     string VolumeLabel,
     string FileSystem,
-    long CapacityBytes,
+    [property: JsonRequired] long CapacityBytes,
     long UsedBytes,
-    long FreeBytes,
-    double UsedPercent);
+    [property: JsonRequired] long FreeBytes,
+    double UsedPercent)
+{
+    [JsonIgnore]
+    public bool HasValidCapacity => CapacityBytes > 0 && FreeBytes >= 0 && FreeBytes <= CapacityBytes
+        && UsedPercent is >= 0 and <= 100;
+}
 
 public sealed record DiskIoTelemetry(
     bool IsAvailable,

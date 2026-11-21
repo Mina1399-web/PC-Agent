@@ -83,7 +83,8 @@ public sealed class WindowsEventLogCollector : ITelemetryCollector<EventLogTelem
 
         if (logsRead == 0)
         {
-            return CollectorResult<EventLogTelemetry>.Unavailable(CollectorId, now, "event_logs_unavailable");
+            return CollectorResult<EventLogTelemetry>.Unavailable(CollectorId, now, warnings.Any(code => code.EndsWith("_access_denied", StringComparison.Ordinal))
+                ? "event_logs_access_denied" : "event_logs_unavailable");
         }
 
         var telemetry = new EventLogTelemetry(now, events.AsReadOnly(), checkpoints.AsReadOnly());

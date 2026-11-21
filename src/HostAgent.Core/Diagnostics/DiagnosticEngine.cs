@@ -107,7 +107,7 @@ public sealed class DiagnosticEngine : IDiagnosticEngine
         for (var index = samples.Count - 1; index >= 0; index--)
         {
             var sample = samples[index];
-            if (sample.Value < SustainedCpuThresholdPercent
+            if (sample.Value is not (>= SustainedCpuThresholdPercent and <= 100)
                 || (!suffix.Count.Equals(0)
                     && suffix[^1].SampledAtUtc - sample.SampledAtUtc > TimeSpan.FromSeconds(90)))
             {
@@ -123,14 +123,7 @@ public sealed class DiagnosticEngine : IDiagnosticEngine
 
     private static void AddMemoryDiagnosis(HostEvidence evidence, ICollection<Diagnosis> diagnoses)
     {
-        var cpuMemory = evidence.CpuMemory;
-        if (cpuMemory is null || cpuMemory.TotalPhysicalMemoryBytes <= 0)
-        {
-            return;
-        }
-
-        var pressure = cpuMemory.MemoryPressurePercent;
-        if (pressure < MemoryPressureThresholdPercent)
+        if (evidence.CpuMemory?.MemoryPressurePercent is not { } pressure || pressure < MemoryPressureThresholdPercent)
         {
             return;
         }
@@ -159,8 +152,8 @@ public sealed class DiagnosticEngine : IDiagnosticEngine
         }
 
         foreach (var volume in evidence.Disk.Volumes
-                     .Where(volume => volume.UsedPercent >= DiskHighThresholdPercent
-                         || volume.FreeBytes < CriticallyLowDiskBytes)
+                     .Where(volume => volume.HasValidCapacity && (volume.UsedPercent >= DiskHighThresholdPercent
+                         || volume.FreeBytes < CriticallyLowDiskBytes))
                      .OrderByDescending(static volume => volume.UsedPercent))
         {
             var relatedEvents = evidence.EventLog?.Events

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
@@ -44,7 +45,7 @@ public partial class MainWindow:Window
     private bool _hasRefreshed, _refreshFailed, _detailLoading;
     private DesktopMode _desktopMode=DesktopMode.Standard;
     private bool _modePreferenceUnavailable, _childWorkflowPending, _maintenanceWindowOpen;
-    private int _lastStandardTab;
+    private DesktopRoute _lastStandardTab = DesktopRoute.Situation;
     private Func<string>? _comparisonText;
     private DashboardSnapshot? _renderedView;
     private string _renderedState="disconnected";
@@ -128,15 +129,17 @@ public partial class MainWindow:Window
     private void ApplyDesktopMode()
     {
         var developer=DeveloperFeaturesEnabled;
-        for(var index=0;index<DashboardTabs.Items.Count;index++)
-            if(DashboardTabs.Items[index] is TabItem tab&&DesktopModePolicy.IsDeveloperTab(index))
-            {
-                tab.Visibility=Visibility.Visible;
-                tab.IsEnabled=developer;
-                tab.ToolTip=developer?null:T("DeveloperModeRequired");
-            }
-        if(!developer&&DashboardTabs.SelectedIndex==4)DashboardTabs.SelectedIndex=0;
-        if(developer)_lastStandardTab=0;
+        if(DashboardTabs.SelectedItem is TabItem active &&
+            !DesktopModePolicy.CanNavigateTo(active.Tag as DesktopRoute?, _desktopMode))
+            NavigateTo(_lastStandardTab,focus:false);
+        foreach(var tab in DashboardTabs.Items.OfType<TabItem>())
+        {
+            var route=tab.Tag as DesktopRoute?;
+            tab.IsEnabled=DesktopModePolicy.CanNavigateTo(route,_desktopMode);
+            if(route is {} named && DesktopModePolicy.IsDeveloperTab(named))
+                tab.ToolTip=tab.IsEnabled?null:T("DeveloperModeRequired");
+        }
+        if(developer)_lastStandardTab=DesktopRoute.Situation;
         UpdateDesktopModeControls();
         UpdateOperationReadiness();
     }
@@ -171,7 +174,6 @@ public partial class MainWindow:Window
         if(mode==DesktopMode.Standard)
         {
             WindowsDiagnosis.Text="";WindowsActionStatus.Text="";
-            if(DashboardTabs.SelectedIndex==4)DashboardTabs.SelectedIndex=0;
             DashboardTabs.Focus();
         }
         ApplyDesktopMode();
@@ -211,6 +213,13 @@ public partial class MainWindow:Window
     }
     private void RenderSnapshot(DashboardSnapshot? view,bool replaceRows)
     {
+            var now=DateTimeOffset.UtcNow;
+            if(view is not null && !ViewFreshness.IsFresh(view.GeneratedAtUtc,now))
+            {
+                view=null;
+                _renderedState="stale";
+            }
+            SetDataTooltips(view,now);
             RenderDesignMetrics(view);
             RenderWindowsDiagnosis(view);
             HealthSummaryText.Text=HealthSummary.Describe(view,Localization.Culture);
@@ -229,16 +238,25 @@ public partial class MainWindow:Window
                 OperationHintText.Text=T("ActionsAreBlockedTheCurrentServiceStatusIsUnavailable");
                 _selectedDetail=null;DetailText.Text=T("DetailsAreUnavailableAPreviousStatusIsNotCurrentEvidence");return;
             }
-            StatusText.Text=T("KillSwitch",(view.Degraded?T("PartialTelemetryLimitations"):T("MonitoringIsRunning")),TechnicalText.Format(view.Mode,Localization.Culture),(view.ReadOnly?T("ReadOnly"):T("ActionsRequireApproval")),(view.KillSwitch?T("On"):T("Off")),view.GeneratedAtUtc.ToLocalTime());
-            StatusBanner.Background=(Brush)FindResource(view.Degraded?"WarningSurfaceBrush":"GreenSurfaceBrush");
-            StatusText.Foreground=(Brush)FindResource(view.Degraded?"WarningBrush":"GreenBrush");
-            CpuText.Text=Percent(view.Cpu);MemoryText.Text=Percent(view.Memory);
-            UptimeText.Text=view.Uptime is {} up?up.Value>=86400?T("UptimeDays",(int)(Math.Max(0,up.Value)/86400),(int)(Math.Max(0,up.Value)/3600)%24,(int)(Math.Max(0,up.Value)/60)%60):T("UptimeHours",(int)(Math.Max(0,up.Value)/3600),(int)(Math.Max(0,up.Value)/60)%60):"—";
+            var limited=view.Degraded || (view.DataState is {} data &&
+                new[]{data.Cpu,data.Memory,data.Uptime,data.Disks,data.Processes,data.Services,data.Network}
+                    .Any(state=>!state.HasCurrentData(now)||state.Status=="partial"));
+            if(view.DataState is null && (CurrentDisplayMetric(view.Cpu,null,now) is null
+                || CurrentDisplayMetric(view.Memory,null,now,allowLegacyZero:false) is null))limited=true;
+            StatusText.Text=T("KillSwitch",(limited?T("PartialTelemetryLimitations"):T("MonitoringIsRunning")),TechnicalText.Format(view.Mode,Localization.Culture),(view.ReadOnly?T("ReadOnly"):T("ActionsRequireApproval")),(view.KillSwitch?T("On"):T("Off")),view.GeneratedAtUtc.ToLocalTime());
+            StatusBanner.Background=(Brush)FindResource(limited?"WarningSurfaceBrush":"GreenSurfaceBrush");
+            StatusText.Foreground=(Brush)FindResource(limited?"WarningBrush":"GreenBrush");
+            CpuText.Text=Percent(CurrentDisplayMetric(view.Cpu,view.DataState?.Cpu,now));
+            MemoryText.Text=Percent(CurrentDisplayMetric(view.Memory,view.DataState?.Memory,now,allowLegacyZero:false));
+            UptimeText.Text=(view.DataState?.Uptime.HasCurrentData(now)??true) && view.Uptime is {} up && ViewFreshness.IsFresh(up.AtUtc,now) && up.Value is >=0 and <= int.MaxValue*86400d?up.Value>=86400?T("UptimeDays",(int)(Math.Max(0,up.Value)/86400),(int)(Math.Max(0,up.Value)/3600)%24,(int)(Math.Max(0,up.Value)/60)%60):T("UptimeHours",(int)(Math.Max(0,up.Value)/3600),(int)(Math.Max(0,up.Value)/60)%60):"—";
             IncidentCountText.Text=view.Incidents.Count(x=>x.State!="Resolved").ToString(Localization.Culture);
             SystemCpuText.Text=CpuText.Text;SystemMemoryText.Text=MemoryText.Text;SystemUptimeText.Text=UptimeText.Text;
             SystemIncidentCountText.Text=IncidentCountText.Text;
             SystemEvidenceMetaText.Text=T("DesignEvidenceSourceAndTime",view.GeneratedAtUtc.ToLocalTime());
-            NetworkText.Text=view.ConnectedAdapters is {} count?T("NetworkActiveAdaptersThisDoesNotVerifyInternetAccess",count):T("NetworkDataUnavailable");
+            NetworkText.Text=view.ConnectedAdapters is >=0 and {} count && (view.DataState?.Network.HasCurrentData(now)??true)
+                ?T("NetworkActiveAdaptersThisDoesNotVerifyInternetAccess",count):T("NetworkDataUnavailable");
+            if(view.DataState?.Network is {Status:not "available"} networkState)
+                NetworkText.Text+="\n"+DescribeData(networkState,now);
             if(replaceRows)
             {
             var selectedProcess=ProcessGrid.SelectedItem as ViewProcess;
@@ -281,17 +299,63 @@ public partial class MainWindow:Window
         try
         {
             var window=new MaintenanceWindow(_controller,null,Localization,developerMode:()=>DeveloperFeaturesEnabled){Owner=this};
+            OrbitTheme.ApplyToDialog(window, this);
             window.ShowDialog();
         }
         finally{_maintenanceWindowOpen=false;}
     }
-    private string Percent(ViewMetric? metric)=>metric is {} point?point.Value.ToString("0.#",Localization.Culture)+" %":"—";
+    private static ViewMetric? CurrentDisplayMetric(ViewMetric? metric,ViewDataState? state,DateTimeOffset now,bool allowLegacyZero=true)
+        => metric is not null && ViewFreshness.IsFresh(metric.AtUtc,now) && metric.Value is >=0 and <=100
+            && (state?.HasCurrentData(now) ?? (allowLegacyZero || metric.Value!=0)) ? metric : null;
+
+    private string Percent(ViewMetric? metric)=>metric is {} point && ViewFreshness.IsFresh(point.AtUtc,DateTimeOffset.UtcNow)
+        && point.Value is >=0 and <=100 ? point.Value.ToString("0.#",Localization.Culture)+" %":"—";
+
+    private void SetDataTooltips(DashboardSnapshot? view,DateTimeOffset now)
+    {
+        var data=view?.DataState;
+        ViewDataState? Legacy(ViewMetric? point,string source)=>point is null?null:new(source,point.AtUtc,"partial","legacy_sample");
+        CpuText.ToolTip=SystemCpuText.ToolTip=DescribeData(data?.Cpu??Legacy(view?.Cpu,"GetSystemTimes"),now);
+        MemoryText.ToolTip=SystemMemoryText.ToolTip=DescribeData(data?.Memory??Legacy(view?.Memory,"GlobalMemoryStatusEx"),now);
+        UptimeText.ToolTip=SystemUptimeText.ToolTip=DescribeData(data?.Uptime??Legacy(view?.Uptime,"system"),now);
+        DisksGrid.ToolTip=DescribeData(data?.Disks,now);
+        ProcessGrid.ToolTip=DescribeData(data?.Processes,now);
+        ServicesGrid.ToolTip=DescribeData(data?.Services,now);
+        NetworkText.ToolTip=DescribeData(data?.Network,now);
+    }
+
+    private string DescribeData(ViewDataState? state,DateTimeOffset now)
+    {
+        var expired=state?.AtUtc is {} at && !ViewFreshness.IsFresh(at,now);
+        var status=T((expired?"stale":state?.Status) switch
+        {
+            "available"=>"DataTrustAvailable", "partial"=>"DataTrustPartial", "unavailable"=>"DataTrustUnavailable",
+            "stale"=>"DataTrustStale", _=>"DataTrustUnknown"
+        });
+        var reason=(expired?"sample_expired":state?.Reason) switch
+        {
+            "access_denied"=>"DataTrustAccessDenied", "invalid_sample"=>"DataTrustInvalid",
+            "missing_sample"=>"DataTrustMissing", "sample_expired"=>"DataTrustExpired",
+            "collector_unavailable" or "read_timeout"=>"DataTrustFailed", "waiting_for_sample"=>"DataTrustWaiting",
+            "incomplete_sample"=>"DataTrustIncomplete", "legacy_sample"=>"DataTrustLegacy", _=>null
+        };
+        if(reason is not null)status += " · "+T(reason);
+        if(state is null)return status;
+        return status+"\n"+T("DataTrustMeta",state.Source,state.AtUtc?.ToLocalTime().ToString("G",Localization.Culture)??T("DataTrustNoTime"));
+    }
+
+    private void SetListState(TextBlock label,int count,ViewDataState? state)
+    {
+        var currentEmpty=count==0 && state is {Status:"available"} && state.HasCurrentData(DateTimeOffset.UtcNow);
+        label.Text=(currentEmpty?T("DataTrustEmpty")+"\n":"")+DescribeData(state,DateTimeOffset.UtcNow);
+        label.Visibility=count==0||state is {Status:not "available"}?Visibility.Visible:Visibility.Collapsed;
+    }
     private void SetEmptyStates(DashboardSnapshot? view)
     {
-        DisksEmptyText.Visibility=view?.Disks.Count>0?Visibility.Collapsed:Visibility.Visible;
-        ProcessesEmptyText.Visibility=view?.Processes.Count>0?Visibility.Collapsed:Visibility.Visible;
+        SetListState(DisksEmptyText,view?.Disks.Count??0,view?.DataState?.Disks);
+        SetListState(ProcessesEmptyText,view?.Processes.Count??0,view?.DataState?.Processes);
         HealthEmptyText.Visibility=view?.Health.Count>0?Visibility.Collapsed:Visibility.Visible;
-        ServicesEmptyText.Visibility=view?.Services.Count>0?Visibility.Collapsed:Visibility.Visible;
+        SetListState(ServicesEmptyText,view?.Services.Count??0,view?.DataState?.Services);
         IncidentsEmptyText.Text=view is null?T("IncidentsAreUnavailableWithoutAConnectionToTheService"):view.Incidents.Count==0?T("ThereAreNoIncidentsInTheLatestSavedRecords"):T("ShowingTheLatestRecordsDiagnosticConfidenceDoesNotGuaranteeASuccessf",view.Incidents.Count);
     }
     private Border Notice(string text)=>new()
@@ -390,7 +454,9 @@ public partial class MainWindow:Window
             if(result is null){Messages.Show(this,T("EvidenceIsUnavailable"),T("InvestigateProblem"));return;}
             var text=T("ReadingSavedMetadataFromTheLast24HoursUpToThe256LatestSamplesEventLo")+
                 string.Join("\n",result.Events.Select(x=>T("EventRecordIDStop0x",x.AtUtc,x.EventId,x.RecordId,x.BugCheckCode,x.DumpFileName??T("NoDumpReference"))));
-            if(result.Events.Count==0)text+=T("NoMatchingSavedEventsWereFoundThisDoesNotProveThereAreNoneInEventLog");
+            text+="\n"+T("DataTrustEventCoverage",DescribeData(result.EventData,DateTimeOffset.UtcNow));
+            if(result.Events.Count==0 && result.EventData is {Status:"available"})
+                text+=T("NoMatchingSavedEventsWereFoundThisDoesNotProveThereAreNoneInEventLog");
             text+=T("TheseMetadataCannotIdentifyASpecificFaultyDriverDumpsAreNotSentAnywh");
             Messages.Show(this,text,T("InvestigateProblemReadOnly"));
         }
@@ -500,8 +566,12 @@ public partial class MainWindow:Window
         if(!RequireDeveloperMode())return;
         await Refresh();var after=_controller.Snapshot;
         var state=_observation.Compare(after);
-        var beforeCpu=_observation.Before?.Cpu;var beforeMemory=_observation.Before?.Memory;
-        var afterCpu=_observation.PostOperationMetric(after?.Cpu);var afterMemory=_observation.PostOperationMetric(after?.Memory);
+        var now=DateTimeOffset.UtcNow;
+        var before=_observation.Before;
+        var beforeCpu=CurrentDisplayMetric(before?.Cpu,before?.DataState?.Cpu,now);
+        var beforeMemory=CurrentDisplayMetric(before?.Memory,before?.DataState?.Memory,now,allowLegacyZero:false);
+        var afterCpu=_observation.PostOperationMetric(CurrentDisplayMetric(after?.Cpu,after?.DataState?.Cpu,now));
+        var afterMemory=_observation.PostOperationMetric(CurrentDisplayMetric(after?.Memory,after?.DataState?.Memory,now,allowLegacyZero:false));
         _comparisonText=()=>state switch
         {
             ObservationState.Pending=>T("TheApprovalWindowIsStillOpenCompletionOfTheActionIsUnconfirmed"),
@@ -517,23 +587,28 @@ public partial class MainWindow:Window
         Chart.Children.Clear();var width=Math.Max(1,Chart.ActualWidth);var height=Math.Max(1,Chart.ActualHeight-2);var now=DateTimeOffset.UtcNow;
         foreach(var fraction in new[]{0d,0.5,1})
             Chart.Children.Add(new Line{X1=0,X2=width,Y1=1+height*fraction,Y2=1+height*fraction,Stroke=(Brush)FindResource("LineBrush"),StrokeThickness=1,StrokeDashArray=new DoubleCollection{4,4}});
-        var count=0;
+        var seriesDescriptions=new List<string>();
         var bucketTicks=TimeSpan.FromMinutes(15).Ticks;
-        foreach(var (points,color) in new[]{(_cpuHistory,(Brush)FindResource("AccentBrush")),(_memoryHistory,(Brush)FindResource("RamBrush"))})
+        foreach(var (points,legend,label) in new[]{(_cpuHistory,CpuHistoryLegend,CpuHistoryLabel),(_memoryHistory,RamHistoryLegend,RamHistoryLabel)})
         {
+            var color=legend.Foreground;
+            var count=0;
             Polyline? line=null;DateTimeOffset? previous=null;
             foreach(var point in points.OrderBy(x=>x.AtUtc))
             {
-                if(!double.IsFinite(point.Value)||point.AtUtc>now||now-point.AtUtc>TimeSpan.FromHours(24))continue;
+                if(point.Value is not (>=0 and <=100)||point.AtUtc>now||now-point.AtUtc>TimeSpan.FromHours(24))continue;
                 if(line is null || previous is {} before && point.AtUtc.UtcTicks/bucketTicks-before.UtcTicks/bucketTicks>1)
-                {line=new Polyline{Stroke=color,StrokeThickness=2};Chart.Children.Add(line);}
-                var pointPosition=new Point(width*(1-(now-point.AtUtc).TotalHours/24),1+height*(1-Math.Clamp(point.Value,0,100)/100));
+                {line=new Polyline{Stroke=color,StrokeThickness=2};System.Windows.Automation.AutomationProperties.SetName(line,label.Text);Chart.Children.Add(line);}
+                var pointPosition=new Point(width*(1-(now-point.AtUtc).TotalHours/24),1+height*(1-point.Value/100));
                 line.Points.Add(pointPosition);previous=point.AtUtc;count++;
                 var dot=new Ellipse{Width=4,Height=4,Fill=color};Canvas.SetLeft(dot,pointPosition.X-2);Canvas.SetTop(dot,pointPosition.Y-2);Chart.Children.Add(dot);
             }
+            if(count>0)seriesDescriptions.Add(T("HistorySeriesSavedPoints",label.Text,count));
         }
-        ChartEmptyText.Visibility=count==0?Visibility.Visible:Visibility.Collapsed;
-        System.Windows.Automation.AutomationProperties.SetName(Chart,count==0?T("CPUAndRAMHistoryIsUnavailable"):T("CPUAndRAMHistoryOver24HoursSavedPointsCPUInBlueRAMInPurple",count));
+        ChartEmptyText.Visibility=seriesDescriptions.Count==0?Visibility.Visible:Visibility.Collapsed;
+        System.Windows.Automation.AutomationProperties.SetName(ChartSummary,seriesDescriptions.Count==0
+            ?T("CPUAndRAMHistoryIsUnavailable")
+            :T("CPUAndRAMHistoryOver24Hours")+" "+string.Join(" ",seriesDescriptions));
     }
     private void ChartSizeChanged(object sender,SizeChangedEventArgs e)=>DrawChart();
     private void ShowDashboard(){Show();WindowState=WindowState.Normal;Activate();_tray.Visible=false;}
@@ -554,7 +629,7 @@ public partial class MainWindow:Window
 
     private void OpenManagementArea(WindowsArea area)
     {
-        DashboardTabs.SelectedIndex=5;
+        NavigateTo(DesktopRoute.WindowsTools,focus:false);
         WindowsInventoryArea.SelectedItem=WindowsInventoryArea.Items.OfType<ComboBoxItem>()
             .FirstOrDefault(item=>string.Equals(item.Tag as string,area.ToString(),StringComparison.Ordinal));
         WindowsAdministrationTab.Focus();
@@ -566,18 +641,18 @@ public partial class MainWindow:Window
 
     private void WindowsAdministrationClick(object sender,RoutedEventArgs e)
     {
-        WindowsAdministrationTab.IsSelected=true;
-        WindowsAdministrationTab.Focus();
+        NavigateTo(DesktopRoute.WindowsTools);
     }
 
     private async void WindowsDashboardTabChanged(object sender,SelectionChangedEventArgs e)
     {
         if(ReferenceEquals(e.Source,DashboardTabs))
         {
-            var selected=DashboardTabs.SelectedIndex;
+            if(DashboardTabs.SelectedItem is not TabItem selectedTab)return;
+            var selected=selectedTab.Tag as DesktopRoute?;
             if(!DesktopModePolicy.CanNavigateTo(selected,_desktopMode))
-            {DashboardTabs.SelectedIndex=_lastStandardTab;return;}
-            if(!DesktopModePolicy.IsDeveloperTab(selected))_lastStandardTab=selected;
+            {NavigateTo(_lastStandardTab,focus:false);return;}
+            if(selected is {} named && !DesktopModePolicy.IsDeveloperTab(named))_lastStandardTab=named;
         }
         if(ReferenceEquals(e.Source,DashboardTabs)&&WindowsAdministrationTab?.IsSelected==true)
             await ReadWindowsInventory();
@@ -596,6 +671,7 @@ public partial class MainWindow:Window
             !Enum.TryParse<WindowsArea>(name,out var area))return;
         var request=++_windowsInventoryRequest;
         _windowsInventory=null;
+        WindowsToolStatus.ToolTip=null;
         WindowsInventoryGrid.ItemsSource=null;
         SetInventoryStatus("WinInventoryLoading");
         try
@@ -606,7 +682,7 @@ public partial class MainWindow:Window
                 if(request!=_windowsInventoryRequest||!WindowsAdministrationTab.IsSelected)return;
                 var result=await Task.Run(()=>_readWindowsInventory(area),_closing.Token);
                 if(request!=_windowsInventoryRequest||_closing.IsCancellationRequested||!WindowsAdministrationTab.IsSelected)return;
-                _windowsInventory=result;
+                _windowsInventory=result with { AtUtc=DateTimeOffset.UtcNow };
                 RenderWindowsInventory();
             }
             finally{_windowsInventoryGate.Release();}
@@ -615,7 +691,13 @@ public partial class MainWindow:Window
         catch(Exception error) when(error is Win32Exception or IOException or InvalidOperationException or UnauthorizedAccessException
             or System.Diagnostics.Eventing.Reader.EventLogException)
         {
-            if(request==_windowsInventoryRequest&&!_closing.IsCancellationRequested)SetInventoryStatus("WinInventoryUnavailable");
+            if(request==_windowsInventoryRequest&&!_closing.IsCancellationRequested)
+            {
+                SetInventoryStatus("WinInventoryUnavailable");
+                var reason=error is UnauthorizedAccessException or Win32Exception {NativeErrorCode:5}
+                    ? "access_denied" : "collector_unavailable";
+                WindowsToolStatus.ToolTip=DescribeData(new("Windows",DateTimeOffset.UtcNow,"unavailable",reason),DateTimeOffset.UtcNow);
+            }
         }
     }
 
@@ -634,7 +716,16 @@ public partial class MainWindow:Window
         }).Where(row=>search.Length==0||new[]{row.Name,row.Detail,row.State,row.Value}.Any(
             field=>field.Contains(search,StringComparison.CurrentCultureIgnoreCase))).ToArray();
         WindowsInventoryGrid.ItemsSource=rows;
-        SetInventoryStatus(inventory.Partial?"WinInventoryPartial":rows.Length==0?"WinInventoryEmpty":"WinInventoryLoaded");
+        var now=DateTimeOffset.UtcNow;
+        var dataState=new ViewDataState("Windows",inventory.AtUtc,inventory.Partial?"partial":"available",
+            inventory.Partial?"incomplete_sample":null);
+        if(!dataState.HasCurrentData(now))
+        {
+            WindowsInventoryGrid.ItemsSource=null;
+            SetInventoryStatus("DataTrustStale");
+        }
+        else SetInventoryStatus(inventory.Partial?"WinInventoryPartial":rows.Length==0?"WinInventoryEmpty":"WinInventoryLoaded");
+        WindowsToolStatus.ToolTip=DescribeData(dataState,now);
         WindowsAreaCapabilityText.Text=T(WindowsInventoryArea.SelectedItem is ComboBoxItem {Tag:"Applications"}?"WinInventoryApplicationsReadOnly":
             WindowsInventoryArea.SelectedItem is ComboBoxItem {Tag:"Startup"}?"WinInventoryStartupReadOnly":
             WindowsInventoryArea.SelectedItem is ComboBoxItem {Tag:"Services"}?"WinInventoryServicesCapability":
@@ -668,7 +759,7 @@ public partial class MainWindow:Window
     {
         if(WindowsInventoryGrid.SelectedItem is not WindowsInventoryRow {ProcessId:{} pid,ProcessStartTimeUtcTicks:{} ticks})return;
         if(!RequireDeveloperMode())return;
-        DashboardTabs.SelectedIndex=4;
+        NavigateTo(DesktopRoute.Maintenance,focus:false);
         PidInput.Text=pid.ToString(CultureInfo.InvariantCulture);
         TicksInput.Text=ticks.ToString(CultureInfo.InvariantCulture);
         OperationChoice.SelectedIndex=3;
@@ -681,7 +772,7 @@ public partial class MainWindow:Window
         if(WindowsInventoryArea.SelectedItem is not ComboBoxItem {Tag:"Services"}
             ||WindowsInventoryGrid.SelectedItem is not WindowsInventoryRow service)return;
         if(!RequireDeveloperMode())return;
-        DashboardTabs.SelectedIndex=4;
+        NavigateTo(DesktopRoute.Maintenance,focus:false);
         OperationChoice.SelectedIndex=-1;
         PidInput.Clear();TicksInput.Clear();
         AliasInput.Text=service.Name;
@@ -723,7 +814,7 @@ public partial class MainWindow:Window
             &&i.State is ("Detected" or "Active" or "Acknowledged")&&ViewFreshness.IsFresh(i.AtUtc,now));
         if(service is not null) findings.Add(T(service.Code=="service_crash"?"ServiceCrashFinding":"ServiceStopFinding",service.AffectedService??"—"));
         if(view.NetworkChecks is {} checks && ViewFreshness.IsFresh(checks.AtUtc,now))
-            findings.Add(DescribeNetwork(checks,view.ConnectedAdapters));
+            findings.Add(DescribeNetwork(checks,view.DataState?.Network.Status is "available" or null?view.ConnectedAdapters:null));
         WindowsDiagnosis.Text=findings.Count==0?T("WinDiagnosisNone"):string.Join("\n\n",findings);
     }
 
@@ -764,6 +855,7 @@ public partial class MainWindow:Window
         {
             _maintenanceWindowOpen=true;
             var window=new MaintenanceWindow(_controller,null,Localization,drive,()=>DeveloperFeaturesEnabled){Owner=this};
+            OrbitTheme.ApplyToDialog(window, this);
             window.ShowDialog();
             _maintenanceWindowOpen=false;
             await Refresh();

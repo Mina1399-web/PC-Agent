@@ -77,7 +77,7 @@ public sealed class DashboardInteractionTests
         Refresh(window);
         var action=(Button)window.FindName("TriageActionButton");
         Assert.Equal("Zobrazit doporučené kroky",action.Content.ToString());
-        Assert.Equal("2",action.Tag);
+        Assert.Equal(DesktopRoute.Recommendations,action.Tag);
         action.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.Equal(2,((TabControl)window.FindName("DashboardTabs")).SelectedIndex);
         Assert.False(((Button)window.FindName("OperationButton")).IsEnabled);
@@ -341,10 +341,10 @@ public sealed class DashboardInteractionTests
                 Assert.Contains("Standardní režim",((Button)window.FindName("DesktopModeButton")).Content.ToString());
                 Assert.Equal(new[]{"Situace","Události","Doporučení","Systém","Údržba","Nástroje"},
                     tabs.Items.Cast<TabItem>().Select(System.Windows.Automation.AutomationProperties.GetName));
-                Assert.True(DesktopModePolicy.CanNavigateTo(3,DesktopMode.Standard));
-                Assert.False(DesktopModePolicy.CanNavigateTo(4,DesktopMode.Standard));
-                Assert.True(DesktopModePolicy.CanNavigateTo(5,DesktopMode.Standard));
-                Assert.True(DesktopModePolicy.CanNavigateTo(5,DesktopMode.Developer));
+                Assert.True(DesktopModePolicy.CanNavigateTo(DesktopRoute.System,DesktopMode.Standard));
+                Assert.False(DesktopModePolicy.CanNavigateTo(DesktopRoute.Maintenance,DesktopMode.Standard));
+                Assert.True(DesktopModePolicy.CanNavigateTo(DesktopRoute.WindowsTools,DesktopMode.Standard));
+                Assert.True(DesktopModePolicy.CanNavigateTo(DesktopRoute.WindowsTools,DesktopMode.Developer));
                 Assert.Equal("Prohlédnout uloženou událost",((Button)window.FindName("TriageActionButton")).Content.ToString());
                 tabs.SelectedIndex=5;Drain();
                 Assert.Equal(5,tabs.SelectedIndex);Assert.True(inventoryReads>0);
@@ -426,6 +426,81 @@ public sealed class DashboardInteractionTests
         finally { window?.Close(); }
     });
 
+    [Theory]
+    [InlineData("cs-CZ",true,true)]
+    [InlineData("cs-CZ",true,false)]
+    [InlineData("cs-CZ",false,true)]
+    [InlineData("cs-CZ",false,false)]
+    [InlineData("en",true,true)]
+    [InlineData("en",true,false)]
+    [InlineData("en",false,true)]
+    [InlineData("en",false,false)]
+    [InlineData("de",true,true)]
+    [InlineData("de",true,false)]
+    [InlineData("de",false,true)]
+    [InlineData("de",false,false)]
+    public Task Chart_accessible_series_match_the_rendered_legend_in_both_themes(string language,bool hasCpu,bool hasRam) => WithWindow((window, view) =>
+    {
+        var at=DateTimeOffset.UtcNow.AddMinutes(-5);
+        view.History=hasCpu ? [new(at,40)] : [];
+        view.MemoryHistory=hasRam ? [new(at.AddMinutes(-1),60),new(at,65)] : [];
+        window.Localization.SelectLanguage(language);
+        Refresh(window);
+        var chart=(Canvas)window.FindName("Chart");
+        var theme=(Button)window.FindName("ThemeButton");
+        var originalBrush=((TextBlock)window.FindName("CpuHistoryLegend")).Foreground;
+        var summary=(GroupBox)window.FindName("ChartSummary");
+        foreach(var dark in new[]{false,true})
+        {
+            if(dark)theme.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Drain();
+            var cpu=(TextBlock)window.FindName("CpuHistoryLegend");
+            var ram=(TextBlock)window.FindName("RamHistoryLegend");
+            var cpuLabel=((System.Windows.Documents.Run)cpu.Inlines.LastInline).Text;
+            var ramLabel=((System.Windows.Documents.Run)ram.Inlines.LastInline).Text;
+            var series=chart.Children.OfType<System.Windows.Shapes.Polyline>().ToArray();
+            Assert.Equal((hasCpu?1:0)+(hasRam?1:0),series.Length);
+            var descriptions=new List<string>();
+            var height=Math.Max(1,chart.ActualHeight-2);
+            var text=window.Localization;
+            if(hasCpu)
+            {
+                var cpuLine=Assert.Single(series,line=>System.Windows.Automation.AutomationProperties.GetName(line)==cpuLabel);
+                Assert.Same(cpu.Foreground,cpuLine.Stroke);
+                Assert.Equal(1+height*0.60,Assert.Single(cpuLine.Points).Y,5);
+                descriptions.Add(text.Text("HistorySeriesSavedPoints",cpuLabel,cpuLine.Points.Count));
+            }
+            if(hasRam)
+            {
+                var ramLine=Assert.Single(series,line=>System.Windows.Automation.AutomationProperties.GetName(line)==ramLabel);
+                Assert.Same(ram.Foreground,ramLine.Stroke);
+                Assert.Equal(2,ramLine.Points.Count);
+                Assert.Equal(1+height*0.40,ramLine.Points[0].Y,5);
+                Assert.Equal(1+height*0.35,ramLine.Points[1].Y,5);
+                descriptions.Add(text.Text("HistorySeriesSavedPoints",ramLabel,ramLine.Points.Count));
+            }
+            if(dark)Assert.NotSame(originalBrush,cpu.Foreground);
+            var root=new System.Windows.Automation.Peers.WindowAutomationPeer(window);
+            var peer=FindPublishedPeer(root,summary);
+            Assert.NotNull(peer);
+            Assert.True(peer.IsControlElement());
+            Assert.Equal(descriptions.Count==0 ? text.Text("CPUAndRAMHistoryIsUnavailable")
+                : text.Text("CPUAndRAMHistoryOver24Hours")+" "+string.Join(" ",descriptions),peer.GetName());
+        }
+    });
+
+    private static System.Windows.Automation.Peers.AutomationPeer? FindPublishedPeer(
+        System.Windows.Automation.Peers.AutomationPeer parent, FrameworkElement target)
+    {
+        foreach(var child in parent.GetChildren()??[])
+        {
+            if(child is System.Windows.Automation.Peers.FrameworkElementAutomationPeer element && ReferenceEquals(element.Owner,target))
+                return child;
+            if(FindPublishedPeer(child,target) is {} found)return found;
+        }
+        return null;
+    }
+
     private static void Refresh(MainWindow window)
     {
         ((Button)window.FindName("RefreshButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
@@ -452,6 +527,7 @@ public sealed class DashboardInteractionTests
         public DashboardSnapshot Snapshot { get; set; }
         public bool DelayDetails { get; set; }
         public ViewMetric[] History { get; set; } = [];
+        public ViewMetric[]? MemoryHistory { get; set; }
         public List<TaskCompletionSource<byte[]>> Details { get; } = [];
         public TaskCompletionSource<byte[]>? PendingOverview {get;set;}
         public bool OverviewDelayed {get;private set;}
@@ -477,7 +553,7 @@ public sealed class DashboardInteractionTests
             return ValueTask.FromResult(request.Command switch
             {
                 "overview" => AdminProtocol.Reply(true, "overview", Snapshot),
-                "history" => AdminProtocol.Reply(true, "history", History),
+                "history" => AdminProtocol.Reply(true, "history", request.Body.GetProperty("metric").GetString()=="memory" ? MemoryHistory??History : History),
                 "incident" => Detail("current_evidence"),
                 _ => AdminProtocol.Reply(false, "view_unavailable")
             });

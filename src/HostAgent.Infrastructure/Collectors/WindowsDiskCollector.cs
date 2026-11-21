@@ -43,8 +43,14 @@ public sealed class WindowsDiskCollector : ITelemetryCollector<DiskTelemetry>
                     }
 
                     var capacity = drive.TotalSize;
-                    var free = Math.Clamp(drive.TotalFreeSpace, 0, capacity);
-                    var used = Math.Max(0, capacity - free);
+                    var free = drive.TotalFreeSpace;
+                    if (capacity <= 0 || free < 0 || free > capacity)
+                    {
+                        warnings.Add("volume_metrics_invalid");
+                        continue;
+                    }
+
+                    var used = capacity - free;
                     volumes.Add(new DiskVolumeTelemetry(
                         drive.RootDirectory.FullName,
                         drive.VolumeLabel,
@@ -52,10 +58,13 @@ public sealed class WindowsDiskCollector : ITelemetryCollector<DiskTelemetry>
                         capacity,
                         used,
                         free,
-                        capacity == 0 ? 0 : Math.Clamp(100d * used / capacity, 0, 100)));
+                        100d * used / capacity));
                 }
-                catch (Exception exception) when (
-                    exception is IOException or UnauthorizedAccessException or DriveNotFoundException)
+                catch (UnauthorizedAccessException)
+                {
+                    warnings.Add("volume_metrics_access_denied");
+                }
+                catch (IOException)
                 {
                     warnings.Add("volume_metrics_unavailable");
                 }
@@ -72,7 +81,10 @@ public sealed class WindowsDiskCollector : ITelemetryCollector<DiskTelemetry>
 
         if (volumes.Count == 0)
         {
-            return CollectorResult<DiskTelemetry>.Unavailable(CollectorId, now, "no_fixed_volumes_available");
+            if (warnings.Contains("volume_metrics_access_denied"))
+                return CollectorResult<DiskTelemetry>.Unavailable(CollectorId, now, "volume_metrics_access_denied");
+            if (warnings.Count > 0)
+                return CollectorResult<DiskTelemetry>.Unavailable(CollectorId, now, warnings[0]);
         }
 
         var ioCounters = await _ioCounterReader.ReadAsync(cancellationToken);

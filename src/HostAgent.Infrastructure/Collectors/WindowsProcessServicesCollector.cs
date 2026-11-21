@@ -39,9 +39,9 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
         {
             runningProcesses = Process.GetProcesses();
         }
-        catch (Win32Exception)
+        catch (Win32Exception error)
         {
-            warnings.Add("process_list_unavailable");
+            warnings.Add(error.NativeErrorCode == 5 ? "process_list_access_denied" : "process_list_unavailable");
             return Array.Empty<ProcessTelemetry>();
         }
 
@@ -83,7 +83,12 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
                     var name=process.ProcessName;
                     var path=TryGetExecutablePath(process,warnings);
                     stage=ProcessMetricReadStage.WorkingSet;
-                    var memoryBytes=Math.Max(0,process.WorkingSet64);
+                    var memoryBytes=process.WorkingSet64;
+                    if(memoryBytes<0)
+                    {
+                        warnings.Add("some_process_metrics_unavailable");
+                        continue;
+                    }
                     result.Add(new ProcessTelemetry(
                         id,
                         name,
@@ -134,7 +139,8 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
         catch (Exception exception) when (
             exception is Win32Exception or InvalidOperationException or UnauthorizedAccessException)
         {
-            warnings.Add("service_catalog_unavailable");
+            warnings.Add(exception is UnauthorizedAccessException or Win32Exception { NativeErrorCode: 5 }
+                ? "service_catalog_access_denied" : "service_catalog_unavailable");
             changes = Array.Empty<ServiceStateChange>();
             return Array.Empty<ServiceTelemetry>();
         }

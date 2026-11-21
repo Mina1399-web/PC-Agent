@@ -22,22 +22,21 @@ public sealed class WindowsCpuMemoryCollector : ITelemetryCollector<CpuMemoryTel
         var warnings = new List<string>();
 
         var memory = WindowsNativeTelemetry.MemoryStatusEx.Create();
-        if (!WindowsNativeTelemetry.GlobalMemoryStatusEx(ref memory))
+        var memoryRead = WindowsNativeTelemetry.GlobalMemoryStatusEx(ref memory);
+        if (!memoryRead)
         {
-            return ValueTask.FromResult(CollectorResult<CpuMemoryTelemetry>.Unavailable(
-                CollectorId,
-                now,
-                "global_memory_status_unavailable"));
+            warnings.Add(Marshal.GetLastWin32Error() == 5
+                ? "global_memory_status_access_denied" : "global_memory_status_unavailable");
         }
 
         var cpu = ReadSystemCpu(now, warnings);
         var processes = ReadProcessUsage(now, warnings, cancellationToken);
         var telemetry = new CpuMemoryTelemetry(
             cpu,
-            checked((long)memory.TotalPhysical),
-            checked((long)memory.AvailablePhysical),
-            checked((long)memory.TotalPageFile),
-            checked((long)memory.AvailablePageFile),
+            memoryRead ? AsBytes(memory.TotalPhysical) : null,
+            memoryRead ? AsBytes(memory.AvailablePhysical) : null,
+            memoryRead ? AsBytes(memory.TotalPageFile) : null,
+            memoryRead ? AsBytes(memory.AvailablePageFile) : null,
             processes.Where(static process => process.CpuUsagePercent.HasValue)
                 .OrderByDescending(static process => process.CpuUsagePercent)
                 .Take(TopProcessLimit)
@@ -46,16 +45,23 @@ public sealed class WindowsCpuMemoryCollector : ITelemetryCollector<CpuMemoryTel
                 .Take(TopProcessLimit)
                 .ToArray());
 
+        if (memoryRead && telemetry.MemoryPressurePercent is null) warnings.Add("physical_memory_invalid");
+        if (memoryRead && telemetry.CommitPressurePercent is null) warnings.Add("commit_memory_invalid");
+
         return ValueTask.FromResult(warnings.Count == 0
             ? CollectorResult<CpuMemoryTelemetry>.Success(CollectorId, now, telemetry)
             : CollectorResult<CpuMemoryTelemetry>.Partial(CollectorId, now, telemetry, warnings));
     }
 
+    private static long? AsBytes(ulong value) => value <= long.MaxValue ? (long)value : null;
+
     private double? ReadSystemCpu(DateTimeOffset now, ICollection<string> warnings)
     {
         if (!WindowsNativeTelemetry.GetSystemTimes(out var idle, out var kernel, out var user))
         {
-            warnings.Add("system_cpu_counter_unavailable");
+            warnings.Add(Marshal.GetLastWin32Error() == 5
+                ? "system_cpu_counter_access_denied" : "system_cpu_counter_unavailable");
+            lock (_sync) _previousSystemCpu = null;
             return null;
         }
 
@@ -75,15 +81,24 @@ public sealed class WindowsCpuMemoryCollector : ITelemetryCollector<CpuMemoryTel
                 return null;
             }
 
-            var totalDelta = unchecked((kernel.ToUInt64() - previous.KernelTicks)
-                + (user.ToUInt64() - previous.UserTicks));
-            var idleDelta = unchecked(idle.ToUInt64() - previous.IdleTicks);
-            if (totalDelta == 0 || current.CapturedAtUtc <= previous.CapturedAtUtc)
+            if (current.CapturedAtUtc <= previous.CapturedAtUtc || current.KernelTicks < previous.KernelTicks
+                || current.UserTicks < previous.UserTicks || current.IdleTicks < previous.IdleTicks)
             {
+                warnings.Add("system_cpu_counter_invalid");
                 return null;
             }
 
-            return Math.Clamp(100d * (totalDelta - Math.Min(idleDelta, totalDelta)) / totalDelta, 0, 100);
+            var kernelDelta = current.KernelTicks - previous.KernelTicks;
+            var userDelta = current.UserTicks - previous.UserTicks;
+            var idleDelta = current.IdleTicks - previous.IdleTicks;
+            // Windows includes idle in kernel time. Inconsistent deltas are not idle CPU.
+            if (idleDelta > kernelDelta || (kernelDelta == 0 && userDelta == 0))
+            {
+                warnings.Add("system_cpu_counter_invalid");
+                return null;
+            }
+
+            return 100d * ((double)(kernelDelta - idleDelta) + userDelta) / ((double)kernelDelta + userDelta);
         }
     }
 
@@ -119,7 +134,12 @@ public sealed class WindowsCpuMemoryCollector : ITelemetryCollector<CpuMemoryTel
                     stage=ProcessMetricReadStage.Name;
                     var name = process.ProcessName;
                     stage=ProcessMetricReadStage.WorkingSet;
-                    var memoryBytes = Math.Max(0, process.WorkingSet64);
+                    var memoryBytes = process.WorkingSet64;
+                    if (memoryBytes < 0)
+                    {
+                        warnings.Add("some_process_metrics_unavailable");
+                        continue;
+                    }
                     stage=ProcessMetricReadStage.CpuTime;
                     var cpuTime = process.TotalProcessorTime;
                     var path = TryGetExecutablePath(process);

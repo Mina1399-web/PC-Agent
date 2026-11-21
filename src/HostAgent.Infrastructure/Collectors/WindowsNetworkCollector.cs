@@ -27,9 +27,10 @@ public sealed class WindowsNetworkCollector(bool enableProbes=false) : ITelemetr
         {
             adapters = ReadAdapters(warnings);
         }
-        catch (NetworkInformationException)
+        catch (NetworkInformationException error)
         {
-            return CollectorResult<NetworkTelemetry>.Unavailable(CollectorId, now, "network_adapters_unavailable");
+            return CollectorResult<NetworkTelemetry>.Unavailable(CollectorId, now,
+                error.ErrorCode == 5 ? "network_adapters_access_denied" : "network_adapters_unavailable");
         }
 
         var probes = new List<NetworkProbeResult>();
@@ -105,15 +106,11 @@ public sealed class WindowsNetworkCollector(bool enableProbes=false) : ITelemetr
                         .Distinct(StringComparer.OrdinalIgnoreCase)
                         .ToArray()));
             }
-            catch (NetworkInformationException)
+            catch (NetworkInformationException error)
             {
-                warnings.Add("some_network_adapter_details_unavailable");
+                warnings.Add(error.ErrorCode == 5
+                    ? "some_network_adapter_details_access_denied" : "some_network_adapter_details_unavailable");
             }
-        }
-
-        if (adapters.Count == 0)
-        {
-            warnings.Add("no_network_adapters_available");
         }
 
         return adapters.AsReadOnly();
