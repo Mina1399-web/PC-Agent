@@ -8,9 +8,22 @@
             <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
             <Setter Property="Margin" Value="0,0,8,8"/>
             <Setter Property="Padding" Value="6"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="ContentTemplate">
                 <Setter.Value>
-                    <DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap"/></DataTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <TextBlock Text="{Binding}" TextWrapping="Wrap"/>
+                            <Control x:Name="KeyboardFocusOutline" Style="{DynamicResource FocusRing}"
+                                     Focusable="False" IsTabStop="False" IsHitTestVisible="False"
+                                     Visibility="Collapsed"/>
+                        </Grid>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding IsKeyboardFocused, RelativeSource={RelativeSource AncestorType=RadioButton}}" Value="True">
+                                <Setter TargetName="KeyboardFocusOutline" Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
                 </Setter.Value>
             </Setter>
         </Style>

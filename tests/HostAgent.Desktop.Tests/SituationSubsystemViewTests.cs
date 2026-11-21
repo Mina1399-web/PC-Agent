@@ -4,6 +4,10 @@ using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Shapes;
+using System.Windows.Threading;
 using HostAgent.Core.Dashboard;
 using HostAgent.Desktop;
 using Xunit;
@@ -14,6 +18,63 @@ public sealed class SituationSubsystemViewTests
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 21, 12, 0, 0, TimeSpan.Zero);
     private static readonly ViewDataState Available = new("collector", Now, "available", null);
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Keyboard_outline_remains_visible_and_independent_of_map_and_list_selection(bool dark) =>
+        StaTest.RunAsync(() =>
+        {
+            var loc = TestLocalization.CzechStandard();
+            var view = new SituationSubsystemView();
+            var window = new Window { Content = view, Width = 800, Height = 650, ShowInTaskbar = false };
+            loc.Apply(window);
+            OrbitTheme.ApplyToDialog(window, null);
+            OrbitTheme.SetPalette(window, dark);
+            try
+            {
+                view.Render(Snapshot(), loc, Now);
+                window.Show();
+                window.Activate();
+                window.Dispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+                var map = Find<Panel>(view, "Map");
+                var list = Find<Panel>(view, "SubsystemList");
+                var selectedMap = Assert.IsType<RadioButton>(map.Children[0]);
+                var nextMap = Assert.IsType<RadioButton>(map.Children[1]);
+                var selectedList = Assert.IsType<RadioButton>(list.Children[0]);
+                var nextList = Assert.IsType<RadioButton>(list.Children[1]);
+                var card = Assert.IsType<SolidColorBrush>(window.FindResource("CardBrush")).Color;
+
+                Assert.True(selectedMap.Focus());
+                AssertChoice(selectedMap, true, true, card);
+                AssertChoice(selectedList, true, false, card);
+                RaisePreviewKey(selectedMap, Key.Right);
+                AssertChoice(selectedMap, true, false, card);
+                AssertChoice(nextMap, false, true, card);
+                AssertChoice(selectedList, true, false, card);
+
+                Assert.True(selectedList.Focus());
+                AssertChoice(selectedList, true, true, card);
+                AssertChoice(selectedMap, true, false, card);
+                Assert.True(nextList.Focus());
+                AssertChoice(nextList, false, true, card);
+                AssertChoice(selectedList, true, false, card);
+
+                RaisePreviewKey(nextList, Key.Enter);
+                AssertChoice(nextList, true, true, card);
+                AssertChoice(nextMap, true, false, card);
+                var detail = Find<Border>(view, "Detail");
+                window.UpdateLayout();
+                var close = Assert.Single(VisualDescendants(detail).OfType<Button>());
+                Assert.True(close.Focus());
+                AssertChoice(nextList, true, false, card);
+                RaisePreviewKey(close, Key.Escape);
+                Assert.Equal(Visibility.Collapsed, detail.Visibility);
+                Assert.Same(nextList, Keyboard.FocusedElement);
+                AssertChoice(nextList, true, true, card);
+            }
+            finally { window.Close(); }
+        });
 
     [Theory]
     [InlineData("cs-CZ", false)]
@@ -139,4 +200,54 @@ public sealed class SituationSubsystemViewTests
 
     private static IEnumerable<AutomationPeer> Descendants(AutomationPeer peer) =>
         (peer.GetChildren() ?? []).SelectMany(child => new[] { child }.Concat(Descendants(child)));
+
+    private static void RaisePreviewKey(UIElement target, Key key)
+    {
+        var source = Assert.IsAssignableFrom<PresentationSource>(PresentationSource.FromVisual(target));
+        target.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, source, 0, key)
+        {
+            RoutedEvent = Keyboard.PreviewKeyDownEvent
+        });
+    }
+
+    private static void AssertChoice(RadioButton choice, bool selected, bool focused, Color card)
+    {
+        choice.UpdateLayout();
+        Assert.Equal(selected, choice.IsChecked == true);
+        var outline = Assert.Single(VisualDescendants(choice).OfType<Control>(),
+            control => control.Name == "KeyboardFocusOutline");
+        Assert.Equal(focused, outline.IsVisible);
+        if (!focused) return;
+
+        var shape = Assert.Single(VisualDescendants(outline).OfType<Rectangle>());
+        Assert.True(shape.IsVisible && shape.RenderSize.Width > 0 && shape.RenderSize.Height > 0);
+        Assert.True(shape.StrokeThickness >= 2 && shape.StrokeDashArray.Count > 0);
+        var stroke = Assert.IsType<SolidColorBrush>(shape.Stroke);
+        Assert.Equal(byte.MaxValue, stroke.Color.A);
+        Assert.Equal(1, stroke.Opacity);
+        Assert.True(Contrast(stroke.Color, card) >= 4.5, "Focus outline must contrast with its card.");
+    }
+
+    private static IEnumerable<DependencyObject> VisualDescendants(DependencyObject parent)
+    {
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            yield return child;
+            foreach (var descendant in VisualDescendants(child)) yield return descendant;
+        }
+    }
+
+    private static double Contrast(Color a, Color b)
+    {
+        static double Linear(byte value)
+        {
+            var channel = value / 255d;
+            return channel <= 0.04045 ? channel / 12.92 : Math.Pow((channel + 0.055) / 1.055, 2.4);
+        }
+        static double Luminance(Color color) => 0.2126 * Linear(color.R) + 0.7152 * Linear(color.G) + 0.0722 * Linear(color.B);
+        var first = Luminance(a);
+        var second = Luminance(b);
+        return (Math.Max(first, second) + 0.05) / (Math.Min(first, second) + 0.05);
+    }
 }
