@@ -533,6 +533,36 @@ public sealed class DashboardInteractionTests
     });
 
     [Fact]
+    public Task Network_detail_is_opt_in_and_keeps_the_newest_reply() => WithWindow((window, view) =>
+    {
+        ((TabControl)window.FindName("DashboardTabs")).SelectedItem = window.FindName("WindowsAdministrationTab");
+        window.UpdateLayout();
+        var button = Assert.IsType<Button>(window.FindName("NetworkDiagnosticsButton"));
+        var output = Assert.IsType<TextBlock>(window.FindName("NetworkDiagnosticsText"));
+        Assert.Empty(view.NetworkRequests);
+        var peer = new System.Windows.Automation.Peers.ButtonAutomationPeer(button);
+        Assert.True(peer.IsKeyboardFocusable());
+        Assert.Equal(window.Localization.Text("NetDetailRead"), peer.GetName());
+        button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.Equal(2, view.NetworkRequests.Count);
+        var now = DateTimeOffset.UtcNow;
+        void Reply(int index, double latency) => view.NetworkRequests[index].SetResult(AdminProtocol.Reply(true,
+            "network-diagnostics", new ViewNetworkDiagnostics(
+                new("network", now, "available", null), [new("Up", 2, 3)], false,
+                [new("Gateway", new("ICMP", now, "available", null), latency, 0),
+                 new("InternetIp", new("ICMP", now, "unavailable", "probe_disabled"), null, null),
+                 new("DnsResolution", new("DNS", now, "available", null), 17, null)])));
+        Reply(1, 23);
+        PumpUntil(() => output.Text.Contains(window.Localization.Text("NetDetailRtt", 23)));
+        Reply(0, 99);
+        Drain();
+        Assert.DoesNotContain(window.Localization.Text("NetDetailRtt", 99), output.Text);
+        Assert.Contains(window.Localization.Text("NetDetailElapsed", 17), output.Text);
+        Assert.Contains(window.Localization.Text("NetDetailDisabled"), output.Text);
+    });
+
+    [Fact]
     public Task Disk_chart_is_opt_in_and_publishes_only_the_latest_selection() => WithWindow((window, view) =>
     {
         Assert.Empty(view.DiskRequests);
@@ -622,6 +652,7 @@ public sealed class DashboardInteractionTests
         public List<(string Group, TaskCompletionSource<byte[]> Reply)> DiskRequests { get; } = [];
 
         public int DeviceHealthRequests { get; private set; }
+        public List<TaskCompletionSource<byte[]>> NetworkRequests { get; } = [];
 
         public FakeView()
         {
@@ -641,6 +672,12 @@ public sealed class DashboardInteractionTests
                     new HostAgent.Core.Models.Inventory.DeviceHealthReport("unhealthy",
                         new("SetupAPI / Configuration Manager", DateTimeOffset.UtcNow, "available", null),
                         3, 3, [new(null, 10, "unhealthy", "unhealthy")])));
+            }
+            if (request.Command == "network-diagnostics")
+            {
+                var pending = new TaskCompletionSource<byte[]>();
+                NetworkRequests.Add(pending);
+                return new(pending.Task);
             }
             if (request.Command == "disk-history")
             {

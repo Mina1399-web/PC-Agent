@@ -1750,4 +1750,28 @@ Quarantäneordner: {1}</value></data>
   <data name="DeviceHealthLimit" xml:space="preserve"><value>Die Prüfung oder Befundliste hat ihre Grenze erreicht.</value></data>
   <data name="DeviceHealthChecked" xml:space="preserve"><value>{0} von {1} aufgelisteten Geräten geprüft</value></data>
   <data name="DeviceHealthFinding" xml:space="preserve"><value>Klasse {0} · Code {1} · {2}</value></data>
+  <data name="NetDetailRead" xml:space="preserve"><value>Letzte Netzwerkdiagnose laden</value></data>
+  <data name="NetDetailLoading" xml:space="preserve"><value>Erfasste Netzwerkdaten werden geladen…</value></data>
+  <data name="NetDetailUnavailable" xml:space="preserve"><value>Die Netzwerkdiagnose ist nicht verfügbar. Der lokale Dienst unterstützt diese Ansicht möglicherweise nicht.</value></data>
+  <data name="NetDetailPassive" xml:space="preserve"><value>Passive Adapterkonfiguration</value></data>
+  <data name="NetDetailEmpty" xml:space="preserve"><value>Die erfasste Adapterliste ist leer.</value></data>
+  <data name="NetDetailAdapter" xml:space="preserve"><value>Adapter {0} · {1} · Gateway-Einträge: {2} · DNS-Einträge: {3}</value></data>
+  <data name="NetDetailLimited" xml:space="preserve"><value>Die ersten 16 Adapter der erfassten Liste werden angezeigt.</value></data>
+  <data name="NetDetailUp" xml:space="preserve"><value>Aktiv</value></data>
+  <data name="NetDetailDown" xml:space="preserve"><value>Inaktiv</value></data>
+  <data name="NetDetailDormant" xml:space="preserve"><value>Wartend</value></data>
+  <data name="NetDetailTesting" xml:space="preserve"><value>Wird getestet</value></data>
+  <data name="NetDetailAbsent" xml:space="preserve"><value>Nicht vorhanden</value></data>
+  <data name="NetDetailProbes" xml:space="preserve"><value>Erfasste Sonden des Computers</value></data>
+  <data name="NetDetailGatewayScope" xml:space="preserve"><value>Die Gateway-Sonde verwendet das erste Gateway des ersten aktiven Adapters mit Gateway. Die anderen Sonden gelten für den gesamten Computer.</value></data>
+  <data name="NetDetailGateway" xml:space="preserve"><value>Gateway (ICMP)</value></data>
+  <data name="NetDetailInternet" xml:space="preserve"><value>Externe Adresse (ICMP)</value></data>
+  <data name="NetDetailDns" xml:space="preserve"><value>DNS-Auflösung</value></data>
+  <data name="NetDetailDisabled" xml:space="preserve"><value>Die Sonden waren zum Erfassungszeitpunkt deaktiviert.</value></data>
+  <data name="NetDetailNoGateway" xml:space="preserve"><value>Für diese Sonde war kein Gateway konfiguriert.</value></data>
+  <data name="NetDetailPartialResponse" xml:space="preserve"><value>Ein Teil der ICMP-Anfragen blieb unbeantwortet.</value></data>
+  <data name="NetDetailTimeout" xml:space="preserve"><value>Das Zeitlimit der Sonde wurde überschritten.</value></data>
+  <data name="NetDetailElapsed" xml:space="preserve"><value>Dauer der Namensauflösung: {0:0.##} ms</value></data>
+  <data name="NetDetailRtt" xml:space="preserve"><value>ICMP-Umlaufzeit: {0:0.##} ms</value></data>
+  <data name="NetDetailLoss" xml:space="preserve"><value>ICMP-Paketverlust: {0:0.##} %</value></data>
 </root>
