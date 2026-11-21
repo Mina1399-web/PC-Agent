@@ -69,6 +69,7 @@ public sealed class DashboardDispatcher(IHostAgentStore store,ServiceConfigurati
                         health.Snapshot().Take(16).Select(x=>new ViewHealth(x.Component,x.Code,x.Degraded,x.Reasons)).ToArray(),MinuteMinimum(cpu),MinuteMinimum(memory))
                         {
                             KillSwitch=configuration.KillSwitch,
+                            SupportsIncidentHistory=true,
                             DataState=new(cpuPoint.State,memoryPoint.State,uptimePoint.State,diskState,processState,serviceState,networkState),
                             DiskIoDiagnostics=disk.Value is not null && disk.Raw is {} raw
                                 ? ReadDiskDiagnostics(raw) : new(null,"unavailable",[]),
@@ -87,6 +88,20 @@ public sealed class DashboardDispatcher(IHostAgentStore store,ServiceConfigurati
                     var points=samples.GroupBy(x=>x.AtUtc.UtcTicks/TimeSpan.FromMinutes(15).Ticks)
                         .OrderBy(x=>x.Key).Select(g=>new ViewMetric(g.Max(x=>x.AtUtc),g.Average(x=>x.Value))).TakeLast(97).ToArray();
                     return Reply("serialize_history",true,"history",points);
+                case "incident-page":
+                    var before = ViewProtocol.ReadIncidentCursor(request.Body);
+                    var heads = await Timed("incident_page", () => store.ReadIncidentHistoryAsync(before, token));
+                    var rows = heads.Take(IncidentHistoryCursor.PageSize).Select(head => Project(head) with
+                    {
+                        CreatedAtUtc = head.CreatedAtUtc,
+                        UpdatedAtUtc = head.UpdatedAtUtc
+                    }).ToArray();
+                    var last = rows.LastOrDefault();
+                    var next = heads.Count > IncidentHistoryCursor.PageSize && last?.CreatedAtUtc is { } created
+                        ? new IncidentHistoryCursor(created.UtcTicks, last.Id) : null;
+                    var page = Reply("serialize_incident_page", true, "incident-page", new ViewIncidentPage(rows, next));
+                    return page.Length <= ViewProtocol.MaximumIncidentPageBytes
+                        ? page : Reply("serialize_incident_page_limit", false, "view_incident_page_capacity", null);
                 case "incident":
                     var id=request.Body.GetProperty("incidentId").GetString();
                     var incident=await Timed("incident_summary",()=>store.ReadIncidentSummaryAsync(id!,token));

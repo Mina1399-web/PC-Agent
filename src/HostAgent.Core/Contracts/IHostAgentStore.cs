@@ -19,6 +19,8 @@ public interface IHostAgentStore : ICollectorCheckpointStore, IAsyncDisposable
     // View projections do not require archived telemetry snapshots.
     ValueTask<IReadOnlyList<Incident>> ReadIncidentSummariesAsync(int limit, CancellationToken cancellationToken);
     ValueTask<Incident?> ReadIncidentSummaryAsync(string incidentId, CancellationToken cancellationToken);
+    // Returns at most one page plus the lookahead row, in immutable creation-key order.
+    ValueTask<IReadOnlyList<Incident>> ReadIncidentHistoryAsync(IncidentHistoryCursor? before, CancellationToken cancellationToken);
 
     ValueTask InitializeAsync(CancellationToken cancellationToken);
 

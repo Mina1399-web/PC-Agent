@@ -1,3 +1,6 @@
+using System.Text.Json.Serialization;
+using HostAgent.Core.Models.Incidents;
+
 namespace HostAgent.Core.Dashboard;
 
 public sealed record ViewMetric(DateTimeOffset AtUtc, double Value);
@@ -6,7 +9,14 @@ public sealed record ViewProcess(int Pid, string Name, double? CpuPercent, long 
 { public long? StartTimeUtcTicks {get;init;} }
 public sealed record ViewService(string Name, string State);
 public sealed record ViewIncident(string Id, string State, string Code, int Confidence, string Severity, DateTimeOffset AtUtc, int Recurrences)
-{ public string? AffectedService { get; init; } }
+{
+    public string? AffectedService { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? CreatedAtUtc { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? UpdatedAtUtc { get; init; }
+}
+public sealed record ViewIncidentPage(IReadOnlyList<ViewIncident> Rows, IncidentHistoryCursor? Next);
 public sealed record ViewHealth(string Component, string Code, bool Degraded, IReadOnlyList<string>? Reasons = null)
 { public string ReasonSummary => string.Join(", ", Reasons ?? Array.Empty<string>()); }
 public sealed record ViewEvidence(string Source, double? Value, DateTimeOffset AtUtc);
@@ -35,6 +45,8 @@ public sealed record DashboardSnapshot(DateTimeOffset GeneratedAtUtc, string Mod
     IReadOnlyList<ViewMetric> RecentCpu, IReadOnlyList<ViewMetric> RecentMemory)
 {
     public ViewOverviewData? DataState {get;init;}
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool SupportsIncidentHistory {get;init;}
     public bool KillSwitch {get;init;}
     public ViewDiskIoDiagnostics? DiskIoDiagnostics {get;init;}
     public ViewNetworkChecks? NetworkChecks {get;init;}

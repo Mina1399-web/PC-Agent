@@ -1711,4 +1711,17 @@ Quarantäneordner: {1}</value></data>
   <data name="SubsystemNoCurrentValue" xml:space="preserve"><value>Kein aktueller Messwert verfügbar.</value></data>
   <data name="SubsystemExcerpt" xml:space="preserve"><value>Zuletzt gemeldete Einträge (begrenzte Liste)</value></data>
   <data name="SubsystemDiskLine" xml:space="preserve"><value>{0} · {1} frei von {2}</value></data>
+  <data name="IncidentHistoryIntro" xml:space="preserve"><value>Wählen Sie einen gespeicherten Vorfall aus, um seine Belege zu prüfen.</value></data>
+  <data name="IncidentHistoryRefresh" xml:space="preserve"><value>Verlauf aktualisieren</value></data>
+  <data name="IncidentHistoryOlder" xml:space="preserve"><value>Ältere Vorfälle laden</value></data>
+  <data name="IncidentHistoryCreated" xml:space="preserve"><value>Erstellt (UTC)</value></data>
+  <data name="IncidentHistoryUpdated" xml:space="preserve"><value>Aktualisiert (UTC)</value></data>
+  <data name="IncidentHistoryLegacy" xml:space="preserve"><value>Der Dienst unterstützt nur die Liste der letzten Vorfälle.</value></data>
+  <data name="IncidentHistoryLoading" xml:space="preserve"><value>Gespeicherter Vorfallverlauf wird geladen…</value></data>
+  <data name="IncidentHistoryOlderFailed" xml:space="preserve"><value>Ältere Vorfälle konnten nicht geladen werden. Die angezeigten Zeilen bleiben erhalten. Versuchen Sie es erneut.</value></data>
+  <data name="IncidentHistoryRefreshFailed" xml:space="preserve"><value>Der Verlauf konnte nicht aktualisiert werden. Die angezeigten Zeilen bleiben erhalten. Versuchen Sie es erneut.</value></data>
+  <data name="IncidentHistoryDisconnected" xml:space="preserve"><value>Die Verbindung zum Dienst wurde getrennt. Die angezeigten Zeilen stammen aus dem gespeicherten Verlauf.</value></data>
+  <data name="IncidentHistoryCount" xml:space="preserve"><value>Geladene Vorfälle: {0}.</value></data>
+  <data name="IncidentHistoryEmpty" xml:space="preserve"><value>Es sind keine Vorfälle gespeichert.</value></data>
+  <data name="IncidentHistoryRecoveryUnverified" xml:space="preserve"><value>Behoben ist ein gespeicherter Vorfallstatus. Diese Ansicht bestätigt keine Wiederherstellung.</value></data>
 </root>

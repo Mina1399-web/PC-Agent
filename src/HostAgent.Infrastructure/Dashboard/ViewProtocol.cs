@@ -1,10 +1,13 @@
 using System.Text.Json;
+using HostAgent.Core.Models.Incidents;
 using HostAgent.Infrastructure.Administration;
 using HostAgent.Infrastructure.Pipes;
 namespace HostAgent.Infrastructure.Dashboard;
 
 public static class ViewProtocol
 {
+    public const int MaximumIncidentPageBytes = 16 * 1024;
+
     public static AdminMessage Parse(byte[] bytes)
     {
         try
@@ -23,12 +26,27 @@ public static class ViewProtocol
                 case "incident":
                     HelperProtocol.Exact(body,"incidentId");
                     if(!Guid.TryParseExact(body.GetProperty("incidentId").GetString(),"N",out var id)||id==Guid.Empty)throw new InvalidDataException();break;
+                case "incident-page":
+                    if (bytes.Length > MaximumIncidentPageBytes) throw new InvalidDataException();
+                    _ = ReadIncidentCursor(body);
+                    break;
                 default:throw new InvalidDataException();
             }
             return new(command!,body.Clone());
         }
         catch(Exception e) when(e is JsonException or InvalidDataException or InvalidOperationException or FormatException or ArgumentException)
         {throw new InvalidDataException("view_invalid_request");}
+    }
+
+    public static IncidentHistoryCursor? ReadIncidentCursor(JsonElement body)
+    {
+        HelperProtocol.Exact(body, "before");
+        var cursor = body.GetProperty("before");
+        if (cursor.ValueKind == JsonValueKind.Null) return null;
+        HelperProtocol.Exact(cursor, "createdAtUtcTicks", "incidentId");
+        var before = new IncidentHistoryCursor(cursor.GetProperty("createdAtUtcTicks").GetInt64(),
+            cursor.GetProperty("incidentId").GetString() ?? "");
+        return before.IsValid() ? before : throw new InvalidDataException("view_invalid_request");
     }
     public static byte[] Request(string command,object body)
     {

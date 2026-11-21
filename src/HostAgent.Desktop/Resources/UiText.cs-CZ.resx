@@ -1711,4 +1711,17 @@ Složka karantény: {1}</value></data>
   <data name="SubsystemNoCurrentValue" xml:space="preserve"><value>Aktuální údaj není dostupný.</value></data>
   <data name="SubsystemExcerpt" xml:space="preserve"><value>Poslední hlášené položky (omezený výpis)</value></data>
   <data name="SubsystemDiskLine" xml:space="preserve"><value>{0} · volné {1} z {2}</value></data>
+  <data name="IncidentHistoryIntro" xml:space="preserve"><value>Výběrem uloženého incidentu zobrazíte jeho důkazy.</value></data>
+  <data name="IncidentHistoryRefresh" xml:space="preserve"><value>Obnovit historii</value></data>
+  <data name="IncidentHistoryOlder" xml:space="preserve"><value>Načíst starší incidenty</value></data>
+  <data name="IncidentHistoryCreated" xml:space="preserve"><value>Vytvořeno (UTC)</value></data>
+  <data name="IncidentHistoryUpdated" xml:space="preserve"><value>Aktualizováno (UTC)</value></data>
+  <data name="IncidentHistoryLegacy" xml:space="preserve"><value>Služba podporuje jen seznam posledních incidentů.</value></data>
+  <data name="IncidentHistoryLoading" xml:space="preserve"><value>Načítá se historie uložených incidentů…</value></data>
+  <data name="IncidentHistoryOlderFailed" xml:space="preserve"><value>Starší incidenty se nepodařilo načíst. Zobrazené řádky zůstaly. Zkuste to znovu.</value></data>
+  <data name="IncidentHistoryRefreshFailed" xml:space="preserve"><value>Historii se nepodařilo obnovit. Zobrazené řádky zůstaly. Zkuste to znovu.</value></data>
+  <data name="IncidentHistoryDisconnected" xml:space="preserve"><value>Připojení ke službě se přerušilo. Zobrazené řádky jsou z uložené historie.</value></data>
+  <data name="IncidentHistoryCount" xml:space="preserve"><value>Načteno incidentů: {0}.</value></data>
+  <data name="IncidentHistoryEmpty" xml:space="preserve"><value>Nejsou uložené žádné incidenty.</value></data>
+  <data name="IncidentHistoryRecoveryUnverified" xml:space="preserve"><value>Vyřešeno je uložený stav incidentu. Tento přehled nepotvrzuje zotavení.</value></data>
 </root>
