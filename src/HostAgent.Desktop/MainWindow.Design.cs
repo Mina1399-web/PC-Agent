@@ -76,9 +76,7 @@ public partial class MainWindow
         if (button.Tag is not DesktopRoute route) return;
         NavigateTo(route);
         if (route != DesktopRoute.Events) return;
-        var incident = IncidentsGrid.Items.OfType<ViewIncident>().FirstOrDefault(x => x.Id == _triageIncidentId);
-        IncidentsGrid.SelectedItem = incident;
-        if (incident is not null) IncidentsGrid.ScrollIntoView(incident);
+        SelectIncidentFromTriage(_triageIncidentId);
     }
 
     private void ThemeClick(object sender, RoutedEventArgs e)

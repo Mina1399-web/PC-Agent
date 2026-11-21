@@ -234,7 +234,8 @@ public partial class MainWindow:Window
                 CpuText.Text=MemoryText.Text=UptimeText.Text=IncidentCountText.Text="—";NetworkText.Text=T("NetworkDataUnavailable");
                 SystemCpuText.Text=SystemMemoryText.Text=SystemUptimeText.Text=SystemIncidentCountText.Text="—";
                 SystemEvidenceMetaText.Text=T("DesignEvidenceSourceUnavailable");
-                DisksGrid.ItemsSource=ProcessGrid.ItemsSource=HealthGrid.ItemsSource=IncidentsGrid.ItemsSource=ServicesGrid.ItemsSource=null;
+                DisksGrid.ItemsSource=ProcessGrid.ItemsSource=HealthGrid.ItemsSource=ServicesGrid.ItemsSource=null;
+                RenderIncidentOverview(null, replaceRows);
                 SetEmptyStates(null);
                 _diskHistoryVersion++;
                 _diskHistory=null;
@@ -268,11 +269,8 @@ public partial class MainWindow:Window
             DisksGrid.ItemsSource=view.Disks;HealthGrid.ItemsSource=view.Health;ServicesGrid.ItemsSource=view.Services;
             RenderProcessRanking(view,true);
             SetEmptyStates(view);
-            var selected=(IncidentsGrid.SelectedItem as ViewIncident)?.Id;
-            IncidentsGrid.ItemsSource=view.Incidents;
-            if(selected is not null)IncidentsGrid.SelectedItem=view.Incidents.FirstOrDefault(x=>x.Id==selected);
-            RenderSelectedIncidentSummary();
             }
+            RenderIncidentOverview(view, replaceRows);
             SetEmptyStates(view);
             UpdateOperationReadiness();
             RenderRecommendations(view);
@@ -345,7 +343,6 @@ public partial class MainWindow:Window
         RenderProcessRanking(view,false);
         HealthEmptyText.Visibility=view?.Health.Count>0?Visibility.Collapsed:Visibility.Visible;
         SetListState(ServicesEmptyText,view?.Services.Count??0,view?.DataState?.Services);
-        IncidentsEmptyText.Text=view is null?T("IncidentsAreUnavailableWithoutAConnectionToTheService"):view.Incidents.Count==0?T("ThereAreNoIncidentsInTheLatestSavedRecords"):T("ShowingTheLatestRecordsDiagnosticConfidenceDoesNotGuaranteeASuccessf",view.Incidents.Count);
     }
     private Border Notice(string text)=>new()
     {
@@ -381,10 +378,18 @@ public partial class MainWindow:Window
     }
     private async void IncidentSelected(object sender,SelectionChangedEventArgs e)
     {
+        if (_applyingHistoryRows) return;
+        _historyPinnedIncident = null;
+        await LoadSelectedIncidentAsync();
+    }
+
+    private async Task LoadSelectedIncidentAsync()
+    {
         var requestVersion=++_detailRequestVersion;
         _selectedDetail=null;
         _detailLoading=false;
-        if(IncidentsGrid.SelectedItem is not ViewIncident incident)
+        if (_historySupported && !_historyConnected) { RenderDetail(); return; }
+        if(SelectedEventIncident is not { } incident)
         {
             RenderSelectedIncidentSummary();
             DetailText.Text=T("SelectAnIncidentToViewTheAvailableCodesTimesAndNumericEvidence");
@@ -397,7 +402,7 @@ public partial class MainWindow:Window
         {
             var detail=await _controller.ReadAsync<ViewIncidentDetail>("incident",new{incidentId=incident.Id},_closing.Token);
             if(_closing.IsCancellationRequested||requestVersion!=_detailRequestVersion
-                ||(IncidentsGrid.SelectedItem as ViewIncident)?.Id!=incident.Id)return;
+                ||SelectedEventIncident?.Id!=incident.Id)return;
             _selectedDetail=detail;
             _detailLoading=false;RenderDetail();
         }
@@ -407,7 +412,7 @@ public partial class MainWindow:Window
     {
             if(_hasRefreshed&&_renderedView is null){TechnicalDetailsExpander.Visibility=Visibility.Collapsed;DetailText.Text=T("DetailsAreUnavailableAPreviousStatusIsNotCurrentEvidence");return;}
             if(_detailLoading){TechnicalDetailsExpander.Visibility=Visibility.Collapsed;DetailText.Text=T("LoadingLimitedEvidence");return;}
-            if(IncidentsGrid.SelectedItem is not ViewIncident){TechnicalDetailsExpander.Visibility=Visibility.Collapsed;DetailText.Text=T("SelectAnIncidentToViewTheAvailableCodesTimesAndNumericEvidence");return;}
+            if(SelectedEventIncident is null){TechnicalDetailsExpander.Visibility=Visibility.Collapsed;DetailText.Text=T("SelectAnIncidentToViewTheAvailableCodesTimesAndNumericEvidence");return;}
             var detail=_selectedDetail;
             if(detail is null){TechnicalDetailsExpander.Visibility=Visibility.Collapsed;DetailText.Text=T("DetailsAreUnavailable");return;}
             var scope=detail.ConfidenceScope=="stop_code_classification_only"?T("ConfidenceRefersToTheStopCodeClassificationItDoesNotIdentifyAFaultyD"):T("ConfidenceIsAnEstimateOfTheLikelyCauseNotAGuaranteeOfTheCorrectRepai");
@@ -415,14 +420,22 @@ public partial class MainWindow:Window
                 (detail.Incident.AffectedService is{} service?T("AffectedService",service):string.Empty)+
                 T("LimitedEvidenceSourceValueUTC",scope)+
                 string.Join("\n",detail.Evidence.Select(x=>T("EvidenceValues",x.Source,x.Value?.ToString(Localization.Culture)??"—",x.AtUtc)))+
-                (detail.Truncated?T("AdditionalEvidenceWasOmittedToLimitTheScope"):"")+T("ViewingThisInformationDoesNotApproveAnAutomaticRepair");
+                (detail.Truncated?T("AdditionalEvidenceWasOmittedToLimitTheScope"):"")+
+                (detail.Incident.State == "Resolved" ? "\n" + T("IncidentHistoryRecoveryUnverified") : "")+
+                T("ViewingThisInformationDoesNotApproveAnAutomaticRepair");
             TechnicalDetailsExpander.Visibility=DeveloperFeaturesEnabled?Visibility.Visible:Visibility.Collapsed;
             TechnicalIncidentCodeText.Text=T("TechnicalIncidentIdentifiers",detail.Incident.Id,detail.Incident.Code);
     }
 
     private void RenderSelectedIncidentSummary()
     {
-        if(IncidentsGrid.SelectedItem is not ViewIncident incident)
+        var selected = SelectedEventIncident;
+        // History only opens evidence. Preserve the previous action scope of
+        // incidents also present in the current service overview.
+        var incident = _historySupported
+            ? _renderedView?.Incidents.FirstOrDefault(row => row.Id == selected?.Id)
+            : selected;
+        if(incident is null)
         {
             _selectedOperationIncidentId=null;
             OperationIncidentSummary.Text=T("NoIncidentSelected");
@@ -649,6 +662,7 @@ public partial class MainWindow:Window
             if(selected is {} named && !DesktopModePolicy.IsDeveloperTab(named))_lastStandardTab=named;
             if(selected==DesktopRoute.Situation && ProcessRankingChoice is not null)
                 await RefreshVisibleProcessRanking();
+            if(selected == DesktopRoute.Events) await LoadInitialIncidentHistoryAsync();
         }
         if(ReferenceEquals(e.Source,DashboardTabs)&&WindowsAdministrationTab?.IsSelected==true)
             await ReadWindowsInventory();

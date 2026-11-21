@@ -1729,4 +1729,17 @@ Quarantine folder: {1}</value></data>
   <data name="ProcessLoadHeading" xml:space="preserve"><value>Process usage</value></data>
   <data name="ProcessesByCpuUsage" xml:space="preserve"><value>Processes by CPU usage</value></data>
   <data name="ProcessRankingCoverage" xml:space="preserve"><value>Showing up to 10 processes · {0} of {1} sampled rows have this measurement</value></data>
+  <data name="IncidentHistoryIntro" xml:space="preserve"><value>Select a saved incident to review its evidence.</value></data>
+  <data name="IncidentHistoryRefresh" xml:space="preserve"><value>Refresh history</value></data>
+  <data name="IncidentHistoryOlder" xml:space="preserve"><value>Load older incidents</value></data>
+  <data name="IncidentHistoryCreated" xml:space="preserve"><value>Created (UTC)</value></data>
+  <data name="IncidentHistoryUpdated" xml:space="preserve"><value>Updated (UTC)</value></data>
+  <data name="IncidentHistoryLegacy" xml:space="preserve"><value>The service supports only the recent-incident list.</value></data>
+  <data name="IncidentHistoryLoading" xml:space="preserve"><value>Loading saved incident history…</value></data>
+  <data name="IncidentHistoryOlderFailed" xml:space="preserve"><value>Could not load older incidents. The displayed rows were kept. Try again.</value></data>
+  <data name="IncidentHistoryRefreshFailed" xml:space="preserve"><value>Could not refresh incident history. The displayed rows were kept. Try again.</value></data>
+  <data name="IncidentHistoryDisconnected" xml:space="preserve"><value>Lost connection to the service. Displayed rows are saved history.</value></data>
+  <data name="IncidentHistoryCount" xml:space="preserve"><value>{0} saved incidents loaded.</value></data>
+  <data name="IncidentHistoryEmpty" xml:space="preserve"><value>No incidents are saved.</value></data>
+  <data name="IncidentHistoryRecoveryUnverified" xml:space="preserve"><value>Resolved is a saved incident state. Recovery has not been verified by this view.</value></data>
 </root>

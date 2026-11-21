@@ -10,7 +10,7 @@ namespace HostAgent.Infrastructure.Storage;
 
 public sealed partial class SqliteHostAgentStore : IHostAgentStore
 {
-    public const int LatestSchemaVersion = 3;
+    public const int LatestSchemaVersion = 4;
     private static readonly TimeSpan MinimumDetailedRetention = TimeSpan.FromDays(30);
     private const int MaximumCheckpointLength = 16_384;
     private readonly string _databasePath;
@@ -111,6 +111,16 @@ public sealed partial class SqliteHostAgentStore : IHostAgentStore
                 await ExecuteNonQueryAsync(connection, transaction, BaselineOriginSchema, cancellationToken);
                 await ExecuteNonQueryAsync(connection, transaction,
                     "INSERT INTO schema_migrations (version, applied_at_utc) VALUES (3, $time);",
+                    cancellationToken, ("$time", FormatTimestamp(DateTimeOffset.UtcNow)));
+            }
+
+            if (version < 4)
+            {
+                await ExecuteNonQueryAsync(connection, transaction,
+                    "CREATE INDEX IF NOT EXISTS ix_incidents_history ON incidents (created_at_utc DESC, incident_id DESC);",
+                    cancellationToken);
+                await ExecuteNonQueryAsync(connection, transaction,
+                    "INSERT INTO schema_migrations (version, applied_at_utc) VALUES (4, $time);",
                     cancellationToken, ("$time", FormatTimestamp(DateTimeOffset.UtcNow)));
             }
 

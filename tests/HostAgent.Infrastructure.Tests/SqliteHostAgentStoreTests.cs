@@ -29,7 +29,7 @@ public sealed class SqliteHostAgentStoreTests
             {
                 await store.InitializeAsync(CancellationToken.None);
 
-                Assert.Equal(3, await store.GetSchemaVersionAsync(CancellationToken.None));
+                Assert.Equal(4, await store.GetSchemaVersionAsync(CancellationToken.None));
                 await store.SaveTelemetrySnapshotAsync(expected, CancellationToken.None);
                 await store.SaveCollectorCheckpointAsync(
                     "event-log",
@@ -60,7 +60,7 @@ public sealed class SqliteHostAgentStoreTests
             await using (var reopened = new SqliteHostAgentStore(databasePath))
             {
                 await reopened.InitializeAsync(CancellationToken.None);
-                Assert.Equal(3, await reopened.GetSchemaVersionAsync(CancellationToken.None));
+                Assert.Equal(4, await reopened.GetSchemaVersionAsync(CancellationToken.None));
                 Assert.Equal("<Bookmark />", await reopened.ReadCollectorCheckpointAsync(
                     "event-log",
                     "System",
@@ -80,7 +80,7 @@ public sealed class SqliteHostAgentStoreTests
     }
 
     [Fact]
-    public async Task Schema_v1_migrates_to_v3_and_adds_checkpoint_and_baseline_origin_storage()
+    public async Task Schema_v1_migrates_to_v4_and_adds_checkpoint_and_baseline_origin_storage()
     {
         var databasePath = CreateDatabasePath();
         try
@@ -94,12 +94,12 @@ public sealed class SqliteHostAgentStoreTests
             {
                 await connection.OpenAsync();
                 await using var command = connection.CreateCommand();
-                command.CommandText = "DROP TABLE collector_checkpoints; DROP TRIGGER baseline_origin_on_sample; DROP TABLE baseline_origins; DELETE FROM schema_migrations WHERE version >= 2;";
+                command.CommandText = "DROP INDEX ix_incidents_history; DROP TABLE collector_checkpoints; DROP TRIGGER baseline_origin_on_sample; DROP TABLE baseline_origins; DELETE FROM schema_migrations WHERE version >= 2;";
                 await command.ExecuteNonQueryAsync();
             }
 
             await using var migrated = new SqliteHostAgentStore(databasePath);
-            Assert.Equal(3, await migrated.GetSchemaVersionAsync(CancellationToken.None));
+            Assert.Equal(4, await migrated.GetSchemaVersionAsync(CancellationToken.None));
             await migrated.SaveCollectorCheckpointAsync(
                 "event-log",
                 "Application",

@@ -237,6 +237,47 @@ public sealed partial class SqliteHostAgentStore
         return incidents;
     }
 
+    internal const string IncidentHistoryFirstSql = """
+        SELECT created_at_utc, updated_at_utc, incident_id, payload_json FROM incidents
+        ORDER BY created_at_utc DESC, incident_id DESC LIMIT $limit;
+        """;
+
+    internal const string IncidentHistoryBeforeSql = """
+        SELECT created_at_utc, updated_at_utc, incident_id, payload_json FROM incidents
+        WHERE (created_at_utc, incident_id) < ($created, $id)
+        ORDER BY created_at_utc DESC, incident_id DESC LIMIT $limit;
+        """;
+
+    public async ValueTask<IReadOnlyList<Incident>> ReadIncidentHistoryAsync(
+        IncidentHistoryCursor? before, CancellationToken cancellationToken)
+    {
+        if (before is not null && !before.IsValid()) throw new ArgumentException("Invalid history cursor.", nameof(before));
+        await EnsureInitializedAsync(cancellationToken);
+        await using var connection = await OpenConnectionAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = before is null ? IncidentHistoryFirstSql : IncidentHistoryBeforeSql;
+        command.Parameters.AddWithValue("$limit", IncidentHistoryCursor.PageSize + 1);
+        if (before is not null)
+        {
+            command.Parameters.AddWithValue("$created", FormatTimestamp(new DateTimeOffset(before.CreatedAtUtcTicks, TimeSpan.Zero)));
+            command.Parameters.AddWithValue("$id", before.IncidentId);
+        }
+        var heads = new List<Incident>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            var incident = JsonSerializer.Deserialize<Incident>(reader.GetString(3)) ?? throw new JsonException("Missing incident.");
+            if (incident.IncidentId != reader.GetString(2)) throw new JsonException("Incident identity mismatch.");
+            heads.Add(incident with
+            {
+                CreatedAtUtc = ParseTimestamp(reader.GetString(0)),
+                UpdatedAtUtc = ParseTimestamp(reader.GetString(1)),
+                Snapshots = []
+            });
+        }
+        return heads;
+    }
+
     private async ValueTask<IReadOnlyList<Incident>> ReadIncidentsCoreAsync(bool operational, CancellationToken cancellationToken)
     {
         await EnsureInitializedAsync(cancellationToken);
