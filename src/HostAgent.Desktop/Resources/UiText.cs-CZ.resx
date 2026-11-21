@@ -1711,4 +1711,16 @@ Složka karantény: {1}</value></data>
   <data name="SubsystemNoCurrentValue" xml:space="preserve"><value>Aktuální údaj není dostupný.</value></data>
   <data name="SubsystemExcerpt" xml:space="preserve"><value>Poslední hlášené položky (omezený výpis)</value></data>
   <data name="SubsystemDiskLine" xml:space="preserve"><value>{0} · volné {1} z {2}</value></data>
+  <data name="DiskHistoryCpuRam" xml:space="preserve"><value>CPU a RAM</value></data>
+  <data name="DiskHistoryThroughput" xml:space="preserve"><value>Diskový průtok</value></data>
+  <data name="DiskHistoryLatency" xml:space="preserve"><value>Latence disku</value></data>
+  <data name="DiskHistoryRead" xml:space="preserve"><value>Čtení</value></data>
+  <data name="DiskHistoryWrite" xml:space="preserve"><value>Zápis</value></data>
+  <data name="DiskHistoryLoading" xml:space="preserve"><value>Načítá se historie disku…</value></data>
+  <data name="DiskHistoryUnavailable" xml:space="preserve"><value>Historie disku je nedostupná. Pro opakování znovu vyberte graf.</value></data>
+  <data name="DiskHistoryCoverage" xml:space="preserve"><value>{0} · {1} z {2} intervalů · {3}. Aktuálně: {4} · {5}</value></data>
+  <data name="DiskHistoryWindow" xml:space="preserve"><value>{0:g} až {1:g} · stupnice 0–{2:G4} {3}</value></data>
+  <data name="DiskHistoryWindowEmpty" xml:space="preserve"><value>{0:g} až {1:g}</value></data>
+  <data name="DiskHistoryCapacity" xml:space="preserve"><value>Překročen limit uložených vzorků</value></data>
+  <data name="DiskHistoryCounterMissing" xml:space="preserve"><value>Diskový čítač je nedostupný</value></data>
 </root>

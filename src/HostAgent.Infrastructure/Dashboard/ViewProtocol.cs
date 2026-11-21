@@ -17,6 +17,10 @@ public static class ViewProtocol
             switch(command)
             {
                 case "overview":case "investigate":HelperProtocol.Exact(body);break;
+                case "disk-history":
+                    HelperProtocol.Exact(body,"group");
+                    if(body.GetProperty("group").GetString() is not ("throughput" or "latency"))throw new InvalidDataException();
+                    break;
                 case "history":
                     HelperProtocol.Exact(body,"metric");
                     if(body.GetProperty("metric").GetString() is not ("cpu" or "memory"))throw new InvalidDataException();break;

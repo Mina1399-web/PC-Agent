@@ -121,6 +121,13 @@
      </UniformGrid>
      <Border Style="{StaticResource Card}" Margin="0,0,0,16"><StackPanel>
       <DockPanel><TextBlock Text="{DynamicResource Loc.PerformanceHistory}" Style="{StaticResource SectionTitle}"/><TextBlock Text="{DynamicResource Loc.Text24Hours}" Style="{StaticResource Caption}" HorizontalAlignment="Right"/></DockPanel>
+      <ComboBox x:Name="HistoryGroup" SelectedIndex="0" SelectionChanged="HistoryGroupChanged" HorizontalAlignment="Left"
+                Margin="0,8,0,12" AutomationProperties.Name="{DynamicResource Loc.PerformanceHistory}">
+       <ComboBoxItem Content="{DynamicResource Loc.DiskHistoryCpuRam}"/>
+       <ComboBoxItem Tag="throughput" Content="{DynamicResource Loc.DiskHistoryThroughput}"/>
+       <ComboBoxItem Tag="latency" Content="{DynamicResource Loc.DiskHistoryLatency}"/>
+      </ComboBox>
+      <StackPanel x:Name="CpuHistoryPanel">
       <DockPanel Margin="0,0,0,20"><StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBlock x:Name="CpuHistoryLegend" Foreground="{DynamicResource AccentBrush}" Margin="12,0,16,0"><Run Text="● "/><Run x:Name="CpuHistoryLabel" Text="CPU"/></TextBlock><TextBlock x:Name="RamHistoryLegend" Foreground="{DynamicResource RamBrush}"><Run Text="● "/><Run x:Name="RamHistoryLabel" Text="RAM"/></TextBlock></StackPanel><TextBlock Text="{DynamicResource Loc.Text15MinuteAveragesGapsInMeasurementsRemainVisible}" Style="{StaticResource Caption}"/></DockPanel>
       <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="38"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
        <Grid Height="180"><TextBlock Text="100 %" Style="{StaticResource Caption}" FontSize="11"/><TextBlock Text="50 %" Style="{StaticResource Caption}" FontSize="11" VerticalAlignment="Center"/><TextBlock Text="0 %" Style="{StaticResource Caption}" FontSize="11" VerticalAlignment="Bottom"/></Grid>
@@ -134,6 +141,18 @@
        <TextBlock Grid.Column="1" x:Name="ChartEmptyText" MaxWidth="360" Margin="16" Text="{DynamicResource Loc.HistoryIsNotAvailableYetTheChartWillAppearWhenSavedMeasurementsAreAv}" Style="{StaticResource Caption}" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
       </Grid>
       <Grid Margin="38,10,0,0"><TextBlock Text="{DynamicResource Loc.Text24HAgo}" Style="{StaticResource Caption}" FontSize="11"/><TextBlock Text="{DynamicResource Loc.Text12HAgo}" Style="{StaticResource Caption}" FontSize="11" HorizontalAlignment="Center"/><TextBlock Text="{DynamicResource Loc.Now}" Style="{StaticResource Caption}" FontSize="11" HorizontalAlignment="Right"/></Grid>
+      </StackPanel>
+      <StackPanel x:Name="DiskHistoryPanel" Visibility="Collapsed">
+       <TextBlock Text="{DynamicResource Loc.Text15MinuteAveragesGapsInMeasurementsRemainVisible}" Style="{StaticResource Caption}" TextWrapping="Wrap"/>
+       <TextBlock x:Name="DiskHistoryStatus" Margin="0,8,0,4" TextWrapping="Wrap"/>
+       <GroupBox x:Name="DiskHistorySummary" Focusable="False" IsTabStop="False">
+        <GroupBox.Template>
+         <ControlTemplate TargetType="GroupBox"><ContentPresenter ContentSource="Content"/></ControlTemplate>
+        </GroupBox.Template>
+        <Canvas x:Name="DiskHistoryChart" Height="180" Background="{DynamicResource CardBrush}" ClipToBounds="True" SizeChanged="DiskHistoryChartSizeChanged"/>
+       </GroupBox>
+       <TextBlock x:Name="DiskHistoryWindow" TextWrapping="Wrap" Style="{StaticResource Caption}"/>
+      </StackPanel>
      </StackPanel></Border>
      <local:SituationSubsystemView x:Name="SubsystemView" Margin="0,0,0,16"/>
      <Border Background="{DynamicResource SelectedBrush}" CornerRadius="6" Padding="14,12" Margin="0,0,0,16"><TextBlock x:Name="NetworkText" Foreground="{DynamicResource RailTextBrush}" Text="{DynamicResource Loc.NetworkWaitingForMeasurements}" TextWrapping="Wrap" FontSize="13"/></Border>

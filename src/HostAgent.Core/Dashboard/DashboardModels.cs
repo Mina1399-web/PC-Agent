@@ -1,6 +1,12 @@
 namespace HostAgent.Core.Dashboard;
 
 public sealed record ViewMetric(DateTimeOffset AtUtc, double Value);
+// Each nullable value represents the corresponding 15-minute bucket from FromUtc.
+public sealed record ViewDiskHistory(DateTimeOffset FromUtc, DateTimeOffset ThroughUtc,
+    int BucketMinutes, IReadOnlyList<ViewDiskHistorySeries> Series);
+public sealed record ViewDiskHistorySeries(string Metric, string Unit, string Source,
+    string Coverage, string? CoverageReason, IReadOnlyList<double?> Values, ViewMetric? Current,
+    ViewDataState CurrentState);
 public sealed record ViewDisk(string Drive, long FreeBytes, long CapacityBytes, DateTimeOffset AtUtc);
 public sealed record ViewProcess(int Pid, string Name, double? CpuPercent, long MemoryBytes)
 { public long? StartTimeUtcTicks {get;init;} }

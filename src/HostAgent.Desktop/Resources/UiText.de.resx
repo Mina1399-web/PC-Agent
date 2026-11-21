@@ -1711,4 +1711,16 @@ Quarantäneordner: {1}</value></data>
   <data name="SubsystemNoCurrentValue" xml:space="preserve"><value>Kein aktueller Messwert verfügbar.</value></data>
   <data name="SubsystemExcerpt" xml:space="preserve"><value>Zuletzt gemeldete Einträge (begrenzte Liste)</value></data>
   <data name="SubsystemDiskLine" xml:space="preserve"><value>{0} · {1} frei von {2}</value></data>
+  <data name="DiskHistoryCpuRam" xml:space="preserve"><value>CPU und RAM</value></data>
+  <data name="DiskHistoryThroughput" xml:space="preserve"><value>Datenträgerdurchsatz</value></data>
+  <data name="DiskHistoryLatency" xml:space="preserve"><value>Datenträgerlatenz</value></data>
+  <data name="DiskHistoryRead" xml:space="preserve"><value>Lesen</value></data>
+  <data name="DiskHistoryWrite" xml:space="preserve"><value>Schreiben</value></data>
+  <data name="DiskHistoryLoading" xml:space="preserve"><value>Datenträgerverlauf wird geladen…</value></data>
+  <data name="DiskHistoryUnavailable" xml:space="preserve"><value>Datenträgerverlauf ist nicht verfügbar. Wählen Sie das Diagramm erneut aus.</value></data>
+  <data name="DiskHistoryCoverage" xml:space="preserve"><value>{0} · {1} von {2} Intervallen · {3}. Aktuell: {4} · {5}</value></data>
+  <data name="DiskHistoryWindow" xml:space="preserve"><value>{0:g} bis {1:g} · Skala 0–{2:G4} {3}</value></data>
+  <data name="DiskHistoryWindowEmpty" xml:space="preserve"><value>{0:g} bis {1:g}</value></data>
+  <data name="DiskHistoryCapacity" xml:space="preserve"><value>Grenze gespeicherter Messwerte überschritten</value></data>
+  <data name="DiskHistoryCounterMissing" xml:space="preserve"><value>Datenträgerzähler nicht verfügbar</value></data>
 </root>

@@ -381,6 +381,76 @@ public sealed class DashboardViewTests
     }
 
     [Fact]
+    public async Task Disk_history_preserves_zero_and_gaps_without_reusing_history_as_current()
+    {
+        await using var fixture=await OperatingModeTests.Fixture.Create();
+        var now=new DateTimeOffset(2026,11,21,12,0,0,TimeSpan.Zero);
+        const string read="disk.read.bytes_per_second";
+        const string write="disk.write.bytes_per_second";
+        await fixture.Store.SaveMetricSampleAsync(new(Guid.NewGuid(),read,"host",now.AddHours(-24),0),default);
+        await fixture.Store.SaveMetricSampleAsync(new(Guid.NewGuid(),read,"host",now.AddHours(-23.5),2_000),default);
+        await fixture.Store.SaveMetricSampleAsync(new(Guid.NewGuid(),write,"host",now.AddHours(-24).AddSeconds(-1),99),default);
+        await fixture.Store.SaveMetricSampleAsync(new(Guid.NewGuid(),write,"device",now,97),default);
+        await Seed(fixture.Store,"disk",new DiskTelemetry([],new(false,null,null,null,"disk_io_query_unavailable"),[]),now);
+        var dispatcher=new DashboardDispatcher(fixture.Store,new(),new(),new DiskHistoryClock(now));
+        var bytes=await dispatcher.DispatchAsync(ViewProtocol.Request("disk-history",new{group="throughput"}),default);
+        Assert.InRange(bytes.Length,1,16_384);
+        using var reply=JsonDocument.Parse(bytes);
+        Assert.True(reply.RootElement.GetProperty("ok").GetBoolean());
+        var history=reply.RootElement.GetProperty("data").Deserialize<ViewDiskHistory>()!;
+        var series=history.Series[0];
+        Assert.Equal(96,series.Values.Count);
+        Assert.Equal(0d,series.Values[0]);
+        Assert.Null(series.Values[1]);
+        Assert.Equal(2_000d,series.Values[2]);
+        Assert.Equal("partial",series.Coverage);
+        Assert.Null(series.Current);
+        Assert.Equal("unavailable",series.CurrentState.Status);
+        Assert.Equal(now,series.CurrentState.AtUtc);
+        Assert.Equal("disk_io_query_unavailable",series.CurrentState.Reason);
+        Assert.All(history.Series[1].Values,value=>Assert.Null(value));
+        Assert.Throws<InvalidDataException>(()=>ViewProtocol.Request("disk-history",new{group="cpu"}));
+        Assert.Throws<InvalidDataException>(()=>ViewProtocol.Request("disk-history",new{group="latency",scope="device"}));
+    }
+
+    [Fact]
+    public async Task Populated_disk_history_stays_bounded_and_current_zero_is_independent_of_coverage()
+    {
+        await using var fixture=await OperatingModeTests.Fixture.Create();
+        var now=new DateTimeOffset(2026,11,21,12,0,0,TimeSpan.Zero);
+        foreach(var metric in new[]{"disk.read.bytes_per_second","disk.write.bytes_per_second"})
+            for(var bucket=0;bucket<96;bucket++)
+                await fixture.Store.SaveMetricSampleAsync(new(Guid.NewGuid(),metric,"host",
+                    now.AddHours(-24).AddMinutes(bucket*15),double.MaxValue),default);
+        await Seed(fixture.Store,"disk",new DiskTelemetry([],new(true,0,null,0,"some_disk_io_counters_unavailable"),[]),now);
+        var dispatcher=new DashboardDispatcher(fixture.Store,new(),new(),new DiskHistoryClock(now));
+        var bytes=await dispatcher.DispatchAsync(ViewProtocol.Request("disk-history",new{group="throughput"}),default);
+        Assert.InRange(bytes.Length,1,16_384);
+        using var reply=JsonDocument.Parse(bytes);
+        Assert.True(reply.RootElement.GetProperty("ok").GetBoolean());
+        var history=reply.RootElement.GetProperty("data").Deserialize<ViewDiskHistory>()!;
+        Assert.All(history.Series,row=>
+        {
+            Assert.Equal("available",row.Coverage);
+            Assert.Equal(96,row.Values.Count);
+            Assert.All(row.Values,value=>Assert.Equal(double.MaxValue,value));
+        });
+        Assert.Equal(0d,history.Series[0].Current!.Value);
+        Assert.Equal("available",history.Series[0].CurrentState.Status);
+        Assert.Null(history.Series[1].Current);
+        using var latency=JsonDocument.Parse(await dispatcher.DispatchAsync(ViewProtocol.Request("disk-history",new{group="latency"}),default));
+        var latencyRow=Assert.Single(latency.RootElement.GetProperty("data").Deserialize<ViewDiskHistory>()!.Series);
+        Assert.Equal("ms",latencyRow.Unit);
+        Assert.Equal(0d,latencyRow.Current!.Value);
+        Assert.Equal("unknown",latencyRow.Coverage);
+    }
+
+    private sealed class DiskHistoryClock(DateTimeOffset now):TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow()=>now;
+    }
+
+    [Fact]
     public async Task Incident_export_exposes_numeric_evidence_and_codes_without_arbitrary_text_or_xml()
     {
         await using var f=await OperatingModeTests.Fixture.Create();
