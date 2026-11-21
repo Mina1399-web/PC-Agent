@@ -1726,4 +1726,7 @@ Quarantine folder: {1}</value></data>
   <data name="DiskHistoryWindowEmpty" xml:space="preserve"><value>{0:g} to {1:g}</value></data>
   <data name="DiskHistoryCapacity" xml:space="preserve"><value>Stored sample limit exceeded</value></data>
   <data name="DiskHistoryCounterMissing" xml:space="preserve"><value>Disk counter unavailable</value></data>
+  <data name="ProcessLoadHeading" xml:space="preserve"><value>Process usage</value></data>
+  <data name="ProcessesByCpuUsage" xml:space="preserve"><value>Processes by CPU usage</value></data>
+  <data name="ProcessRankingCoverage" xml:space="preserve"><value>Showing up to 10 processes · {0} of {1} sampled rows have this measurement</value></data>
 </root>

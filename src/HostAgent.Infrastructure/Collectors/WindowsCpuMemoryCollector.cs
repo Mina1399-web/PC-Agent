@@ -10,7 +10,7 @@ public sealed class WindowsCpuMemoryCollector : ITelemetryCollector<CpuMemoryTel
 {
     public const int TopProcessLimit = 10;
     private readonly object _sync = new();
-    private readonly Dictionary<int, ProcessCpuObservation> _previousProcesses = [];
+    private readonly ProcessCpuTracker _processCpu = new();
     private CpuTimeObservation? _previousSystemCpu;
 
     public string CollectorId => "cpu-memory";
@@ -30,7 +30,7 @@ public sealed class WindowsCpuMemoryCollector : ITelemetryCollector<CpuMemoryTel
         }
 
         var cpu = ReadSystemCpu(now, warnings);
-        var processes = ReadProcessUsage(now, warnings, cancellationToken);
+        var processes = ReadProcessUsage(warnings, cancellationToken);
         var telemetry = new CpuMemoryTelemetry(
             cpu,
             memoryRead ? AsBytes(memory.TotalPhysical) : null,
@@ -41,7 +41,8 @@ public sealed class WindowsCpuMemoryCollector : ITelemetryCollector<CpuMemoryTel
                 .OrderByDescending(static process => process.CpuUsagePercent)
                 .Take(TopProcessLimit)
                 .ToArray(),
-            processes.OrderByDescending(static process => process.MemoryBytes)
+            processes.Where(static process => process.MemoryBytes.HasValue)
+                .OrderByDescending(static process => process.MemoryBytes)
                 .Take(TopProcessLimit)
                 .ToArray());
 
@@ -103,11 +104,10 @@ public sealed class WindowsCpuMemoryCollector : ITelemetryCollector<CpuMemoryTel
     }
 
     private IReadOnlyList<ProcessResourceUsage> ReadProcessUsage(
-        DateTimeOffset now,
         ICollection<string> warnings,
         CancellationToken cancellationToken)
     {
-        var observations = new List<(ProcessResourceUsage Usage, TimeSpan CpuTime)>();
+        var observations = new List<ProcessResourceUsage>();
         var seenProcessIds = new HashSet<int>();
         Process[] runningProcesses;
         try
@@ -116,6 +116,7 @@ public sealed class WindowsCpuMemoryCollector : ITelemetryCollector<CpuMemoryTel
         }
         catch (Win32Exception)
         {
+            _processCpu.Retain(seenProcessIds);
             warnings.Add("process_list_unavailable");
             return Array.Empty<ProcessResourceUsage>();
         }
@@ -133,19 +134,15 @@ public sealed class WindowsCpuMemoryCollector : ITelemetryCollector<CpuMemoryTel
                     knownProcessId = id;
                     stage=ProcessMetricReadStage.Name;
                     var name = process.ProcessName;
-                    stage=ProcessMetricReadStage.WorkingSet;
-                    var memoryBytes = process.WorkingSet64;
-                    if (memoryBytes < 0)
-                    {
-                        warnings.Add("some_process_metrics_unavailable");
-                        continue;
-                    }
-                    stage=ProcessMetricReadStage.CpuTime;
-                    var cpuTime = process.TotalProcessorTime;
-                    var path = TryGetExecutablePath(process);
+                    if (id <= 0) continue;
+                    var sample = WindowsProcessCpuSample.Read(id, warnings);
+                    var cpuPercent = _processCpu.Record(id, sample, DateTimeOffset.UtcNow, Environment.ProcessorCount);
+                    if (sample.Exited) continue;
                     seenProcessIds.Add(id);
-                    var cpuPercent = UpdateProcessCpu(id, cpuTime, now);
-                    observations.Add((new ProcessResourceUsage(id, name, cpuPercent, memoryBytes, path), cpuTime));
+                    var memory = ProcessMetricFailure.WorkingSet(process, id, warnings);
+                    if (memory is null && cpuPercent is null) continue;
+                    var path = TryGetExecutablePath(process);
+                    observations.Add(new(id, name, cpuPercent, memory, path));
                 }
                 catch (Exception exception) when (
                     exception is Win32Exception or InvalidOperationException or NotSupportedException)
@@ -158,38 +155,8 @@ public sealed class WindowsCpuMemoryCollector : ITelemetryCollector<CpuMemoryTel
             }
         }
 
-        lock (_sync)
-        {
-            foreach (var staleId in _previousProcesses.Keys.Where(id => !seenProcessIds.Contains(id)).ToArray())
-            {
-                _previousProcesses.Remove(staleId);
-            }
-        }
-
-        return observations.Select(static observation => observation.Usage).ToArray();
-    }
-
-    private double? UpdateProcessCpu(int processId, TimeSpan cpuTime, DateTimeOffset now)
-    {
-        lock (_sync)
-        {
-            var cpuPercent = (double?)null;
-            if (_previousProcesses.TryGetValue(processId, out var previous))
-            {
-                var elapsed = now - previous.CapturedAtUtc;
-                var cpuDelta = cpuTime - previous.CpuTime;
-                if (elapsed > TimeSpan.Zero && cpuDelta >= TimeSpan.Zero)
-                {
-                    cpuPercent = Math.Clamp(
-                        100d * cpuDelta.TotalSeconds / (elapsed.TotalSeconds * Math.Max(1, Environment.ProcessorCount)),
-                        0,
-                        100);
-                }
-            }
-
-            _previousProcesses[processId] = new ProcessCpuObservation(cpuTime, now);
-            return cpuPercent;
-        }
+        _processCpu.Retain(seenProcessIds);
+        return observations;
     }
 
     private static string? TryGetExecutablePath(Process process)
@@ -211,5 +178,4 @@ public sealed class WindowsCpuMemoryCollector : ITelemetryCollector<CpuMemoryTel
         ulong UserTicks,
         DateTimeOffset CapturedAtUtc);
 
-    private sealed record ProcessCpuObservation(TimeSpan CpuTime, DateTimeOffset CapturedAtUtc);
 }

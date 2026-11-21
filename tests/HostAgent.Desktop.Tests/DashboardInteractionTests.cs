@@ -412,6 +412,32 @@ public sealed class DashboardInteractionTests
         }
     }
 
+    [Fact]
+    public Task Process_rankings_retain_only_the_same_instance_and_show_coverage() => WithWindow((window, view) =>
+    {
+        var now=DateTimeOffset.UtcNow;
+        var original=Assert.Single(view.Snapshot.Processes);
+        var state=new ViewDataState("processes",now,"partial","incomplete_sample");
+        view.ProcessLoad=new([original],[original],14,1,12,state,state);
+        Refresh(window);
+        var grid=Assert.IsType<DataGrid>(window.FindName("ProcessGrid"));
+        var choice=Assert.IsType<ComboBox>(window.FindName("ProcessRankingChoice"));
+        grid.SelectedIndex=0;
+        Assert.Equal(0,view.ProcessLoadRequests);
+        choice.SelectedIndex=1;
+        Assert.Equal(1,view.ProcessLoadRequests);
+        Assert.Equal(original.StartTimeUtcTicks,Assert.IsType<ViewProcess>(grid.SelectedItem).StartTimeUtcTicks);
+        var coverage=Assert.IsType<TextBlock>(window.FindName("ProcessRankingCoverage"));
+        Assert.Equal(window.Localization.Text("ProcessRankingCoverage",1,14),coverage.Text);
+
+        var recycled=original with { StartTimeUtcTicks=original.StartTimeUtcTicks+1 };
+        view.ProcessLoad=new([recycled],[original],14,1,12,state,state);
+        Refresh(window);
+        Assert.Null(grid.SelectedItem);
+        Assert.Equal("",Assert.IsType<TextBox>(window.FindName("PidInput")).Text);
+        Assert.Equal("",Assert.IsType<TextBox>(window.FindName("TicksInput")).Text);
+    });
+
     private static Task WithWindow(Action<MainWindow, FakeView> check) => StaTest.RunAsync(() =>
     {
         MainWindow? window = null;
@@ -570,6 +596,8 @@ public sealed class DashboardInteractionTests
         public DashboardSnapshot Snapshot { get; set; }
         public bool DelayDetails { get; set; }
         public ViewMetric[] History { get; set; } = [];
+        public ViewProcessLoad? ProcessLoad { get; set; }
+        public int ProcessLoadRequests { get; private set; }
         public ViewMetric[]? MemoryHistory { get; set; }
         public List<TaskCompletionSource<byte[]>> Details { get; } = [];
         public TaskCompletionSource<byte[]>? PendingOverview {get;set;}
@@ -599,10 +627,13 @@ public sealed class DashboardInteractionTests
                 Details.Add(pending);
                 return new(pending.Task);
             }
+            if(request.Command=="process-load") ProcessLoadRequests++;
             // A refresh deserializes new row objects, as the real pipe does.
             return ValueTask.FromResult(request.Command switch
             {
                 "overview" => AdminProtocol.Reply(true, "overview", Snapshot),
+                "process-load" => ProcessLoad is not null ? AdminProtocol.Reply(true, "process-load", ProcessLoad)
+                    : AdminProtocol.Reply(false, "view_unavailable"),
                 "history" => AdminProtocol.Reply(true, "history", request.Body.GetProperty("metric").GetString()=="memory" ? MemoryHistory??History : History),
                 "incident" => Detail("current_evidence"),
                 _ => AdminProtocol.Reply(false, "view_unavailable")
