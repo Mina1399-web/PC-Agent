@@ -1,5 +1,6 @@
 using System.Text.Json;
 using HostAgent.Core.Models.Incidents;
+using HostAgent.Core.Models.Inventory;
 using HostAgent.Infrastructure.Administration;
 using HostAgent.Infrastructure.Pipes;
 namespace HostAgent.Infrastructure.Dashboard;
@@ -23,6 +24,11 @@ public static class ViewProtocol
                 case "disk-history":
                     HelperProtocol.Exact(body,"group");
                     if(body.GetProperty("group").GetString() is not ("throughput" or "latency"))throw new InvalidDataException();
+                    break;
+                case "hardware-inventory":
+                    HelperProtocol.Exact(body,"category");
+                    if(HardwareInventorySources.ForCategory(body.GetProperty("category").GetString()) is null)
+                        throw new InvalidDataException();
                     break;
                 case "history":
                     HelperProtocol.Exact(body,"metric");
