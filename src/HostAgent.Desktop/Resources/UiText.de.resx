@@ -1703,4 +1703,12 @@ Quarantäneordner: {1}</value></data>
   <data name="DataTrustLegacy" xml:space="preserve"><value>Älterer Eintrag ohne Erfassungsstatus</value></data>
   <data name="DataTrustEmpty" xml:space="preserve"><value>Beim letzten Lesen wurden keine Einträge gefunden.</value></data>
   <data name="DataTrustEventCoverage" xml:space="preserve"><value>Vorhandene gespeicherte Einträge werden angezeigt. Aktuelle Abdeckung des Ereignisprotokolls: {0}.</value></data>
+  <data name="SubsystemHeading" xml:space="preserve"><value>Subsysteme</value></data>
+  <data name="SubsystemMap" xml:space="preserve"><value>Subsystemkarte</value></data>
+  <data name="SubsystemList" xml:space="preserve"><value>Subsystemliste</value></data>
+  <data name="SubsystemShowDetail" xml:space="preserve"><value>Subsystemdetails</value></data>
+  <data name="SubsystemCloseDetail" xml:space="preserve"><value>Details schließen</value></data>
+  <data name="SubsystemNoCurrentValue" xml:space="preserve"><value>Kein aktueller Messwert verfügbar.</value></data>
+  <data name="SubsystemExcerpt" xml:space="preserve"><value>Zuletzt gemeldete Einträge (begrenzte Liste)</value></data>
+  <data name="SubsystemDiskLine" xml:space="preserve"><value>{0} · {1} frei von {2}</value></data>
 </root>

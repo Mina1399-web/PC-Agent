@@ -1706,4 +1706,12 @@ Quarantine folder: {1}</value></data>
   <data name="DataTrustLegacy" xml:space="preserve"><value>Legacy record without collector status</value></data>
   <data name="DataTrustEmpty" xml:space="preserve"><value>No entries in the latest read.</value></data>
   <data name="DataTrustEventCoverage" xml:space="preserve"><value>Saved entries are shown where present. Current Event Log coverage: {0}.</value></data>
+  <data name="SubsystemHeading" xml:space="preserve"><value>Subsystems</value></data>
+  <data name="SubsystemMap" xml:space="preserve"><value>Subsystem map</value></data>
+  <data name="SubsystemList" xml:space="preserve"><value>Subsystem list</value></data>
+  <data name="SubsystemShowDetail" xml:space="preserve"><value>Subsystem detail</value></data>
+  <data name="SubsystemCloseDetail" xml:space="preserve"><value>Close detail</value></data>
+  <data name="SubsystemNoCurrentValue" xml:space="preserve"><value>No current reading.</value></data>
+  <data name="SubsystemExcerpt" xml:space="preserve"><value>Latest reported entries (limited list)</value></data>
+  <data name="SubsystemDiskLine" xml:space="preserve"><value>{0} · {1} free of {2}</value></data>
 </root>
