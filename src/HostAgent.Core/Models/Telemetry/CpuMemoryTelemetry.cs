@@ -24,5 +24,5 @@ public sealed record ProcessResourceUsage(
     int ProcessId,
     string ProcessName,
     double? CpuUsagePercent,
-    long MemoryBytes,
+    long? MemoryBytes,
     string? ExecutablePath);

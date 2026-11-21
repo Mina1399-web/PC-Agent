@@ -1723,4 +1723,7 @@ Složka karantény: {1}</value></data>
   <data name="DiskHistoryWindowEmpty" xml:space="preserve"><value>{0:g} až {1:g}</value></data>
   <data name="DiskHistoryCapacity" xml:space="preserve"><value>Překročen limit uložených vzorků</value></data>
   <data name="DiskHistoryCounterMissing" xml:space="preserve"><value>Diskový čítač je nedostupný</value></data>
+  <data name="ProcessLoadHeading" xml:space="preserve"><value>Vytížení procesů</value></data>
+  <data name="ProcessesByCpuUsage" xml:space="preserve"><value>Procesy podle využití CPU</value></data>
+  <data name="ProcessRankingCoverage" xml:space="preserve"><value>Nejvýše 10 procesů · měření je k dispozici u {0} z {1} řádků vzorku</value></data>
 </root>

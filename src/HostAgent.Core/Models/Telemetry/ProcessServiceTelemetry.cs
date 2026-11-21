@@ -11,7 +11,11 @@ public sealed record ProcessTelemetry(
     string? ExecutablePath,
     double? CpuUsagePercent,
     long? MemoryBytes,
-    DateTimeOffset? StartedAtUtc);
+    DateTimeOffset? StartedAtUtc)
+{
+    // Older snapshots predate the single-handle CPU identity check.
+    public bool CpuIdentityVerified { get; init; }
+}
 
 public enum HostServiceStatus
 {

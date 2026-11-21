@@ -10,7 +10,7 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
 {
     public const int MaximumProcesses = 4096;
     private readonly object _sync = new();
-    private readonly Dictionary<int, ProcessObservation> _previousProcesses = [];
+    private readonly ProcessCpuTracker _processCpu = new();
     private readonly Dictionary<string, HostServiceStatus> _previousServices = new(StringComparer.OrdinalIgnoreCase);
 
     public string CollectorId => "process-services";
@@ -20,7 +20,7 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
         cancellationToken.ThrowIfCancellationRequested();
         var now = DateTimeOffset.UtcNow;
         var warnings = new List<string>();
-        var processes = ReadProcesses(now, warnings, cancellationToken);
+        var processes = ReadProcesses(warnings, cancellationToken);
         var services = ReadServices(now, warnings, cancellationToken, out var changes);
         var telemetry = new ProcessServiceTelemetry(processes, services, changes);
 
@@ -30,7 +30,6 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
     }
 
     private IReadOnlyList<ProcessTelemetry> ReadProcesses(
-        DateTimeOffset now,
         ICollection<string> warnings,
         CancellationToken cancellationToken)
     {
@@ -41,6 +40,7 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
         }
         catch (Win32Exception error)
         {
+            _processCpu.Retain([]);
             warnings.Add(error.NativeErrorCode == 5 ? "process_list_access_denied" : "process_list_unavailable");
             return Array.Empty<ProcessTelemetry>();
         }
@@ -64,39 +64,22 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
                 {
                     var id = process.Id;
                     knownProcessId = id;
-                    stage=ProcessMetricReadStage.CpuTime;
-                    var cpuTime = process.TotalProcessorTime;
-                    var cpuPercent = UpdateProcessCpu(id, cpuTime, now);
-                    DateTimeOffset? startedAt = null;
-                    try
-                    {
-                        startedAt = new DateTimeOffset(process.StartTime.ToUniversalTime(), TimeSpan.Zero);
-                    }
-                    catch (Exception exception) when (
-                        exception is Win32Exception or InvalidOperationException or NotSupportedException)
-                    {
-                        warnings.Add("some_process_start_times_unavailable");
-                        if(ProcessMetricFailure.ClassifyStage(exception,knownProcessId,ProcessMetricReadStage.StartTime) is { } detail)
-                            warnings.Add(detail);
-                    }
+                    if (id <= 0) continue;
                     stage=ProcessMetricReadStage.Name;
-                    var name=process.ProcessName;
-                    var path=TryGetExecutablePath(process,warnings);
-                    stage=ProcessMetricReadStage.WorkingSet;
-                    var memoryBytes=process.WorkingSet64;
-                    if(memoryBytes<0)
-                    {
-                        warnings.Add("some_process_metrics_unavailable");
-                        continue;
-                    }
-                    result.Add(new ProcessTelemetry(
-                        id,
-                        name,
-                        path,
-                        cpuPercent,
-                        memoryBytes,
-                        startedAt));
+                    var name = process.ProcessName;
+                    var sample = WindowsProcessCpuSample.Read(id, warnings);
+                    var now = DateTimeOffset.UtcNow;
+                    var cpuPercent = _processCpu.Record(id, sample, now, Environment.ProcessorCount);
+                    if (sample.Exited) continue;
                     seen.Add(id);
+                    var memory = ProcessMetricFailure.WorkingSet(process, id, warnings);
+                    if (memory is null && cpuPercent is null) continue;
+                    var path = TryGetExecutablePath(process,warnings);
+                    var verified = sample.StartedAt is { } startedAt && startedAt <= now;
+                    result.Add(new(id, name, path, cpuPercent, memory, verified ? sample.StartedAt : null)
+                    {
+                        CpuIdentityVerified = verified
+                    });
                 }
                 catch (Exception exception) when (
                     exception is Win32Exception or InvalidOperationException or NotSupportedException)
@@ -114,13 +97,7 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
             warnings.Add("process_list_truncated");
         }
 
-        lock (_sync)
-        {
-            foreach (var staleProcessId in _previousProcesses.Keys.Where(id => !seen.Contains(id)).ToArray())
-            {
-                _previousProcesses.Remove(staleProcessId);
-            }
-        }
+        _processCpu.Retain(seen);
 
         return result.AsReadOnly();
     }
@@ -210,29 +187,6 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
         return services.AsReadOnly();
     }
 
-    private double? UpdateProcessCpu(int processId, TimeSpan cpuTime, DateTimeOffset now)
-    {
-        lock (_sync)
-        {
-            double? cpuPercent = null;
-            if (_previousProcesses.TryGetValue(processId, out var previous))
-            {
-                var elapsed = now - previous.CapturedAtUtc;
-                var cpuDelta = cpuTime - previous.CpuTime;
-                if (elapsed > TimeSpan.Zero && cpuDelta >= TimeSpan.Zero)
-                {
-                    cpuPercent = Math.Clamp(
-                        100d * cpuDelta.TotalSeconds / (elapsed.TotalSeconds * Math.Max(1, Environment.ProcessorCount)),
-                        0,
-                        100);
-                }
-            }
-
-            _previousProcesses[processId] = new ProcessObservation(cpuTime, now);
-            return cpuPercent;
-        }
-    }
-
     private static string? TryGetExecutablePath(Process process, ICollection<string> warnings)
     {
         try
@@ -276,5 +230,4 @@ public sealed class WindowsProcessServicesCollector : ITelemetryCollector<Proces
         return value;
     }
 
-    private sealed record ProcessObservation(TimeSpan CpuTime, DateTimeOffset CapturedAtUtc);
 }

@@ -8,8 +8,11 @@ public sealed record ViewDiskHistorySeries(string Metric, string Unit, string So
     string Coverage, string? CoverageReason, IReadOnlyList<double?> Values, ViewMetric? Current,
     ViewDataState CurrentState);
 public sealed record ViewDisk(string Drive, long FreeBytes, long CapacityBytes, DateTimeOffset AtUtc);
-public sealed record ViewProcess(int Pid, string Name, double? CpuPercent, long MemoryBytes)
+public sealed record ViewProcess(int Pid, string Name, double? CpuPercent, long? MemoryBytes)
 { public long? StartTimeUtcTicks {get;init;} }
+public sealed record ViewProcessLoad(IReadOnlyList<ViewProcess> TopCpu, IReadOnlyList<ViewProcess> TopRam,
+    int Sampled, int CpuMeasured, int RamMeasured,
+    ViewDataState CpuState, ViewDataState RamState);
 public sealed record ViewService(string Name, string State);
 public sealed record ViewIncident(string Id, string State, string Code, int Confidence, string Severity, DateTimeOffset AtUtc, int Recurrences)
 { public string? AffectedService { get; init; } }

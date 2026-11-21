@@ -1723,4 +1723,7 @@ Quarantäneordner: {1}</value></data>
   <data name="DiskHistoryWindowEmpty" xml:space="preserve"><value>{0:g} bis {1:g}</value></data>
   <data name="DiskHistoryCapacity" xml:space="preserve"><value>Grenze gespeicherter Messwerte überschritten</value></data>
   <data name="DiskHistoryCounterMissing" xml:space="preserve"><value>Datenträgerzähler nicht verfügbar</value></data>
+  <data name="ProcessLoadHeading" xml:space="preserve"><value>Prozessauslastung</value></data>
+  <data name="ProcessesByCpuUsage" xml:space="preserve"><value>Prozesse nach CPU-Auslastung</value></data>
+  <data name="ProcessRankingCoverage" xml:space="preserve"><value>Bis zu 10 Prozesse · Messwert für {0} von {1} Zeilen der Stichprobe</value></data>
 </root>

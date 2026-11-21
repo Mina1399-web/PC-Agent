@@ -5,17 +5,30 @@ namespace HostAgent.Infrastructure.Dashboard;
 
 public sealed class DashboardController(Func<byte[],CancellationToken,ValueTask<byte[]>> send)
 {
+    private long _processLoadRequestVersion;
+    public ViewProcessLoad? ProcessLoad {get;private set;}
     public DashboardSnapshot? Snapshot {get;private set;}
     public string State {get;private set;}="disconnected";
     public async ValueTask RefreshAsync(CancellationToken token)
     {
+        _processLoadRequestVersion++;
         Snapshot=null;State="disconnected";
         var value=await ReadAsync<DashboardSnapshot>("overview",new{},token);
-        if(value is null)return;
-        if(!ViewFreshness.IsFresh(value.GeneratedAtUtc,DateTimeOffset.UtcNow)){State="stale";return;}
+        if(value is null){ProcessLoad=null;return;}
+        if(!ViewFreshness.IsFresh(value.GeneratedAtUtc,DateTimeOffset.UtcNow)){ProcessLoad=null;State="stale";return;}
         if(value.Mode is not ("Shadow" or "Confirmation") || value.Disks is null || value.Incidents is null || value.Health is null
-            || value.RecentCpu is null || value.RecentMemory is null || value.Processes is null || value.Services is null)return;
+            || value.RecentCpu is null || value.RecentMemory is null || value.Processes is null || value.Services is null){ProcessLoad=null;return;}
         Snapshot=value;State="connected";
+    }
+    public async ValueTask<bool> RefreshProcessLoadAsync(CancellationToken token)
+    {
+        if (Snapshot is not { } snapshot) return false;
+        var version=++_processLoadRequestVersion;
+        var value=await ReadAsync<ViewProcessLoad>("process-load",new{},token);
+        if (version!=_processLoadRequestVersion || !ReferenceEquals(Snapshot,snapshot)) return false;
+        ProcessLoad=value is { TopCpu.Count: <=10, TopRam.Count: <=10, CpuState: not null, RamState: not null }
+            ? value : null;
+        return true;
     }
     public async ValueTask<T?> ReadAsync<T>(string command,object body,CancellationToken token) where T:class
     {
