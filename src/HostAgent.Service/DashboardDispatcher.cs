@@ -10,7 +10,7 @@ using System.Diagnostics;
 namespace HostAgent.Service;
 
 public sealed class DashboardDispatcher(IHostAgentStore store,ServiceConfiguration configuration,AgentRuntimeHealth health,
-    TimeProvider clock,Action<DashboardDispatchDiagnostic>? reportDiagnostic=null)
+    TimeProvider clock,Action<DashboardDispatchDiagnostic>? reportDiagnostic=null, HardwareInventoryCache? hardwareInventory=null)
 {
     public async ValueTask<byte[]> DispatchAsync(byte[] payload,CancellationToken token)
     {
@@ -19,6 +19,11 @@ public sealed class DashboardDispatcher(IHostAgentStore store,ServiceConfigurati
             var request=Timed("request_parse",()=>ViewProtocol.Parse(payload));var now=clock.GetUtcNow();
             switch(request.Command)
             {
+                case "hardware-inventory":
+                    var category = request.Body.GetProperty("category").GetString()!;
+                    var inventory = hardwareInventory?.Read(category, now)
+                        ?? HardwareInventoryCache.Unavailable(category, null, "unavailable", "collector_unavailable");
+                    return Reply("serialize_hardware_inventory", true, "hardware-inventory", inventory);
                 case "overview":
                     var cpu=await Timed("metric_cpu",()=>Metrics("cpu.usage.percent",now.AddMinutes(-6),now,128,token));
                     var memory=await Timed("metric_memory",()=>Metrics("memory.used.percent",now.AddMinutes(-6),now,128,token));

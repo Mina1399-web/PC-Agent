@@ -82,6 +82,9 @@ builder.Services.AddSingleton<ITelemetryCollectionJob>(services => new Telemetry
     services.GetRequiredService<IHostAgentStore>(),
     services.GetRequiredService<ITelemetryMetricProjector<EventLogTelemetry>>()));
 ServiceRuntime.AddWorkers(builder.Services,configuration);
+builder.Services.AddSingleton<WindowsHardwareInventory>();
+builder.Services.AddSingleton<HardwareInventoryCache>();
+builder.Services.AddHostedService<HardwareInventoryWorker>();
 ServiceAdministration.Add(builder.Services,serviceSid);
 
 await builder.Build().RunAsync();

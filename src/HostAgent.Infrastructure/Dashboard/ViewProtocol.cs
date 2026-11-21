@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HostAgent.Core.Models.Inventory;
 using HostAgent.Infrastructure.Administration;
 using HostAgent.Infrastructure.Pipes;
 namespace HostAgent.Infrastructure.Dashboard;
@@ -17,6 +18,11 @@ public static class ViewProtocol
             switch(command)
             {
                 case "overview":case "investigate":HelperProtocol.Exact(body);break;
+                case "hardware-inventory":
+                    HelperProtocol.Exact(body,"category");
+                    if(HardwareInventorySources.ForCategory(body.GetProperty("category").GetString()) is null)
+                        throw new InvalidDataException();
+                    break;
                 case "history":
                     HelperProtocol.Exact(body,"metric");
                     if(body.GetProperty("metric").GetString() is not ("cpu" or "memory"))throw new InvalidDataException();break;
