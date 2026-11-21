@@ -1739,4 +1739,15 @@ Složka karantény: {1}</value></data>
   <data name="IncidentHistoryCount" xml:space="preserve"><value>Načteno incidentů: {0}.</value></data>
   <data name="IncidentHistoryEmpty" xml:space="preserve"><value>Nejsou uložené žádné incidenty.</value></data>
   <data name="IncidentHistoryRecoveryUnverified" xml:space="preserve"><value>Vyřešeno je uložený stav incidentu. Tento přehled nepotvrzuje zotavení.</value></data>
+  <data name="DeviceHealthTitle" xml:space="preserve"><value>Nálezy zařízení Windows</value></data>
+  <data name="DeviceHealthRead" xml:space="preserve"><value>Načíst uložené nálezy zařízení</value></data>
+  <data name="DeviceHealthUnknown" xml:space="preserve"><value>Stav PnP není známý</value></data>
+  <data name="DeviceHealthUnavailable" xml:space="preserve"><value>Stav PnP je nedostupný</value></data>
+  <data name="DeviceHealthDenied" xml:space="preserve"><value>Přístup k PnP odepřen</value></data>
+  <data name="DeviceHealthNoPnPProblem" xml:space="preserve"><value>Windows v prověřeném rozsahu nezjistil problém PnP</value></data>
+  <data name="DeviceHealthPnPProblem" xml:space="preserve"><value>Windows hlásí problém PnP</value></data>
+  <data name="DeviceHealthDisabled" xml:space="preserve"><value>Zařízení je zakázané</value></data>
+  <data name="DeviceHealthLimit" xml:space="preserve"><value>Sběr nebo seznam nálezů dosáhl limitu.</value></data>
+  <data name="DeviceHealthChecked" xml:space="preserve"><value>Prověřeno {0} z {1} vypsaných zařízení</value></data>
+  <data name="DeviceHealthFinding" xml:space="preserve"><value>Třída {0} · kód {1} · {2}</value></data>
 </root>

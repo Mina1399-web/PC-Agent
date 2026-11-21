@@ -23,7 +23,7 @@ public static class ServiceAdministration
                     else if(value.ElapsedMilliseconds>=500)
                         logger.LogWarning("View dispatch stage {Stage} took {ElapsedMilliseconds} ms.",
                             value.Stage,value.ElapsedMilliseconds);
-                }, sp.GetService<HardwareInventoryCache>());
+                }, sp.GetService<HardwareInventoryCache>(), sp.GetService<DeviceHealthCache>());
         });
         services.AddHostedService(sp=>
         {
