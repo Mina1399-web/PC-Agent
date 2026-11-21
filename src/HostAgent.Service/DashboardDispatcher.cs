@@ -41,15 +41,18 @@ public sealed class DashboardDispatcher(IHostAgentStore store,ServiceConfigurati
                     var uptimePoint=CurrentMetric(system, system.Value?.Uptime.TotalSeconds, uptime, now,
                         "invalid_sample", "system");
                     var volumes=(disk.Value?.Volumes ?? []).Where(x=>x is not null && x.HasValidCapacity && ValidDrive(x.RootPath)).ToArray();
-                    var processes=process.Value?.Processes?.Where(x=>x is not null && x.ProcessId>=0 && x.MemoryBytes is >=0 && !string.IsNullOrWhiteSpace(x.ProcessName)).ToArray();
+                    var processes=process.Value?.Processes?.Where(x=>x is not null && x.ProcessId>=0 && !string.IsNullOrWhiteSpace(x.ProcessName)).ToArray();
+                    var ramProcesses=processes?.Where(x=>x.MemoryBytes is >=0).ToArray();
                     var services=process.Value?.Services?.Where(x=>x is not null && !string.IsNullOrWhiteSpace(x.ServiceName)).ToArray();
                     var adapters=network.Value?.Adapters?.Where(x=>x is not null && Enum.TryParse<System.Net.NetworkInformation.OperationalStatus>(x.Status,out var status)
                         && Enum.IsDefined(status) && status!=System.Net.NetworkInformation.OperationalStatus.Unknown).ToArray();
                     var diskState=ListState(disk, volumes.Length, disk.Value?.Volumes?.Count, "volumes",
                         "volume_metrics_access_denied", "volume_metrics_invalid", "volume_not_ready", "volume_metrics_unavailable");
-                    var processState=ListState(process, processes?.Length, process.Value?.Processes?.Count, "processes",
+                    var processState=ListState(process, ramProcesses?.Length, process.Value?.Processes?.Count, "processes",
                         "process_list_access_denied", "process_list_unavailable", "some_process_metrics_access_denied",
                         "some_process_metrics_unavailable","some_process_start_times_unavailable","some_executable_paths_unavailable","process_list_truncated");
+                    var cpuProcesses=processes?.Where(x=>VerifiedProcessCpu(x,process.At) is not null).ToArray();
+                    var cpuState=ProcessCpuState(process,processes?.Length,cpuProcesses?.Length);
                     var serviceState=ListState(process, services?.Length, process.Value?.Services?.Count, "services",
                         "service_catalog_access_denied", "service_catalog_unavailable", "some_service_states_unavailable",
                         "some_service_start_modes_unavailable","some_service_triggers_unavailable");
@@ -61,14 +64,17 @@ public sealed class DashboardDispatcher(IHostAgentStore store,ServiceConfigurati
                     return Reply("serialize_overview",true,"overview",new DashboardSnapshot(now,configuration.Mode.ToString(),configuration.ReadOnly,health.Degraded,
                         cpuPoint.Point,memoryPoint.Point,uptimePoint.Point,
                         volumes.Take(8).Select(x=>new ViewDisk(x.RootPath.TrimEnd('\\'),x.FreeBytes,x.CapacityBytes,disk.At!.Value)).ToArray(),
-                        processes?.OrderByDescending(x=>x.MemoryBytes).Take(10).Select(x=>new ViewProcess(x.ProcessId,SafeName(x.ProcessName),
-                            x.CpuUsagePercent is >=0 and <=100 ? x.CpuUsagePercent : null,x.MemoryBytes!.Value){StartTimeUtcTicks=x.StartedAtUtc?.UtcTicks}).ToArray()??[],
+                        ramProcesses?.OrderByDescending(x=>x.MemoryBytes).ThenBy(x=>x.ProcessId).Take(10)
+                            .Select(x=>ProjectProcess(x,process.At)).ToArray()??[],
                         services?.OrderBy(x=>x.ServiceName,StringComparer.Ordinal).Take(30).Select(x=>new ViewService(SafeName(x.ServiceName),
                             Enum.IsDefined(x.Status)?x.Status.ToString():"Unknown")).ToArray()??[],
                         networkState.Status=="available" ? adapters?.Count(x=>x.Status=="Up") : null,incidents,
                         health.Snapshot().Take(16).Select(x=>new ViewHealth(x.Component,x.Code,x.Degraded,x.Reasons)).ToArray(),MinuteMinimum(cpu),MinuteMinimum(memory))
                         {
                             KillSwitch=configuration.KillSwitch,
+                            ProcessLoad=new(cpuProcesses?.OrderByDescending(x=>x.CpuUsagePercent).ThenBy(x=>x.ProcessId)
+                                .Take(10).Select(x=>ProjectProcess(x,process.At)).ToArray()??[],
+                                processes?.Length??0,cpuProcesses?.Length??0,ramProcesses?.Length??0,cpuState,processState),
                             DataState=new(cpuPoint.State,memoryPoint.State,uptimePoint.State,diskState,processState,serviceState,networkState),
                             DiskIoDiagnostics=disk.Value is not null && disk.Raw is {} raw
                                 ? ReadDiskDiagnostics(raw) : new(null,"unavailable",[]),
@@ -291,6 +297,40 @@ public sealed class DashboardDispatcher(IHostAgentStore store,ServiceConfigurati
         if(!limited)return new(source,sample.At,"available",null);
         var reason=denied?"access_denied":invalid?"invalid_sample":"incomplete_sample";
         return new(source,sample.At,count==0&&(invalid||warnings.Length>0)?"unavailable":"partial",reason);
+    }
+
+    private static double? VerifiedProcessCpu(ProcessTelemetry process,DateTimeOffset? sampledAt)
+        => process.CpuIdentityVerified && process.StartedAtUtc is {UtcTicks:>0} start && sampledAt is {} at
+            && start<=at && process.CpuUsagePercent is >=0 and <=100 ? process.CpuUsagePercent : null;
+
+    private static ViewProcess ProjectProcess(ProcessTelemetry process,DateTimeOffset? sampledAt)
+        => new(process.ProcessId,SafeName(process.ProcessName),VerifiedProcessCpu(process,sampledAt),
+            process.MemoryBytes is >=0 ? process.MemoryBytes : null)
+        {
+            StartTimeUtcTicks=process.StartedAtUtc is {UtcTicks:>0} start && sampledAt is {} at && start<=at
+                ? start.UtcTicks : null
+        };
+
+    private static ViewDataState ProcessCpuState(SourceSample<ProcessServiceTelemetry> sample,int? count,int? measured)
+    {
+        const string source="processes";
+        if(sample.Value is null)return sample.Describe(source);
+        if(count is null||measured is null)return new(source,sample.At,"unavailable","invalid_sample");
+        var denied=sample.HasWarning("process_start_time_access_denied")||sample.HasWarning("process_cpu_time_access_denied")
+            ||sample.HasWarning("process_list_access_denied");
+        var incomplete=sample.HasWarning("process_list_truncated")||sample.HasWarning("some_process_metrics_unavailable")
+            ||sample.HasWarning("some_process_start_times_unavailable");
+        if(measured==0)
+        {
+            if(denied)return new(source,sample.At,"unavailable","access_denied");
+            if(sample.HasWarning("process_list_unavailable"))return new(source,sample.At,"unavailable","collector_unavailable");
+            if(count==0 && sample.Value.Processes.Count==0)
+                return incomplete?new(source,sample.At,"unavailable","incomplete_sample"):new(source,sample.At,"available",null);
+            return new(source,sample.At,"unknown","waiting_for_sample");
+        }
+        return measured<count||count!=sample.Value.Processes.Count||incomplete||denied
+            ?new(source,sample.At,"partial",denied?"access_denied":"incomplete_sample")
+            :new(source,sample.At,"available",null);
     }
 
     private sealed record SourceSample<T>(T? Value,TelemetrySnapshot? Raw,DateTimeOffset? At,string Status,string? Reason,string[] Warnings)

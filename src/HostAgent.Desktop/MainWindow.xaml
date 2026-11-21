@@ -142,8 +142,15 @@
       <Button x:Name="SmartReadButton" Content="{DynamicResource Loc.ReadSmartPrediction}" Click="SmartClick" HorizontalAlignment="Left" Margin="0,10,0,4"/>
       <TextBlock x:Name="SmartResultText" Text="{DynamicResource Loc.SmartNotRead}" TextWrapping="Wrap"/>
      </StackPanel></Border>
-     <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="{DynamicResource Loc.ProcessesUsingTheMostRAM}" Style="{StaticResource SectionTitle}"/><TextBlock Text="{DynamicResource Loc.SelectingAProcessFillsInItsExactIdentityForTheManualAction}" Style="{StaticResource Caption}" Margin="0,0,0,12"/>
-      <TextBlock x:Name="ProcessesEmptyText" Text="{DynamicResource Loc.ProcessDataIsNotAvailableYet}" Style="{StaticResource Caption}"/>
+     <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="{DynamicResource Loc.ProcessLoadHeading}" Style="{StaticResource SectionTitle}"/>
+      <ComboBox x:Name="ProcessRankingChoice" SelectedIndex="0" HorizontalAlignment="Left" Margin="0,0,0,8"
+                AutomationProperties.Name="{DynamicResource Loc.ProcessLoadHeading}">
+       <ComboBoxItem Content="{DynamicResource Loc.ProcessesByMemoryUsage}"/>
+       <ComboBoxItem Content="{DynamicResource Loc.ProcessesByCpuUsage}"/>
+      </ComboBox>
+      <TextBlock Text="{DynamicResource Loc.SelectingAProcessFillsInItsExactIdentityForTheManualAction}" Style="{StaticResource Caption}" Margin="0,0,0,12" TextWrapping="Wrap"/>
+      <TextBlock x:Name="ProcessRankingCoverage" TextWrapping="Wrap" Style="{StaticResource Caption}"/>
+      <TextBlock x:Name="ProcessesEmptyText" Text="{DynamicResource Loc.ProcessDataIsNotAvailableYet}" Style="{StaticResource Caption}" TextWrapping="Wrap"/>
       <DataGrid x:Name="ProcessGrid" Height="250" AutomationProperties.Name="{DynamicResource Loc.ProcessesByMemoryUsage}"><DataGrid.Columns><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="Process" Binding="{Binding Name}" Width="*"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" Header="PID" Binding="{Binding Pid}" Width="80"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" Header="CPU %" Binding="{Binding CpuPercent, StringFormat=F1, TargetNullValue=—}" Width="85"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="Memory" Binding="{Binding MemoryBytes, Converter={StaticResource Bytes}}" Width="120"/></DataGrid.Columns></DataGrid>
      </StackPanel></Border>
     </StackPanel></ScrollViewer>

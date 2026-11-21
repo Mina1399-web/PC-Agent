@@ -1711,4 +1711,7 @@ Quarantäneordner: {1}</value></data>
   <data name="SubsystemNoCurrentValue" xml:space="preserve"><value>Kein aktueller Messwert verfügbar.</value></data>
   <data name="SubsystemExcerpt" xml:space="preserve"><value>Zuletzt gemeldete Einträge (begrenzte Liste)</value></data>
   <data name="SubsystemDiskLine" xml:space="preserve"><value>{0} · {1} frei von {2}</value></data>
+  <data name="ProcessLoadHeading" xml:space="preserve"><value>Prozessauslastung</value></data>
+  <data name="ProcessesByCpuUsage" xml:space="preserve"><value>Prozesse nach CPU-Auslastung</value></data>
+  <data name="ProcessRankingCoverage" xml:space="preserve"><value>Bis zu 10 Prozesse · Messwert für {0} von {1} Zeilen der Stichprobe</value></data>
 </root>

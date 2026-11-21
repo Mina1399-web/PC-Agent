@@ -88,6 +88,7 @@ public partial class MainWindow:Window
         Loaded+=async(_,_)=>{_timer.Start();await Refresh();};
         Localization.Changed+=LanguageChanged;
         Closed+=(_,_)=>{Localization.Changed-=LanguageChanged;_timer.Stop();_closing.Cancel();_tray.Dispose();};
+        ProcessRankingChoice.SelectionChanged+=(_,_)=>RenderProcessRanking(_renderedView,true);
         ProcessGrid.SelectionChanged+=(_,_)=>
         {
             var process=ProcessGrid.SelectedItem as ViewProcess;
@@ -260,11 +261,8 @@ public partial class MainWindow:Window
                 NetworkText.Text+="\n"+DescribeData(networkState,now);
             if(replaceRows)
             {
-            var selectedProcess=ProcessGrid.SelectedItem as ViewProcess;
-            DisksGrid.ItemsSource=view.Disks;ProcessGrid.ItemsSource=view.Processes;HealthGrid.ItemsSource=view.Health;ServicesGrid.ItemsSource=view.Services;
-            ProcessGrid.SelectedItem=selectedProcess?.StartTimeUtcTicks is >0
-                ?view.Processes.FirstOrDefault(x=>x.Pid==selectedProcess.Pid&&x.StartTimeUtcTicks==selectedProcess.StartTimeUtcTicks)
-                :null;
+            DisksGrid.ItemsSource=view.Disks;HealthGrid.ItemsSource=view.Health;ServicesGrid.ItemsSource=view.Services;
+            RenderProcessRanking(view,true);
             SetEmptyStates(view);
             var selected=(IncidentsGrid.SelectedItem as ViewIncident)?.Id;
             IncidentsGrid.ItemsSource=view.Incidents;
@@ -320,7 +318,6 @@ public partial class MainWindow:Window
         MemoryText.ToolTip=SystemMemoryText.ToolTip=DescribeData(data?.Memory??Legacy(view?.Memory,"GlobalMemoryStatusEx"),now);
         UptimeText.ToolTip=SystemUptimeText.ToolTip=DescribeData(data?.Uptime??Legacy(view?.Uptime,"system"),now);
         DisksGrid.ToolTip=DescribeData(data?.Disks,now);
-        ProcessGrid.ToolTip=DescribeData(data?.Processes,now);
         ServicesGrid.ToolTip=DescribeData(data?.Services,now);
         NetworkText.ToolTip=DescribeData(data?.Network,now);
     }
@@ -341,7 +338,7 @@ public partial class MainWindow:Window
     private void SetEmptyStates(DashboardSnapshot? view)
     {
         SetListState(DisksEmptyText,view?.Disks.Count??0,view?.DataState?.Disks);
-        SetListState(ProcessesEmptyText,view?.Processes.Count??0,view?.DataState?.Processes);
+        RenderProcessRanking(view,false);
         HealthEmptyText.Visibility=view?.Health.Count>0?Visibility.Collapsed:Visibility.Visible;
         SetListState(ServicesEmptyText,view?.Services.Count??0,view?.DataState?.Services);
         IncidentsEmptyText.Text=view is null?T("IncidentsAreUnavailableWithoutAConnectionToTheService"):view.Incidents.Count==0?T("ThereAreNoIncidentsInTheLatestSavedRecords"):T("ShowingTheLatestRecordsDiagnosticConfidenceDoesNotGuaranteeASuccessf",view.Incidents.Count);

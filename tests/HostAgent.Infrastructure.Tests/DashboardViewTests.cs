@@ -368,6 +368,40 @@ public sealed class DashboardViewTests
     }
 
     [Fact]
+    public async Task Process_ranks_are_independent_and_do_not_treat_legacy_cpu_as_verified()
+    {
+        await using var fixture=await OperatingModeTests.Fixture.Create();
+        var now=DateTimeOffset.UtcNow;
+        var start=now.AddHours(-1);
+        var rows=Enumerable.Range(1,12)
+            .Select(pid=>new ProcessTelemetry(pid,"HighRam",null,null,10_000+pid,start){CpuIdentityVerified=true})
+            .Append(new(42,"Busy",null,90,1,start){CpuIdentityVerified=true})
+            .Append(new(43,"NoRam",null,20,null,start){CpuIdentityVerified=true})
+            .Append(new(44,"Zero",null,0,2,start){CpuIdentityVerified=true})
+            .Append(new(45,"Legacy",null,100,3,start))
+            .Append(new(46,"Unknown",null,100,4,null){CpuIdentityVerified=true})
+            .ToArray();
+        await Seed(fixture.Store,"process-services",new ProcessServiceTelemetry(rows,[],[]),now);
+        var bytes=await new DashboardDispatcher(fixture.Store,new(),new(),TimeProvider.System)
+            .DispatchAsync(ViewProtocol.Request("overview",new{}),default);
+        Assert.InRange(bytes.Length,1,16_384);
+        using var reply=JsonDocument.Parse(bytes);
+        var overview=reply.RootElement.GetProperty("data").Deserialize<DashboardSnapshot>()!;
+        Assert.Equal(10,overview.Processes.Count);
+        Assert.DoesNotContain(overview.Processes,row=>row.Pid==42);
+        var load=Assert.IsType<ViewProcessLoad>(overview.ProcessLoad);
+        Assert.Equal(new[]{42,43,44},load.TopCpu.Select(row=>row.Pid));
+        Assert.Equal(0d,load.TopCpu[2].CpuPercent);
+        Assert.Null(load.TopCpu[1].MemoryBytes);
+        Assert.Equal(start.UtcTicks,load.TopCpu[0].StartTimeUtcTicks);
+        Assert.Equal(rows.Length,load.Sampled);
+        Assert.Equal(3,load.CpuMeasured);
+        Assert.Equal(rows.Length-1,load.RamMeasured);
+        Assert.Equal("partial",load.CpuState.Status);
+        Assert.Equal(now,load.CpuState.AtUtc);
+    }
+
+    [Fact]
     public async Task History_uses_fixed_series_and_24hour_15minute_buckets()
     {
         await using var f=await OperatingModeTests.Fixture.Create();var now=DateTimeOffset.UtcNow;

@@ -1711,4 +1711,7 @@ Složka karantény: {1}</value></data>
   <data name="SubsystemNoCurrentValue" xml:space="preserve"><value>Aktuální údaj není dostupný.</value></data>
   <data name="SubsystemExcerpt" xml:space="preserve"><value>Poslední hlášené položky (omezený výpis)</value></data>
   <data name="SubsystemDiskLine" xml:space="preserve"><value>{0} · volné {1} z {2}</value></data>
+  <data name="ProcessLoadHeading" xml:space="preserve"><value>Vytížení procesů</value></data>
+  <data name="ProcessesByCpuUsage" xml:space="preserve"><value>Procesy podle využití CPU</value></data>
+  <data name="ProcessRankingCoverage" xml:space="preserve"><value>Nejvýše 10 procesů · měření je k dispozici u {0} z {1} řádků vzorku</value></data>
 </root>

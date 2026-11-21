@@ -1714,4 +1714,7 @@ Quarantine folder: {1}</value></data>
   <data name="SubsystemNoCurrentValue" xml:space="preserve"><value>No current reading.</value></data>
   <data name="SubsystemExcerpt" xml:space="preserve"><value>Latest reported entries (limited list)</value></data>
   <data name="SubsystemDiskLine" xml:space="preserve"><value>{0} · {1} free of {2}</value></data>
+  <data name="ProcessLoadHeading" xml:space="preserve"><value>Process usage</value></data>
+  <data name="ProcessesByCpuUsage" xml:space="preserve"><value>Processes by CPU usage</value></data>
+  <data name="ProcessRankingCoverage" xml:space="preserve"><value>Showing up to 10 processes · {0} of {1} sampled rows have this measurement</value></data>
 </root>
