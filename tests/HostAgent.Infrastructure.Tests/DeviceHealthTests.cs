@@ -53,9 +53,9 @@ public sealed class DeviceHealthTests
         await using var fixture=await OperatingModeTests.Fixture.Create();
         var cache=new DeviceHealthCache();
         var report=Project(new Status(Guid.NewGuid(),0,1024,10));
-        cache.Publish(report,default);
+        Assert.Equal("unhealthy", report.Outcome);
         var at=report.Coverage.AtUtc!.Value;
-        var stale=cache.Read(at.AddMinutes(16));
+        var stale=report.At(at.AddMinutes(16));
         Assert.Equal("unknown",stale.Outcome);
         Assert.Equal("stale",stale.Coverage.Status);
         Assert.Single(stale.Findings);
@@ -66,7 +66,8 @@ public sealed class DeviceHealthTests
         using var reply=JsonDocument.Parse(bytes);
         Assert.True(reply.RootElement.GetProperty("ok").GetBoolean());
         var read=reply.RootElement.GetProperty("data").Deserialize<DeviceHealthReport>()!;
-        Assert.Equal("unhealthy",read.Outcome);
+        Assert.Equal("unknown",read.Outcome);
+        Assert.Equal("waiting_for_sample",read.Coverage.Reason);
         Assert.Equal(0,fixture.Helper.Calls);
         Assert.Throws<InvalidDataException>(()=>ViewProtocol.Request("device-health",new{target="another"}));
     }
