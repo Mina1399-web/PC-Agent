@@ -516,6 +516,23 @@ public sealed class DashboardInteractionTests
     });
 
     [Fact]
+    public Task Device_health_is_opt_in_and_the_read_control_is_keyboard_accessible() => WithWindow((window, view) =>
+    {
+        Assert.Equal(0, view.DeviceHealthRequests);
+        ((TabControl)window.FindName("DashboardTabs")).SelectedIndex = 3;
+        window.UpdateLayout();
+        var button = Assert.IsType<Button>(window.FindName("DeviceHealthRead"));
+        var peer = new System.Windows.Automation.Peers.ButtonAutomationPeer(button);
+        Assert.True(peer.IsKeyboardFocusable());
+        Assert.Equal(window.Localization.Text("DeviceHealthRead"), peer.GetName());
+        button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.Equal(1, view.DeviceHealthRequests);
+        var summary = Assert.IsType<TextBlock>(window.FindName("DeviceHealthSummary"));
+        PumpUntil(() => summary.Text.Contains(window.Localization.Text("DeviceHealthPnPProblem")));
+        Assert.Single(Assert.IsType<ItemsControl>(window.FindName("DeviceHealthFindings")).Items);
+    });
+
+    [Fact]
     public Task Disk_chart_is_opt_in_and_publishes_only_the_latest_selection() => WithWindow((window, view) =>
     {
         Assert.Empty(view.DiskRequests);
@@ -604,6 +621,8 @@ public sealed class DashboardInteractionTests
         public bool OverviewDelayed {get;private set;}
         public List<(string Group, TaskCompletionSource<byte[]> Reply)> DiskRequests { get; } = [];
 
+        public int DeviceHealthRequests { get; private set; }
+
         public FakeView()
         {
             var now = DateTimeOffset.UtcNow;
@@ -615,6 +634,14 @@ public sealed class DashboardInteractionTests
         {
             var request = ViewProtocol.Parse(bytes);
             if(request.Command=="overview"&&PendingOverview is not null){OverviewDelayed=true;return new(PendingOverview.Task);}
+            if (request.Command == "device-health")
+            {
+                DeviceHealthRequests++;
+                return ValueTask.FromResult(AdminProtocol.Reply(true, "device-health",
+                    new HostAgent.Core.Models.Inventory.DeviceHealthReport("unhealthy",
+                        new("SetupAPI / Configuration Manager", DateTimeOffset.UtcNow, "available", null),
+                        3, 3, [new(null, 10, "unhealthy", "unhealthy")])));
+            }
             if (request.Command == "disk-history")
             {
                 var pending = new TaskCompletionSource<byte[]>();

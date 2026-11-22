@@ -1742,4 +1742,15 @@ Quarantine folder: {1}</value></data>
   <data name="IncidentHistoryCount" xml:space="preserve"><value>{0} saved incidents loaded.</value></data>
   <data name="IncidentHistoryEmpty" xml:space="preserve"><value>No incidents are saved.</value></data>
   <data name="IncidentHistoryRecoveryUnverified" xml:space="preserve"><value>Resolved is a saved incident state. Recovery has not been verified by this view.</value></data>
+  <data name="DeviceHealthTitle" xml:space="preserve"><value>Windows device findings</value></data>
+  <data name="DeviceHealthRead" xml:space="preserve"><value>Read saved device findings</value></data>
+  <data name="DeviceHealthUnknown" xml:space="preserve"><value>PnP status is unknown</value></data>
+  <data name="DeviceHealthUnavailable" xml:space="preserve"><value>PnP status is unavailable</value></data>
+  <data name="DeviceHealthDenied" xml:space="preserve"><value>PnP access denied</value></data>
+  <data name="DeviceHealthNoPnPProblem" xml:space="preserve"><value>Windows reported no PnP problem in the checked scope</value></data>
+  <data name="DeviceHealthPnPProblem" xml:space="preserve"><value>Windows reports a PnP problem</value></data>
+  <data name="DeviceHealthDisabled" xml:space="preserve"><value>Device disabled</value></data>
+  <data name="DeviceHealthLimit" xml:space="preserve"><value>The scan or findings list reached its limit.</value></data>
+  <data name="DeviceHealthChecked" xml:space="preserve"><value>Checked {0} of {1} enumerated devices</value></data>
+  <data name="DeviceHealthFinding" xml:space="preserve"><value>Class {0} · code {1} · {2}</value></data>
 </root>

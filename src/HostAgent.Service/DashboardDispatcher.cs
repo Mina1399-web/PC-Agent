@@ -11,7 +11,7 @@ using System.Diagnostics;
 namespace HostAgent.Service;
 
 public sealed partial class DashboardDispatcher(IHostAgentStore store,ServiceConfiguration configuration,AgentRuntimeHealth health,
-    TimeProvider clock,Action<DashboardDispatchDiagnostic>? reportDiagnostic=null, HardwareInventoryCache? hardwareInventory=null)
+    TimeProvider clock,Action<DashboardDispatchDiagnostic>? reportDiagnostic=null, HardwareInventoryCache? hardwareInventory=null, DeviceHealthCache? deviceHealth=null)
 {
     public async ValueTask<byte[]> DispatchAsync(byte[] payload,CancellationToken token)
     {
@@ -20,6 +20,9 @@ public sealed partial class DashboardDispatcher(IHostAgentStore store,ServiceCon
             var request=Timed("request_parse",()=>ViewProtocol.Parse(payload));var now=clock.GetUtcNow();
             switch(request.Command)
             {
+                case "device-health":
+                    return Reply("serialize_device_health", true, "device-health",
+                        deviceHealth?.Read(now) ?? DeviceHealthCache.Missing(null, "unknown", "waiting_for_sample"));
                 case "hardware-inventory":
                     var category = request.Body.GetProperty("category").GetString()!;
                     var inventory = hardwareInventory?.Read(category, now)

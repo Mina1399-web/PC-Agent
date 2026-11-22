@@ -20,7 +20,7 @@ public static class ViewProtocol
             var command=root.GetProperty("command").GetString();var body=root.GetProperty("body");
             switch(command)
             {
-                case "overview":case "investigate":case "process-load":HelperProtocol.Exact(body);break;
+                case "overview":case "investigate":case "process-load":case "device-health":HelperProtocol.Exact(body);break;
                 case "disk-history":
                     HelperProtocol.Exact(body,"group");
                     if(body.GetProperty("group").GetString() is not ("throughput" or "latency"))throw new InvalidDataException();

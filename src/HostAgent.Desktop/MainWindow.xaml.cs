@@ -222,6 +222,7 @@ public partial class MainWindow:Window
                 view=null;
                 _renderedState="stale";
             }
+            RenderDeviceHealth();
             SetDataTooltips(view,now);
             RenderDesignMetrics(view);
             RenderWindowsDiagnosis(view);

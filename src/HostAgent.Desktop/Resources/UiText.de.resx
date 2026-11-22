@@ -1739,4 +1739,15 @@ Quarantäneordner: {1}</value></data>
   <data name="IncidentHistoryCount" xml:space="preserve"><value>Geladene Vorfälle: {0}.</value></data>
   <data name="IncidentHistoryEmpty" xml:space="preserve"><value>Es sind keine Vorfälle gespeichert.</value></data>
   <data name="IncidentHistoryRecoveryUnverified" xml:space="preserve"><value>Behoben ist ein gespeicherter Vorfallstatus. Diese Ansicht bestätigt keine Wiederherstellung.</value></data>
+  <data name="DeviceHealthTitle" xml:space="preserve"><value>Windows-Gerätebefunde</value></data>
+  <data name="DeviceHealthRead" xml:space="preserve"><value>Gespeicherte Gerätebefunde lesen</value></data>
+  <data name="DeviceHealthUnknown" xml:space="preserve"><value>PnP-Status unbekannt</value></data>
+  <data name="DeviceHealthUnavailable" xml:space="preserve"><value>PnP-Status nicht verfügbar</value></data>
+  <data name="DeviceHealthDenied" xml:space="preserve"><value>PnP-Zugriff verweigert</value></data>
+  <data name="DeviceHealthNoPnPProblem" xml:space="preserve"><value>Windows meldet im geprüften Umfang kein PnP-Problem</value></data>
+  <data name="DeviceHealthPnPProblem" xml:space="preserve"><value>Windows meldet ein PnP-Problem</value></data>
+  <data name="DeviceHealthDisabled" xml:space="preserve"><value>Gerät deaktiviert</value></data>
+  <data name="DeviceHealthLimit" xml:space="preserve"><value>Die Prüfung oder Befundliste hat ihre Grenze erreicht.</value></data>
+  <data name="DeviceHealthChecked" xml:space="preserve"><value>{0} von {1} aufgelisteten Geräten geprüft</value></data>
+  <data name="DeviceHealthFinding" xml:space="preserve"><value>Klasse {0} · Code {1} · {2}</value></data>
 </root>

@@ -85,6 +85,9 @@ ServiceRuntime.AddWorkers(builder.Services,configuration);
 builder.Services.AddSingleton<WindowsHardwareInventory>();
 builder.Services.AddSingleton<HardwareInventoryCache>();
 builder.Services.AddHostedService<HardwareInventoryWorker>();
+builder.Services.AddSingleton<WindowsDeviceHealthReader>();
+builder.Services.AddSingleton<DeviceHealthCache>();
+builder.Services.AddHostedService<DeviceHealthWorker>();
 ServiceAdministration.Add(builder.Services,serviceSid);
 
 await builder.Build().RunAsync();
