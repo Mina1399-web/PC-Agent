@@ -801,6 +801,9 @@ public partial class MainWindow:Window
     private void RenderWindowsDiagnosis(DashboardSnapshot? view)
     {
         var now=DateTimeOffset.UtcNow;
+        NetworkDiagnosticsButton.IsEnabled = view is not null;
+        if (view is null) ClearNetworkDiagnostics();
+        RenderNetworkDiagnostics();
         var recommendations=view is null?Array.Empty<Recommendation>():new RecommendationEngine().Evaluate(view,now);
         _cleanupDrive=view?.Disks.FirstOrDefault(disk=>MaintenanceWindow.MatchesDefaultVolume(disk.Drive)
             &&recommendations.Any(card=>card.Code=="disk_space:"+disk.Drive))?.Drive;

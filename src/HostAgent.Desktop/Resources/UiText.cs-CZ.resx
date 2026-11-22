@@ -1750,4 +1750,28 @@ Složka karantény: {1}</value></data>
   <data name="DeviceHealthLimit" xml:space="preserve"><value>Sběr nebo seznam nálezů dosáhl limitu.</value></data>
   <data name="DeviceHealthChecked" xml:space="preserve"><value>Prověřeno {0} z {1} vypsaných zařízení</value></data>
   <data name="DeviceHealthFinding" xml:space="preserve"><value>Třída {0} · kód {1} · {2}</value></data>
+  <data name="NetDetailRead" xml:space="preserve"><value>Načíst poslední síťovou diagnostiku</value></data>
+  <data name="NetDetailLoading" xml:space="preserve"><value>Načítám nasbíraná síťová data…</value></data>
+  <data name="NetDetailUnavailable" xml:space="preserve"><value>Síťová diagnostika je nedostupná. Místní služba nemusí tento přehled podporovat.</value></data>
+  <data name="NetDetailPassive" xml:space="preserve"><value>Pasivní konfigurace adaptérů</value></data>
+  <data name="NetDetailEmpty" xml:space="preserve"><value>Nasbíraný seznam adaptérů je prázdný.</value></data>
+  <data name="NetDetailAdapter" xml:space="preserve"><value>Adaptér {0} · {1} · Položky bran: {2} · Položky DNS: {3}</value></data>
+  <data name="NetDetailLimited" xml:space="preserve"><value>Zobrazeno prvních 16 adaptérů z nasbíraného seznamu.</value></data>
+  <data name="NetDetailUp" xml:space="preserve"><value>Aktivní</value></data>
+  <data name="NetDetailDown" xml:space="preserve"><value>Neaktivní</value></data>
+  <data name="NetDetailDormant" xml:space="preserve"><value>Čeká</value></data>
+  <data name="NetDetailTesting" xml:space="preserve"><value>Probíhá test</value></data>
+  <data name="NetDetailAbsent" xml:space="preserve"><value>Nepřítomný</value></data>
+  <data name="NetDetailProbes" xml:space="preserve"><value>Uložené výsledky sond počítače</value></data>
+  <data name="NetDetailGatewayScope" xml:space="preserve"><value>Sonda brány používá první bránu prvního aktivního adaptéru s nastavenou bránou. Ostatní sondy platí pro celý počítač.</value></data>
+  <data name="NetDetailGateway" xml:space="preserve"><value>Brána (ICMP)</value></data>
+  <data name="NetDetailInternet" xml:space="preserve"><value>Vnější adresa (ICMP)</value></data>
+  <data name="NetDetailDns" xml:space="preserve"><value>Překlad názvu DNS</value></data>
+  <data name="NetDetailDisabled" xml:space="preserve"><value>Sondy byly v době sběru vypnuté.</value></data>
+  <data name="NetDetailNoGateway" xml:space="preserve"><value>Pro tuto sondu nebyla k dispozici nastavená brána.</value></data>
+  <data name="NetDetailPartialResponse" xml:space="preserve"><value>Část požadavků ICMP zůstala bez odpovědi.</value></data>
+  <data name="NetDetailTimeout" xml:space="preserve"><value>Sonda překročila časový limit.</value></data>
+  <data name="NetDetailElapsed" xml:space="preserve"><value>Doba překladu názvu: {0:0.##} ms</value></data>
+  <data name="NetDetailRtt" xml:space="preserve"><value>Doba odezvy ICMP: {0:0.##} ms</value></data>
+  <data name="NetDetailLoss" xml:space="preserve"><value>Ztráta paketů ICMP: {0:0.##} %</value></data>
 </root>

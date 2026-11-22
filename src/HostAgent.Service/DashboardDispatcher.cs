@@ -86,6 +86,9 @@ public sealed partial class DashboardDispatcher(IHostAgentStore store,ServiceCon
                                     .Select(p=>new ViewNetworkProbe(p.Kind.ToString(),p.Status.ToString())).ToArray())
                                 :null
                         });
+                case "network-diagnostics":
+                    var diagnostics = await Timed("network_diagnostics", () => ReadNetworkDiagnostics(now, token));
+                    return Reply("serialize_network_diagnostics", true, "network-diagnostics", diagnostics);
                 case "disk-history":
                     var group=request.Body.GetProperty("group").GetString()!;
                     var diskHistory=await Timed("disk_history",()=>ReadDiskHistory(group,now,token));

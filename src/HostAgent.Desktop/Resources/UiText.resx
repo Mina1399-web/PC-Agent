@@ -1753,4 +1753,28 @@ Quarantine folder: {1}</value></data>
   <data name="DeviceHealthLimit" xml:space="preserve"><value>The scan or findings list reached its limit.</value></data>
   <data name="DeviceHealthChecked" xml:space="preserve"><value>Checked {0} of {1} enumerated devices</value></data>
   <data name="DeviceHealthFinding" xml:space="preserve"><value>Class {0} · code {1} · {2}</value></data>
+  <data name="NetDetailRead" xml:space="preserve"><value>Read latest network diagnostics</value></data>
+  <data name="NetDetailLoading" xml:space="preserve"><value>Reading the collected network data…</value></data>
+  <data name="NetDetailUnavailable" xml:space="preserve"><value>Network diagnostics are unavailable. The local service may not support this view.</value></data>
+  <data name="NetDetailPassive" xml:space="preserve"><value>Passive adapter configuration</value></data>
+  <data name="NetDetailEmpty" xml:space="preserve"><value>No adapters in the collected list.</value></data>
+  <data name="NetDetailAdapter" xml:space="preserve"><value>Adapter {0} · {1} · Gateway entries: {2} · DNS entries: {3}</value></data>
+  <data name="NetDetailLimited" xml:space="preserve"><value>Showing the first 16 adapters from the collected list.</value></data>
+  <data name="NetDetailUp" xml:space="preserve"><value>Up</value></data>
+  <data name="NetDetailDown" xml:space="preserve"><value>Down</value></data>
+  <data name="NetDetailDormant" xml:space="preserve"><value>Dormant</value></data>
+  <data name="NetDetailTesting" xml:space="preserve"><value>Testing</value></data>
+  <data name="NetDetailAbsent" xml:space="preserve"><value>Not present</value></data>
+  <data name="NetDetailProbes" xml:space="preserve"><value>Collected host probes</value></data>
+  <data name="NetDetailGatewayScope" xml:space="preserve"><value>The gateway probe uses the first gateway of the first active adapter with a gateway. The other probes apply to the computer as a whole.</value></data>
+  <data name="NetDetailGateway" xml:space="preserve"><value>Gateway (ICMP)</value></data>
+  <data name="NetDetailInternet" xml:space="preserve"><value>External address (ICMP)</value></data>
+  <data name="NetDetailDns" xml:space="preserve"><value>DNS resolution</value></data>
+  <data name="NetDetailDisabled" xml:space="preserve"><value>Probes were disabled at collection time.</value></data>
+  <data name="NetDetailNoGateway" xml:space="preserve"><value>No gateway was configured for this probe.</value></data>
+  <data name="NetDetailPartialResponse" xml:space="preserve"><value>Some ICMP requests received no reply.</value></data>
+  <data name="NetDetailTimeout" xml:space="preserve"><value>The probe timed out.</value></data>
+  <data name="NetDetailElapsed" xml:space="preserve"><value>Resolver elapsed time: {0:0.##} ms</value></data>
+  <data name="NetDetailRtt" xml:space="preserve"><value>ICMP round-trip time: {0:0.##} ms</value></data>
+  <data name="NetDetailLoss" xml:space="preserve"><value>ICMP packet loss: {0:0.##} %</value></data>
 </root>

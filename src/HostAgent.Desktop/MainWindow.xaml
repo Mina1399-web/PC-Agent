@@ -271,7 +271,9 @@
         <Button x:Name="DiskCleanupAction" Content="{DynamicResource Loc.DiskMaintenancePreview}" Click="DiskCleanupClick" Visibility="Collapsed"/>
         <Button x:Name="ServiceRecoveryAction" Click="ServiceRecoveryClick" Visibility="Collapsed"/>
         <Button x:Name="NetworkProbesAction" Click="NetworkProbesClick" Visibility="Collapsed"/>
+        <Button x:Name="NetworkDiagnosticsButton" Content="{DynamicResource Loc.NetDetailRead}" Click="NetworkDiagnosticsClick" IsEnabled="False"/>
        </WrapPanel>
+       <TextBlock x:Name="NetworkDiagnosticsText" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="4,6,8,2"/>
        <TextBlock x:Name="WindowsActionStatus" Style="{StaticResource Caption}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
       </StackPanel>
      </Expander>

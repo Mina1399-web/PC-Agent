@@ -47,6 +47,11 @@ public sealed record ViewDiskIoDiagnostic(string Stage, string Counter, uint Sta
 public sealed record ViewDiskIoDiagnostics(DateTimeOffset? AtUtc, string Status, IReadOnlyList<ViewDiskIoDiagnostic> Records);
 public sealed record ViewNetworkProbe(string Kind, string Status);
 public sealed record ViewNetworkChecks(DateTimeOffset AtUtc, bool Enabled, IReadOnlyList<ViewNetworkProbe> Probes);
+
+public sealed record ViewNetworkDiagnostics(ViewDataState Configuration, IReadOnlyList<ViewNetworkAdapter> Adapters,
+    bool AdapterLimitReached, IReadOnlyList<ViewNetworkDiagnosticProbe> Probes);
+public sealed record ViewNetworkAdapter(string Status, int? GatewayCount, int? DnsCount);
+public sealed record ViewNetworkDiagnosticProbe(string Kind, ViewDataState State, double? Milliseconds, double? PacketLossPercent);
 public sealed record DashboardSnapshot(DateTimeOffset GeneratedAtUtc, string Mode, bool ReadOnly, bool Degraded,
     ViewMetric? Cpu, ViewMetric? Memory, ViewMetric? Uptime, IReadOnlyList<ViewDisk> Disks,
     IReadOnlyList<ViewProcess> Processes, IReadOnlyList<ViewService> Services, int? ConnectedAdapters,
