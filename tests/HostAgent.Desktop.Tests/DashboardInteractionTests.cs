@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using HostAgent.Core.Dashboard;
+using HostAgent.Core.Models.Inventory;
 using HostAgent.Desktop;
 using HostAgent.Infrastructure.Administration;
 using HostAgent.Infrastructure.Dashboard;
@@ -533,6 +534,85 @@ public sealed class DashboardInteractionTests
     });
 
     [Fact]
+    public Task Hardware_inventory_is_read_only_bounded_and_accessible_from_system() => WithWindow((window, view) =>
+    {
+        var tabs = Assert.IsType<TabControl>(window.FindName("DashboardTabs"));
+        tabs.SelectedItem = tabs.Items.OfType<TabItem>().Single(tab => Equals(tab.Tag, DesktopRoute.System));
+        window.UpdateLayout();
+
+        var button = Assert.IsType<Button>(window.FindName("HardwareInventoryRead"));
+        var output = Assert.IsType<TextBox>(window.FindName("HardwareInventoryText"));
+        Assert.True(button.IsVisible);
+        Assert.Empty(view.HardwareInventoryRequests);
+        var now = DateTimeOffset.UtcNow;
+        view.HardwareInventoryReply = category =>
+        {
+            var state = new InventoryEvidence(HardwareInventorySources.ForCategory(category)!, now, "available", null);
+            InventoryItem Item(params InventoryField[] fields) => new(null, state, state, fields);
+            return category switch
+            {
+                "cpu" => new(category, state, [Item(new InventoryField("name", "Fixture CPU", null, state))], []),
+                "topology" => new(category, state, [Item(new InventoryField("active_core_count", null, 4, state))], []),
+                "board" => new(category, state with { Status = "unknown", AtUtc = null, Reason = "waiting_for_sample" }, [], []),
+                "bios" => new(category, state with { Status = "unavailable", Reason = "access_denied" },
+                    [Item(new InventoryField("manufacturer", "Invalid current BIOS", null, state))],
+                    [Item(new InventoryField("manufacturer", "Earlier BIOS", null, state with { AtUtc = now.AddHours(-3) }))])
+                    { PriorOmitted = 1 },
+                "firmware" => new(category, state, [Item(new InventoryField("boot_firmware_type", "uefi", null, state))], []),
+                "memory" => new(category, state with { Status = "partial", Reason = "incomplete_sample" },
+                    [Item(new("capacity_bytes", null, 8L << 30, state),
+                          new("configured_clock_mhz_reported", null, null,
+                              state with { Status = "unknown", Reason = "missing_or_placeholder" }))], []),
+                _ => throw new ArgumentOutOfRangeException(nameof(category))
+            };
+        };
+
+        button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        PumpUntil(() => output.Text.Contains("Fixture CPU", StringComparison.Ordinal));
+        Assert.Equal(new[] { "cpu", "topology", "board", "bios", "firmware", "memory" }, view.HardwareInventoryRequests);
+        Assert.DoesNotContain("Invalid current BIOS", output.Text);
+        Assert.Contains("UEFI", output.Text);
+        Assert.Contains("Win32_PhysicalMemory", output.Text);
+        Assert.True(output.Text.IndexOf("Earlier BIOS", StringComparison.Ordinal)
+            > output.Text.IndexOf(window.Localization.Text("HardwareInventoryPrior"), StringComparison.Ordinal));
+
+        var original = output.Foreground;
+        foreach (var dark in new[] { false, true })
+        {
+            if (dark) ((Button)window.FindName("ThemeButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            foreach (var language in new[] { "cs-CZ", "en", "de" })
+            {
+                window.Localization.SelectLanguage(language);
+                window.UpdateLayout();
+                var root = new System.Windows.Automation.Peers.WindowAutomationPeer(window);
+                var buttonPeer = FindPublishedPeer(root, button);
+                Assert.NotNull(buttonPeer);
+                Assert.True(buttonPeer.IsKeyboardFocusable());
+                Assert.Equal(window.Localization.Text("HardwareInventoryRead"), buttonPeer.GetName());
+                var outputPeer = FindPublishedPeer(root, output);
+                Assert.NotNull(outputPeer);
+                Assert.Equal(window.Localization.Text("HardwareInventoryTitle"), outputPeer.GetName());
+                var provider = Assert.IsAssignableFrom<System.Windows.Automation.Provider.IValueProvider>(
+                    outputPeer.GetPattern(System.Windows.Automation.Peers.PatternInterface.Value));
+                Assert.True(provider.IsReadOnly);
+                Assert.Contains(window.Localization.Text("DataTrustPartial"), provider.Value);
+                Assert.Contains(window.Localization.Text("DataTrustUnknown"), provider.Value);
+                Assert.Contains(window.Localization.Text("DataTrustUnavailable"), provider.Value);
+                Assert.Contains(window.Localization.Text("DataTrustAccessDenied"), provider.Value);
+                Assert.Contains(window.Localization.Text("HardwareInventoryGiB", 8), provider.Value);
+                Assert.Contains(window.Localization.Text("HardwareInventoryPriorOmitted", 1), provider.Value);
+            }
+            if (dark) Assert.NotSame(original, output.Foreground);
+        }
+
+        view.HardwareInventoryReply = _ => null;
+        button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        PumpUntil(() => view.HardwareInventoryRequests.Count == 12 && !output.Text.Contains("Fixture CPU"));
+        Assert.DoesNotContain("Earlier BIOS", output.Text);
+        Assert.Contains(window.Localization.Text("DataTrustUnavailable"), output.Text);
+    });
+
+    [Fact]
     public Task Network_detail_is_opt_in_and_keeps_the_newest_reply() => WithWindow((window, view) =>
     {
         ((TabControl)window.FindName("DashboardTabs")).SelectedItem = window.FindName("WindowsAdministrationTab");
@@ -651,6 +731,8 @@ public sealed class DashboardInteractionTests
         public bool OverviewDelayed {get;private set;}
         public List<(string Group, TaskCompletionSource<byte[]> Reply)> DiskRequests { get; } = [];
 
+        public List<string> HardwareInventoryRequests { get; } = [];
+        public Func<string, HardwareInventoryCategory?>? HardwareInventoryReply { get; set; }
         public int DeviceHealthRequests { get; private set; }
         public List<TaskCompletionSource<byte[]>> NetworkRequests { get; } = [];
 
@@ -665,6 +747,14 @@ public sealed class DashboardInteractionTests
         {
             var request = ViewProtocol.Parse(bytes);
             if(request.Command=="overview"&&PendingOverview is not null){OverviewDelayed=true;return new(PendingOverview.Task);}
+            if (request.Command == "hardware-inventory")
+            {
+                var category = request.Body.GetProperty("category").GetString()!;
+                HardwareInventoryRequests.Add(category);
+                return ValueTask.FromResult(HardwareInventoryReply?.Invoke(category) is { } reply
+                    ? AdminProtocol.Reply(true, "hardware-inventory", reply)
+                    : AdminProtocol.Reply(false, "view_unavailable"));
+            }
             if (request.Command == "device-health")
             {
                 DeviceHealthRequests++;

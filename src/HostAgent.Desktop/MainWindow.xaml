@@ -194,6 +194,17 @@
        <Border Style="{StaticResource Card}" Margin="0,0,8,0" Padding="12"><StackPanel><TextBlock Text="{DynamicResource Loc.Uptime}" Style="{StaticResource Caption}"/><TextBlock x:Name="SystemUptimeText" Text="—" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap"/></StackPanel></Border>
        <Border Style="{StaticResource Card}" Margin="0" Padding="12"><StackPanel><TextBlock Text="{DynamicResource Loc.OpenIncidents}" Style="{StaticResource Caption}"/><TextBlock x:Name="SystemIncidentCountText" Text="—" FontSize="22" FontWeight="SemiBold"/></StackPanel></Border>
       </UniformGrid></StackPanel></Border>
+      <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+       <StackPanel>
+        <TextBlock Text="{DynamicResource Loc.HardwareInventoryTitle}" Style="{StaticResource SectionTitle}"/>
+        <Button x:Name="HardwareInventoryRead" Content="{DynamicResource Loc.HardwareInventoryRead}"
+                Click="ReadHardwareInventoryClick" HorizontalAlignment="Left"/>
+        <TextBox x:Name="HardwareInventoryText" IsReadOnly="True" TextWrapping="Wrap" MaxHeight="320"
+                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,8,0,0"
+                 Text="{DynamicResource Loc.HardwareInventoryPrompt}"
+                 AutomationProperties.Name="{DynamicResource Loc.HardwareInventoryTitle}"/>
+       </StackPanel>
+      </Border>
      <Border Style="{StaticResource Card}" Margin="0,0,0,16"><StackPanel><TextBlock Text="{DynamicResource Loc.AgentComponents}" Style="{StaticResource SectionTitle}"/><TextBlock x:Name="HealthEmptyText" Text="{DynamicResource Loc.ComponentStatusIsNotAvailableYet}" Style="{StaticResource Caption}" Margin="0,0,0,12"/><DataGrid x:Name="HealthGrid" Height="270" AutomationProperties.Name="{DynamicResource Loc.AgentComponentStatus}"><DataGrid.Columns><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="Component" Binding="{Binding Component, Converter={StaticResource TechnicalText}}" Width="*"/><DataGridTextColumn ElementStyle="{StaticResource GridText}" local:DesktopLocalization.HeaderKey="HealthCode" Binding="{Binding Code, Converter={StaticResource TechnicalText}}" Width="*" MinWidth="180"/><DataGridTextColumn local:DesktopLocalization.HeaderKey="LimitedReasons" Binding="{Binding Reasons, Converter={StaticResource TelemetryExplanation}}" Width="2*"><DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextWrapping" Value="Wrap"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/></Style></DataGridTextColumn.ElementStyle></DataGridTextColumn><DataGridCheckBoxColumn local:DesktopLocalization.HeaderKey="Limitations" Binding="{Binding Degraded}" Width="90"/></DataGrid.Columns></DataGrid></StackPanel></Border>
      <Border Style="{StaticResource Card}" Margin="0,0,0,16"><StackPanel>
       <TextBlock Text="{DynamicResource Loc.DeviceHealthTitle}" Style="{StaticResource SectionTitle}"/>

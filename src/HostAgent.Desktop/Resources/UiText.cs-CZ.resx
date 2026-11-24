@@ -1774,4 +1774,37 @@ Složka karantény: {1}</value></data>
   <data name="NetDetailElapsed" xml:space="preserve"><value>Doba překladu názvu: {0:0.##} ms</value></data>
   <data name="NetDetailRtt" xml:space="preserve"><value>Doba odezvy ICMP: {0:0.##} ms</value></data>
   <data name="NetDetailLoss" xml:space="preserve"><value>Ztráta paketů ICMP: {0:0.##} %</value></data>
+  <data name="HardwareInventoryTitle" xml:space="preserve"><value>Přehled hardwaru</value></data>
+  <data name="HardwareInventoryRead" xml:space="preserve"><value>Načíst přehled hardwaru</value></data>
+  <data name="HardwareInventoryPrompt" xml:space="preserve"><value>Načtěte přehled hardwaru zjištěného systémem Windows.</value></data>
+  <data name="HardwareInventoryLoading" xml:space="preserve"><value>Načítá se přehled hardwaru…</value></data>
+  <data name="HardwareInventoryTopology" xml:space="preserve"><value>Topologie procesoru</value></data>
+  <data name="HardwareInventoryBoard" xml:space="preserve"><value>Základní deska</value></data>
+  <data name="HardwareInventoryBios" xml:space="preserve"><value>Údaje o BIOSu</value></data>
+  <data name="HardwareInventoryFirmware" xml:space="preserve"><value>Firmware při startu</value></data>
+  <data name="HardwareInventoryPrior" xml:space="preserve"><value>Dřívější záznamy</value></data>
+  <data name="HardwareInventoryPriorOmitted" xml:space="preserve"><value>Starší položky vynechané kvůli limitu odpovědi: {0}</value></data>
+  <data name="HardwareInventoryWaiting" xml:space="preserve"><value>Čeká se na první záznam hardwaru.</value></data>
+  <data name="HardwareInventoryNoItems" xml:space="preserve"><value>Windows pro tuto kategorii nevrátil žádné položky.</value></data>
+  <data name="HardwareInventoryLimit" xml:space="preserve"><value>Čtení dosáhlo limitu počtu položek.</value></data>
+  <data name="HardwareInventoryMissingField" xml:space="preserve"><value>Windows nevrátil použitelnou hodnotu.</value></data>
+  <data name="HardwareInventoryInvalidTime" xml:space="preserve"><value>Čas záznamu je neplatný.</value></data>
+  <data name="HardwareInventoryTopologyNeeds64Bit" xml:space="preserve"><value>Čtení topologie procesoru vyžaduje 64bitový proces.</value></data>
+  <data name="HardwareInventorySlotCollision" xml:space="preserve"><value>Windows uvedl stejnou pozici u více položek.</value></data>
+  <data name="HardwareInventorySlotUnidentified" xml:space="preserve"><value>Windows neurčil pozici.</value></data>
+  <data name="HardwareInventoryEntry" xml:space="preserve"><value>Položka {0}</value></data>
+  <data name="HardwareInventoryModel" xml:space="preserve"><value>Model</value></data>
+  <data name="HardwareInventoryManufacturer" xml:space="preserve"><value>Výrobce</value></data>
+  <data name="HardwareInventoryWmiCores" xml:space="preserve"><value>Počet jader podle WMI</value></data>
+  <data name="HardwareInventoryActiveCores" xml:space="preserve"><value>Aktivní jádra</value></data>
+  <data name="HardwareInventoryLogical" xml:space="preserve"><value>Aktivní logické procesory</value></data>
+  <data name="HardwareInventoryProduct" xml:space="preserve"><value>Produkt</value></data>
+  <data name="HardwareInventoryVersion" xml:space="preserve"><value>Verze</value></data>
+  <data name="HardwareInventoryBootType" xml:space="preserve"><value>Typ firmwaru při startu</value></data>
+  <data name="HardwareInventoryCapacity" xml:space="preserve"><value>Kapacita</value></data>
+  <data name="HardwareInventoryClock" xml:space="preserve"><value>Hlášená nastavená frekvence</value></data>
+  <data name="HardwareInventoryMemoryType" xml:space="preserve"><value>Kód typu paměti SMBIOS</value></data>
+  <data name="HardwareInventoryField" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="HardwareInventoryGiB" xml:space="preserve"><value>{0:0.##} GiB</value></data>
+  <data name="HardwareInventoryMHz" xml:space="preserve"><value>{0:N0} MHz</value></data>
 </root>
