@@ -116,6 +116,7 @@ public partial class MainWindow:Window
         _tray.ContextMenuStrip.Items[1].Text=T("ExitDashboard");
         if(_hasRefreshed)RenderSnapshot(_renderedView,false);
         else SubsystemView.Render(null, Localization, DateTimeOffset.UtcNow);
+        if(!_hasRefreshed)RenderHardwareInventory();
         if(_comparisonText is not null)ComparisonText.Text=_comparisonText();
         if(_smartText is not null)SmartResultText.Text=_smartText();
         RenderWindowsInventory();
@@ -222,6 +223,7 @@ public partial class MainWindow:Window
                 view=null;
                 _renderedState="stale";
             }
+            RenderHardwareInventory();
             RenderDeviceHealth();
             SetDataTooltips(view,now);
             RenderDesignMetrics(view);

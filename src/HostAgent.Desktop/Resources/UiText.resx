@@ -1777,4 +1777,37 @@ Quarantine folder: {1}</value></data>
   <data name="NetDetailElapsed" xml:space="preserve"><value>Resolver elapsed time: {0:0.##} ms</value></data>
   <data name="NetDetailRtt" xml:space="preserve"><value>ICMP round-trip time: {0:0.##} ms</value></data>
   <data name="NetDetailLoss" xml:space="preserve"><value>ICMP packet loss: {0:0.##} %</value></data>
+  <data name="HardwareInventoryTitle" xml:space="preserve"><value>Hardware inventory</value></data>
+  <data name="HardwareInventoryRead" xml:space="preserve"><value>Load hardware inventory</value></data>
+  <data name="HardwareInventoryPrompt" xml:space="preserve"><value>Load the hardware inventory reported by Windows.</value></data>
+  <data name="HardwareInventoryLoading" xml:space="preserve"><value>Loading hardware inventory…</value></data>
+  <data name="HardwareInventoryTopology" xml:space="preserve"><value>CPU topology</value></data>
+  <data name="HardwareInventoryBoard" xml:space="preserve"><value>Motherboard</value></data>
+  <data name="HardwareInventoryBios" xml:space="preserve"><value>BIOS information</value></data>
+  <data name="HardwareInventoryFirmware" xml:space="preserve"><value>Boot firmware</value></data>
+  <data name="HardwareInventoryPrior" xml:space="preserve"><value>Earlier observations</value></data>
+  <data name="HardwareInventoryPriorOmitted" xml:space="preserve"><value>Earlier entries omitted by the response limit: {0}</value></data>
+  <data name="HardwareInventoryWaiting" xml:space="preserve"><value>Waiting for the first inventory sample.</value></data>
+  <data name="HardwareInventoryNoItems" xml:space="preserve"><value>Windows returned no entries for this category.</value></data>
+  <data name="HardwareInventoryLimit" xml:space="preserve"><value>The inventory read reached its item limit.</value></data>
+  <data name="HardwareInventoryMissingField" xml:space="preserve"><value>Windows reported no usable value.</value></data>
+  <data name="HardwareInventoryInvalidTime" xml:space="preserve"><value>The observation time is invalid.</value></data>
+  <data name="HardwareInventoryTopologyNeeds64Bit" xml:space="preserve"><value>Reading CPU topology requires a 64-bit process.</value></data>
+  <data name="HardwareInventorySlotCollision" xml:space="preserve"><value>Windows reported the same slot for several entries.</value></data>
+  <data name="HardwareInventorySlotUnidentified" xml:space="preserve"><value>Windows did not identify the slot.</value></data>
+  <data name="HardwareInventoryEntry" xml:space="preserve"><value>Entry {0}</value></data>
+  <data name="HardwareInventoryModel" xml:space="preserve"><value>Model</value></data>
+  <data name="HardwareInventoryManufacturer" xml:space="preserve"><value>Manufacturer</value></data>
+  <data name="HardwareInventoryWmiCores" xml:space="preserve"><value>Cores reported by WMI</value></data>
+  <data name="HardwareInventoryActiveCores" xml:space="preserve"><value>Active cores</value></data>
+  <data name="HardwareInventoryLogical" xml:space="preserve"><value>Active logical processors</value></data>
+  <data name="HardwareInventoryProduct" xml:space="preserve"><value>Product</value></data>
+  <data name="HardwareInventoryVersion" xml:space="preserve"><value>Version</value></data>
+  <data name="HardwareInventoryBootType" xml:space="preserve"><value>Boot firmware type</value></data>
+  <data name="HardwareInventoryCapacity" xml:space="preserve"><value>Capacity</value></data>
+  <data name="HardwareInventoryClock" xml:space="preserve"><value>Reported configured clock rate</value></data>
+  <data name="HardwareInventoryMemoryType" xml:space="preserve"><value>SMBIOS memory type code</value></data>
+  <data name="HardwareInventoryField" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="HardwareInventoryGiB" xml:space="preserve"><value>{0:0.##} GiB</value></data>
+  <data name="HardwareInventoryMHz" xml:space="preserve"><value>{0:N0} MHz</value></data>
 </root>
