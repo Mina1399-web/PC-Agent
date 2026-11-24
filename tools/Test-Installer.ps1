@@ -74,6 +74,13 @@ $installedPaths=@(foreach($row in @(Rows 'SELECT `Component_`,`FileName` FROM `F
     $name=($row[1].Split('|') | Select-Object -Last 1)
     if($directory){$directory+'/'+$name}else{$name}
 })
+$registryRows=@(Rows 'SELECT `Registry`,`Root`,`Key`,`Name`,`Value`,`Component_` FROM `Registry`' 6)
+$autostart=@($registryRows|Where-Object {$_[1] -ceq '1' -and $_[2] -ceq 'Software\Microsoft\Windows\CurrentVersion\Run' -and $_[3] -ceq 'Host Agent'})
+if($autostart.Count -ne 1 -or $autostart[0][4] -notmatch '^"\[#File\d+\]"$'){throw 'release_installer_per_user_autostart'}
+$componentRows=@(Rows 'SELECT `Component`,`KeyPath` FROM `Component`' 2)
+$autostartComponent=@($componentRows|Where-Object {$_[0] -ceq $autostart[0][5]})
+if($autostartComponent.Count -ne 1 -or $autostartComponent[0][1] -cne $autostart[0][0]){throw 'release_installer_per_user_autostart_keypath'}
+if(@($registryRows|Where-Object {$_[1] -in @('2','-1') -and $_[2] -match 'CurrentVersion\\Run'}).Count -ne 0){throw 'release_installer_machine_autostart'}
 foreach($required in @('LICENSE','docs/operations/privacy.md','docs/legal/dotnet-runtime-10.0.12-LICENSE.txt','docs/legal/dotnet-runtime-10.0.12-THIRD-PARTY-NOTICES.txt')) {
     if($required -notin $installedPaths){throw 'release_missing_notices'}
 }
@@ -138,5 +145,5 @@ if ($DevVm -and -not $devMatches) { throw 'release_installer_dev_vm_identity' }
 $devIdentityStatus=if($ArtifactOnly){'NOTRUN'}elseif($devGuard -and $devMatches){'VERIFIED'}elseif($devGuard){'MISMATCH'}else{'NOT_APPLICABLE'}
 $shortcuts=@(Rows 'SELECT `Name`,`Directory_` FROM `Shortcut`' 2)
 $desktopShortcuts=@($shortcuts | Where-Object { $_[0].Split('|')[-1] -eq 'Host Agent' -and $_[1] -eq 'ProgramMenuFolder' })
-if($installedPaths -contains 'Desktop/HostAgent.Desktop.exe' -and $desktopShortcuts.Count -ne 1){throw 'release_installer_desktop_shortcut'}
-@{valid=$true;monitorAccount=$monitor[0][1];helperAccount=$helper[0][1];serviceCount=2;bootstrapIsSystemDeferred=$true;precopyValidationIsSystemDeferred=$true;counterReadTransactionGuarded=$true;uninstallPreservesData=$true;recoveryServiceCount=$recovery.Count;fileCount=$files.Count;installedPaths=$installedPaths;existingServicesGuarded=$guarded;devVmGuard=$devGuard;devVmIdentityMatches=$devMatches;devVmIdentityStatus=$devIdentityStatus;artifactOnly=[bool]$ArtifactOnly;submissionPreview=[bool]$SubmissionPreview;desktopShortcutCount=$desktopShortcuts.Count} | ConvertTo-Json -Compress
+if($installedPaths -contains 'Desktop/HostAgent.Desktop.exe' -and ($desktopShortcuts.Count -ne 1 -or @($shortcuts|Where-Object {$_[1] -match 'Startup'}).Count -ne 0)){throw 'release_installer_desktop_shortcut'}
+@{valid=$true;monitorAccount=$monitor[0][1];helperAccount=$helper[0][1];serviceCount=2;bootstrapIsSystemDeferred=$true;precopyValidationIsSystemDeferred=$true;counterReadTransactionGuarded=$true;uninstallPreservesData=$true;recoveryServiceCount=$recovery.Count;fileCount=$files.Count;installedPaths=$installedPaths;existingServicesGuarded=$guarded;devVmGuard=$devGuard;devVmIdentityMatches=$devMatches;devVmIdentityStatus=$devIdentityStatus;artifactOnly=[bool]$ArtifactOnly;submissionPreview=[bool]$SubmissionPreview;desktopShortcutCount=$desktopShortcuts.Count;perUserAutostart=$true} | ConvertTo-Json -Compress
