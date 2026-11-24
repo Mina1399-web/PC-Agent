@@ -13,9 +13,9 @@ name: "CodeQL Advanced"
 
 on:
   push:
-    branches: [ "codex/signpath-submission-prep" ]
+    branches: [ "codex/signpath-submission-prep", "main" ]
   pull_request:
-    branches: [ "codex/signpath-submission-prep" ]
+    branches: [ "codex/signpath-submission-prep", "main" ]
   schedule:
     - cron: '24 5 * * 5'
 
