@@ -40,6 +40,7 @@ Historical Task 4 gates passed in the approved VM (Release build 0 warnings/erro
 - [Specification](docs/specs/host-agent-v1.md)
 - [Development and testing](docs/development-and-testing.md)
 - [Implementation plan](docs/plans/2026-10-06-host-agent-v1.md)
+- [Product roadmap and milestones](docs/plans/hostagent-live-plan.md)
 - [Task 1 verification](docs/verification/task-1.md)
 - [Task 2 verification](docs/verification/task-2.md)
 - [Task 3 verification](docs/verification/task-3.md)
