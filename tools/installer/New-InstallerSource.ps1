@@ -35,6 +35,7 @@ $refs=[Text.StringBuilder]::new()
 $directories=[Text.StringBuilder]::new()
 $counter=0
 $cliId=$null
+$desktopExeId=$null
 foreach ($required in @('LICENSE','docs/operations/privacy.md','docs/legal/dotnet-runtime-10.0.12-LICENSE.txt','docs/legal/dotnet-runtime-10.0.12-THIRD-PARTY-NOTICES.txt')) {
     if (-not (Test-Path -LiteralPath (Join-Path $root $required) -PathType Leaf)) { throw 'release_missing_notices' }
     $null=Resolve-SourcePath (Join-Path $root $required) $false
@@ -56,6 +57,7 @@ foreach ($project in @('Service','Helper','Cli','Desktop','docs')) {
         if ($file.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'release_reparse_point' }
         $counter++;$id='File'+$counter
         $shortcut=if($project -eq 'Desktop' -and $file.Name -eq 'HostAgent.Desktop.exe'){'<Shortcut Id="DesktopShortcut" Directory="ProgramMenuFolder" Name="Host Agent" WorkingDirectory="DirDesktop" Advertise="yes" />'}else{''}
+        if($project -eq 'Desktop' -and $file.Name -eq 'HostAgent.Desktop.exe'){$desktopExeId=$id}
         $null=$components.Append('<DirectoryRef Id="'+$directoryIds[$file.DirectoryName]+'"><Component Id="Component'+$counter+'" Guid="*"><File Id="'+$id+'" Source="'+(Escape $file.FullName)+'" KeyPath="yes">'+$shortcut+'</File>')
         if ($file.DirectoryName -eq $projectRoot -and $file.Name -eq ('HostAgent.'+$project+'.exe') -and $project -in @('Service','Helper')) {
             $name=if ($project -eq 'Service') {'HostAgent'} else {'HostAgent.Helper'}
@@ -68,6 +70,11 @@ foreach ($project in @('Service','Helper','Cli','Desktop','docs')) {
         $null=$refs.Append('<ComponentRef Id="Component'+$counter+'" />')
     }
 }
+if($null -eq $desktopExeId){throw 'release_missing_component'}
+# The package stays per-machine for its services; only this optional-at-logon
+# registration is written to HKCU so Windows Startup Apps can disable it.
+$null=$components.Append('<DirectoryRef Id="DirDesktop"><Component Id="DesktopAutostart" Guid="*"><RegistryValue Root="HKCU" Key="Software\Microsoft\Windows\CurrentVersion\Run" Name="Host Agent" Type="string" Value="&quot;[#'+$desktopExeId+']&quot;" KeyPath="yes" /></Component></DirectoryRef>')
+$null=$refs.Append('<ComponentRef Id="DesktopAutostart" />')
 if ($null -eq $cliId) { throw 'release_missing_component' }
 $devCondition=''
 if ($DevVm) {

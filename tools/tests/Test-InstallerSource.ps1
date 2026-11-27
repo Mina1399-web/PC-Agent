@@ -49,6 +49,11 @@ function Assert-Common($Source){
     }
     $package=$xml.SelectSingleNode('/w:Wix/w:Package',$ns)
     Assert-Source ($package.Scope -ceq 'perMachine' -and $package.Version -ceq '1.2.8' -and $package.GetAttribute('Name') -ceq 'Host Agent V1' -and $package.UpgradeCode -ceq 'E839C131-FD8D-45AA-927E-A2364BD39AE2') 'package_identity'
+    $autostart=@($xml.SelectNodes('//w:RegistryValue[@Root="HKCU" and @Key="Software\Microsoft\Windows\CurrentVersion\Run" and @Name="Host Agent"]',$ns))
+    $desktopExe=@($xml.SelectNodes('//w:File',$ns)|Where-Object {$_.Source.EndsWith('Desktop\HostAgent.Desktop.exe',[StringComparison]::OrdinalIgnoreCase)})
+    Assert-Source ($autostart.Count -eq 1 -and $desktopExe.Count -eq 1 -and $autostart[0].Type -ceq 'string' -and $autostart[0].KeyPath -ceq 'yes' -and $autostart[0].Value -ceq ('"[#'+$desktopExe[0].Id+']"')) 'current_user_startup_registration'
+    Assert-Source (@($xml.SelectNodes('//w:RegistryValue[(@Root="HKLM" or @Root="HKMU") and contains(@Key,"CurrentVersion\Run")]',$ns)).Count -eq 0 -and @($xml.SelectNodes('//w:StandardDirectory[@Id="StartupFolder" or @Id="CommonStartupFolder"]',$ns)).Count -eq 0) 'no_machine_or_all_users_startup'
+    Assert-Source (@($xml.SelectNodes('//w:Feature/w:ComponentRef[@Id="DesktopAutostart"]',$ns)).Count -eq 1) 'autostart_installed_by_feature'
     Assert-Source ($xml.SelectSingleNode('//w:MajorUpgrade',$ns).Schedule -ceq 'afterInstallInitialize') 'transactional_upgrade'
     $actions=@($xml.SelectNodes('//w:CustomAction',$ns)|ForEach-Object {$_.Id})
     Assert-Source ($actions.Count -eq 9) 'only_declared_actions'
