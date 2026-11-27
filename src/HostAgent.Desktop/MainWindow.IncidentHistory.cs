@@ -145,19 +145,21 @@ public partial class MainWindow
             _ = LoadSelectedIncidentAsync();
     }
 
-    private void SelectIncidentFromTriage(string? id)
+    private void SelectIncidentFromTriage(string? id) => SelectIncidentForEvidence(id);
+
+    private void SelectIncidentForEvidence(string? id)
     {
         var listed = IncidentsGrid.Items.OfType<ViewIncident>().FirstOrDefault(row => row.Id == id);
-        if (listed is not null)
+        _applyingHistoryRows = true;
+        try
         {
             IncidentsGrid.SelectedItem = listed;
-            IncidentsGrid.ScrollIntoView(listed);
-            return;
+            _historyPinnedIncident = listed is null ? _renderedView?.Incidents.FirstOrDefault(row => row.Id == id) : null;
+            if (listed is not null) IncidentsGrid.ScrollIntoView(listed);
         }
-        _applyingHistoryRows = true;
-        try { IncidentsGrid.UnselectAll(); }
         finally { _applyingHistoryRows = false; }
-        _historyPinnedIncident = _renderedView?.Incidents.FirstOrDefault(row => row.Id == id);
+
+        // Selecting the same row raises no SelectionChanged event.
         _ = LoadSelectedIncidentAsync();
     }
 

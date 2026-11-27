@@ -375,7 +375,17 @@ public partial class MainWindow:Window
             var disk=card.Code.StartsWith("disk_space:",StringComparison.Ordinal)?card.Code["disk_space:".Length..]:null;
             var button=new Button{Content=disk is not null?T("DiskMaintenancePreview"):card.Action==GuidedAction.Investigate?T("ReviewSavedEvidence"):T("OpenWindowsManagement"),HorizontalAlignment=HorizontalAlignment.Left,Margin=new Thickness(0,10,0,0)};
             if(disk is not null)button.IsEnabled=MaintenanceWindow.MatchesDefaultVolume(disk);
-            button.Click+=async(_,_)=>{if(disk is not null)await OpenDiskCleanup(disk);else if(card.Action==GuidedAction.Investigate)await Investigate();else OpenManagementArea(card.Action);};
+            button.Click += async (_, _) =>
+            {
+                if (disk is not null) await OpenDiskCleanup(disk);
+                else if (card is { Code: "analyze_crash", Action: GuidedAction.Investigate, IncidentId: { } id })
+                {
+                    NavigateTo(DesktopRoute.Events);
+                    SelectIncidentForEvidence(id);
+                }
+                else if (card.Action == GuidedAction.Investigate) await Investigate();
+                else OpenManagementArea(card.Action);
+            };
             panel.Children.Add(button);RecommendationsPanel.Children.Add(new Border{Child=panel,Style=(Style)FindResource("Card"),Margin=new Thickness(0,0,0,16)});
         }
     }
@@ -406,7 +416,7 @@ public partial class MainWindow:Window
             var detail=await _controller.ReadAsync<ViewIncidentDetail>("incident",new{incidentId=incident.Id},_closing.Token);
             if(_closing.IsCancellationRequested||requestVersion!=_detailRequestVersion
                 ||SelectedEventIncident?.Id!=incident.Id)return;
-            _selectedDetail=detail;
+            _selectedDetail = detail?.Incident?.Id == incident.Id ? detail : null;
             _detailLoading=false;RenderDetail();
         }
         catch(OperationCanceledException) when(_closing.IsCancellationRequested){}
