@@ -103,12 +103,23 @@ public sealed class DiagnosticEngine : IDiagnosticEngine
 
     private static IReadOnlyList<MetricSample> GetSustainedCpuSamples(IReadOnlyList<MetricSample> samples)
     {
+        var observations = samples
+            .GroupBy(static sample => sample.SampledAtUtc)
+            .Select(static group => new
+            {
+                Sample = group.First(),
+                HasConflictingValues = group.Select(static sample => sample.Value).Distinct().Skip(1).Any()
+            })
+            .OrderBy(static observation => observation.Sample.SampledAtUtc)
+            .ToArray();
         var suffix = new List<MetricSample>();
-        for (var index = samples.Count - 1; index >= 0; index--)
+        for (var index = observations.Length - 1; index >= 0; index--)
         {
-            var sample = samples[index];
-            if (sample.Value is not (>= SustainedCpuThresholdPercent and <= 100)
-                || (!suffix.Count.Equals(0)
+            var observation = observations[index];
+            var sample = observation.Sample;
+            if (observation.HasConflictingValues
+                || sample.Value is not (>= SustainedCpuThresholdPercent and <= 100)
+                || (suffix.Count > 0
                     && suffix[^1].SampledAtUtc - sample.SampledAtUtc > TimeSpan.FromSeconds(90)))
             {
                 break;
