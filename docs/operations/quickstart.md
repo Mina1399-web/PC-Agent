@@ -1,6 +1,6 @@
 # Host Agent V1 operator guide
 
-Host Agent has two Windows services, an elevated local CLI and a local dashboard that runs without elevation. Open **Host Agent** from Start; see the [dashboard and maintenance guide](dashboard.md). No public listener, separate .NET installation or source-code editing is required. The MSI installs self-contained Windows x64 binaries under Program Files/HostAgent. Service startup does not require an interactive login.
+Host Agent has two Windows services, an elevated local CLI and a local dashboard that runs without elevation. Open **Host Agent** from Start; see the [dashboard and maintenance guide](dashboard.md). No public listener, separate .NET installation or source-code editing is required. The MSI installs self-contained Windows x64 binaries under Program Files/HostAgent. The Desktop is registered to start after sign-in for the installing user and can be disabled or re-enabled in **Settings > Apps > Startup**; service startup does not require an interactive login.
 
 ## Install
 
