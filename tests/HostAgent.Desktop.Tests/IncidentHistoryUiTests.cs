@@ -187,5 +187,90 @@ public sealed class IncidentHistoryUiTests
             finally { window.Close(); }
         });
 
+    [Theory]
+    [InlineData(true, "matching")]
+    [InlineData(false, "matching")]
+    [InlineData(false, "missing")]
+    [InlineData(false, "mismatched")]
+    public Task Crash_recommendation_opens_exact_saved_evidence_and_ignores_previous_request(
+        bool targetOnPage, string response) => StaTest.RunAsync(() =>
+    {
+        var now = DateTimeOffset.UtcNow.AddMinutes(-1);
+        var target = new ViewIncident(Guid.NewGuid().ToString("N"), "Active", "windows_bugcheck", 80, "Warning", now, 1)
+            { CreatedAtUtc = now, UpdatedAtUtc = now };
+        var other = new ViewIncident(Guid.NewGuid().ToString("N"), "Active", "memory_pressure", 80, "Warning", now, 1)
+            { CreatedAtUtc = now, UpdatedAtUtc = now };
+        var listed = targetOnPage ? target : other;
+        var view = new DashboardSnapshot(DateTimeOffset.UtcNow, "Shadow", true, false, null, null, null, [], [], [], null,
+            [target, other], [], [], []) { SupportsIncidentHistory = true };
+        var loc = TestLocalization.CzechStandard();
+        var pending = new TaskCompletionSource<byte[]>();
+        var requestedIds = new List<string>();
+        var investigations = 0;
+
+        byte[] Detail(ViewIncident row, string source) => AdminProtocol.Reply(true, "incident",
+            new ViewIncidentDetail(row, "stop_code_classification_only", [new ViewEvidence(source, 1, now)], false));
+
+        var controller = new DashboardController((payload, _) =>
+        {
+            var request = ViewProtocol.Parse(payload);
+            switch (request.Command)
+            {
+                case "overview": return ValueTask.FromResult(AdminProtocol.Reply(true, "overview", view));
+                case "history": return ValueTask.FromResult(AdminProtocol.Reply(true, "history", Array.Empty<ViewMetric>()));
+                case "incident-page":
+                    return ValueTask.FromResult(AdminProtocol.Reply(true, "incident-page", new ViewIncidentPage([listed], null)));
+                case "investigate":
+                    investigations++;
+                    return ValueTask.FromResult(AdminProtocol.Reply(false, "view_request_rejected", null));
+                case "incident":
+                    requestedIds.Add(request.Body.GetProperty("incidentId").GetString()!);
+                    return requestedIds.Count == 1 ? new ValueTask<byte[]>(pending.Task) : ValueTask.FromResult(response switch
+                    {
+                        "matching" => Detail(target, "target-evidence"),
+                        "mismatched" => Detail(other, "wrong-evidence"),
+                        _ => AdminProtocol.Reply(false, "view_request_rejected", null)
+                    });
+                default: throw new InvalidOperationException(request.Command);
+            }
+        });
+
+        var window = new MainWindow(controller, loc);
+        try
+        {
+            window.Show();
+            Drain();
+            var tabs = Assert.IsAssignableFrom<TabControl>(window.FindName("DashboardTabs"));
+            TabItem Tab(DesktopRoute route) => tabs.Items.OfType<TabItem>().Single(tab => Equals(tab.Tag, route));
+            tabs.SelectedItem = Tab(DesktopRoute.Events);
+            Drain();
+            var grid = Assert.IsAssignableFrom<DataGrid>(window.FindName("IncidentsGrid"));
+            grid.SelectedIndex = 0;
+            Assert.Equal(new[] { listed.Id }, requestedIds);
+            tabs.SelectedItem = Tab(DesktopRoute.Recommendations);
+            Drain();
+
+            var panel = Assert.IsAssignableFrom<StackPanel>(window.FindName("RecommendationsPanel"));
+            var card = Assert.IsAssignableFrom<StackPanel>(Assert.Single(panel.Children.OfType<Border>()).Child);
+            Assert.Single(card.Children.OfType<Button>()).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Drain();
+
+            Assert.Same(Tab(DesktopRoute.Events), tabs.SelectedItem);
+            Assert.Equal(new[] { listed.Id, target.Id }, requestedIds);
+            Assert.Equal(0, investigations);
+            if (targetOnPage) Assert.Equal(target.Id, Assert.IsType<ViewIncident>(grid.SelectedItem).Id);
+            else Assert.Null(grid.SelectedItem);
+
+            var detail = Assert.IsAssignableFrom<TextBox>(window.FindName("DetailText"));
+            if (response == "matching") Assert.Contains("target-evidence", detail.Text);
+            else Assert.Equal(loc.Text("DetailsAreUnavailable"), detail.Text);
+            var latestText = detail.Text;
+            pending.SetResult(Detail(listed, "late-evidence"));
+            Drain();
+            Assert.Equal(latestText, detail.Text);
+        }
+        finally { window.Close(); }
+    });
+
     private static void Drain() => Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
 }
