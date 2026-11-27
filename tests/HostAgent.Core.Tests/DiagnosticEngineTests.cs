@@ -37,6 +37,67 @@ public sealed class DiagnosticEngineTests
     }
 
     [Fact]
+    public async Task Duplicate_cpu_timestamp_does_not_supply_a_fifth_sustained_sample()
+    {
+        var repeatedAt = Now.AddMinutes(-3);
+        var samples = new[]
+        {
+            CpuSample(Now.AddMinutes(-4.5), 95),
+            CpuSample(repeatedAt, 95),
+            CpuSample(repeatedAt, 95),
+            CpuSample(Now.AddMinutes(-1.5), 95),
+            CpuSample(Now, 95)
+        };
+
+        Assert.Empty(await EvaluateAsync(CreateEvidence(recentMetrics: samples)));
+    }
+
+    [Fact]
+    public async Task Identical_cpu_duplicates_are_merged_without_increasing_confidence()
+    {
+        var samples = Enumerable.Range(0, 5)
+            .Select(index => CpuSample(Now.AddMinutes(index - 4), 95))
+            .ToList();
+        samples.Add(CpuSample(Now.AddMinutes(-2), 95));
+
+        var diagnosis = Assert.Single(await EvaluateAsync(CreateEvidence(
+            cpuMemory: CreateCpu(95, new ProcessResourceUsage(17, "Worker", 80, 100, null)),
+            recentMetrics: samples)));
+
+        Assert.Equal(85, ReadInt32(diagnosis, "Confidence"));
+    }
+
+    [Fact]
+    public async Task Conflicting_cpu_values_at_one_timestamp_break_the_sustained_series()
+    {
+        var conflictingAt = Now.AddMinutes(-2);
+        var samples = Enumerable.Range(0, 5)
+            .Select(index => CpuSample(Now.AddMinutes(index - 4), 95))
+            .Append(CpuSample(conflictingAt, 96))
+            .ToArray();
+
+        Assert.Empty(await EvaluateAsync(CreateEvidence(recentMetrics: samples)));
+    }
+
+    [Fact]
+    public async Task Sustained_cpu_series_accepts_exactly_ninety_second_gaps_but_not_longer_gaps()
+    {
+        var accepted = new[]
+        {
+            CpuSample(Now.AddMinutes(-4.5), 95),
+            CpuSample(Now.AddMinutes(-3.5), 95),
+            CpuSample(Now.AddMinutes(-2), 95),
+            CpuSample(Now.AddMinutes(-1), 95),
+            CpuSample(Now, 95)
+        };
+        Assert.Equal(60, ReadInt32(Assert.Single(await EvaluateAsync(CreateEvidence(recentMetrics: accepted))), "Confidence"));
+
+        var overLimit = accepted.ToArray();
+        overLimit[2] = CpuSample(Now.AddMinutes(-2).AddTicks(1), 95);
+        Assert.Empty(await EvaluateAsync(CreateEvidence(recentMetrics: overLimit)));
+    }
+
+    [Fact]
     public async Task Full_disk_with_update_error_is_one_correlated_disk_root_cause()
     {
         var evidence = CreateEvidence(
